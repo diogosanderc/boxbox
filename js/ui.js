@@ -136,7 +136,7 @@
     const catPlano = plano.equipe ? Jogo.categoria(Jogo.equipe(estado, plano.equipe).categoria) : null;
     const esperado = catPlano ? Jogo.posicaoEsperada(p, catPlano) : null;
     return `<div class="painel cartao-piloto">
-      <div class="linha"><h2>${esc(p.nome)}</h2><span class="espaco"></span><button data-acao="dispensar" data-id="${p.id}">Dispensar</button></div>
+      <div class="linha"><h2>${esc(p.nome)}</h2><span class="espaco"></span><button data-acao="dispensar" data-id="${p.id}" data-confirmar="Confirmar dispensa">Dispensar</button></div>
       ${infoPiloto(p)}
       <div class="campo"><label>Vaga para ${estado.ano} (custo para você, já descontada a família)</label>
         <select data-acao="plano-equipe" data-id="${p.id}">
@@ -212,7 +212,7 @@
         <p>Títulos: <b>${ac.titulos}</b> · Pilotos na F1: <b>${ac.pilotosF1}</b></p>
         ${ex.length ? ex.map((p) => `<div>${p.categoria === 'f1' && !p.aposentado ? '🏁' : '·'} ${esc(p.nome)}: ${p.f1 ? `F1 pela ${esc(p.f1.equipe)} (${p.f1.estreia})` : 'encerrou a carreira'}</div>`).join('') : '<p class="fraco">Nenhum ex-piloto ainda.</p>'}
       </div>
-      <div class="painel"><p><button data-acao="abandonar">Apagar jogo e recomeçar</button></p></div>
+      <div class="painel"><p><button data-acao="abandonar" data-confirmar="Clique de novo para apagar o jogo salvo">Apagar jogo e recomeçar</button></p></div>
     </div>`;
   }
 
@@ -444,19 +444,33 @@
       <h1>Falência</h1>
       <p>A ${esc(ac.nome)} fechou ${estado.ano - 1} com ${din(ac.dinheiro)} em caixa e encerrou as atividades.</p>
       <p>Títulos: <b>${ac.titulos}</b> · Pilotos levados à F1: <b>${ac.pilotosF1}</b></p>
-      <button class="principal" data-acao="abandonar-sem-confirmar">Começar de novo</button>
+      <button class="principal" data-acao="abandonar">Começar de novo</button>
     </div>`;
   }
 
   // ---------- ações ----------
+  // Aviso na própria página (o jogo também roda onde alert/confirm são bloqueados).
+  let timerAviso = null;
   function erro(r) {
-    if (r && !r.ok) alert(r.erro);
+    if (!r || r.ok) return;
+    const el = document.getElementById('aviso');
+    el.textContent = r.erro;
+    el.hidden = false;
+    clearTimeout(timerAviso);
+    timerAviso = setTimeout(() => { el.hidden = true; }, 3500);
   }
 
   app.addEventListener('click', (ev) => {
     const alvo = ev.target.closest('button[data-acao]');
     if (!alvo || alvo.disabled) return;
     const { acao, id } = alvo.dataset;
+    // Ações destrutivas pedem um segundo clique no mesmo botão.
+    if (alvo.dataset.confirmar && alvo.dataset.armado !== '1') {
+      alvo.dataset.armado = '1';
+      alvo.textContent = alvo.dataset.confirmar;
+      alvo.classList.add('principal');
+      return;
+    }
     const carro = (tela.corrida && id) ? tela.corrida.carros.find((c) => c.id === id) : null;
 
     switch (acao) {
@@ -476,9 +490,6 @@
         ir(telaDaFase());
         break;
       case 'abandonar':
-        if (!confirm('Apagar o jogo salvo e recomeçar?')) break;
-      // falls through
-      case 'abandonar-sem-confirmar':
         apagarSave();
         estado = null;
         ir({ nome: 'inicio' });
@@ -497,11 +508,9 @@
         render();
         break;
       case 'dispensar':
-        if (confirm(`Dispensar ${Jogo.piloto(estado, id).nome}? Ele vai embora da academia.`)) {
-          Jogo.dispensar(estado, id);
-          salvar();
-          render();
-        }
+        Jogo.dispensar(estado, id);
+        salvar();
+        render();
         break;
       case 'melhorar':
         erro(Jogo.melhorarAcademia(estado, alvo.dataset.tipo));

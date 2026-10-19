@@ -115,3 +115,10 @@ select { max-width: 100%; }
 .negativo { color: #ff6b6b; }
 .noticias div { padding: 6px 0; border-top: 1px solid var(--borda); }
 .barra-acao { position: sticky; bottom: 0; background: var(--fundo); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--borda); }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  max-width: calc(100% - 32px); background: var(--alerta); color: #111; font-weight: 600;
+  padding: 10px 16px; border-radius: 8px; z-index: 20; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
