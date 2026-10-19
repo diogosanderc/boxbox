@@ -1,0 +1,117 @@
+:root {
+  --fundo: #0f1115;
+  --painel: #181b22;
+  --painel-2: #20242d;
+  --borda: #2c313c;
+  --texto: #e8eaed;
+  --fraco: #9aa0aa;
+  --destaque: #e10600;
+  --ok: #2fbf71;
+  --alerta: #ffb020;
+  --jogador: rgba(225, 6, 0, 0.14);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+button {
+  font: inherit;
+  color: var(--texto);
+  background: var(--painel-2);
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--fraco); }
+button:disabled { opacity: 0.4; cursor: default; }
+button.principal { background: var(--destaque); border-color: var(--destaque); font-weight: 600; }
+button.ativo { border-color: var(--texto); background: #2f3540; }
+select { font: inherit; background: var(--painel-2); color: var(--texto); border: 1px solid var(--borda); border-radius: 6px; padding: 4px; }
+
+.topo {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; border-bottom: 3px solid var(--destaque); background: #0a0b0e;
+}
+.marca { font-weight: 900; font-size: 22px; letter-spacing: 1px; font-style: italic; }
+.marca span { color: var(--destaque); }
+.marca small { font-size: 12px; font-weight: 500; color: var(--fraco); font-style: normal; letter-spacing: 0; }
+.status { color: var(--fraco); font-size: 14px; }
+.status b { color: var(--texto); }
+
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h1, h2, h3 { margin: 0 0 10px; }
+h2 { font-size: 18px; }
+h3 { font-size: 15px; color: var(--fraco); text-transform: uppercase; letter-spacing: 0.5px; }
+.fraco { color: var(--fraco); }
+.grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.painel { background: var(--painel); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; min-width: 0; }
+.linha { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.espaco { flex: 1; }
+
+.equipes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.cartao-equipe { text-align: left; border-left: 5px solid; padding: 12px; }
+.cartao-equipe b { display: block; font-size: 16px; margin-bottom: 4px; }
+
+.barra { display: grid; grid-template-columns: 110px 1fr 34px; gap: 8px; align-items: center; margin: 6px 0; font-size: 14px; }
+.barra .trilho { height: 8px; background: var(--painel-2); border-radius: 4px; overflow: hidden; }
+.barra .trilho i { display: block; height: 100%; background: var(--destaque); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; color: var(--fraco); font-weight: 500; font-size: 12px; text-transform: uppercase; padding: 4px 6px; }
+td { padding: 5px 6px; border-top: 1px solid var(--borda); white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.jogador td { background: var(--jogador); }
+tr.fora td { opacity: 0.45; }
+.tabela-rolagem { overflow-x: auto; }
+.cor { display: inline-block; width: 4px; height: 14px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+.pneu {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%; border: 3px solid; font-size: 10px; font-weight: 800;
+  background: #111; color: var(--texto);
+}
+button.pneu-btn { padding: 4px 8px; display: inline-flex; gap: 6px; align-items: center; }
+
+.sc { background: var(--alerta); color: #111; font-weight: 800; padding: 4px 10px; border-radius: 6px; }
+.eventos { max-height: 420px; overflow-y: auto; font-size: 13px; }
+.eventos div { padding: 4px 0; border-top: 1px solid var(--borda); }
+.eventos .v { color: var(--fraco); display: inline-block; width: 34px; }
+.ev-abandono { color: #ff6b6b; }
+.ev-sc, .ev-alerta { color: var(--alerta); }
+.ev-box { color: #8ab4ff; }
+.ev-fim { color: var(--ok); font-weight: 700; }
+.ev-jogador { font-weight: 600; }
+
+.corrida { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 340px; }
+@media (max-width: 900px) { .corrida { grid-template-columns: 1fr; } }
+.box-piloto { border: 1px solid var(--borda); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.box-piloto .linha { margin-top: 6px; }
+.dinheiro { color: var(--ok); }
+.aviso { color: var(--alerta); font-size: 13px; }
+
+/* ---------- carreira ---------- */
+input[type="text"] { font: inherit; background: var(--painel-2); color: var(--texto); border: 1px solid var(--borda); border-radius: 6px; padding: 7px 10px; width: 100%; max-width: 360px; }
+select { max-width: 100%; }
+.abas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.abas button.ativo { border-color: var(--destaque); background: var(--jogador); }
+.pilotos { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+@media (max-width: 400px) { .pilotos { grid-template-columns: 1fr; } }
+.cartao-piloto h2 { margin-bottom: 2px; }
+.etiqueta { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 10px; background: var(--painel-2); border: 1px solid var(--borda); }
+.etiqueta.f1 { background: var(--destaque); border-color: var(--destaque); font-weight: 700; }
+.estrelas { color: #ffd400; letter-spacing: 1px; }
+.progresso { height: 8px; background: var(--painel-2); border-radius: 4px; overflow: hidden; margin: 4px 0; }
+.progresso i { display: block; height: 100%; background: var(--ok); }
+.campo { margin-top: 10px; }
+.campo label { display: block; font-size: 12px; color: var(--fraco); text-transform: uppercase; margin-bottom: 3px; }
+.campo select { width: 100%; }
+.resumo-financeiro { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; max-width: 360px; }
+.resumo-financeiro .total { border-top: 1px solid var(--borda); padding-top: 4px; font-weight: 700; }
+.negativo { color: #ff6b6b; }
+.noticias div { padding: 6px 0; border-top: 1px solid var(--borda); }
+.barra-acao { position: sticky; bottom: 0; background: var(--fundo); padding: 12px 0; margin-top: 16px; border-top: 1px solid var(--borda); }

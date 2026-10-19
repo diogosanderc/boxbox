@@ -1,0 +1,9 @@
+{
+  "name": "boxbox",
+  "version": "0.1.0",
+  "description": "Box Box: jogo de gestão de academia de pilotos, do kart à Fórmula 1",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
