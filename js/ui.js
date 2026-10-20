@@ -77,41 +77,12 @@
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. O kart não tem mecânico: o acerto é seu, e o caderno guarda o que você testou. Se quiser ajuda, contrate o mecânico durante o treino: ele dá um palpite depois de cada saída e pode acertar o kart por você uma vez. Custa caro e vale só para esta etapa.'],
     quali: ['Classificação', 'A volta lançada define o grid. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid só cabem ajustes finos em relação à classificação (pressão ±1 psi, relação ±1 dente, carburação ±1). Eixo e bitola ficam travados. Dá para trocar o jogo de pneus. Na corrida o asfalto tem mais borracha que na classificação.'],
-    // Um "?" para cada ajuste do kart: o que é, o que o piloto sente e exemplos de quando mexer.
-    pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.', [
-      'Piloto diz "o kart está pesado, os pneus demoram a pegar temperatura": a pressão está baixa. Suba.',
-      'Piloto diz "os pneus superaquecem e o kart escorrega depois de algumas voltas": a pressão está alta. Baixe.',
-      'Asfalto quente (tarde de sol) pede pressão mais baixa. Manhã fria pede mais alta.',
-      'Pneu de chuva trabalha com pressão bem mais alta que o slick.',
-      'Pressão errada também gasta o pneu mais rápido.',
-    ]],
-    eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.', [
-      'Piloto diz "o kart está amarrado, pulando no meio das curvas": eixo mole demais. Endureça.',
-      'Piloto diz "a traseira está solta, escapa na saída das curvas": eixo duro demais. Amoleça.',
-      'Asfalto quente e pista emborrachada (tarde) dão muita aderência: costuma pedir eixo mais duro.',
-      'Pista veloz pede eixo mais duro; pista travada, mais mole.',
-      'Na chuva quase não há aderência: eixo mole.',
-    ]],
-    bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.', [
-      'Piloto diz "o kart sai de frente, não quer virar na entrada": bitola estreita demais. Abra.',
-      'Piloto diz "a frente morde demais, o kart fica nervoso": bitola larga demais. Feche.',
-      'Pista travada, cheia de curva fechada: bitola larga. Pista veloz: estreita.',
-      'Na chuva, abrir a bitola ajuda a frente a virar.',
-    ]],
-    coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força.', [
-      'Piloto diz "falta força na saída das curvas, demora a embalar": ponha mais dentes.',
-      'Piloto diz "o motor estoura o giro antes do fim da reta": tire dentes.',
-      'Pista travada pede mais dentes; pista veloz, com retas longas, pede menos.',
-      'Pista no alto (altitude) tem ar mais fraco, e o motor rende menos: ponha uns dentes a mais.',
-      'Na chuva a velocidade é menor: mais dentes ajudam.',
-    ]],
-    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode travar.', [
-      'Piloto diz "o motor está quente e gritando demais": está pobre. Enriqueça antes que trave.',
-      'Piloto diz "o motor está afogando, engasga nas retomadas": está rica. Empobreça.',
-      'Ar frio pede carburação mais rica; dia quente, mais pobre.',
-      'Pista no alto (altitude) tem menos ar: empobreça um pouco.',
-      'Pobre demais é perigoso: o motor pode travar no meio da corrida.',
-    ]],
+    // Um "?" para cada ajuste do kart: o que ele significa.
+    pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.'],
+    eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.'],
+    bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.'],
+    coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força.'],
+    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode travar.'],
     temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
@@ -120,14 +91,12 @@
   const balao = document.createElement('div');
   balao.className = 'balao-fundo';
   balao.hidden = true;
-  balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><div class="exemplos" hidden><b>Exemplos</b><ul></ul></div><button class="principal" data-fechar>Entendi</button></div>';
+  balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><button class="principal" data-fechar>Entendi</button></div>';
   document.body.appendChild(balao);
   function abrirAjuda(chave) {
-    const [titulo, texto, exemplos] = AJUDAS[chave];
+    const [titulo, texto] = AJUDAS[chave];
     balao.querySelector('h3').textContent = titulo;
     balao.querySelector('p').textContent = texto;
-    balao.querySelector('.exemplos').hidden = !exemplos;
-    balao.querySelector('.exemplos ul').innerHTML = (exemplos || []).map((x) => `<li>${esc(x)}</li>`).join('');
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
   }
