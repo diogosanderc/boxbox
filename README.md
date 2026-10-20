@@ -26,6 +26,14 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Top 3 ou popularidade alta liberam o campeonato
    seguinte: Copa Regional → Brasileiro → Europeu. Brilhar no Brasileiro ou no Europeu traz proposta de F4.
 
+### Pneus
+
+- Treine com o jogo mais gasto e guarde o novo para a classificação e a corrida.
+- Pneu **zerado** rende menos nas primeiras voltas. No treino dá para **amaciar** (2 voltas rápidas, sem gastar uma saída):
+  na classificação o pneu amaciado vale cerca de um décimo por volta.
+- No paddock, toque num jogo para **vender** a outra equipe (até metade do preço, menos quanto mais gasto),
+  **doar** para a escolinha (moral e popularidade sobem, uma vez por etapa) ou jogar fora. Cabem 6 jogos no estoque.
+
 ### O segredo do kart
 
 Cada pista e condição tem um **acerto ideal escondido**. Ele muda com o tipo de pista (travada, mista ou veloz), a altitude,

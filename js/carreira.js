@@ -206,7 +206,18 @@
     };
   }
 
+  // Estoque de pneus: no máximo MAX_PNEUS jogos guardados.
+  const MAX_PNEUS = 6;
+  const VIDA_PNEU = 26; // voltas até o pneu "cair"
+  // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
+  const AMACIAR_VOLTAS = 2;
+  const pneuNovo = (p) => p.uso < 1;
+  const pneuAmaciado = (p) => p.uso >= 1 && p.uso <= 4;
+  // Segundos a mais numa volta por causa de pneu ainda zerado (some depois de ~3 voltas).
+  const penalidadeZerado = (uso) => Math.max(0, 0.6 * (1 - uso / 3));
+
   function comprarPneu(estado, tipo, gratis = false) {
+    if (estado.pneus.length >= MAX_PNEUS) return { ok: false, erro: `Estoque cheio (${MAX_PNEUS} jogos): venda, doe ou descarte um pneu.` };
     const preco = Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
     if (!gratis) estado.dinheiro -= preco;
@@ -220,6 +231,45 @@
 
   function descartarPneu(estado, id) {
     estado.pneus = estado.pneus.filter((p) => p.id !== id);
+  }
+
+  // Venda de pneu usado para equipes menores: até metade do preço, menos quanto mais gasto.
+  function valorVendaPneu(estado, p) {
+    const preco = Kart.PNEUS_KART[p.tipo].preco * campeonato(estado.campeonato).custo;
+    return Math.round(preco * Math.max(0.05, 0.5 * (1 - p.uso / VIDA_PNEU)) / 10) * 10;
+  }
+
+  function venderPneu(estado, id) {
+    const p = pneuPorId(estado, id);
+    if (!p) return { ok: false, erro: 'Pneu não encontrado.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'Pneu só se vende no paddock.' };
+    const valor = valorVendaPneu(estado, p);
+    estado.dinheiro += valor;
+    descartarPneu(estado, id);
+    return { ok: true, valor };
+  }
+
+  // Doar para a escolinha de kart: sem dinheiro, mas o piloto e o público gostam (uma vez por etapa).
+  function doarPneu(estado, id) {
+    if (!pneuPorId(estado, id)) return { ok: false, erro: 'Pneu não encontrado.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'A doação é feita no paddock.' };
+    if (estado.doacaoEtapa === `${estado.ano}-${estado.etapa}`) return { ok: false, erro: 'Você já doou nesta etapa.' };
+    descartarPneu(estado, id);
+    estado.doacaoEtapa = `${estado.ano}-${estado.etapa}`;
+    mexerCabeca(estado, { moral: 3 }, 'Doou pneus para a escolinha');
+    estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
+    noticia(estado, `${estado.piloto.nome} doa pneus para a escolinha de kart.`);
+    return { ok: true };
+  }
+
+  // Amaciar: duas voltas rápidas com o pneu novo no treino, sem gastar uma saída.
+  function amaciarPneu(estado) {
+    const fds = estado.fds;
+    if (!fds || fds.sessao !== 'treino') return { ok: false, erro: 'Só dá para amaciar pneu no treino livre.' };
+    const p = pneuPorId(estado, fds.pneuId);
+    if (!p || !pneuNovo(p)) return { ok: false, erro: 'Escolha um jogo de pneus novo para amaciar.' };
+    p.uso = AMACIAR_VOLTAS;
+    return { ok: true };
   }
 
   // O motor só é revisado no paddock: no fim de semana não dá para mexer nele.
@@ -512,6 +562,7 @@
       const t = Engine.ritmoBase(entrada, pista) - 0.6
         + ef.tempo + cab.tempo + chuvaPiloto(entrada.piloto, cond)
         + Engine.PNEUS.Md.desgaste * (usoPneu + i * ef.desgaste)
+        + penalidadeZerado(usoPneu + i * ef.desgaste)
         + rnd.gauss() * (0.35 - entrada.piloto.consistencia * 0.0025) * ef.sigma * cab.sigma;
       melhor = Math.min(melhor, t);
     }
@@ -628,7 +679,7 @@
     pneu.uso += 3;
     for (const r of estado.rivais) {
       const ia = fds.ia[r.id];
-      tempos.push({ id: r.id, tempo: voltaLancada(estado, entradaRival(estado, r), ia.tarde, ia.pneu, 1, cond, rnd, 3).tempo });
+      tempos.push({ id: r.id, tempo: voltaLancada(estado, entradaRival(estado, r), ia.tarde, ia.pneu, AMACIAR_VOLTAS, cond, rnd, 3).tempo });
     }
     tempos.sort((a, b) => a.tempo - b.tempo);
     fds.quali = tempos;
@@ -668,6 +719,7 @@
       const ef = Kart.efeito(setup, pista, cond, pneu);
       // Motor passado da revisão aguenta menos quando é forçado.
       if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 1);
+      if (c.jogador) ef.tempo += penalidadeZerado(c.uso);
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
@@ -904,7 +956,7 @@
 
   const Carreira = {
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
+    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

@@ -411,3 +411,50 @@ test('kart quase no ponto: o piloto elogia em vez de reclamar', () => {
     assert.ok(!f.some((x) => /estranho|não está legal|alguma coisa/.test(x)));
   }
 });
+
+test('pneus usados: vender, doar, estoque cheio e amaciar', () => {
+  const e = Carreira.novoJogo({ seed: 6 });
+  const [novo, , chuva] = e.pneus;
+  // venda: pneu novo vale metade; gasto vale bem menos
+  const v0 = Carreira.valorVendaPneu(e, novo);
+  assert.strictEqual(v0, Math.round(Kart.PNEUS_KART.slick.preco * 0.5 / 10) * 10);
+  assert.ok(Carreira.valorVendaPneu(e, { ...novo, uso: 20 }) < v0 / 2);
+  const din = e.dinheiro;
+  assert.ok(Carreira.venderPneu(e, novo.id).ok);
+  assert.strictEqual(e.dinheiro, din + v0);
+  // doação: moral sobe, só uma vez por etapa
+  const moral = e.piloto.moral;
+  assert.ok(Carreira.doarPneu(e, chuva.id).ok);
+  assert.ok(e.piloto.moral > moral);
+  assert.strictEqual(Carreira.doarPneu(e, e.pneus[0].id).ok, false);
+  // estoque cheio
+  e.dinheiro = 1e6;
+  while (e.pneus.length < Carreira.MAX_PNEUS) assert.ok(Carreira.comprarPneu(e, 'slick').ok);
+  assert.strictEqual(Carreira.comprarPneu(e, 'slick').ok, false);
+  // amaciar no treino: pneu novo vira amaciado sem gastar saída
+  Carreira.iniciarFimDeSemana(e);
+  const zerado = e.pneus.find((p) => p.uso === 0 && p.tipo === 'slick');
+  Carreira.escolherPneu(e, zerado.id);
+  assert.ok(Carreira.amaciarPneu(e).ok);
+  assert.ok(Carreira.pneuAmaciado(zerado));
+  assert.strictEqual(e.fds.saidas.length, 0);
+  assert.strictEqual(Carreira.amaciarPneu(e).ok, false);
+});
+
+test('pneu amaciado rende mais que zerado na classificação', () => {
+  let somaZerado = 0, somaAmaciado = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    for (const amaciar of [false, true]) {
+      const e = Carreira.novoJogo({ seed });
+      Carreira.iniciarFimDeSemana(e);
+      if (amaciar) Carreira.amaciarPneu(e);
+      Carreira.irParaClassificacao(e);
+      const p = e.pneus.find((x) => x.id === e.fds.pneuId);
+      if (amaciar) p.uso = 2; else p.uso = 0;
+      Carreira.classificar(e);
+      const t = e.fds.quali.find((q) => q.id === 'jogador').tempo;
+      if (amaciar) somaAmaciado += t; else somaZerado += t;
+    }
+  }
+  assert.ok(somaAmaciado < somaZerado);
+});
