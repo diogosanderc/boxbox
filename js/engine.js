@@ -294,7 +294,7 @@
     }
     chegaram.sort((a, b) => a.tempo - b.tempo).forEach((c, i) => { c.pos = i + 1; });
     const vencedor = chegaram[0];
-    if (vencedor) registrar(corrida, `🏁 ${vencedor.piloto.nome} vence o ${corrida.pista.nome}!`, 'fim', vencedor.id);
+    if (vencedor) registrar(corrida, `${vencedor.piloto.nome} vence o ${corrida.pista.nome}!`, 'fim', vencedor.id);
   }
 
   function simularCompleta(corrida) {

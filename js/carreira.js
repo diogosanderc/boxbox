@@ -352,11 +352,11 @@
   // - experiente: análise técnica (o que mudar e quanto); fora da sessão em que foi contratado, cobra hora extra.
   // - profissional: monta o kart para você; muito caro, e também cobra hora extra.
   const MECANICOS = {
-    iniciante: { nome: 'Mecânico iniciante', icone: '🔧', preco: 3000, extra: 0, qualidade: 60, faz: 'palpite',
+    iniciante: { nome: 'Mecânico iniciante', icone: 'chave', preco: 3000, extra: 0, qualidade: 60, faz: 'palpite',
       descricao: 'Dá palpites sobre o que mexer. Fica o fim de semana todo.' },
-    experiente: { nome: 'Mecânico experiente', icone: '🛠', preco: 6000, extra: 2500, qualidade: 82, faz: 'tecnica',
+    experiente: { nome: 'Mecânico experiente', icone: 'ajustes', preco: 6000, extra: 2500, qualidade: 82, faz: 'tecnica',
       descricao: 'Anos de kart: diz o que mudar e quanto. Cobra hora extra a cada sessão a mais.' },
-    pro: { nome: 'Técnico profissional', icone: '🏆', preco: 16000, extra: 6000, qualidade: 96, faz: 'monta',
+    pro: { nome: 'Técnico profissional', icone: 'trofeu', preco: 16000, extra: 6000, qualidade: 96, faz: 'monta',
       descricao: 'Monta o kart para você. Muito caro, e cobra hora extra a cada sessão a mais.' },
   };
   const SESSOES_MECANICO = ['treino', 'quali', 'grid'];
@@ -530,7 +530,7 @@
     if (pr.tipo === 'f3') {
       estado.fase = 'f4';
       estado.final = { proposta: pr, ano: estado.ano, idade: estado.piloto.idade, categoria: 'f3' };
-      noticia(estado, `🏁 ${estado.piloto.nome} assina com ${pr.nome} e sobe para a Fórmula 3!`);
+      noticia(estado, `${estado.piloto.nome} assina com ${pr.nome} e sobe para a Fórmula 3!`);
       return { ok: true };
     }
     if (pr.tipo === 'f4' || pr.tipo === 'academia') return entrarNaF4(estado, pr);
@@ -561,7 +561,7 @@
     };
     estado.propostas = [];
     estado.seguindo = null;
-    noticia(estado, `🏁 ${estado.piloto.nome} assina com a ${base.nome} e deixa o kart rumo aos monopostos!`);
+    noticia(estado, `${estado.piloto.nome} assina com a ${base.nome} e deixa o kart rumo aos monopostos!`);
     iniciarTemporada(estado);
     noticia(estado, `${estado.piloto.nome} estreia na ${campeonato('f4').nome} em ${estado.ano}.`);
     return { ok: true, f4: true };
@@ -863,7 +863,7 @@
       const molhado = chuvaDesde != null && v >= chuvaDesde;
       if (molhado && !corrida.chuvaAnunciada) {
         corrida.chuvaAnunciada = true;
-        if (v > 1) Engine.registrar(corrida, '🌧 Começou a chover!', 'sc');
+        if (v > 1) Engine.registrar(corrida, 'Começou a chover!', 'sc');
       }
       corrida.molhado = molhado;
       const cond = Kart.condicao(clima, 'corrida', molhado);

@@ -36,7 +36,8 @@
   // ---------- utilidades ----------
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const reais = (x) => `R$ ${Math.round(x).toLocaleString('pt-BR')}`;
-  const tipoPista = { travada: '🌀 Travada', mista: '〰️ Mista', veloz: '💨 Veloz' };
+  const tipoPista = { travada: ['grampo', 'Travada'], mista: ['onda', 'Mista'], veloz: ['vento', 'Veloz'] };
+  const chipTipo = (tipo) => chip(`${ic(tipoPista[tipo][0])}${tipoPista[tipo][1]}`);
 
   function tempoVolta(s) {
     if (s == null || !isFinite(s)) return '—';
@@ -55,9 +56,9 @@
   }
 
   let timerAviso = null;
-  function aviso(texto) {
+  function aviso(texto, nomeIcone) {
     const el = document.getElementById('aviso');
-    el.textContent = texto;
+    el.innerHTML = `${nomeIcone ? ic(nomeIcone) : ''}${esc(texto)}`;
     el.hidden = false;
     clearTimeout(timerAviso);
     timerAviso = setTimeout(() => { el.hidden = true; }, 3500);
@@ -136,7 +137,7 @@
   naPista.innerHTML = `<div class="na-pista" role="status" aria-live="polite">
     <span class="subtitulo" data-titulo></span>
     <b class="na-pista-passo" data-passo></b>
-    <div class="na-pista-trilho"><i data-barra></i><span class="na-pista-kart" data-kart aria-hidden="true">🏎️</span></div>
+    <div class="na-pista-trilho"><i data-barra></i><svg class="na-pista-kart" data-kart viewBox="0 0 48 24" aria-hidden="true"><path class="carro-corpo" d="M2 17l7-5 11-1 3-4h6l2 4 9 1 4-4h3v9z"/><circle class="carro-capacete" cx="26" cy="7.5" r="2.6"/><circle cx="12" cy="18" r="5"/><circle cx="38" cy="18" r="5"/></svg></div>
     <span class="fraco mini" data-dica></span>
   </div>`;
   document.body.appendChild(naPista);
@@ -182,17 +183,17 @@
     return `<div class="barra"><span>${rotulo}</span><span class="trilho"><i style="width:${(valor / max) * 100}%"></i></span><b>${valor}</b></div>`;
   }
 
-  const iconeClima = (chance) => (chance < 20 ? '☀️' : chance < 50 ? '⛅' : '🌧');
+  const iconeClima = (chance) => icone(chance < 20 ? 'sol' : chance < 50 ? 'parcial' : 'chuva');
 
   function climaBloco(rotulo, periodo) {
     return `<div class="clima"><span class="clima-icone" aria-hidden="true">${iconeClima(periodo.chance)}</span>
-      <div><span class="fraco">${rotulo}</span><b>${periodo.tempAr}°C</b><span class="chuva">💧 ${periodo.chance}%</span></div></div>`;
+      <div><span class="fraco">${rotulo}</span><b>${periodo.tempAr}°C</b><span class="chuva">${ic('gota')}${periodo.chance}%</span></div></div>`;
   }
 
   // Recorde da pista: tempo, quem fez e quando.
   function linhaRecorde() {
     const r = C.recordePista(estado);
-    return `<div class="recorde ${r.jogador ? 'meu' : ''}"><span aria-hidden="true">🏆</span><span>Recorde da pista</span><b>${tempoVolta(r.tempo)}</b><small>${esc(r.jogador ? 'Você' : r.nome)} · ${r.ano}</small></div>`;
+    return `<div class="recorde ${r.jogador ? 'meu' : ''}">${icone('trofeu')}<span>Recorde da pista</span><b>${tempoVolta(r.tempo)}</b><small>${esc(r.jogador ? 'Você' : r.nome)} · ${r.ano}</small></div>`;
   }
 
   // Condições da sessão. À tarde mostra quanto o ar e o asfalto mudaram desde o treino,
@@ -204,8 +205,8 @@
     const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
     const delta = (agora, antes) => (t && agora !== antes ? ` <small>${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}</small>` : '');
     const borracha = molhado ? '' : chip(sessao === 'treino' ? 'Pouca borracha' : sessao === 'grid' ? 'Muita borracha' : 'Mais borracha');
-    return `${linhaRecorde()}<div class="chips">${chip(molhado ? '🌧 Molhado' : '☀️ Seco', molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}
-      ${sessao !== 'treino' && !molhado ? chip(`💧 Corrida ${clima.tarde.chance}%`) : ''}</div>`;
+    return `${linhaRecorde()}<div class="chips">${chip(molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}
+      ${sessao !== 'treino' && !molhado ? chip(`${ic('gota')}Corrida ${clima.tarde.chance}%`) : ''}</div>`;
   }
 
   const desgastePct = (uso) => Math.min(100, Math.round((uso / 26) * 100));
@@ -240,20 +241,20 @@
     const iniciais = p.nome.split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
     const custo = C.custoEtapa(estado);
     const apertado = estado.dinheiro < custo;
-    const kpi = (icone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo"><span aria-hidden="true">${icone}</span>${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
+    const kpi = (nomeIcone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo">${ic(nomeIcone)}${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
     barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
-      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">💰 ${reais(estado.dinheiro)}</span>
-      <span class="${nivelClasse(p.moral)}">😊 ${p.moral}</span><span class="${nivelClasse(p.confianca)}">🔥 ${p.confianca}</span>`;
+      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${reais(estado.dinheiro)}</span>
+      <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>`;
     statusEl.innerHTML = `<div class="perfil">
         <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
         <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
       </div>
       <div class="kpis">
-        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
-        ${kpi('😊', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
-        ${kpi('🔥', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
+        ${kpi('carteira', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('sorriso', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
+        ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
   }
 
@@ -266,7 +267,7 @@
   }
 
   function abas(lista, atual) {
-    return `<nav class="abas">${lista.map(([id, icone, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}"><span aria-hidden="true">${icone}</span><span>${nome}</span></button>`).join('')}</nav>`;
+    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span></button>`).join('')}</nav>`;
   }
 
   // Ícones em traço (estilo Feather), desenhados inline.
@@ -284,6 +285,52 @@
     largura: '<path d="M3 12h18"/><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/>',
     sentido: '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>',
     bandeira: '<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>',
+    reta: '<path d="M8 3L5 21"/><path d="M16 3l3 18"/><path d="M12 4v3M12 11v3M12 18v2"/>',
+    curva: '<polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/>',
+    grampo: '<path d="M7 21V10a5 5 0 0 1 10 0v8"/><polyline points="13 15 17 19 21 15"/>',
+    zebra: '<rect x="2" y="8" width="20" height="8" rx="1"/><path d="M7 8l-3 8M12 8l-3 8M17 8l-3 8M22 8l-3 8"/>',
+    asfalto: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    ultrapassar: '<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>',
+    onda: '<path d="M2 12c3-6 7-6 10 0s7 6 10 0"/>',
+    vento: '<path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.3A2.5 2.5 0 1 1 19.5 12H2"/>',
+    trofeu: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+    sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    parcial: '<path d="M12 2v2M4.9 4.9l1.4 1.4M2 12h2M19.1 4.9l-1.4 1.4"/><path d="M15.9 10.1A5 5 0 0 0 7 12"/><path d="M17 13h-.8A5 5 0 1 0 11 21h6a4 4 0 0 0 0-8z"/>',
+    chuva: '<path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/><path d="M8 19v2M8 13v2M16 19v2M16 13v2M12 21v2M12 15v2"/>',
+    gota: '<path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z"/>',
+    termometro: '<path d="M14 14.8V4.5a2.5 2.5 0 0 0-5 0v10.3a4.5 4.5 0 1 0 5 0z"/>',
+    carteira: '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/>',
+    sorriso: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>',
+    chama: '<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-2 2-5 5-5 8a7 7 0 0 0 7 7z"/>',
+    raio: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+    queda: '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
+    escudo: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    alerta: '<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+    pare: '<polygon points="7.9 2 16.1 2 22 7.9 22 16.1 16.1 22 7.9 22 2 16.1 2 7.9 7.9 2"/><path d="M12 8v4M12 16h.01"/>',
+    balanca: '<path d="M12 3v18M7 21h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    certo: '<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/>',
+    errado: '<circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/>',
+    x: '<path d="M18 6L6 18M6 6l12 12"/>',
+    estrela: '<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>',
+    conversa: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    coracao: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+    lixo: '<path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+    alvo: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    presente: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+    lapis: '<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+    chave: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',
+    ajustes: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+    radio: '<circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.5M7.8 16.2a6 6 0 0 1 0-8.5M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2"/>',
+    relogio: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    pneu: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>',
+    olho: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+    repetir: '<polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"/>',
+    subir: '<path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/>',
+    globo: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/>',
+    bateria: '<rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 11v2M5 10v4"/>',
+    play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+    pausa: '<path d="M8 4v16M16 4v16"/>',
   };
   // Título em caixa alta: primeira palavra forte, o resto fino ("KARTÓDROMO internacional...").
   const tituloForte = (texto) => {
@@ -291,6 +338,8 @@
     return `<span class="t-forte">${esc(primeira)}</span>${resto.length ? ` <span class="t-fino">${esc(resto.join(' '))}</span>` : ''}`;
   };
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
+  // Ícone pequeno no meio do texto (chips, botões, listas).
+  const ic = (nome, classe = '') => icone(nome, `ico-i ${classe}`);
 
   // ---------- início ----------
   // Abertura: logotipo e "Iniciar jogo" (e "Continuar" quando há carreira salva).
@@ -394,10 +443,10 @@
   // Pontos fortes e fracos de uma equipe, em etiquetas.
   function etiquetasEquipe(e, sobra) {
     const t = [];
-    if (e.material >= 86) t.push(['⚡ Kart muito rápido', 'bom']); else if (e.material <= 76) t.push(['🐢 Kart mais lento', 'ruim']);
-    if (e.organizacao >= 85) t.push(['🛡 Kart confiável', 'bom']); else if (e.organizacao <= 55) t.push(['⚠ Quebra mais', 'ruim']);
-    if (sobra >= 25000) t.push(['💰 Sobra dinheiro', 'bom']); else if (sobra < 12000) t.push(['💸 Orçamento apertado', 'ruim']);
-    if (!t.length) t.push(['⚖️ Equilibrada', 'neutro']);
+    if (e.material >= 86) t.push([`${ic('raio')}Kart muito rápido`, 'bom']); else if (e.material <= 76) t.push([`${ic('queda')}Kart mais lento`, 'ruim']);
+    if (e.organizacao >= 85) t.push([`${ic('escudo')}Kart confiável`, 'bom']); else if (e.organizacao <= 55) t.push([`${ic('alerta')}Quebra mais`, 'ruim']);
+    if (sobra >= 25000) t.push([`${ic('carteira')}Sobra dinheiro`, 'bom']); else if (sobra < 12000) t.push([`${ic('carteira')}Orçamento apertado`, 'ruim']);
+    if (!t.length) t.push([`${ic('balanca')}Equilibrada`, 'neutro']);
     return t.map(([texto, tipo]) => `<span class="tag tag-${tipo}">${texto}</span>`).join('');
   }
 
@@ -416,7 +465,7 @@
             const sobra = e.caixa - e.custoEtapa * C.ETAPAS;
             const sel = tela.escolhida === id;
             return `<button class="equipe-card ${sel ? 'selecionada' : ''} ${corClara(e.cor) ? 'topo-claro' : ''}" style="--cor-equipe:${e.cor}" data-acao="selecionar-equipe" data-id="${id}" aria-pressed="${sel}">
-              <span class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><span class="equipe-check" aria-hidden="true">${sel ? '✓' : ''}</span><b class="equipe-nome">${esc(e.nome)}</b></span>
+              <span class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><span class="equipe-check" aria-hidden="true">${sel ? ic('check') : ''}</span><b class="equipe-nome">${esc(e.nome)}</b></span>
               <span class="equipe-corpo">
                 <span class="fraco equipe-desc">${esc(e.descricao)}</span>
                 <span class="tags">${etiquetasEquipe(e, sobra)}</span>
@@ -446,8 +495,8 @@
   function checklist() {
     // O motor engripado tem o seu próprio bloco logo abaixo.
     const pend = C.pendenciasEtapa(estado).filter((x) => x.id !== 'retifica');
-    if (!pend.length) return `<div class="checklist ok">✓ Tudo pronto: pneus e motor em dia.</div>`;
-    return `<div class="checklist"><b>⚠ Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
+    if (!pend.length) return `<div class="checklist ok">${ic('certo')}Tudo pronto: pneus e motor em dia.</div>`;
+    return `<div class="checklist"><b>${ic('alerta')}Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
   }
 
   // Folha que sobe ao tocar em "Ir para a pista" quando ainda falta algo.
@@ -469,7 +518,7 @@
     if (i < 0) return '';
     const eu = tabela.findIndex((x) => x.id === 'jogador');
     const dif = tabela[i].pontos - tabela[eu].pontos;
-    return chip(`★ ${esc(tabela[i].nome.split(' ')[0])} ${sigla(tabela[i].nome)} · P${i + 1} · ${dif === 0 ? 'empatado' : dif > 0 ? `${dif} pts à frente` : `${-dif} pts atrás`}`, 'chip-amarelo');
+    return chip(`${ic('estrela')}${esc(tabela[i].nome.split(' ')[0])} ${sigla(tabela[i].nome)} · P${i + 1} · ${dif === 0 ? 'empatado' : dif > 0 ? `${dif} pts à frente` : `${-dif} pts atrás`}`, 'chip-amarelo');
   }
 
   function cartaoProximaEtapa() {
@@ -483,7 +532,7 @@
       <div class="hero-corpo">
         <div class="hero-pista">
           <h2>${tituloForte(pista.nome)}</h2>
-          <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
+          <div class="chips">${chipTipo(pista.tipo)}${chip(`${ic('montanha')}${pista.altitude} m`)}${chip(esc(pista.local))}</div>
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>
@@ -506,7 +555,7 @@
     const podeExpressa = estado.dinheiro >= expressa + custo;
     const podeNormal = estado.dinheiro >= normal;
     return `<div class="retifica">
-      <b>💥 Motor engripado</b>
+      <b>${ic('pare')}Motor engripado</b>
       <p class="fraco">Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa.</p>
       <button class="compra principal" data-acao="retificar" data-tipo="expressa" data-confirmar="Confirmar: −${reais(expressa)}" ${podeExpressa ? '' : 'disabled'}><b>Retífica expressa</b><span>−${reais(expressa)} · corre esta etapa</span></button>
       <button class="compra" data-acao="retificar" data-tipo="normal" data-confirmar="Confirmar: −${reais(normal)}" ${podeNormal ? '' : 'disabled'}><b>Retífica normal</b><span>−${reais(normal)} · fica fora desta etapa</span></button>
@@ -519,7 +568,7 @@
     return cartao('Cabeça', `
       <div class="aneis">${anel('Moral', p.moral)}${anel('Confiança', p.confianca)}</div>
       <p class="fala">“${esc(C.humor(p))}”</p>
-      <button data-acao="psicologo">🛋 Psicólogo · ${reais(C.precoPsicologo(estado))}</button>`, { ajuda: 'cabeca' });
+      <button data-acao="psicologo">${ic('conversa')}Psicólogo · ${reais(C.precoPsicologo(estado))}</button>`, { ajuda: 'cabeca' });
   }
 
   // Folha com o que fazer com um jogo de pneus: vender, doar ou descartar.
@@ -531,9 +580,9 @@
     const jaDoou = estado.doacaoEtapa === `${estado.ano}-${estado.etapa}`;
     return `<div class="folha-fundo" data-acao-fundo="fechar-pneu"><div class="folha folha-neutra" role="dialog" aria-modal="true" aria-labelledby="folha-pneu-titulo">
       <h3 id="folha-pneu-titulo">${Kart.PNEUS_KART[p.tipo].nome} #${n} · ${C.pneuNovo(p) ? 'novo' : `${100 - pct}% de vida`}</h3>
-      <button class="compra" data-acao="vender-pneu" data-id="${p.id}"><b>💰 Vender para outra equipe</b><span class="dinheiro">+${reais(C.valorVendaPneu(estado, p))}</span></button>
-      <button class="compra" data-acao="doar-pneu" data-id="${p.id}" ${jaDoou ? 'disabled' : ''}><b>🤝 Doar para a escolinha</b><span>${jaDoou ? 'Você já doou nesta etapa' : 'Moral e popularidade sobem'}</span></button>
-      <button class="compra" data-acao="descartar-pneu" data-id="${p.id}" data-confirmar="Confirmar: jogar fora"><b>🗑 Jogar fora</b><span>Sem retorno</span></button>
+      <button class="compra" data-acao="vender-pneu" data-id="${p.id}"><b>${ic('carteira')}Vender para outra equipe</b><span class="dinheiro">+${reais(C.valorVendaPneu(estado, p))}</span></button>
+      <button class="compra" data-acao="doar-pneu" data-id="${p.id}" ${jaDoou ? 'disabled' : ''}><b>${ic('coracao')}Doar para a escolinha</b><span>${jaDoou ? 'Você já doou nesta etapa' : 'Moral e popularidade sobem'}</span></button>
+      <button class="compra" data-acao="descartar-pneu" data-id="${p.id}" data-confirmar="Confirmar: jogar fora"><b>${ic('lixo')}Jogar fora</b><span>Sem retorno</span></button>
       <button data-acao="fechar-pneu">Cancelar</button>
     </div></div>`;
   }
@@ -559,7 +608,7 @@
   function linhaPatrocinio(o, oferta) {
     return `<div class="item">
       <div class="item-topo"><b>${esc(o.empresa)}</b><b class="dinheiro">${reais(o.porEtapa)}<span class="fraco">/etapa</span></b></div>
-      <div class="chips">${chip(`🎯 ${C.textoMeta(o.meta)}`)}${chip(`🎁 +${reais(o.bonus)}`)}</div>
+      <div class="chips">${chip(`${ic('alvo')}${C.textoMeta(o.meta)}`)}${chip(`${ic('presente')}+${reais(o.bonus)}`)}</div>
       ${oferta ? `<div class="botoes-2"><button class="principal" data-acao="aceitar-patrocinio" data-id="${o.id}">Aceitar</button><button data-acao="recusar-patrocinio" data-id="${o.id}">Recusar</button></div>` : ''}
     </div>`;
   }
@@ -571,7 +620,7 @@
       ${estado.patrocinios.map((o) => linhaPatrocinio(o, false)).join('')}
       ${ofertas.length ? `<span class="subtitulo">Ofertas</span>${ofertas.map((o) => linhaPatrocinio(o, true)).join('')}` : ''}
       ${!estado.patrocinios.length && !ofertas.length ? '<p class="vazio">Nenhuma empresa por enquanto.</p>' : ''}
-      <div class="chips">${chip(`⭐ Popularidade ${Math.round(estado.piloto.popularidade)}`)}</div>`,
+      <div class="chips">${chip(`${ic('estrela')}Popularidade ${Math.round(estado.piloto.popularidade)}`)}</div>`,
     { ajuda: 'patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.MAX_PATROCINIOS}">${vagas}</span>` });
   }
 
@@ -582,7 +631,7 @@
     return `<div class="item" style="border-left:4px solid ${nova.cor}">
       <div class="item-topo"><b>${esc(pr.nome)}</b>${chip(tipo)}</div>
       <div class="tiles">${tile('Kart', `${pr.materialPrometido} <span class="fraco">vs ${atual.material}</span>`)}${tile('Por etapa', pr.custoEtapa ? reais(pr.custoEtapa) : 'Grátis', 'dinheiro')}${tile('Multa', reais(pr.multa), 'aviso')}</div>
-      ${pr.segundoPiloto ? chip('⚠ Segundo piloto', 'chip-amarelo') : ''}
+      ${pr.segundoPiloto ? chip(`${ic('alerta')}Segundo piloto`, 'chip-amarelo') : ''}
       <div class="botoes-2"><button class="principal" data-acao="aceitar-proposta" data-id="${pr.id}" data-confirmar="Confirmar troca">Aceitar</button><button data-acao="recusar-proposta" data-id="${pr.id}">Recusar</button></div>
     </div>`;
   }
@@ -618,7 +667,7 @@
         <span class="camp-pos"><b>${i + 1}</b><small>${x.pontos} pts</small></span>
         <i class="camp-cor" style="background:${eq.cor}"></i>
         <span class="camp-nome"><span>${nomeDestaque(x.nome)}</span><small>${esc(eq.nome)}${x.vitorias ? ` · ${x.vitorias} vitória${x.vitorias > 1 ? 's' : ''}` : ''}</small></span>
-        ${eu ? '<span class="chip">Você</span>' : `<button class="seguir ${seguido ? 'ativo' : ''}" data-acao="seguir" data-id="${x.id}" aria-pressed="${seguido}" aria-label="${seguido ? 'Deixar de seguir' : 'Seguir'} ${esc(x.nome)}">${seguido ? '★' : '☆'}</button>`}
+        ${eu ? '<span class="chip">Você</span>' : `<button class="seguir ${seguido ? 'ativo' : ''}" data-acao="seguir" data-id="${x.id}" aria-pressed="${seguido}" aria-label="${seguido ? 'Deixar de seguir' : 'Seguir'} ${esc(x.nome)}">${icone('estrela', seguido ? 'ico-cheio' : '')}</button>`}
       </div>`;
     }).join('')}</div>`;
   }
@@ -637,7 +686,7 @@
       else status = '';
       return `<div class="cal-linha ${i === estado.etapa ? 'atual' : i < estado.etapa ? 'passada' : ''}">
         <span class="cal-num">E${i + 1}</span>
-        <span class="cal-nome"><b>${esc(pista.nome)}</b><small>${esc(pista.local)} · ${tipoPista[pista.tipo].replace(/^\S+\s/, '')}</small></span>
+        <span class="cal-nome"><b>${esc(pista.nome)}</b><small>${esc(pista.local)} · ${tipoPista[pista.tipo][1]}</small></span>
         ${status}
       </div>`;
     }).join('')}</div>`;
@@ -691,7 +740,7 @@
       ${cartao(`Campeonato ${estado.ano}`, graficoPosicao(estado.evolucao.filter((e) => e.ano === estado.ano && e.campeonato === estado.campeonato).map((e) => ({ rotulo: `Etapa ${e.etapa}`, curto: `E${e.etapa}`, pos: e.pos }))))}
       ${estado.temporadas.length >= 2 ? cartao('Carreira', graficoPosicao(estado.temporadas.map((t) => ({ rotulo: `${t.ano} ${C.campeonato(t.campeonato).curto}`, curto: String(t.ano), pos: t.pos })))) : ''}
       ${cartao('Últimas corridas', ultimos.length
-        ? `<div class="resultados">${ultimos.map((h) => `<div class="resultado-bolinha ${h.fora ? 'fora' : h.pos === 1 ? 'ouro' : h.pos <= 3 ? 'podio' : h.pos <= 10 ? 'pontos' : ''}" title="${esc(h.pista)} ${h.ano}">${h.fora ? '✕' : h.pos}</div>`).join('')}</div>`
+        ? `<div class="resultados">${ultimos.map((h) => `<div class="resultado-bolinha ${h.fora ? 'fora' : h.pos === 1 ? 'ouro' : h.pos <= 3 ? 'podio' : h.pos <= 10 ? 'pontos' : ''}" title="${esc(h.pista)} ${h.ano}">${h.fora ? icone('x') : h.pos}</div>`).join('')}</div>`
         : '<p class="vazio">Nenhuma corrida ainda.</p>')}
     </div>`;
   }
@@ -700,9 +749,9 @@
   function notaCaderno(n) {
     const pedia = [n.motor, n.pneu, ...n.ajustes].filter(Boolean);
     return `<div class="nota">
-      ${n.sentiu.map((f) => `<p>🧑 ${esc(f)}</p>`).join('')}
+      ${n.sentiu.map((f) => `<p>${ic('piloto')}${esc(f)}</p>`).join('')}
       ${pedia.length ? `<span class="subtitulo">O kart pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-      ${n.texto ? `<p class="nota-texto">📝 ${esc(n.texto)}</p>` : ''}
+      ${n.texto ? `<p class="nota-texto">${ic('lapis')}${esc(n.texto)}</p>` : ''}
     </div>`;
   }
 
@@ -720,7 +769,7 @@
         const nome = l.sessao === 'treino' ? `Treino ${++treino}` : l.sessao === 'corrida' ? 'Corrida' : 'Classificação';
         const pos = l.fora ? 'Abandono' : `P${l.posicao}`;
         return `<div class="anotacao ${l.sessao === 'corrida' ? 'anotacao-corrida' : ''}">
-          <div class="item-topo"><span class="chips">${chip(nome, l.sessao === 'corrida' ? 'chip-grande' : '')}${chip(l.molhado ? '🌧' : '☀️')}${chip(`${l.tempPista}°`)}</span>
+          <div class="item-topo"><span class="chips">${chip(nome, l.sessao === 'corrida' ? 'chip-grande' : '')}${chip(ic(l.molhado ? 'chuva' : 'sol'))}${chip(`${l.tempPista}°`)}</span>
             <b>${l.tempo ? tempoVolta(l.tempo) : '—'} <span class="pos-mini ${!l.fora && l.posicao <= 3 ? 'top' : ''}">${pos}</span></b></div>
           <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
           ${l.nota ? notaCaderno(l.nota) : ''}
@@ -748,8 +797,8 @@
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
-      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`🏆 P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
-      ${abas([['resumo', '🏁', 'Etapa'], ['campeonato', '🏆', 'Tabela'], ['piloto', '🧑', 'Piloto'], ['caderno', '📓', 'Caderno'], ['noticias', '📰', 'Notícias']], aba)}
+      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
+      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba)}
       ${conteudo}
       <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>
       ${folhaChecagem()}${folhaPneu()}`;
@@ -776,16 +825,16 @@
     const longas = p.retas.filter((m) => m >= 200).length;
     const nCurvas = p.curvas.lentas + p.curvas.medias + p.curvas.rapidas;
     const facil = p.ultrapassagem >= 0.65 ? 'Fácil' : p.ultrapassagem >= 0.5 ? 'Média' : 'Difícil';
-    const linha = (icone, rotulo, valor, detalhe = '') => `<div class="ficha-linha"><span class="ficha-icone" aria-hidden="true">${icone}</span>
+    const linha = (nomeIcone, rotulo, valor, detalhe = '') => `<div class="ficha-linha"><span class="ficha-icone">${icone(nomeIcone)}</span>
       <span class="ficha-rotulo">${rotulo}</span><span class="ficha-valor"><b>${valor}</b>${detalhe ? `<small>${detalhe}</small>` : ''}</span></div>`;
     return [
-      linha('🛣️', 'Retas', `${p.retas.length} ${p.retas.length === 1 ? 'reta' : 'retas'}${longas ? ` · ${longas} ${longas === 1 ? 'longa' : 'longas'}` : ''}`, p.retas.map((m) => `${m} m`).join(' · ')),
-      linha('↪️', 'Curvas', `${nCurvas} curvas`, `${p.curvas.lentas} lentas · ${p.curvas.medias} médias · ${p.curvas.rapidas} rápidas`),
-      linha('⤵️', 'Grampos', p.grampos, p.grampos >= 2 ? 'Freadas fortes e tração na saída.' : ''),
-      linha('🟥', 'Zebras', ZEBRAS[p.zebras][0], ZEBRAS[p.zebras][1]),
-      linha('⬛', 'Asfalto', ASFALTO[p.asfalto][0], ASFALTO[p.asfalto][1]),
-      linha('⛰️', 'Desnível', esc(p.desnivel)),
-      linha('🏁', 'Ultrapassagem', facil, esc(p.ondePassar)),
+      linha('reta', 'Retas', `${p.retas.length} ${p.retas.length === 1 ? 'reta' : 'retas'}${longas ? ` · ${longas} ${longas === 1 ? 'longa' : 'longas'}` : ''}`, p.retas.map((m) => `${m} m`).join(' · ')),
+      linha('curva', 'Curvas', `${nCurvas} curvas`, `${p.curvas.lentas} lentas · ${p.curvas.medias} médias · ${p.curvas.rapidas} rápidas`),
+      linha('grampo', 'Grampos', p.grampos, p.grampos >= 2 ? 'Freadas fortes e tração na saída.' : ''),
+      linha('zebra', 'Zebras', ZEBRAS[p.zebras][0], ZEBRAS[p.zebras][1]),
+      linha('asfalto', 'Asfalto', ASFALTO[p.asfalto][0], ASFALTO[p.asfalto][1]),
+      linha('montanha', 'Desnível', esc(p.desnivel)),
+      linha('ultrapassar', 'Ultrapassagem', facil, esc(p.ondePassar)),
     ].join('');
   }
 
@@ -795,7 +844,7 @@
     return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
       <div class="dados">
         ${dado('regua', 'Extensão', `${extensao} km`)}${dado('voltas', 'Voltas', camp.voltas)}${dado('montanha', 'Altitude', `${pista.altitude} m`)}
-        ${dado('bandeira', 'Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? dado('largura', 'Largura', `${pista.largura} m`) : ''}${pista.sentido ? dado('sentido', 'Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}
+        ${dado('bandeira', 'Tipo', tipoPista[pista.tipo][1])}${pista.largura ? dado('largura', 'Largura', `${pista.largura} m`) : ''}${pista.sentido ? dado('sentido', 'Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}
       </div>
       ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`;
   }
@@ -811,7 +860,7 @@
   function abrirFichaPista() {
     const pista = C.pistaAtual(estado);
     folhaPista.innerHTML = `<div class="folha folha-pista" role="dialog" aria-modal="true" aria-labelledby="folha-pista-titulo">
-      <div class="folha-pista-topo"><h3 id="folha-pista-titulo">${esc(pista.nome)}</h3><button class="redondo" data-fechar aria-label="Fechar">✕</button></div>
+      <div class="folha-pista-topo"><h3 id="folha-pista-titulo">${esc(pista.nome)}</h3><button class="redondo" data-fechar aria-label="Fechar">${icone('x')}</button></div>
       ${conteudoPista(pista, C.campeonato(estado.campeonato))}
       <button class="principal grande" data-fechar>Voltar</button>
     </div>`;
@@ -862,13 +911,13 @@
   function passosFds(atual) {
     const passos = [['treino', 'Treino'], ['quali', 'Classificação'], ['grid', 'Corrida'], ['fim', 'Resultado']];
     const idx = passos.findIndex(([id]) => id === atual || (atual === 'corrida' && id === 'grid'));
-    return `<div class="passos-fds">${passos.map(([, nome], i) => `<span class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}">${i < idx ? '✓ ' : ''}${nome}</span>`).join('')}</div>`;
+    return `<div class="passos-fds">${passos.map(([, nome], i) => `<span class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}">${i < idx ? ic('check') : ''}${nome}</span>`).join('')}</div>`;
   }
 
   function telaFimDeSemana() {
     const fds = estado.fds;
     const pista = C.pistaAtual(estado);
-    const cabecalho = `<div class="linha cabecalho-tela"><h1>${tituloForte(pista.nome)}</h1>${chip(tipoPista[pista.tipo])}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
+    const cabecalho = `<div class="linha cabecalho-tela"><h1>${tituloForte(pista.nome)}</h1>${chipTipo(pista.tipo)}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
     if (fds.sessao === 'treino' || fds.sessao === 'quali') app.innerHTML = cabecalho + telaAcerto();
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
     else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
@@ -889,7 +938,7 @@
       <h3 id="folha-largada-titulo">Você vai largar em</h3>
       <div class="largada-grande ${pos <= 3 ? 'top' : ''}">P${pos}</div>
       <p class="fraco">${titulo} ${pos === 1 ? `Sua volta: ${tempoVolta(q[0].tempo)}.` : `Sua volta: ${tempoVolta(q[i].tempo)} (${dif.toFixed(3).replace('.', ',')} s atrás da pole).`}</p>
-      ${estado.fds.recordeQuali ? chip('🏆 Novo recorde da pista!', 'chip-recorde') : ''}
+      ${estado.fds.recordeQuali ? chip(`${ic('trofeu')}Novo recorde da pista!`, 'chip-recorde') : ''}
       <button class="principal grande" data-acao="fechar-largada">Continuar</button>
     </div></div>`;
   }
@@ -917,7 +966,7 @@
     const nomeAntes = sessao === 'grid' ? 'Classificação' : 'Treino';
     const nomeAgora = sessao === 'grid' ? 'Corrida' : 'Classificação';
     const borracha = (c) => (c.molhado ? 'Lavada' : c.borracha < 0.5 ? 'Pouca' : c.borracha < 0.7 ? 'Mais' : 'Muita');
-    const ceu = (c) => (c.molhado ? '🌧 Chuva' : '☀️ Seco');
+    const ceu = (c) => (c.molhado ? `${ic('chuva')}Chuva` : `${ic('sol')}Seco`);
     const linha = (rotulo, a, b, delta = '') => `<div class="mudanca ${a === b ? '' : 'mudou'}">
       <span class="mudanca-rotulo">${rotulo}</span><span>${a}</span><span aria-hidden="true">${a === '' ? '' : '→'}</span><b>${b}${delta}</b></div>`;
     const dif = (a, b) => (a === b ? '' : ` <small>${b > a ? '+' : '−'}${Math.abs(b - a)}°</small>`);
@@ -926,12 +975,12 @@
       <h3 id="folha-mudancas-titulo">As condições mudaram</h3>
       <div class="mudancas">
         ${linha('Céu', ceu(antes), ceu(agora))}
-        ${linha('🌡 Ar', `${antes.tempAr}°`, `${agora.tempAr}°`, dif(antes.tempAr, agora.tempAr))}
+        ${linha(`${ic('termometro')}Ar`, `${antes.tempAr}°`, `${agora.tempAr}°`, dif(antes.tempAr, agora.tempAr))}
         ${linha('Asfalto', `${antes.tempPista}°`, `${agora.tempPista}°`, dif(antes.tempPista, agora.tempPista))}
         ${linha('Borracha', borracha(antes), borracha(agora))}
-        ${!agora.molhado ? `<div class="mudanca ${clima.tarde.chance >= 30 ? 'mudou' : ''}"><span class="mudanca-rotulo">💧 Chance de chuva na corrida</span><span></span><span></span><b>${clima.tarde.chance}%</b></div>` : ''}
+        ${!agora.molhado ? `<div class="mudanca ${clima.tarde.chance >= 30 ? 'mudou' : ''}"><span class="mudanca-rotulo">${ic('gota')}Chance de chuva na corrida</span><span></span><span></span><b>${clima.tarde.chance}%</b></div>` : ''}
       </div>
-      ${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}
+      ${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
       <p class="fraco">A pista não é a mesma de ${sessao === 'grid' ? 'agora há pouco' : 'manhã'}. Fique atento a como o kart vai se comportar.</p>
       <button class="principal grande" data-acao="fechar-mudancas">Entendi</button>
     </div></div>`;
@@ -941,13 +990,13 @@
   function dicaAmaciar() {
     const p = estado.pneus.find((x) => x.id === estado.fds.pneuId);
     if (!p || !C.pneuNovo(p)) return '';
-    if (estado.fds.sessao === 'treino') return '<button class="compra amaciar" data-acao="amaciar-pneu"><b>🔥 Amaciar este pneu</b><span>2 voltas rápidas, sem gastar uma saída</span></button>';
-    return chip('⚠ Pneu zerado: rende menos nas primeiras voltas', 'chip-amarelo');
+    if (estado.fds.sessao === 'treino') return `<button class="compra amaciar" data-acao="amaciar-pneu"><b>${ic('chama')}Amaciar este pneu</b><span>2 voltas rápidas, sem gastar uma saída</span></button>`;
+    return chip(`${ic('alerta')}Pneu zerado: rende menos nas primeiras voltas`, 'chip-amarelo');
   }
 
   function aviseGasto() {
     const p = estado.pneus.find((x) => x.id === estado.fds.pneuId);
-    return p && p.uso > 15 ? chip('⚠ Pneu gasto para a corrida', 'chip-amarelo') : '';
+    return p && p.uso > 15 ? chip(`${ic('alerta')}Pneu gasto para a corrida`, 'chip-amarelo') : '';
   }
 
   // Sem mecânico por padrão: contrata-se por etapa, e ele só ajuda durante o treino livre.
@@ -961,7 +1010,7 @@
           const preco = C.precoMecanico(estado, tipo);
           const extra = C.precoHoraExtra(estado, tipo);
           return `<button class="compra mecanico-opcao mec-${tipo}" data-acao="contratar-mecanico" data-tipo="${tipo}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}>
-            <b>${x.icone} ${x.nome}</b><span class="mecanico-desc">${x.descricao}</span>
+            <b>${ic(x.icone)}${x.nome}</b><span class="mecanico-desc">${x.descricao}</span>
             <span class="mecanico-preco"><b>${reais(preco)}</b>${extra ? ` · hora extra ${reais(extra)}` : ' · fim de semana todo'}</span></button>`;
         }).join('')}</div>`, { ajuda: 'mecanico' });
     }
@@ -973,7 +1022,7 @@
     if (!ativo) {
       const extra = C.precoHoraExtra(estado, m.tipo);
       corpo = `<p class="fraco mini">Ele trabalhou na sessão anterior. Para ficar nesta, cobra hora extra.</p>
-        <button class="compra" data-acao="hora-extra" data-confirmar="Confirmar: −${reais(extra)}" ${estado.dinheiro < extra ? 'disabled' : ''}><b>⏱ Pagar hora extra</b><span>−${reais(extra)} · esta sessão</span></button>`;
+        <button class="compra" data-acao="hora-extra" data-confirmar="Confirmar: −${reais(extra)}" ${estado.dinheiro < extra ? 'disabled' : ''}><b>${ic('relogio')}Pagar hora extra</b><span>−${reais(extra)} · esta sessão</span></button>`;
     } else if (conselho) {
       // Palpite (iniciante) é uma frase; análise técnica e kart montado viram uma lista "ajuste → o que fazer".
       const itens = conselho.map((c) => c.split(': '));
@@ -981,9 +1030,9 @@
         ? `<ul class="conselho">${itens.map(([nome, acao]) => `<li><span>${esc(nome)}</span><b>${esc(acao)}</b></li>`).join('')}</ul>`
         : `<p class="conselho-texto">${conselho.map((c) => esc(c)).join('<br>')}</p>`;
     } else {
-      corpo = `<button class="principal" data-acao="sugestao">${info.icone} ${rotulo}</button>`;
+      corpo = `<button class="principal" data-acao="sugestao">${ic(info.icone)}${rotulo}</button>`;
     }
-    return cartao('Mecânico', `<div class="linha"><b>${info.icone} ${info.nome}</b><span class="espaco"></span>${chip(ativo ? 'Trabalhando' : 'Fora desta sessão', ativo ? 'chip-dinheiro' : '')}</div>${corpo}`, { ajuda: 'mecanico' });
+    return cartao('Mecânico', `<div class="linha"><b>${ic(info.icone)}${info.nome}</b><span class="espaco"></span>${chip(ativo ? 'Trabalhando' : 'Fora desta sessão', ativo ? 'chip-dinheiro' : '')}</div>${corpo}`, { ajuda: 'mecanico' });
   }
 
   // Diferença para a saída anterior: verde se foi mais rápida, vermelho se foi mais lenta.
@@ -1013,19 +1062,19 @@
         </div>
       </div>
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
-          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span>${s.recorde ? '<span class="chip chip-recorde">🏆 Recorde</span>' : ''}
+          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span>${s.recorde ? `<span class="chip chip-recorde">${ic('trofeu')}Recorde</span>` : ''}
             <span class="tempo-bloco">${deltaSaida(s, saidas[i + 1])}<b class="tempo">${tempoVolta(s.tempo)}</b></span>
             <span class="pos-mini ${s.posicao <= 3 ? 'top' : ''}">P${s.posicao}</span></div>
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
-          ${s.frases.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${onda(f)}${esc(f)}</p></div>`).join('')}
-          ${s.dica ? `<div class="bolha mecanico"><span aria-hidden="true">🔧</span><p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
-        </div>`).join('') : '<p class="vazio">📻 Ajuste o kart e saia para a pista.</p>', { ajuda: 'radio' })}
+          ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
+          ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
+        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o kart e saia para a pista.</p>`, { ajuda: 'radio' })}
     </div>`;
   }
 
   // Falas do piloto sobre a pista antes da sessão: as pistas do que mudou.
   function leitura(sessao) {
-    return `<div class="leitura">${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}</div>`;
+    return `<div class="leitura">${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`;
   }
 
   function telaGrid() {
@@ -1037,14 +1086,14 @@
       <div class="coluna">
         <section class="painel largada">
           <div class="pos-grande"><span>Largada</span><b>P${meu}</b></div>
-          <div class="largada-info">${condicaoChips('grid')}${mudou ? chip('✎ Acerto alterado', 'chip-amarelo') : ''}</div>
+          <div class="largada-info">${condicaoChips('grid')}${mudou ? chip(`${ic('lapis')}Acerto alterado`, 'chip-amarelo') : ''}</div>
           ${leitura('grid')}
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
         ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
-        ${mudou ? '<div class="botoes-2"><button data-acao="desfazer-grid">↺ Acerto da classificação</button></div>' : ''}
+        ${mudou ? `<div class="botoes-2"><button data-acao="desfazer-grid">${ic('repetir')}Acerto da classificação</button></div>` : ''}
       </div>
       ${cartao('Grid', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
         ${fds.quali.map((q, i) => {
@@ -1080,8 +1129,8 @@
     const ordem = corrida.carros.slice().sort((a, b) => a.pos - b.pos);
     const lider = ordem[0];
     document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
-    document.getElementById('clima-corrida').innerHTML = corrida.molhado ? chip('🌧 Molhado', 'chip-azul') : '';
-    document.getElementById('btn-play').textContent = corrida.terminou ? 'Ver resultado' : tela.pausado ? '▶' : '❚❚';
+    document.getElementById('clima-corrida').innerHTML = corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '';
+    document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
     document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
       const ganho = c.largada - c.pos;
@@ -1105,9 +1154,9 @@
     const boxF4 = document.getElementById('box-f4');
     if (boxF4) {
       boxF4.innerHTML = eu.fora || corrida.terminou ? ''
-        : eu.tipoPneu === 'chuva' ? chip('🛞 Pneu de chuva', 'chip-azul')
-          : corrida.boxJogador ? '<button class="grande" disabled>📻 Box pedido: entra na próxima volta</button>'
-            : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>🛞 Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
+        : eu.tipoPneu === 'chuva' ? chip(`${ic('pneu')}Pneu de chuva`, 'chip-azul')
+          : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: entra na próxima volta</button>`
+            : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
     }
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
@@ -1119,10 +1168,10 @@
   function avisosDaCorrida(eu) {
     const memo = tela.memoCorrida || (tela.memoCorrida = { pos: eu.largada, molhado: false, rivalFora: false });
     if (corrida.volta === 0) return;
-    if (corrida.molhado && !memo.molhado) aviso('🌧 Começou a chover!');
+    if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
     else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
     const rival = estado.seguindo && corrida.carros.find((c) => c.id === estado.seguindo);
-    if (rival && rival.fora && !memo.rivalFora) aviso(`★ ${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`);
+    if (rival && rival.fora && !memo.rivalFora) aviso(`${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`, 'estrela');
     memo.pos = eu.pos;
     memo.molhado = !!corrida.molhado;
     memo.rivalFora = !!(rival && rival.fora);
@@ -1150,19 +1199,19 @@
   function telaResultadoCorrida() {
     const fds = estado.fds;
     const r = fds.resultado;
-    const medalha = r.fora ? '✕' : r.pos === 1 ? '🥇' : r.pos === 2 ? '🥈' : r.pos === 3 ? '🥉' : '';
+    const medalha = r.fora ? icone('x') : r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : '';
     return `<div class="corrida">
       <div class="coluna">
         <section class="painel resultado-hero ${r.fora ? 'ruim' : r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>${r.fora ? esc(r.motivo) : 'Chegada'}</span><b>${medalha} ${r.fora ? 'Abandono' : 'P' + r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeonato', 'P' + C.posicaoNoCampeonato(estado))}${tile('Caixa', '+' + reais(r.ganho), 'dinheiro')}</div>
-          ${r.recorde ? chip('🏆 Novo recorde da pista na corrida!', 'chip-recorde') : ''}
-          ${r.eventos.map((e) => chip(`⚠ ${esc(e)}`, 'chip-amarelo')).join('')}
+          ${r.recorde ? chip(`${ic('trofeu')}Novo recorde da pista na corrida!`, 'chip-recorde') : ''}
+          ${r.eventos.map((e) => chip(`${ic('alerta')}${esc(e)}`, 'chip-amarelo')).join('')}
           ${(r.cabeca || []).length ? `<div class="chips">${r.cabeca.map((x) => [
-            x.confianca ? chip(`🔥 ${sinal(x.confianca)}`, x.confianca > 0 ? 'chip-dinheiro' : 'chip-negativo') : '',
-            x.moral ? chip(`😊 ${sinal(x.moral)}`, x.moral > 0 ? 'chip-dinheiro' : 'chip-negativo') : '',
+            x.confianca ? chip(`${ic('chama')}${sinal(x.confianca)}`, x.confianca > 0 ? 'chip-dinheiro' : 'chip-negativo') : '',
+            x.moral ? chip(`${ic('sorriso')}${sinal(x.moral)}`, x.moral > 0 ? 'chip-dinheiro' : 'chip-negativo') : '',
           ].join('')).join('')}</div>` : ''}
-          ${r.olheiros.length ? `<div class="chips">${r.olheiros.map((o) => chip(`👀 ${esc(o)}`)).join('')}</div>` : ''}
+          ${r.olheiros.length ? `<div class="chips">${r.olheiros.map((o) => chip(`${ic('olho')}${esc(o)}`)).join('')}</div>` : ''}
           <button class="principal grande" data-acao="voltar-paddock">Voltar ao paddock</button>
         </section>
         ${r.diagnostico ? cartaoDiagnostico(r) : ''}
@@ -1170,7 +1219,7 @@
       ${cartao('Resultado', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="num">Pts</th></tr>
         ${fds.classificacao.map((x) => `<tr class="${x.id === 'jogador' ? 'jogador' : ''} ${x.fora ? 'fora' : ''}">
           <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}</td>
-          <td class="num">${x.fora ? 'Fora' : x.pos === 1 ? '🏁' : '+' + x.dif.toFixed(1)}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
+          <td class="num">${x.fora ? 'Fora' : x.pos === 1 ? ic('bandeira') : '+' + x.dif.toFixed(1)}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
         </table></div>`)}
     </div>`;
   }
@@ -1182,11 +1231,11 @@
       ? `<ul class="diagnostico">${d.motor ? `<li class="negativo">${esc(d.motor)}</li>` : ''}${d.pneu ? `<li>${esc(d.pneu)}</li>` : ''}${d.ajustes.map((a) => `<li>${esc(a.texto)}</li>`).join('')}</ul>`
       : '<p class="fraco">Nada a mudar: o acerto estava no ponto.</p>';
     const anotar = r.anotado
-      ? '<button class="grande" disabled>✓ Anotado no caderno</button>'
+      ? `<button class="grande" disabled>${ic('check')}Anotado no caderno</button>`
       : `<textarea id="nota-corrida" rows="2" maxlength="300" placeholder="Sua anotação (opcional)"></textarea>
-         <button class="principal grande" data-acao="anotar">📝 Anotar no caderno</button>`;
-    return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? '🌧 Molhado' : '☀️ Seco', d.molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
-      ${d.sentiu.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}
+         <button class="principal grande" data-acao="anotar">${ic('lapis')}Anotar no caderno</button>`;
+    return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
+      ${d.sentiu.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
       <span class="subtitulo">Nessas condições, o kart pedia</span>
       ${ajustes}
       ${anotar}`, { ajuda: 'diagnostico' });
@@ -1226,20 +1275,20 @@
           <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${p.tipo === 'f3' ? 'F3' : 'F4'}</button></div>`).join(''), { classe: 'destaque' }) : ''}
       <div class="grade">
         <section class="painel resultado-hero ${r.pos <= 3 ? 'bom' : ''}">
-          <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? ['🥇', '🥈', '🥉'][r.pos - 1] : ''} P${r.pos}</b></div>
+          <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P${r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeão', esc(r.campeao.split(' ')[0]))}${tile('Ganhos', '+' + reais(ganhos), 'dinheiro')}</div>
         </section>
         ${cartao('Evolução', r.evolucao.length
           ? r.evolucao.map((x) => `<div class="barra"><span>${C.NOMES_ATRIBUTOS[x.a]}</span><span class="trilho"><i style="width:${x.depois}%"></i></span><b>${x.depois} <span class="dinheiro mini">${sinal(x.depois - x.antes)}</span></b></div>`).join('')
           : '<p class="vazio">Sem evolução este ano.</p>')}
         ${cartao('Dinheiro', `
-          ${r.premios.map((p) => `<div class="item-topo"><span>🏆 ${esc(p.texto)}</span><b class="dinheiro">+${reais(p.valor)}</b></div>`).join('')}
-          ${r.bonus.map((b) => `<div class="item-topo"><span>${b.cumpriu ? '✅' : '❌'} ${esc(b.empresa)}</span><b class="${b.cumpriu ? 'dinheiro' : 'fraco'}">${b.cumpriu ? '+' + reais(b.valor) : '—'}</b></div>`).join('')}
+          ${r.premios.map((p) => `<div class="item-topo"><span>${ic('trofeu')}${esc(p.texto)}</span><b class="dinheiro">+${reais(p.valor)}</b></div>`).join('')}
+          ${r.bonus.map((b) => `<div class="item-topo"><span>${ic(b.cumpriu ? 'certo' : 'errado', b.cumpriu ? 'dinheiro' : 'negativo')}${esc(b.empresa)}</span><b class="${b.cumpriu ? 'dinheiro' : 'fraco'}">${b.cumpriu ? '+' + reais(b.valor) : '—'}</b></div>`).join('')}
           ${tile('Caixa', reais(estado.dinheiro))}`)}
         ${cartao('Próximo ano', `<div class="escolhas">${r.opcoes.map((id) => {
             const c = C.campeonato(id);
             return `<button class="escolha ${escolha === id ? 'ativo' : ''}" data-acao="escolher-proximo" data-id="${id}" aria-pressed="${escolha === id}">
-              <b>${esc(c.curto)}</b><span class="chips">${chip(id === r.campeonato ? '↺ Repetir' : '⬆ Subir', id === r.campeonato ? '' : 'chip-dinheiro')}${chip(`💸 ×${c.custo}`)}${c.regiao === 'eu' ? chip('🇪🇺') : ''}</span></button>`;
+              <b>${esc(c.curto)}</b><span class="chips">${chip(id === r.campeonato ? `${ic('repetir')}Repetir` : `${ic('subir')}Subir`, id === r.campeonato ? '' : 'chip-dinheiro')}${chip(`${ic('carteira')}×${c.custo}`)}${c.regiao === 'eu' ? chip(`${ic('globo')}Europa`) : ''}</span></button>`;
           }).join('')}</div>
           ${escolhaEquipeAno(escolha)}
           <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`, { ajuda: 'temporada' })}
@@ -1250,7 +1299,7 @@
     const f = estado.final;
     const vitorias = estado.historico.filter((h) => !h.fora && h.pos === 1).length;
     app.innerHTML = `<section class="painel destaque tela-nome">
-      <span class="capacete" aria-hidden="true">🏆</span>
+      <span class="capacete">${icone('trofeu')}</span>
       <h1>Rumo à Fórmula ${f.categoria === 'f3' ? '3' : '4'}!</h1>
       <p><b>${esc(estado.piloto.nome)}</b> assinou com <b>${esc(f.proposta.nome)}</b> aos ${f.idade} anos.</p>
       <div class="tiles">${tile('Corridas', estado.historico.length)}${tile('Vitórias', vitorias)}${tile('Caixa', reais(estado.dinheiro), 'dinheiro')}</div>
@@ -1261,7 +1310,7 @@
 
   function telaFalencia() {
     app.innerHTML = `<section class="painel tela-nome">
-      <span class="capacete" aria-hidden="true">🪫</span>
+      <span class="capacete">${icone('bateria', 'sem-carga')}</span>
       <h1>Fim da linha</h1>
       <p>Sem dinheiro para mais uma temporada, ${esc(estado.piloto.nome)} pendura o capacete aos ${estado.piloto.idade} anos.</p>
       <div class="tiles">${tile('Corridas', estado.historico.length)}${tile('Vitórias', estado.historico.filter((h) => !h.fora && h.pos === 1).length)}</div>
@@ -1458,7 +1507,7 @@
         const voltas = Array.from({ length: C.VOLTAS_POR_SAIDA }, (_, i) => `Volta ${i + 1}/${C.VOLTAS_POR_SAIDA}`);
         animarPista(`Treino livre · saída ${estado.fds.saidas.length}`, voltas, 'O piloto está sentindo o kart…', () => {
           render();
-          if (r.saida.recorde) aviso('🏆 Novo recorde da pista!');
+          if (r.saida.recorde) aviso('Novo recorde da pista!', 'trofeu');
           // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
           const nova = app.querySelector('.saida');
           if (nova) nova.scrollIntoView({ behavior: menosMovimento() ? 'auto' : 'smooth', block: 'center' });
@@ -1486,7 +1535,7 @@
         animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', () => {
           tela.largada = true;
           render();
-          if (estado.fds.recordeQuali) aviso('🏆 Novo recorde da pista!');
+          if (estado.fds.recordeQuali) aviso('Novo recorde da pista!', 'trofeu');
         });
         break;
       case 'desfazer-grid':

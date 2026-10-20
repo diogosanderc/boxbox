@@ -501,8 +501,11 @@ textarea { font-size: 15px; resize: vertical; min-height: 64px; }
 .na-pista-trilho { position: relative; height: 10px; margin: 14px 12px 6px; background: var(--painel-2); border-radius: 999px; }
 .na-pista-trilho i { display: block; height: 100%; width: 0; background: var(--destaque); border-radius: 999px; }
 .na-pista-trilho { margin-top: 36px; }
-/* O emoji do carro olha para a esquerda: espelhado para andar para a direita, apoiado em cima da barra. */
-.na-pista-kart { position: absolute; bottom: 2px; left: 0; font-size: 40px; line-height: 1; transform: translateX(-50%) scaleX(-1); filter: drop-shadow(0 2px 6px rgba(225, 6, 0, 0.6)); }
+/* Carro em silhueta flat, apoiado em cima da barra. */
+.na-pista-kart { position: absolute; bottom: 6px; left: 0; width: 68px; height: 34px; transform: translateX(-50%) scaleX(-1); filter: drop-shadow(0 2px 6px rgba(225, 6, 0, 0.6)); }
+.na-pista-kart .carro-corpo { fill: var(--destaque); }
+.na-pista-kart circle { fill: #10182a; stroke: #e8eef8; stroke-width: 1.6; }
+.na-pista-kart .carro-capacete { fill: #fff; stroke: none; }
 
 /* ---------- classificação do campeonato ---------- */
 .classificacao, .calendario, .ao-vivo { display: grid; gap: 6px; }
@@ -759,3 +762,30 @@ button.voltar { display: inline-flex; align-items: center; gap: 4px; padding: 8p
   background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); color: var(--texto); font-weight: 700; font-size: 15px; }
 button.voltar .ico { width: 20px; height: 20px; stroke-width: 2.6; }
 button.voltar:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.5); }
+
+/* ---------- ícones flat no meio do texto ---------- */
+.ico-i { width: 1.05em; height: 1.05em; stroke-width: 2.2; vertical-align: -0.17em; margin-right: 0.35em; }
+.chip .ico-i, .mini .ico-i, .kpi-rotulo .ico-i, .passos-fds .ico-i { margin-right: 0; }
+.chip .ico-i:only-child { margin: 0; }
+.ico-cheio { fill: currentColor; }
+.ficha-icone { display: grid; place-items: center; color: var(--azul); }
+.ficha-icone .ico { width: 22px; height: 22px; }
+.clima-icone .ico { width: 30px; height: 30px; color: var(--azul-claro); }
+.clima .chuva .ico-i { margin-right: 2px; }
+.abas button .ico { width: 22px; height: 22px; }
+.bolha > .ico { width: 22px; height: 22px; margin-top: 7px; color: var(--fraco); }
+.bolha.mecanico > .ico { color: var(--azul); }
+.recorde .ico { width: 18px; height: 18px; color: #c58bff; align-self: center; }
+.capacete .ico { width: 56px; height: 56px; stroke-width: 1.6; color: var(--ouro); }
+.pos-grande b .ico { width: 0.8em; height: 0.8em; vertical-align: -0.05em; margin-right: 0.2em; }
+.medalha-1 { color: var(--ouro); }
+.medalha-2 { color: #c9d3e0; }
+.medalha-3 { color: #d08a4e; }
+.equipe-check .ico-i { margin: 0; width: 18px; height: 18px; stroke-width: 3; }
+.resultado-bolinha .ico { width: 16px; height: 16px; stroke-width: 3; }
+button.seguir .ico { width: 18px; height: 18px; }
+button.redondo .ico { width: 20px; height: 20px; }
+#btn-play .ico { width: 20px; height: 20px; }
+.toast .ico-i { color: var(--azul-claro); }
+.checklist > b .ico-i, .checklist.ok .ico-i { width: 1.1em; height: 1.1em; }
+.capacete .sem-carga { color: var(--perigo); }
