@@ -582,6 +582,14 @@
     return `<button data-acao="sugestao" ${usado ? 'disabled' : ''}>🔧 ${usado ? 'Mecânico já ajudou' : 'Pedir ao mecânico'}</button>`;
   }
 
+  // Diferença para a saída anterior: verde se foi mais rápida, vermelho se foi mais lenta.
+  function deltaSaida(atual, anterior) {
+    if (!anterior) return '<span class="delta"></span>';
+    const d = atual.tempo - anterior.tempo;
+    const texto = `${d < 0 ? '−' : '+'}${Math.abs(d).toFixed(3)}`;
+    return `<span class="delta ${d < 0 ? 'melhor' : 'pior'}" title="Em relação à saída anterior">${texto}</span>`;
+  }
+
   function telaAcerto() {
     const fds = estado.fds;
     const treino = fds.sessao === 'treino';
@@ -600,7 +608,9 @@
         </div>
       </div>
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
-          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span><b class="tempo">${tempoVolta(s.tempo)}</b><span class="pos-mini ${s.posicao <= 3 ? 'top' : ''}">P${s.posicao}</span></div>
+          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span>
+            <span class="tempo-bloco">${deltaSaida(s, saidas[i + 1])}<b class="tempo">${tempoVolta(s.tempo)}</b></span>
+            <span class="pos-mini ${s.posicao <= 3 ? 'top' : ''}">P${s.posicao}</span></div>
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
           ${s.frases.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${onda(f)}${esc(f)}</p></div>`).join('')}
           <div class="bolha mecanico"><span aria-hidden="true">🔧</span><p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>

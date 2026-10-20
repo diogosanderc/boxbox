@@ -254,11 +254,15 @@ tr.fora td { opacity: 0.45; }
 .passos b { flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
 .saida { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--borda); }
 .saida:first-of-type { border-top: 0; padding-top: 0; }
-.tempo { font-size: 18px; font-variant-numeric: tabular-nums; margin-left: auto; }
+.tempo { font-size: 18px; font-variant-numeric: tabular-nums; }
+.tempo-bloco { margin-left: auto; display: grid; justify-items: end; line-height: 1.15; }
+.delta { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; min-height: 14px; }
+.delta.melhor { color: var(--ok); }
+.delta.pior { color: var(--perigo); }
 .pos-mini { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--painel-3); }
 .pos-mini.top { background: var(--ok); color: #0b2a18; }
 .bolha { display: flex; gap: 8px; align-items: flex-start; }
-.bolha p { background: var(--painel-2); padding: 8px 12px; border-radius: 4px var(--raio-m) var(--raio-m) var(--raio-m); font-size: 14px; }
+.bolha p { flex: 1; min-width: 0; background: var(--painel-2); padding: 8px 12px; border-radius: 4px var(--raio-m) var(--raio-m) var(--raio-m); font-size: 14px; }
 .bolha.mecanico p { background: rgba(138, 180, 255, 0.1); color: var(--azul); }
 .largada { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
 .largada .grande { grid-column: 1 / -1; }
