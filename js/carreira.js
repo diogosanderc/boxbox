@@ -550,6 +550,18 @@
   }
 
   // Assina com uma equipe de F4: começa a temporada de monopostos (fim do kart).
+  // Atalho da abertura: a carreira já começa na F4, aos 15 anos, como se tivesse feito três anos de kart.
+  function comecarNaF4(estado) {
+    const p = estado.piloto;
+    estado.ano += IDADE_F4 - p.idade;
+    p.idade = IDADE_F4;
+    for (const a of ATRIBUTOS) p[a] = Math.min(p.potencial, p[a] + 18);
+    p.popularidade = 35;
+    estado.dinheiro = 120000;
+    estado.noticias = [];
+    return entrarNaF4(estado, { tipo: 'f4', equipe: 'f4-apex' });
+  }
+
   function entrarNaF4(estado, pr) {
     const equipeId = pr.equipe || 'f4-apex';
     estado.campeonato = 'f4';
@@ -1169,7 +1181,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

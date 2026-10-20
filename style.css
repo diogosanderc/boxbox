@@ -800,3 +800,4 @@ button.redondo .ico { width: 20px; height: 20px; }
 .segmentos button.ativo { background: transparent; }
 .seg-pilula { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 9px; background: var(--destaque); box-shadow: 0 6px 14px rgba(225, 6, 0, 0.35); pointer-events: none; }
 .seg-pilula.anima { transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), width 0.42s cubic-bezier(0.34, 1.45, 0.64, 1); }
+button.link-f4 { background: transparent; border-color: transparent; color: var(--azul-claro); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

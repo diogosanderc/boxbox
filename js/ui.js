@@ -376,6 +376,7 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
+          <button class="link-f4" data-acao="iniciar-f4">Começar direto na F4 · 15 anos</button>
         </div>
       </div>`;
   }
@@ -450,7 +451,14 @@
       app.querySelector('[data-barra]').style.width = `${t * 100}%`;
       app.querySelector('[data-passo]').textContent = PASSOS_CARREGANDO[Math.min(PASSOS_CARREGANDO.length - 1, Math.floor(t * PASSOS_CARREGANDO.length))];
       if (t < 1) requestAnimationFrame(quadro);
-      else setTimeout(() => { if (tela === minha) ir({ ...minha, nome: 'equipe', escolhida: null }); }, 250);
+      else setTimeout(() => {
+        if (tela !== minha) return;
+        if (!minha.f4) { ir({ ...minha, nome: 'equipe', escolhida: null }); return; }
+        estado = C.novoJogo({ nome: minha.nomePiloto, equipeId: minha.opcoes[0], seed: minha.seed });
+        C.comecarNaF4(estado);
+        salvar();
+        ir(telaDaFase());
+      }, 250);
     };
     requestAnimationFrame(quadro);
   }
@@ -773,7 +781,7 @@
     const pedia = [n.motor, n.pneu, ...n.ajustes].filter(Boolean);
     return `<div class="nota">
       ${n.sentiu.map((f) => `<p>${ic('piloto')}${esc(f)}</p>`).join('')}
-      ${pedia.length ? `<span class="subtitulo">O kart pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${pedia.length ? `<span class="subtitulo">O ${Kart.categoria() === 'f4' ? 'carro' : 'kart'} pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
       ${n.texto ? `<p class="nota-texto">${ic('lapis')}${esc(n.texto)}</p>` : ''}
     </div>`;
   }
@@ -1259,7 +1267,7 @@
          <button class="principal grande" data-acao="anotar">${ic('lapis')}Anotar no caderno</button>`;
     return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
       ${d.sentiu.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
-      <span class="subtitulo">Nessas condições, o kart pedia</span>
+      <span class="subtitulo">Nessas condições, o ${Kart.categoria() === 'f4' ? 'carro' : 'kart'} pedia</span>
       ${ajustes}
       ${anotar}`, { ajuda: 'diagnostico' });
   }
@@ -1389,11 +1397,14 @@
         if (!nome) { aviso('Escreva o nome do piloto.'); break; }
         const seed = Date.now() % 1e9;
         C.usarNomesEquipes(C.sortearNomesEquipes(seed));
-        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
+        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed), f4: tela.f4 });
         break;
       }
       case 'iniciar':
         ir({ nome: 'inicio' });
+        break;
+      case 'iniciar-f4':
+        ir({ nome: 'inicio', f4: true });
         break;
       case 'voltar-abertura':
         ir({ nome: 'abertura' });
