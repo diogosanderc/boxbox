@@ -258,13 +258,13 @@
 
   function tabelaCampeonato() {
     const tabela = C.classificacaoCampeonato(estado);
-    return `<div class="painel tabela-rolagem"><table>
-      <tr><th>#</th><th>Piloto</th><th>Equipe</th><th class="num">V</th><th class="num">Pód.</th><th class="num">Pts</th></tr>
+    return `<div class="painel tabela-ajustada"><table>
+      <tr><th>#</th><th>Piloto</th><th class="opc">Equipe</th><th class="num">V</th><th class="num opc">Pód.</th><th class="num">Pts</th></tr>
       ${tabela.map((x, i) => {
         const eq = C.equipeBase(x.equipe);
         return `<tr class="${x.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td>
-          <td><span class="cor" style="background:${eq.cor}"></span>${esc(x.nome)}</td><td class="fraco">${esc(eq.nome)}</td>
-          <td class="num">${x.vitorias}</td><td class="num">${x.podios}</td><td class="num"><b>${x.pontos}</b></td></tr>`;
+          <td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(x.nome)}</td><td class="fraco opc">${esc(eq.nome)}</td>
+          <td class="num">${x.vitorias}</td><td class="num opc">${x.podios}</td><td class="num"><b>${x.pontos}</b></td></tr>`;
       }).join('')}</table></div>`;
   }
 
@@ -288,12 +288,12 @@
     return pistas.map((id) => {
       const pista = todas.find((x) => x.id === id);
       const linhas = estado.caderno[id].slice().sort((a, b) => a.posicao - b.posicao).slice(0, 8);
-      return `<div class="painel tabela-rolagem" style="margin-bottom:12px"><h3>${esc(pista.nome)} · ${tipoPista[pista.tipo]}</h3>
-        <table><tr><th>Ano</th><th>Sessão</th><th>Condição</th><th>Acerto</th><th class="num">Tempo</th><th class="num">Pos.</th></tr>
-        ${linhas.map((l) => `<tr><td>${l.ano}</td><td>${l.sessao === 'treino' ? 'Treino' : 'Classif.'}</td>
-          <td>${l.molhado ? 'Molhado' : 'Seco'} · ar ${l.tempAr}° · pista ${l.tempPista}°</td>
-          <td style="white-space:normal">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</td>
-          <td class="num">${tempoVolta(l.tempo)}</td><td class="num">P${l.posicao}</td></tr>`).join('')}</table></div>`;
+      return `<div class="painel" style="margin-bottom:12px"><h3>${esc(pista.nome)} · ${tipoPista[pista.tipo]}</h3>
+        <div class="anotacoes">${linhas.map((l) => `<div class="anotacao">
+          <div class="anotacao-topo"><span>${l.ano} · ${l.sessao === 'treino' ? 'Treino' : 'Classificação'} · ${l.molhado ? 'Molhado' : 'Seco'} · ar ${l.tempAr}° · asfalto ${l.tempPista}°</span>
+            <b>${tempoVolta(l.tempo)} · P${l.posicao}</b></div>
+          <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
+        </div>`).join('')}</div></div>`;
     }).join('');
   }
 
@@ -417,13 +417,13 @@
           <button data-acao="sugestao" ${fds.sugestaoUsada ? 'disabled' : ''}>Pedir acerto ao mecânico${fds.sugestaoUsada ? ' (já usado)' : ''}</button>
         </div>
       </div>
-      <div class="painel tabela-rolagem"><h3>Grid de largada</h3>
-        <table><tr><th>Pos</th><th>Piloto</th><th class="num">Tempo</th><th class="num">Dif.</th></tr>
+      <div class="painel tabela-ajustada"><h3>Grid de largada</h3>
+        <table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
         ${fds.quali.map((q, i) => {
           const eqId = q.id === 'jogador' ? estado.equipeId : estado.rivais.find((r) => r.id === q.id).equipe;
           const eq = C.equipeBase(eqId);
-          return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}</td>
-            <td class="num">${tempoVolta(q.tempo)}</td><td class="num">${i ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
+          return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}</td>
+            <td class="num opc">${tempoVolta(q.tempo)}</td><td class="num">${i ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
         }).join('')}</table></div>
     </div>`;
   }
@@ -437,7 +437,7 @@
           ${VELOCIDADES.map((v, i) => `<button data-acao="velocidade" data-i="${i}" class="${tela.vel === i ? 'ativo' : ''}">${v.nome}</button>`).join('')}
           <button data-acao="pular">Pular para o fim</button>
         </div>
-        <div class="tabela-rolagem" id="tabela"></div>
+        <div class="tabela-ajustada" id="tabela"></div>
       </div>
       <div>
         <div class="painel" style="margin-bottom:16px">
@@ -458,15 +458,15 @@
     document.getElementById('clima-corrida').innerHTML = corrida.molhado ? '<span class="sc">🌧 PISTA MOLHADA</span>' : '';
     document.getElementById('btn-play').textContent = corrida.terminou ? 'Ver resultado' : tela.pausado ? '▶ Continuar' : '❚❚ Pausar';
     document.getElementById('tabela').innerHTML = `<table>
-      <tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th>Pneu</th><th class="num">Última</th></tr>
+      <tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th>Pneu</th><th class="num opc">Última</th></tr>
       ${ordem.map((c) => {
         const ganho = c.largada - c.pos;
         const dif = c.fora ? c.motivoFora : c === lider ? '' : `+${(c.tempo - lider.tempo).toFixed(1)}`;
         return `<tr class="${c.jogador ? 'jogador' : ''} ${c.fora ? 'fora' : ''}">
           <td>${c.pos} <span class="fraco" style="font-size:11px">${ganho > 0 ? '▲' + ganho : ganho < 0 ? '▼' + -ganho : ''}</span></td>
-          <td><span class="cor" style="background:${c.equipe.cor}"></span>${esc(c.piloto.nome)}</td>
-          <td class="num">${esc(dif)}</td><td>${Kart.PNEUS_KART[c.tipoPneu].nome}</td>
-          <td class="num fraco">${tempoVolta(c.ultimaVolta)}</td></tr>`;
+          <td class="nome"><span class="cor" style="background:${c.equipe.cor}"></span>${esc(c.piloto.nome)}</td>
+          <td class="num">${esc(c.fora ? 'Fora' : dif)}</td><td>${Kart.PNEUS_KART[c.tipoPneu].nome}</td>
+          <td class="num fraco opc">${tempoVolta(c.ultimaVolta)}</td></tr>`;
       }).join('')}</table>`;
     document.getElementById('eventos').innerHTML = corrida.eventos.slice().reverse().slice(0, 60)
       .map((e) => `<div class="ev-${e.tipo} ${e.carroId === 'jogador' ? 'ev-jogador' : ''}"><span class="v">V${e.volta}</span>${esc(e.texto)}</div>`).join('');
@@ -498,11 +498,11 @@
     const fds = estado.fds;
     const r = fds.resultado;
     return `<div class="grade">
-      <div class="painel tabela-rolagem"><h3>Resultado</h3>
+      <div class="painel tabela-ajustada"><h3>Resultado</h3>
         <table><tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="num">Pts</th></tr>
         ${fds.classificacao.map((x) => `<tr class="${x.id === 'jogador' ? 'jogador' : ''} ${x.fora ? 'fora' : ''}">
-          <td>${x.fora ? 'NC' : x.pos}</td><td><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}</td>
-          <td class="num">${x.fora ? esc(x.motivo) : x.pos === 1 ? 'Vencedor' : '+' + x.dif.toFixed(1) + 's'}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
+          <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}</td>
+          <td class="num">${x.fora ? 'Abandono' : x.pos === 1 ? 'Vencedor' : '+' + x.dif.toFixed(1) + 's'}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
         </table></div>
       <div class="painel">
         <h2>${r.fora ? `Abandono: ${esc(r.motivo)}` : `P${r.pos}${r.pos === 1 ? ' · VITÓRIA!' : r.pos <= 3 ? ' · pódio!' : ''}`}</h2>
