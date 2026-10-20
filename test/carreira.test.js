@@ -82,7 +82,10 @@ test('slick na chuva é muito pior que pneu de chuva', () => {
 test('treino limitado e feedback do piloto', () => {
   const e = Carreira.novoJogo({ seed: 3 });
   Carreira.iniciarFimDeSemana(e);
-  for (let i = 0; i < Carreira.SAIDAS_TREINO; i++) {
+  // sem mecânico contratado, só o piloto fala
+  assert.strictEqual(Carreira.saidaTreino(e).saida.dica, null);
+  assert.ok(Carreira.contratarMecanico(e).ok);
+  for (let i = 1; i < Carreira.SAIDAS_TREINO; i++) {
     const r = Carreira.saidaTreino(e);
     assert.ok(r.ok);
     assert.ok(r.saida.frases.length > 0);
@@ -123,19 +126,33 @@ test('sem dinheiro, a etapa é pulada e os rivais pontuam', () => {
   assert.strictEqual(Object.values(e.pontos).reduce((s, x) => s + x, 0), 101);
 });
 
-test('o mecânico só ajuda durante o treino livre', () => {
+test('o mecânico é contratado por etapa e só ajuda durante o treino livre', () => {
   const e = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(e);
   for (let i = 0; i < Carreira.SAIDAS_TREINO; i++) Carreira.saidaTreino(e);
+  assert.strictEqual(Carreira.contratarMecanico(e).ok, false);
   assert.strictEqual(Carreira.pedirSugestao(e, 'treino').ok, false);
   const f = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(f);
   Carreira.irParaClassificacao(f);
+  assert.strictEqual(Carreira.contratarMecanico(f).ok, false);
   assert.strictEqual(Carreira.pedirSugestao(f, 'quali').ok, false);
   const g = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(g);
   Carreira.saidaTreino(g);
+  assert.strictEqual(Carreira.pedirSugestao(g, 'treino').ok, false); // ainda sem mecânico
+  const antes = g.dinheiro;
+  assert.ok(Carreira.contratarMecanico(g).ok);
+  assert.strictEqual(g.dinheiro, antes - Carreira.precoMecanico(g));
+  assert.strictEqual(Carreira.contratarMecanico(g).ok, false); // não cobra duas vezes
   assert.strictEqual(Carreira.pedirSugestao(g, 'treino').ok, true);
+  // na etapa seguinte o mecânico precisa ser contratado de novo
+  Carreira.irParaClassificacao(g);
+  Carreira.classificar(g);
+  Carreira.concluirCorrida(g, Engine.simularCompleta(Carreira.criarCorrida(g)));
+  Carreira.concluirEtapa(g);
+  Carreira.iniciarFimDeSemana(g);
+  assert.strictEqual(g.fds.mecanico, false);
 });
 
 test('no grid só cabem ajustes finos e o mecânico não mexe', () => {

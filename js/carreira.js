@@ -228,6 +228,24 @@
     return { ok: true };
   }
 
+  // O kart não vem com mecânico: o jogador acerta sozinho. O mecânico da equipe pode ser contratado
+  // por etapa, só durante o treino livre; quanto melhor ele é, mais caro.
+  function precoMecanico(estado) {
+    const mec = equipeBase(estado.equipeId).mecanico;
+    return Math.round((3000 + mec * 70) * campeonato(estado.campeonato).custo / 100) * 100;
+  }
+
+  function contratarMecanico(estado) {
+    const fds = estado.fds;
+    if (!fds || fds.sessao !== 'treino' || fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'Só dá para contratar o mecânico durante o treino livre.' };
+    if (fds.mecanico) return { ok: false, erro: 'O mecânico já está com você nesta etapa.' };
+    const preco = precoMecanico(estado);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para contratar o mecânico.' };
+    estado.dinheiro -= preco;
+    fds.mecanico = true;
+    return { ok: true, preco };
+  }
+
   // O que falta antes de ir para a pista: slick novo, pneu de chuva (se a previsão pede) e revisão do motor.
   function pendenciasEtapa(estado) {
     const lista = [];
@@ -391,7 +409,7 @@
     }
     const anterior = estado.ultimoFds && estado.ultimoFds.setup;
     estado.fds = {
-      sessao: 'treino', saidas: [], sugestaoUsada: false, ia, cabeca: [],
+      sessao: 'treino', saidas: [], mecanico: false, sugestaoUsada: false, ia, cabeca: [],
       setup: anterior ? { ...anterior } : Kart.setupPadrao(),
       pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : 'slick') || {}).id || null,
       quali: null, resultado: null, custoPago: custo,
@@ -475,7 +493,7 @@
     if (pneuPorId(estado, id)) estado.fds.pneuId = id;
   }
 
-  // Uma saída para a pista no treino livre: tempo, posição na tabela, o que o piloto sente e a dica do mecânico.
+  // Uma saída para a pista no treino livre: tempo, posição na tabela, o que o piloto sente e, se contratado, a dica do mecânico.
   function saidaTreino(estado) {
     const fds = estado.fds;
     if (fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'O treino livre acabou.' };
@@ -500,7 +518,7 @@
     const saida = {
       setup: { ...fds.setup }, pneu: pneu.tipo, usoPneu: Math.round(pneu.uso), tempo, posicao, diferenca: tempo - melhorGeral,
       frases: Kart.feedbackPiloto(e, limitar(estado.piloto.sensibilidade + (estado.piloto.moral - 60) / 3, 10, 95), rnd),
-      dica: Kart.dicaMecanico(e, equipeBase(estado.equipeId).mecanico, rnd),
+      dica: fds.mecanico ? Kart.dicaMecanico(e, equipeBase(estado.equipeId).mecanico, rnd) : null,
     };
     if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com slick não dá pra andar.');
     if (pneu.uso > 20) saida.frases.push('Os pneus já estão no fim, difícil saber se o problema é o acerto.');
@@ -520,11 +538,12 @@
     if (lista.length > 60) lista.shift();
   }
 
-  // O mecânico propõe um acerto para a próxima sessão (uma vez por fim de semana).
+  // O mecânico contratado propõe um acerto (uma vez por fim de semana, só no treino livre).
   function pedirSugestao(estado, sessao) {
     const fds = estado.fds;
     if (fds.sessao !== 'treino') return { ok: false, erro: 'O mecânico só mexe no kart durante o treino livre.' };
     if (fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'O treino livre acabou: o mecânico não mexe mais no kart.' };
+    if (!fds.mecanico) return { ok: false, erro: 'Você está sem mecânico nesta etapa.' };
     if (fds.sugestaoUsada) return { ok: false, erro: 'O mecânico já deu a sugestão dele neste fim de semana.' };
     const clima = climaAtual(estado);
     const cond = Kart.condicao(clima, 'treino', clima.manha.chove);
@@ -799,7 +818,7 @@
 
   const Carreira = {
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, concluirEtapa, nomeDe,
