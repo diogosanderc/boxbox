@@ -16,7 +16,7 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 2. **Paddock:** antes de cada etapa veja a pista e a previsão do tempo, compre pneus, revise o motor, aceite patrocínios
    e avalie propostas de outras equipes (algumas são furada).
 3. **Fim de semana:**
-   - **Treino livre (manhã):** 4 saídas para a pista. Mexa em pressão, eixo, bitola, relação e carburação.
+   - **Treino livre (manhã):** 4 saídas para a pista. Mexa em pressão, eixo, bitola traseira e dianteira, altura do banco, relação e carburação.
      Depois de cada saída o piloto diz o que sentiu. O kart não tem mecânico: o acerto é seu, anotado no caderno.
      Se quiser ajuda, contrate um mecânico para o fim de semana (treino, classificação e corrida):
      - **Iniciante:** barato, paga uma vez e fica o fim de semana todo; dá palpites.
@@ -46,6 +46,9 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 
 ### Fórmula 4
 
+A FIA só deixa correr de F4 a partir dos **15 anos**: se a proposta vier antes, a vaga fica guardada e chega no fim da
+temporada em que o piloto completar 15.
+
 Uma proposta de equipe de F4 (ou de uma academia de F1, que paga tudo) leva o piloto aos monopostos: **F4 Europa Series**,
 8 circuitos (Imola, Misano, Monza, Mugello, Vallelunga, Spa, Spielberg e Le Castellet) e 10 equipes próprias.
 O carro é outro: **asa dianteira e traseira, suspensão, altura, pressão e relação do câmbio**, com o seu próprio acerto ideal
@@ -57,7 +60,7 @@ carro para o **box** e colocar pneu de chuva (a parada custa uns 24 segundos). O
 Cada pista e condição tem um **acerto ideal escondido**. Ele muda com o tipo de pista (travada, mista ou veloz), a altitude,
 a temperatura do ar e do asfalto, a borracha acumulada ao longo do dia e a chuva. O jogo nunca mostra esse número:
 você descobre pelo cronômetro, pelo que o piloto sente e pelas dicas do mecânico. Um kart desequilibrado é mais lento,
-mais irregular, gasta mais pneu e erra mais. Carburação pobre demais ou dentes demais na coroa forçam o motor e podem estourá-lo na corrida.
+mais irregular, gasta mais pneu e erra mais. Carburação pobre demais ou dentes demais na coroa forçam o motor e podem engripá-lo na corrida.
 A retífica é cara: a expressa deixa correr a etapa seguinte; a normal, mais barata, faz o piloto perder uma etapa.
 O **caderno de acertos** guarda tudo o que você testou em cada pista. Cada pista tem um **recorde** (tempo, quem fez e quando), mostrado no treino, na
 classificação e na corrida: quem fizer uma volta mais rápida, em qualquer sessão, fica com ele.

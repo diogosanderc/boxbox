@@ -86,10 +86,10 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (cabem ${C.MAX_PNEUS} no estoque). Pneu zerado rende menos nas primeiras voltas: amacie no treino. O motor perde força depois de ${C.HORAS_REVISAO} etapas sem revisão e fica mais frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode estourá-lo na corrida, e a retífica é cara: a expressa deixa correr a etapa seguinte, a normal faz o piloto perder uma etapa. Pneu de kart dura pouco: um jogo novo aguenta mais ou menos uma bateria e meia.`],
+    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (cabem ${C.MAX_PNEUS} no estoque). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
-    setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode estourar o motor). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
+    setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. Com um mecânico contratado, ele também comenta: o iniciante dá palpites; o experiente e o profissional dizem o que mudar e quanto.'],
     mecanico: ['Mecânico', 'O kart não vem com mecânico: o acerto é seu. Dá para contratar um para o fim de semana. O iniciante é barato, dá palpites e fica no treino, na classificação e na corrida. O experiente faz uma análise técnica (o que mudar e quanto) e o profissional monta o kart para você; os dois cobram hora extra para trabalhar em cada sessão depois daquela em que foram contratados. Em cada sessão, cada um ajuda uma vez.'],
     quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
@@ -97,9 +97,11 @@
     // Um "?" para cada ajuste do kart: o que ele significa.
     pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.'],
     eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.'],
+    bitolaTraseira: ['Bitola traseira', 'É a largura entre as rodas de trás. Estreita dá mais aderência atrás; larga solta a traseira para o kart não arrastar nas curvas. Na chuva, abrir ajuda o peso a passar para as rodas de fora.'],
+    alturaBanco: ['Altura do banco', 'É a altura em que o banco (e o piloto) vai preso no chassi. Banco alto joga mais peso para as rodas de fora na curva e dá aderência; banco baixo deixa o kart mais estável e livre.'],
     bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.'],
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
-    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode estourar.'],
+    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     setupF4: ['Acerto do F4', 'Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
@@ -399,7 +401,7 @@
   }
 
   function checklist() {
-    // O motor estourado tem o seu próprio bloco logo abaixo.
+    // O motor engripado tem o seu próprio bloco logo abaixo.
     const pend = C.pendenciasEtapa(estado).filter((x) => x.id !== 'retifica');
     if (!pend.length) return `<div class="checklist ok">✓ Tudo pronto: pneus e motor em dia.</div>`;
     return `<div class="checklist"><b>⚠ Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
@@ -454,14 +456,14 @@
     </section>`;
   }
 
-  // Motor estourado: retífica expressa (corre esta etapa) ou normal (mais barata, perde a etapa).
+  // Motor engripado: retífica expressa (corre esta etapa) ou normal (mais barata, perde a etapa).
   function blocoRetifica(custo) {
     const expressa = C.precoRetifica(estado, 'expressa');
     const normal = C.precoRetifica(estado, 'normal');
     const podeExpressa = estado.dinheiro >= expressa + custo;
     const podeNormal = estado.dinheiro >= normal;
     return `<div class="retifica">
-      <b>💥 Motor estourado</b>
+      <b>💥 Motor engripado</b>
       <p class="fraco">Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa.</p>
       <button class="compra principal" data-acao="retificar" data-tipo="expressa" data-confirmar="Confirmar: −${reais(expressa)}" ${podeExpressa ? '' : 'disabled'}><b>Retífica expressa</b><span>−${reais(expressa)} · corre esta etapa</span></button>
       <button class="compra" data-acao="retificar" data-tipo="normal" data-confirmar="Confirmar: −${reais(normal)}" ${podeNormal ? '' : 'disabled'}><b>Retífica normal</b><span>−${reais(normal)} · fica fora desta etapa</span></button>
@@ -494,11 +496,15 @@
   }
 
   function cartaoOficina() {
-    const saude = estado.motorQuebrado ? 0 : Math.max(0, C.HORAS_REVISAO + 1 - estado.motorHoras);
-    const segs = Array.from({ length: C.HORAS_REVISAO + 1 }, (_, i) => `<i class="${i < saude ? (saude <= 1 ? 'aviso-fundo' : 'dinheiro-fundo') : ''}"></i>`).join('');
+    // Horas de uso do motor desde a última revisão (a barra enche até a hora da revisão).
+    const horas = estado.motorHoras;
+    const pct = Math.min(100, (horas / C.HORAS_REVISAO) * 100);
+    const classe = estado.motorQuebrado || horas > C.HORAS_REVISAO ? 'negativo' : C.motorPedeRevisao(estado) ? 'aviso' : 'dinheiro';
+    const fmt = (h) => String(h).replace('.', ',');
     return cartao('Oficina', `
-      <div class="motor"><span>Motor</span><span class="segmentos-motor" role="img" aria-label="Saúde do motor ${saude} de ${C.HORAS_REVISAO + 1}">${segs}</span>
-        ${estado.motorQuebrado ? '<span class="negativo"><b>Estourado</b></span>' : `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`}</div>
+      <div class="motor"><span>Motor</span><span class="motor-horas" role="img" aria-label="Motor com ${fmt(horas)} horas de uso, revisão a cada ${fmt(C.HORAS_REVISAO)} horas">
+          <span class="pneu-trilho"><i class="${classe}-fundo" style="width:${Math.max(4, pct)}%"></i></span><small class="${classe}">${fmt(horas)} h de ${fmt(C.HORAS_REVISAO)} h</small></span>
+        ${estado.motorQuebrado ? '<span class="negativo"><b>Engripado</b></span>' : `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`}</div>
       <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.MAX_PNEUS ? 'aviso' : ''}">${estado.pneus.length}/${C.MAX_PNEUS}</b></div>
       ${pneusVisuais(false)}
       <div class="botoes-2">
@@ -1161,6 +1167,7 @@
     const ganhos = r.premios.reduce((t, p) => t + p.valor, 0) + r.bonus.filter((b) => b.cumpriu).reduce((t, b) => t + b.valor, 0);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Temporada ${r.ano}</h1>${chip(esc(camp.curto))}</div>
+      ${r.f4Espera ? cartao('F4 garantida', `<p><b>${esc(r.f4Espera.nome)}</b> quer você na Fórmula 4, mas a FIA só permite a partir dos ${r.f4Espera.idade} anos. A vaga fica guardada: continue no kart e a proposta chega no fim da temporada em que você tiver ${r.f4Espera.idade}.</p>`, { classe: 'destaque' }) : ''}
       ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
           <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${p.tipo === 'f3' ? 'F3' : 'F4'}</button></div>`).join(''), { classe: 'destaque' }) : ''}

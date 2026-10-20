@@ -7,9 +7,11 @@
   // Cada categoria tem os seus ajustes, o seu acerto ideal escondido e o que o piloto sente.
   // usarCategoria() troca o modelo em uso; as funções abaixo sempre usam o modelo atual (M).
   const AJUSTES_KART = {
-    pressao: { nome: 'Pressão dos pneus', tipo: 'numero', min: 9, max: 16, passo: 0.5, unidade: 'psi', padrao: 12 },
+    pressao: { nome: 'Pressão dos pneus', tipo: 'numero', min: 9, max: 20, passo: 0.5, unidade: 'psi', padrao: 12 },
     eixo: { nome: 'Eixo traseiro', tipo: 'opcoes', opcoes: ['Mole', 'Médio', 'Duro'], padrao: 1 },
+    bitolaTraseira: { nome: 'Bitola traseira', tipo: 'opcoes', opcoes: ['Estreita', 'Média', 'Larga'], padrao: 1 },
     bitola: { nome: 'Bitola dianteira', tipo: 'opcoes', opcoes: ['Estreita', 'Média', 'Larga'], padrao: 1 },
+    alturaBanco: { nome: 'Altura do banco', tipo: 'opcoes', opcoes: ['Baixo', 'Médio', 'Alto'], padrao: 1 },
     coroa: { nome: 'Relação (coroa)', tipo: 'numero', min: 76, max: 90, passo: 1, unidade: 'dentes', padrao: 82 },
     carburacao: { nome: 'Carburação', tipo: 'numero', min: -3, max: 3, passo: 1, unidade: '', padrao: 0, rotulo: (v) => (v === 0 ? 'Padrão' : v < 0 ? `${-v} volta(s) mais pobre` : `${v} volta(s) mais rica`) },
   };
@@ -29,41 +31,50 @@
     kart: {
       id: 'kart', veiculo: 'kart', quemAcerta: 'Mecânico',
       AJUSTES: AJUSTES_KART,
-      ORDEM: ['pressao', 'eixo', 'bitola', 'coroa', 'carburacao'],
+      ORDEM: ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'alturaBanco', 'coroa', 'carburacao'],
       // Quanto cada unidade de erro pesa e a "escala" de tolerância de cada ajuste.
-      TOLERANCIA: { pressao: 1.0, eixo: 0.7, bitola: 0.8, coroa: 3, carburacao: 1.2 },
-      PESO: { pressao: 0.25, eixo: 0.3, bitola: 0.2, coroa: 0.2, carburacao: 0.2 },
+      TOLERANCIA: { pressao: 1.0, eixo: 0.7, bitolaTraseira: 0.7, bitola: 0.8, alturaBanco: 0.8, coroa: 3, carburacao: 1.2 },
+      PESO: { pressao: 0.25, eixo: 0.3, bitolaTraseira: 0.2, bitola: 0.2, alturaBanco: 0.15, coroa: 0.2, carburacao: 0.2 },
       traseira: 'eixo',
       ideal(pista, cond, pneu) {
         const tipo = tipoNum(pista);
         return {
-          pressao: limitarK(pneu === 'chuva' ? 14.5 : 12.5 - (cond.tempPista - 30) / 10, 9, 16),
+          pressao: limitarK(pneu === 'chuva' ? 18 : 12.5 - (cond.tempPista - 30) / 10, 9, 20),
+          // Bitola traseira: larga solta a traseira (calor e borracha pedem mais larga); na chuva abre para transferir peso.
+          bitolaTraseira: limitarK(cond.molhado ? 1.8 : 0.85 + (cond.tempPista - 30) / 20 + cond.borracha * 0.3, 0, 2),
+          // Banco alto transfere mais peso e dá aderência: pista verde, fria ou molhada pede banco mais alto.
+          alturaBanco: limitarK(cond.molhado ? 1.9 : 1.25 - cond.borracha * 0.5 - (cond.tempPista - 30) / 30, 0, 2),
           eixo: limitarK(cond.molhado ? 0.2 : 1 + tipo * 0.4 + (cond.tempPista - 30) / 15 + cond.borracha * 0.4 - 0.2, 0, 2),
           bitola: limitarK(1 - tipo * 0.6 + (cond.molhado ? 0.6 : 0), 0, 2),
           coroa: limitarK(82 - tipo * 3 + pista.altitude / 400 + (cond.molhado ? 2 : 0), 76, 90),
           carburacao: limitarK((20 - cond.tempAr) / 7 - pista.altitude / 500, -3, 3),
         };
       },
-      // Quanto o acerto força o motor (0 = nada): carburação pobre e relação curta demais.
+      // Quanto o acerto força o motor (0 = nada): carburação pobre (engripa) e relação curta demais.
       forcaMotor: (e) => Math.max(0, -e.carburacao - 0.8) + Math.max(0, e.coroa - 0.8),
       SINTOMAS: {
         pressao: ['O kart está pesado, os pneus demoram a pegar temperatura.', 'Os pneus superaquecem e o kart escorrega depois de algumas voltas.'],
         eixo: ['O kart está amarrado, pulando no meio das curvas.', 'A traseira está solta, o kart escapa na saída das curvas.'],
+        bitolaTraseira: ['O kart arrasta nas curvas, parece que está freando.', 'A traseira patina quando eu acelero na saída.'],
+        alturaBanco: ['O kart não transfere peso, fica sem aderência nas curvas lentas.', 'O kart fica alto e instável, quer levantar a roda na entrada.'],
         bitola: ['O kart sai de frente, não quer virar na entrada.', 'A frente morde demais, o kart fica nervoso na entrada de curva.'],
-        coroa: ['Falta força na saída das curvas, o kart demora a embalar.', 'O motor estoura o giro antes do fim da reta.'],
-        carburacao: ['O motor está quente e gritando demais... dá medo de estourar.', 'O motor está afogando, engasga nas retomadas.'],
+        coroa: ['Falta força na saída das curvas, o kart demora a embalar.', 'O motor passa do giro antes do fim da reta.'],
+        carburacao: ['O motor está quente e gritando demais... dá medo de engripar.', 'O motor está afogando, engasga nas retomadas.'],
       },
       DIRECAO: {
         pressao: ['Pressão mais alta', 'Pressão mais baixa'],
         eixo: ['Eixo mais duro', 'Eixo mais mole'],
+        bitolaTraseira: ['Bitola traseira mais larga', 'Bitola traseira mais estreita'],
         bitola: ['Bitola mais larga', 'Bitola mais estreita'],
+        alturaBanco: ['Banco mais alto', 'Banco mais baixo'],
         coroa: ['Mais dentes na coroa', 'Menos dentes na coroa'],
         carburacao: ['Carburação mais rica', 'Carburação mais pobre'],
       },
-      ONDE: { pressao: 'na pressão', eixo: 'no eixo', bitola: 'na bitola dianteira', coroa: 'na relação', carburacao: 'na carburação' },
+      ONDE: { pressao: 'na pressão', eixo: 'no eixo', bitolaTraseira: 'na bitola traseira', bitola: 'na bitola dianteira', alturaBanco: 'na altura do banco', coroa: 'na relação', carburacao: 'na carburação' },
       // verbo para baixar (erro > 0) e para subir (erro < 0)
       VERBO: {
-        pressao: ['baixar', 'subir'], eixo: ['amolecer', 'endurecer'], bitola: ['fechar', 'abrir'],
+        pressao: ['baixar', 'subir'], eixo: ['amolecer', 'endurecer'], bitolaTraseira: ['fechar a traseira', 'abrir a traseira'], bitola: ['fechar', 'abrir'],
+        alturaBanco: ['baixar o banco', 'subir o banco'],
         coroa: ['tirar dentes da coroa', 'pôr mais dentes na coroa'], carburacao: ['empobrecer', 'enriquecer'],
       },
       fraseTecnica(k, d, alvo, AJ) {
@@ -71,13 +82,16 @@
         return {
           pressao: () => `${d < 0 ? 'Baixa' : 'Sobe'} ${String(Math.abs(d)).replace('.', ',')} psi na pressão`,
           eixo: () => `Eixo: passa para ${AJ.eixo.opcoes[alvo.eixo]}`,
+          bitolaTraseira: () => `Bitola traseira: passa para ${AJ.bitolaTraseira.opcoes[alvo.bitolaTraseira]}`,
           bitola: () => `Bitola: passa para ${AJ.bitola.opcoes[alvo.bitola]}`,
+          alturaBanco: () => `Banco: passa para ${AJ.alturaBanco.opcoes[alvo.alturaBanco]}`,
           coroa: () => `${d > 0 ? 'Põe' : 'Tira'} ${plural(Math.abs(d), 'dente', 'dentes')} ${d > 0 ? 'na' : 'da'} coroa`,
           carburacao: () => `Carburação ${plural(Math.abs(d), 'volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`,
         }[k]();
       },
       descrever(s, AJ) {
-        return this.ORDEM.map((k) => {
+        // Acertos antigos do caderno podem não ter os ajustes mais novos.
+        return this.ORDEM.filter((k) => k in s).map((k) => {
           const a = AJ[k];
           if (a.tipo === 'opcoes') return a.opcoes[s[k]];
           if (a.rotulo) return `carb. ${s[k] > 0 ? '+' : ''}${s[k]}`;
@@ -217,11 +231,11 @@
       quebra: 0,
       motivoQuebra: 'Quebra',
     };
-    // Forçar o motor: mistura pobre demais ou dentes demais na coroa (passa do giro) podem estourá-lo.
+    // Forçar o motor: mistura pobre demais ou dentes demais na coroa (passa do giro) podem engripá-lo.
     const forca = forcaMotor(e);
     if (forca > 0) {
       r.quebra = 0.0065 * Math.pow(forca, 1.5);
-      r.motivoQuebra = 'Motor estourou';
+      r.motivoQuebra = 'Motor engripou';
     }
     if (cond.molhado && pneu === 'slick') {
       r.tempo += 5;
@@ -323,9 +337,11 @@
       .map((k) => ({ k, peso: M.PESO[k] * e[k] * e[k], sinal: e[k] > 0 ? 1 : 0, erro: e[k] }))
       .sort((a, b) => b.peso - a.peso);
     const sentiu = ordenados.filter((x) => x.peso >= 0.06).slice(0, 2).map((x) => M.SINTOMAS[x.k][x.sinal]);
-    const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6)
+    // Só sugere mudar o que dá para melhorar: se já está no valor mais perto do ideal, não fala nada.
+    const melhor = arredondarSetup(acertoIdeal(pista, cond, pneu));
+    const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6 && setup[x.k] !== melhor[x.k])
       .map((x) => ({ k: x.k, texto: `${M.DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
-    const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem estourá-lo.' : null;
+    const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.' : null;
     let pneuDica = null;
     if (cond.molhado && pneu === 'slick') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
     else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';

@@ -15,9 +15,17 @@
   const ETAPAS = 8;
   const SAIDAS_TREINO = 4;
   const VOLTAS_POR_SAIDA = 6;
-  const HORAS_REVISAO = 3; // depois disso o motor perde força
+  // Motor de kart conta horas de uso: cada saída de treino, a classificação e a corrida somam.
+  // Passou de HORAS_REVISAO sem revisão, perde força e fica mais frágil.
+  const HORAS_REVISAO = 3.5;
+  const HORAS = { saida: 0.12, amaciar: 0.03, quali: 0.08, corrida: 0.3 };
+  const somarHoras = (estado, h) => { estado.motorHoras = Math.round((estado.motorHoras + h) * 100) / 100; };
+  // Já pede revisão antes da próxima etapa? (uma etapa inteira gasta cerca de 0,9 h)
+  const motorPedeRevisao = (estado) => estado.motorHoras >= HORAS_REVISAO - 0.9;
+  // Idade mínima da FIA para a Fórmula 4.
+  const IDADE_F4 = 15;
   const CUSTO_REVISAO = 2500;
-  // Motor estourado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
+  // Motor engripado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
   const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
   // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
   const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
@@ -135,7 +143,7 @@
       campeonato: 'regional', etapa: 0, fase: 'paddock',
       equipeId, contrato: null, dinheiro: equipeBase(equipeId).caixa,
       piloto: null, rivais: [], pontos: {}, vitorias: {}, podios: {},
-      pneus: [], proxPneu: 1, motorHoras: 0,
+      pneus: [], proxPneu: 1, motorHoras: 0, motorEmHoras: true,
       patrocinios: [], ofertasPatrocinio: [], propostas: [], interesse: {},
       calendario: [], fds: null, ultimoFds: null, caderno: {}, noticias: [], historico: [], relatorio: null,
       evolucao: [], temporadas: [], seguindo: null,
@@ -230,6 +238,8 @@
     // Carreiras antigas, sem sorteio, continuam com os nomes originais.
     usarNomesEquipes(estado && estado.nomesEquipes);
     if (estado && estado.campeonato) sincronizarCategoria(estado);
+    // Carreiras antigas contavam o motor em etapas; agora são horas (cerca de 0,9 h por etapa).
+    if (estado && estado.piloto && !estado.motorEmHoras) { estado.motorHoras = Math.round((estado.motorHoras || 0) * 0.9 * 100) / 100; estado.motorEmHoras = true; }
     if (estado && estado.piloto && estado.piloto.moral == null) {
       estado.piloto.moral = 60;
       estado.piloto.confianca = 50;
@@ -251,7 +261,7 @@
 
   function carroDe(estado, equipeId, jogador) {
     const e = equipeBase(equipeId);
-    const cansaco = jogador ? Math.max(0, estado.motorHoras - HORAS_REVISAO) * 1.5 : 0;
+    const cansaco = jogador ? Math.max(0, estado.motorHoras - HORAS_REVISAO) * 1.6 : 0;
     return {
       motor: Math.round(e.material - cansaco), aero: e.material, chassi: e.material,
       confiabilidade: Math.round(82 + e.organizacao / 7 - cansaco),
@@ -266,7 +276,7 @@
   const pneuNovo = (p) => p.uso < 1;
   const pneuAmaciado = (p) => p.uso >= 1 && p.uso <= 4;
   // Segundos a mais numa volta por causa de pneu ainda zerado (some depois de ~3 voltas).
-  const penalidadeZerado = (uso) => Math.max(0, 0.6 * (1 - uso / 3));
+  const penalidadeZerado = (uso) => Math.max(0, 0.3 * (1 - uso / 2));
 
   function comprarPneu(estado, tipo, gratis = false) {
     if (estado.pneus.length >= MAX_PNEUS) return { ok: false, erro: `Estoque cheio (${MAX_PNEUS} jogos): venda, doe ou descarte um pneu.` };
@@ -321,13 +331,14 @@
     const p = pneuPorId(estado, fds.pneuId);
     if (!p || !pneuNovo(p)) return { ok: false, erro: 'Escolha um jogo de pneus novo para amaciar.' };
     p.uso = AMACIAR_VOLTAS;
+    somarHoras(estado, HORAS.amaciar);
     return { ok: true };
   }
 
   // O motor só é revisado no paddock: no fim de semana não dá para mexer nele.
   function revisarMotor(estado) {
     if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
-    if (estado.motorQuebrado) return { ok: false, erro: 'O motor estourou: precisa de retífica, não de revisão.' };
+    if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: precisa de retífica, não de revisão.' };
     const custo = Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para a revisão.' };
     estado.dinheiro -= custo;
@@ -400,7 +411,7 @@
   // O que falta antes de ir para a pista: slick novo, pneu de chuva (se a previsão pede) e revisão do motor.
   function pendenciasEtapa(estado) {
     const lista = [];
-    if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor estourado: sem retífica, não dá para correr.' });
+    if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor engripado: sem retífica, não dá para correr.' });
     if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
       lista.push({ id: 'slick', texto: 'Nenhum slick novo para a classificação e a corrida.' });
     }
@@ -408,8 +419,9 @@
     if (clima && clima.tarde.chance >= 40 && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
       lista.push({ id: 'chuva', texto: `Previsão de ${clima.tarde.chance}% de chuva à tarde e nenhum pneu de chuva em bom estado.` });
     }
-    if (!estado.motorQuebrado && estado.motorHoras >= HORAS_REVISAO) {
-      lista.push({ id: 'motor', texto: estado.motorHoras > HORAS_REVISAO ? 'Motor cansado, perdendo força.' : 'Motor na hora da revisão.' });
+    if (!estado.motorQuebrado && motorPedeRevisao(estado)) {
+      const h = `${String(estado.motorHoras).replace('.', ',')} h de ${String(HORAS_REVISAO).replace('.', ',')} h`;
+      lista.push({ id: 'motor', texto: estado.motorHoras > HORAS_REVISAO ? `Motor cansado, perdendo força (${h}).` : `Motor na hora da revisão (${h}).` });
     }
     return lista;
   }
@@ -417,7 +429,7 @@
   const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
   const precoRetifica = (estado, tipo) => Math.round(CUSTO_RETIFICA[tipo] * campeonato(estado.campeonato).custo);
 
-  // Conserta o motor estourado. Expressa: fica pronto para esta etapa. Normal: o motor fica na oficina e o piloto perde a etapa.
+  // Conserta o motor engripado. Expressa: fica pronto para esta etapa. Normal: o motor fica na oficina e o piloto perde a etapa.
   function retificarMotor(estado, tipo) {
     if (!estado.motorQuebrado) return { ok: false, erro: 'O motor está inteiro.' };
     if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
@@ -609,7 +621,7 @@
 
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
-    if (estado.motorQuebrado) return { ok: false, erro: 'O motor estourou: faça a retífica antes de ir para a pista.' };
+    if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
     const rnd = rngDe(estado);
@@ -724,6 +736,7 @@
     const cond = Kart.condicao(clima, 'treino', clima.manha.chove);
     const { tempo, efeito } = voltaLancada(estado, entradaJogador(estado), fds.setup, pneu.tipo, pneu.uso, cond, rnd, VOLTAS_POR_SAIDA);
     pneu.uso += VOLTAS_POR_SAIDA * efeito.desgaste * pista.desgaste / 0.9;
+    somarHoras(estado, HORAS.saida);
 
     // Melhor tempo de cada rival até agora no treino (cada um também deu suas voltas).
     const tempos = estado.rivais.map((r) => {
@@ -813,6 +826,7 @@
     const cond = Kart.condicao(clima, 'quali', clima.tarde.inicioChuva === 'quali');
     const tempos = [{ id: 'jogador', tempo: voltaLancada(estado, entradaJogador(estado), fds.setup, pneu.tipo, pneu.uso, cond, rnd, 3).tempo }];
     pneu.uso += 3;
+    somarHoras(estado, HORAS.quali);
     for (const r of estado.rivais) {
       const ia = fds.ia[r.id];
       tempos.push({ id: r.id, tempo: voltaLancada(estado, entradaRival(estado, r), ia.tarde, ia.pneu, AMACIAR_VOLTAS, cond, rnd, 3).tempo });
@@ -865,7 +879,7 @@
       const ef = Kart.efeito(setup, pista, cond, pneu);
       ef.tempo += pit;
       // Motor passado da revisão aguenta menos quando é forçado.
-      if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 1);
+      if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 0.9) / 0.9;
       if (c.jogador) ef.tempo += penalidadeZerado(c.uso);
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
@@ -924,10 +938,10 @@
     const pneu = pneuPorId(estado, fds.pneuCorrida);
     const carro = corrida.carros.find((c) => c.jogador);
     if (pneu) pneu.uso = Math.round(carro.uso);
-    estado.motorHoras += 1;
-    if (meu.fora && meu.motivoFora === 'Motor estourou') {
+    somarHoras(estado, HORAS.corrida);
+    if (meu.fora && meu.motivoFora === 'Motor engripou') {
       estado.motorQuebrado = true;
-      noticia(estado, `O motor de ${p.nome} estourou! A equipe vai precisar de uma retífica.`);
+      noticia(estado, `O motor de ${p.nome} engripou! A equipe vai precisar de uma retífica.`);
     }
 
     // Cabeça do piloto: o resultado em relação à largada pesa na confiança.
@@ -1082,6 +1096,20 @@
       const a = sortear(rnd, Dados.OLHEIROS.filter((x) => x.tipo === 'academia'));
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'academia', nome: a.nome, equipe: a.equipe, texto: 'Entrar no programa de jovens pilotos de uma equipe de F1: eles pagam a F4.' });
     }
+    // A FIA só deixa correr de F4 a partir dos 15 anos: a proposta fica guardada até lá.
+    if (noKart) {
+      const novas = propostasF4.splice(0, propostasF4.length);
+      if (p.idade >= IDADE_F4) {
+        if (estado.f4Reservada && !novas.some((x) => x.tipo === estado.f4Reservada.tipo)) novas.push({ ...estado.f4Reservada, id: `pr${estado.proxId++}` });
+        estado.f4Reservada = null;
+        propostasF4.push(...novas);
+      } else if (novas.length) {
+        const melhor = novas.find((x) => x.tipo === 'academia') || novas[0];
+        estado.f4Reservada = { ...melhor };
+        rel.f4Espera = { nome: melhor.nome, idade: IDADE_F4 };
+        noticia(estado, `${melhor.nome} quer ${p.nome} na F4 assim que completar ${IDADE_F4} anos.`);
+      }
+    }
     // Na F4, os 4 primeiros recebem proposta para a F3 (próximo capítulo).
     if (!noKart && pos <= VAGAS_SUBIDA) {
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f3', nome: pos === 1 ? 'Academia Vortex (F3)' : 'Apex Racing (F3)', texto: 'Vaga na Fórmula 3 para o próximo ano.' });
@@ -1138,7 +1166,7 @@
 
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
-    VAGAS_SUBIDA, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

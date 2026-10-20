@@ -12,7 +12,7 @@ function jogarFimDeSemana(estado, estrategia = 'padrao') {
   for (const p of estado.pneus.slice()) if (p.uso > 20) Carreira.venderPneu(estado, p.id);
   if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
   if (estado.pneus.filter((p) => p.tipo === 'slick').length < 2) Carreira.comprarPneu(estado, 'slick');
-  if (estado.motorHoras >= Carreira.HORAS_REVISAO) Carreira.revisarMotor(estado);
+  if (Carreira.motorPedeRevisao(estado)) Carreira.revisarMotor(estado);
   if (estado.motorQuebrado && !Carreira.retificarMotor(estado, 'expressa').ok) { Carreira.retificarMotor(estado, 'normal'); return null; }
   const r = Carreira.iniciarFimDeSemana(estado);
   if (!r.ok) { Carreira.pularEtapa(estado); return null; }
@@ -60,7 +60,7 @@ test('acerto ideal deixa o kart mais rápido que um acerto ruim', () => {
   const pista = Dados.KARTODROMOS.br[0];
   const cond = { tempAr: 30, tempPista: 44, molhado: false, borracha: 0.8 };
   const ideal = Kart.acertoIdeal(pista, cond, 'slick');
-  const ruim = { pressao: 15, eixo: 0, bitola: 2, coroa: 76, carburacao: 3 };
+  const ruim = { ...Kart.setupPadrao(), pressao: 15, eixo: 0, bitola: 2, coroa: 76, carburacao: 3, bitolaTraseira: 0, alturaBanco: 2 };
   assert.ok(Kart.efeito(ideal, pista, cond, 'slick').tempo < 0.01);
   assert.ok(Kart.efeito(ruim, pista, cond, 'slick').tempo > 1.5);
 });
@@ -194,7 +194,7 @@ test('no grid o acerto é livre, mas o mecânico e o motor não', () => {
   Carreira.iniciarFimDeSemana(e);
   Carreira.irParaClassificacao(e);
   Carreira.classificar(e);
-  const novo = { pressao: 15, eixo: 2, bitola: 0, coroa: 78, carburacao: 3 };
+  const novo = { ...Kart.setupPadrao(), pressao: 15, eixo: 2, bitola: 0, coroa: 78, carburacao: 3 };
   Carreira.definirSetup(e, novo);
   assert.deepStrictEqual(e.fds.setup, novo);
   assert.strictEqual(Carreira.pedirSugestao(e).ok, false); // sem mecânico contratado
@@ -373,7 +373,7 @@ test('o piloto comenta o que mudou na pista entre as sessões', () => {
   for (const s of ['treino', 'quali', 'grid']) assert.ok(Carreira.leituraPista(e, s).length > 0);
 });
 
-test('forçar o motor pode estourá-lo; a retífica é cara e a normal custa a etapa', () => {
+test('forçar o motor pode engripá-lo; a retífica é cara e a normal custa a etapa', () => {
   const pista = Dados.KARTODROMOS.br.find((p) => p.altitude < 100);
   const clima = { manha: { tempAr: 10, chove: false }, tarde: { tempAr: 12, chove: false, inicioChuva: null } };
   const cond = Kart.condicao(clima, 'corrida', false);
@@ -381,7 +381,7 @@ test('forçar o motor pode estourá-lo; a retífica é cara e a normal custa a e
   assert.strictEqual(Kart.efeito(ideal, pista, cond, 'slick').quebra, 0);
   const forcado = Kart.efeito({ ...ideal, carburacao: -3, coroa: 90 }, pista, cond, 'slick');
   assert.ok(forcado.quebra > 0.02);
-  assert.strictEqual(forcado.motivoQuebra, 'Motor estourou');
+  assert.strictEqual(forcado.motivoQuebra, 'Motor engripou');
   assert.ok(Kart.diagnostico({ ...ideal, carburacao: -3 }, pista, cond, 'slick').motor);
 
   const e = Carreira.novoJogo({ seed: 3 });
@@ -623,4 +623,25 @@ test('F4: os 4 primeiros recebem proposta de F3', () => {
   assert.strictEqual(e.propostas.some((p) => p.tipo === 'f3'), pos <= Carreira.VAGAS_SUBIDA);
   assert.ok(!e.relatorio.opcoes.includes('internacional'));
   Carreira.migrar({ campeonato: 'regional' });
+});
+
+test('F4 só a partir dos 15 anos: a proposta fica guardada', () => {
+  const e = Carreira.novoJogo({ seed: 3, equipeId: 'fulmine' });
+  e.campeonato = 'nacional';
+  e.piloto.idade = 13; // vira 14 no fim do ano
+  for (const r of e.rivais) e.pontos[r.id] = 0;
+  e.pontos.jogador = 999; // campeão brasileiro
+  e.etapa = Carreira.ETAPAS - 1;
+  Carreira.concluirEtapa(e);
+  assert.strictEqual(e.relatorio.pos, 1);
+  assert.strictEqual(e.propostas.length, 0);
+  assert.ok(e.relatorio.f4Espera && e.f4Reservada);
+  // no ano seguinte, já com 15, a proposta chega mesmo sem novo título
+  Carreira.proximaTemporada(e, 'nacional');
+  e.pontos.jogador = 0;
+  e.etapa = Carreira.ETAPAS - 1;
+  Carreira.concluirEtapa(e);
+  assert.strictEqual(e.piloto.idade, 15);
+  assert.ok(e.propostas.some((p) => p.tipo === 'f4' || p.tipo === 'academia'));
+  assert.strictEqual(e.f4Reservada, null);
 });
