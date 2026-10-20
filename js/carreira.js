@@ -77,6 +77,7 @@
     rivais.forEach((r, i) => { r.equipe = vagas[i]; });
     estado.rivais = rivais;
     estado.pontos = { jogador: 0, ...Object.fromEntries(rivais.map((r) => [r.id, 0])) };
+    estado.seguindo = null; // rivais novos a cada temporada
     estado.vitorias = {};
     estado.podios = {};
   }
@@ -90,6 +91,7 @@
       pneus: [], proxPneu: 1, motorHoras: 0,
       patrocinios: [], ofertasPatrocinio: [], propostas: [], interesse: {},
       calendario: [], fds: null, ultimoFds: null, caderno: {}, noticias: [], historico: [], relatorio: null,
+      evolucao: [], temporadas: [], seguindo: null,
     };
     const rnd = rngDe(estado);
     const p = { id: 'jogador', nome, pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
@@ -178,7 +180,13 @@
       estado.piloto.moral = 60;
       estado.piloto.confianca = 50;
     }
+    if (estado && !estado.evolucao) { estado.evolucao = []; estado.temporadas = []; estado.seguindo = null; }
     return estado;
+  }
+
+  // Seguir um rival: ele aparece no paddock e nos avisos da corrida. Tocar de novo deixa de seguir.
+  function seguir(estado, id) {
+    estado.seguindo = estado.seguindo === id ? null : id;
   }
 
   // ---------- equipe, kart e dinheiro ----------
@@ -659,6 +667,8 @@
   // Volta ao paddock depois da corrida (ou de uma etapa pulada).
   function concluirEtapa(estado) {
     const rnd = rngDe(estado);
+    // Posição no campeonato depois desta etapa (para o gráfico de evolução).
+    estado.evolucao.push({ ano: estado.ano, campeonato: estado.campeonato, etapa: estado.etapa + 1, pos: posicaoNoCampeonato(estado), pontos: estado.pontos.jogador });
     if (estado.fds) estado.ultimoFds = { setup: estado.fds.setupCorrida || estado.fds.setup };
     estado.fds = null;
     estado.etapa += 1;
@@ -754,6 +764,7 @@
 
     const custoMinimo = Math.round(Dados.EQUIPES[Dados.EQUIPES.length - 1].custoEtapa * camp.custo);
     estado.relatorio = rel;
+    estado.temporadas.push({ ano: rel.ano, campeonato: rel.campeonato, pos: rel.pos, pontos: rel.pontos });
     estado.ano += 1;
     estado.fase = estado.dinheiro < custoMinimo && !propostasF4.length ? 'falencia' : 'relatorio';
     noticia(estado, `${p.nome} termina ${rel.ano} em P${pos} na ${camp.nome}. Campeão: ${rel.campeao}.`);
@@ -771,7 +782,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

@@ -50,6 +50,9 @@
 
   function ir(nova) {
     if (timer) { clearInterval(timer); timer = null; }
+    // Avisos da tela anterior não seguem para a próxima.
+    clearTimeout(timerAviso);
+    document.getElementById('aviso').hidden = true;
     tela = nova;
     render();
     window.scrollTo(0, 0);
@@ -263,6 +266,16 @@
   }
 
   // ---------- paddock ----------
+  function chipRival() {
+    if (!estado.seguindo) return '';
+    const tabela = C.classificacaoCampeonato(estado);
+    const i = tabela.findIndex((x) => x.id === estado.seguindo);
+    if (i < 0) return '';
+    const eu = tabela.findIndex((x) => x.id === 'jogador');
+    const dif = tabela[i].pontos - tabela[eu].pontos;
+    return chip(`★ ${esc(tabela[i].nome.split(' ')[0])} ${sigla(tabela[i].nome)} · P${i + 1} · ${dif === 0 ? 'empatado' : dif > 0 ? `${dif} pts à frente` : `${-dif} pts atrás`}`, 'chip-amarelo');
+  }
+
   function cartaoProximaEtapa() {
     const pista = C.pistaAtual(estado);
     const clima = C.climaAtual(estado);
@@ -276,6 +289,7 @@
           <h2>${esc(pista.nome)}</h2>
           <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
           <button class="ver-pista" data-acao="ver-pista">Ver pista ›</button>
+          ${chipRival()}
         </div>
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
@@ -347,16 +361,88 @@
       ${estado.propostas.map(cartaoProposta).join('')}`, { ajuda: 'olheiros' });
   }
 
-  function tabelaCampeonato() {
+  const semAcento = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // Sigla de 3 letras do sobrenome (FER, MON…), como na cronometragem.
+  const sigla = (nome) => semAcento(nome.trim().split(/\s+/).pop()).replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase();
+  // "Lucas FERRAZ": primeiro nome normal, sobrenome em caixa alta e negrito.
+  function nomeDestaque(nome) {
+    const partes = nome.trim().split(/\s+/);
+    if (partes.length < 2) return `<b>${esc(nome.toUpperCase())}</b>`;
+    return `${esc(partes[0])} <b>${esc(partes.slice(1).join(' ').toUpperCase())}</b>`;
+  }
+
+  function listaCampeonato() {
     const tabela = C.classificacaoCampeonato(estado);
-    return `<div class="painel tabela-ajustada"><table>
-      <tr><th>#</th><th>Piloto</th><th class="opc">Equipe</th><th class="num">V</th><th class="num opc">Pód.</th><th class="num">Pts</th></tr>
-      ${tabela.map((x, i) => {
-        const eq = C.equipeBase(x.equipe);
-        return `<tr class="${x.id === 'jogador' ? 'jogador' : ''}"><td>${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</td>
-          <td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(x.nome)}</td><td class="fraco opc">${esc(eq.nome)}</td>
-          <td class="num">${x.vitorias}</td><td class="num opc">${x.podios}</td><td class="num"><b>${x.pontos}</b></td></tr>`;
-      }).join('')}</table></div>`;
+    return `<div class="classificacao">${tabela.map((x, i) => {
+      const eq = C.equipeBase(x.equipe);
+      const eu = x.id === 'jogador';
+      const seguido = estado.seguindo === x.id;
+      return `<div class="camp-linha ${eu ? 'jogador' : ''} ${seguido ? 'seguido' : ''}">
+        <span class="camp-pos"><b>${i + 1}</b><small>${x.pontos} pts</small></span>
+        <i class="camp-cor" style="background:${eq.cor}"></i>
+        <span class="camp-nome"><span>${nomeDestaque(x.nome)}</span><small>${esc(eq.nome)}${x.vitorias ? ` · ${x.vitorias} vitória${x.vitorias > 1 ? 's' : ''}` : ''}</small></span>
+        ${eu ? '<span class="chip">Você</span>' : `<button class="seguir ${seguido ? 'ativo' : ''}" data-acao="seguir" data-id="${x.id}" aria-pressed="${seguido}" aria-label="${seguido ? 'Deixar de seguir' : 'Seguir'} ${esc(x.nome)}">${seguido ? '★' : '☆'}</button>`}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Calendário da temporada: resultado nas etapas que passaram, "agora" na atual.
+  function calendario() {
+    const camp = C.campeonato(estado.campeonato);
+    const todas = Dados.KARTODROMOS[camp.regiao];
+    return `<div class="calendario">${estado.calendario.map((et, i) => {
+      const pista = todas.find((k) => k.id === et.pista);
+      const feito = estado.historico.find((h) => h.ano === estado.ano && h.campeonato === estado.campeonato && h.etapa === i + 1);
+      let status;
+      if (i === estado.etapa && estado.fase !== 'relatorio') status = '<span class="agora">Agora</span>';
+      else if (feito) status = `<span class="pos-mini ${!feito.fora && feito.pos <= 3 ? 'top' : ''}">${feito.fora ? 'Abandono' : 'P' + feito.pos}</span>`;
+      else if (i < estado.etapa) status = '<span class="fraco mini">Fora</span>';
+      else status = '';
+      return `<div class="cal-linha ${i === estado.etapa ? 'atual' : i < estado.etapa ? 'passada' : ''}">
+        <span class="cal-num">E${i + 1}</span>
+        <span class="cal-nome"><b>${esc(pista.nome)}</b><small>${esc(pista.local)} · ${tipoPista[pista.tipo].replace(/^\S+\s/, '')}</small></span>
+        ${status}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Gráfico de linha da posição (P1 em cima). Uma série só: sem legenda, rótulo direto no último e no melhor ponto.
+  function graficoPosicao(pontos, maxPos = 20) {
+    if (pontos.length < 2) return '<p class="vazio">O gráfico aparece depois de duas etapas.</p>';
+    const [L, R, T, B] = [34, 300, 14, 132];
+    const x = (i) => L + (pontos.length === 1 ? 0 : (i * (R - L)) / (pontos.length - 1));
+    const y = (pos) => T + ((pos - 1) * (B - T)) / (maxPos - 1);
+    const grade = [1, 5, 10, 15, 20].filter((g) => g <= maxPos).map((g) => `<line x1="${L}" x2="${R}" y1="${y(g)}" y2="${y(g)}" class="g-grade"/><text x="${L - 8}" y="${y(g) + 4}" class="g-eixo" text-anchor="end">P${g}</text>`).join('');
+    const linha = pontos.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.pos).toFixed(1)}`).join(' ');
+    const melhor = pontos.reduce((m, p, i) => (p.pos < pontos[m].pos ? i : m), 0);
+    const ultimo = pontos.length - 1;
+    const marcas = pontos.map((p, i) => `<g class="g-ponto" tabindex="0" aria-label="${esc(p.rotulo)}: P${p.pos}">
+        <circle cx="${x(i)}" cy="${y(p.pos)}" r="13" class="g-alvo"/>
+        <circle cx="${x(i)}" cy="${y(p.pos)}" r="4.5" class="g-marca"/>
+        <g class="g-dica"><rect x="${Math.min(R - 92, Math.max(0, x(i) - 46))}" y="${y(p.pos) > 60 ? y(p.pos) - 40 : y(p.pos) + 12}" width="92" height="26" rx="6"/>
+          <text x="${Math.min(R - 46, Math.max(46, x(i)))}" y="${y(p.pos) > 60 ? y(p.pos) - 23 : y(p.pos) + 29}" text-anchor="middle">${esc(p.rotulo)} · P${p.pos}</text></g>
+      </g>`).join('');
+    const rotulo = (i) => `<text x="${Math.min(R - 4, x(i) + 8)}" y="${y(pontos[i].pos) - 9}" class="g-rotulo" text-anchor="${i === ultimo ? 'end' : 'start'}">P${pontos[i].pos}</text>`;
+    const eixoX = `<text x="${L}" y="${B + 20}" class="g-eixo">${esc(pontos[0].curto)}</text><text x="${R}" y="${B + 20}" class="g-eixo" text-anchor="end">${esc(pontos[ultimo].curto)}</text>`;
+    return `<svg class="grafico" viewBox="0 0 310 158" role="img" aria-label="Posição no campeonato: de P${pontos[0].pos} para P${pontos[ultimo].pos}, melhor P${pontos[melhor].pos}">
+      ${grade}<path d="${linha}" class="g-linha"/>${marcas}${rotulo(ultimo)}${melhor !== ultimo ? rotulo(melhor) : ''}${eixoX}
+    </svg>`;
+  }
+
+  // "nesta etapa", "há 2 etapas", "em 2027"
+  function quando(n) {
+    if (n.ano !== estado.ano) return `em ${n.ano}`;
+    const atual = estado.fase === 'relatorio' ? C.ETAPAS : estado.etapa + 1;
+    const d = atual - (n.etapa || atual);
+    return d <= 0 ? 'nesta etapa' : d === 1 ? 'na etapa passada' : `há ${d} etapas`;
+  }
+
+  // Ondinha de áudio (decorativa) para as falas do rádio; o formato vem do próprio texto.
+  function onda(texto) {
+    let h = 7;
+    for (const ch of texto) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const barras = Array.from({ length: 14 }, (_, i) => { h = (h * 1103515245 + 12345) >>> 0; return 30 + (h % 70) * (i % 3 === 0 ? 1 : 0.7); });
+    return `<span class="onda" aria-hidden="true">${barras.map((v) => `<i style="height:${Math.round(v)}%"></i>`).join('')}</span>`;
   }
 
   function painelPiloto() {
@@ -365,6 +451,8 @@
     return `<div class="grade">
       ${cartao(esc(p.nome), `${C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join('')}
         <div class="aneis">${anel('Moral', p.moral)}${anel('Confiança', p.confianca)}</div>`, { ajuda: 'cabeca' })}
+      ${cartao(`Campeonato ${estado.ano}`, graficoPosicao(estado.evolucao.filter((e) => e.ano === estado.ano && e.campeonato === estado.campeonato).map((e) => ({ rotulo: `Etapa ${e.etapa}`, curto: `E${e.etapa}`, pos: e.pos }))))}
+      ${estado.temporadas.length >= 2 ? cartao('Carreira', graficoPosicao(estado.temporadas.map((t) => ({ rotulo: `${t.ano} ${C.campeonato(t.campeonato).curto}`, curto: String(t.ano), pos: t.pos })))) : ''}
       ${cartao('Últimas corridas', ultimos.length
         ? `<div class="resultados">${ultimos.map((h) => `<div class="resultado-bolinha ${h.fora ? 'fora' : h.pos === 1 ? 'ouro' : h.pos <= 3 ? 'podio' : h.pos <= 10 ? 'pontos' : ''}" title="${esc(h.pista)} ${h.ano}">${h.fora ? '✕' : h.pos}</div>`).join('')}</div>`
         : '<p class="vazio">Nenhuma corrida ainda.</p>')}
@@ -406,10 +494,10 @@
     const aba = tela.aba || 'resumo';
     const conteudo = {
       resumo: () => `${cartaoProximaEtapa()}<div class="grade grade-4">${cartaoCabeca()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
-      campeonato: tabelaCampeonato,
+      campeonato: () => `<div class="grade grade-4">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       caderno: painelCaderno,
-      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<div><span class="chip">${n.ano}</span> ${esc(n.texto)}</div>`).join('')}</div>`),
+      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia"><b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
@@ -514,8 +602,8 @@
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
           <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span><b class="tempo">${tempoVolta(s.tempo)}</b><span class="pos-mini ${s.posicao <= 3 ? 'top' : ''}">P${s.posicao}</span></div>
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
-          ${s.frases.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}
-          <div class="bolha mecanico"><span aria-hidden="true">🔧</span><p>${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>
+          ${s.frases.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${onda(f)}${esc(f)}</p></div>`).join('')}
+          <div class="bolha mecanico"><span aria-hidden="true">🔧</span><p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>
         </div>`).join('') : '<p class="vazio">📻 Ajuste o kart e saia para a pista.</p>', { ajuda: 'radio' })}
     </div>`;
   }
@@ -552,7 +640,7 @@
     return `<div class="corrida">
       <section class="painel">
         <div class="controles-corrida">
-          <span id="volta" class="volta"></span><span id="clima-corrida"></span><span class="espaco"></span>
+          <span id="volta" class="volta-grande"></span><span id="clima-corrida"></span><span class="espaco"></span>
           <button data-acao="play" id="btn-play"></button>
           <div class="segmentos velocidades">${VELOCIDADES.map((v, i) => `<button data-acao="velocidade" data-i="${i}" class="${tela.vel === i ? 'ativo' : ''}">${v.nome}</button>`).join('')}</div>
           <button data-acao="pular">⏭ Fim</button>
@@ -560,38 +648,59 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao('Pilotagem', `<div id="info-jogador" class="chips"></div>
+        ${cartao('Pilotagem', `<div id="info-jogador" class="tiles tiles-4"></div>
           <div class="segmentos modos">${Object.entries(Engine.MODOS).map(([k, m]) => `<button data-acao="modo" data-modo="${k}">${ICONE_MODO[k]} ${m.nome}</button>`).join('')}</div>`, { ajuda: 'pilotagem' })}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
   }
 
+  const STATUS_FORA = { Acidente: 'Rodou', Quebra: 'Quebrou' };
+  const statusFora = (motivo) => STATUS_FORA[motivo] || (motivo && motivo.startsWith('Motor') ? 'Motor' : 'Fora');
+
   function atualizarCorrida() {
     const ordem = corrida.carros.slice().sort((a, b) => a.pos - b.pos);
     const lider = ordem[0];
-    document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'Grid' : `Volta <b>${corrida.volta}</b>/${corrida.totalVoltas}`;
+    document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
     document.getElementById('clima-corrida').innerHTML = corrida.molhado ? chip('🌧 Molhado', 'chip-azul') : '';
     document.getElementById('btn-play').textContent = corrida.terminou ? 'Ver resultado' : tela.pausado ? '▶' : '❚❚';
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
-    document.getElementById('tabela').innerHTML = `<table>
-      <tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="opc">Pneu</th><th class="num opc">Última</th></tr>
-      ${ordem.map((c) => {
-        const ganho = c.largada - c.pos;
-        const dif = c.fora ? 'Fora' : c === lider ? '' : `+${(c.tempo - lider.tempo).toFixed(1)}`;
-        return `<tr class="${c.jogador ? 'jogador' : ''} ${c.fora ? 'fora' : ''}">
-          <td>${c.pos}<span class="${ganho > 0 ? 'dinheiro' : 'negativo'} mini">${ganho > 0 ? ' ▲' + ganho : ganho < 0 ? ' ▼' + -ganho : ''}</span></td>
-          <td class="nome"><span class="cor" style="background:${c.equipe.cor}"></span>${esc(c.piloto.nome)}</td>
-          <td class="num">${dif}</td><td class="opc">${Kart.PNEUS_KART[c.tipoPneu].nome}</td>
-          <td class="num fraco opc">${tempoVolta(c.ultimaVolta)}</td></tr>`;
-      }).join('')}</table>`;
+    document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
+      const ganho = c.largada - c.pos;
+      let dir;
+      if (c.fora) dir = `<span class="status-fora">${statusFora(c.motivoFora)}</span>`;
+      else if (c === lider) dir = '<span class="fraco">Líder</span>';
+      else dir = `+${(c.tempo - lider.tempo).toFixed(1)}`;
+      return `<div class="vivo-linha ${c.jogador ? 'jogador' : ''} ${c.fora ? 'fora' : ''} ${estado.seguindo === c.id ? 'seguido' : ''}">
+        <b class="vivo-pos">${c.pos}</b><i class="camp-cor" style="background:${c.equipe.cor}"></i>
+        <b class="vivo-sigla">${sigla(c.piloto.nome)}</b>
+        <span class="vivo-nome">${esc(c.piloto.nome)}</span>
+        <span class="vivo-ganho ${ganho > 0 ? 'dinheiro' : 'negativo'}">${ganho > 0 ? '▲' + ganho : ganho < 0 ? '▼' + -ganho : ''}</span>
+        <span class="vivo-dif">${dir}</span>
+      </div>`;
+    }).join('')}</div>`;
     document.getElementById('eventos').innerHTML = corrida.eventos.slice().reverse().slice(0, 60)
       .map((e) => `<div class="ev-${e.tipo} ${e.carroId === 'jogador' ? 'ev-jogador' : ''}"><span class="v">V${e.volta}</span>${esc(e.texto)}</div>`).join('');
     const eu = corrida.carros.find((c) => c.jogador);
+    const ganhou = eu.largada - eu.pos;
     document.getElementById('info-jogador').innerHTML = eu.fora
-      ? chip(`✕ ${esc(eu.motivoFora)}`, 'chip-vermelho')
-      : `${chip(`P${eu.pos}`, 'chip-grande')}${chip(`🛞 ${100 - desgastePct(eu.uso)}%`)}${chip(`🔥 ${estado.piloto.confianca}`)}`;
+      ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
+      : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${tile('Pneu', `${100 - desgastePct(eu.uso)}%`)}`;
     app.querySelectorAll('[data-acao="modo"]').forEach((b) => { b.classList.toggle('ativo', b.dataset.modo === eu.modo); b.disabled = eu.fora || corrida.terminou; });
+    avisosDaCorrida(eu);
+  }
+
+  // Avisos rápidos durante a bateria: mudança de posição, chuva e o rival seguido.
+  function avisosDaCorrida(eu) {
+    const memo = tela.memoCorrida || (tela.memoCorrida = { pos: eu.largada, molhado: false, rivalFora: false });
+    if (corrida.volta === 0) return;
+    if (corrida.molhado && !memo.molhado) aviso('🌧 Começou a chover!');
+    else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
+    const rival = estado.seguindo && corrida.carros.find((c) => c.id === estado.seguindo);
+    if (rival && rival.fora && !memo.rivalFora) aviso(`★ ${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`);
+    memo.pos = eu.pos;
+    memo.molhado = !!corrida.molhado;
+    memo.rivalFora = !!(rival && rival.fora);
   }
 
   function iniciarTimer() {
@@ -707,6 +816,11 @@
     }
 
     switch (acao) {
+      case 'seguir':
+        C.seguir(estado, id);
+        salvar();
+        render();
+        break;
       case 'ver-pista':
         ir({ nome: 'pista', aba: 'pista' });
         break;

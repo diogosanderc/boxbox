@@ -360,3 +360,84 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .na-pista-trilho { position: relative; height: 10px; margin: 14px 12px 6px; background: var(--painel-2); border-radius: 999px; }
 .na-pista-trilho i { display: block; height: 100%; width: 0; background: var(--destaque); border-radius: 999px; }
 .na-pista-kart { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; border: 5px solid var(--destaque); box-shadow: 0 0 12px rgba(225, 6, 0, 0.8); }
+
+/* ---------- classificação do campeonato ---------- */
+.classificacao, .calendario, .ao-vivo { display: grid; gap: 6px; }
+.camp-linha {
+  display: grid; grid-template-columns: 52px 4px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  background: var(--painel-2); border: 1px solid var(--borda); border-radius: var(--raio-m); padding: 8px 10px;
+}
+.camp-linha.jogador { background: var(--jogador); border-color: rgba(225, 6, 0, 0.5); }
+.camp-linha.seguido { border-color: rgba(255, 176, 32, 0.6); }
+.camp-pos { display: grid; justify-items: center; line-height: 1.05; }
+.camp-pos b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.camp-pos small { font-size: 10px; color: var(--fraco); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+.camp-cor { width: 4px; height: 34px; border-radius: 2px; }
+.camp-nome { display: grid; min-width: 0; }
+.camp-nome > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.camp-nome small { color: var(--fraco); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.seguir { width: 36px; height: 36px; padding: 0; border-radius: 50%; font-size: 17px; color: var(--fraco); }
+button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6); }
+
+/* ---------- calendário ---------- */
+.cal-linha { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--raio-m); border: 1px solid transparent; }
+.cal-linha + .cal-linha { border-top-color: var(--borda); border-radius: 0; }
+.cal-linha.atual { background: var(--jogador); border-color: rgba(225, 6, 0, 0.5); border-radius: var(--raio-m); }
+.cal-linha.atual + .cal-linha { border-top-color: transparent; }
+.cal-linha.passada .cal-nome b { color: var(--texto-2, var(--texto)); }
+.cal-num { font-weight: 800; color: var(--fraco); font-variant-numeric: tabular-nums; }
+.cal-nome { display: grid; min-width: 0; }
+.cal-nome b, .cal-nome small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-nome small { color: var(--fraco); font-size: 12px; }
+.agora { background: var(--destaque); color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; padding: 3px 9px; border-radius: 999px; }
+
+/* ---------- gráfico de posição ---------- */
+.grafico { width: 100%; height: auto; display: block; overflow: visible; }
+.g-grade { stroke: var(--borda); stroke-width: 1; stroke-dasharray: 2 4; }
+.g-eixo { fill: var(--fraco); font-size: 10px; }
+.g-linha { fill: none; stroke: var(--destaque-vivo); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.g-marca { fill: var(--destaque-vivo); stroke: var(--painel); stroke-width: 2; }
+.g-alvo { fill: transparent; }
+.g-rotulo { fill: var(--texto); font-size: 11px; font-weight: 700; }
+.g-dica { opacity: 0; pointer-events: none; transition: opacity 0.1s; }
+.g-dica rect { fill: var(--painel-3); stroke: var(--borda); }
+.g-dica text { fill: var(--texto); font-size: 11px; font-weight: 600; }
+.g-ponto { cursor: default; outline: none; }
+.g-ponto:hover .g-dica, .g-ponto:focus .g-dica { opacity: 1; }
+.g-ponto:hover .g-marca, .g-ponto:focus .g-marca { r: 6; }
+
+/* ---------- notícias e rádio ---------- */
+.noticia { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--borda); }
+.noticia:first-child { border-top: 0; }
+.noticia b { font-weight: 600; }
+.noticia small { color: var(--fraco); font-size: 12px; }
+.noticias div { display: none; }
+.onda { display: flex; align-items: center; gap: 2px; height: 14px; margin-bottom: 4px; opacity: 0.7; }
+.onda i { display: block; width: 3px; border-radius: 2px; background: currentColor; }
+
+/* ---------- corrida ao vivo ---------- */
+.volta-grande { font-size: 14px; font-weight: 800; letter-spacing: 1px; color: var(--alerta); }
+.volta-grande b { font-size: 24px; margin-left: 6px; font-variant-numeric: tabular-nums; }
+.volta-grande b span { font-size: 15px; opacity: 0.8; }
+.ao-vivo { gap: 4px; }
+.vivo-linha {
+  display: grid; grid-template-columns: 26px 4px 44px minmax(0, 1fr) 30px auto; gap: 8px; align-items: center;
+  background: var(--painel-2); border-radius: 10px; padding: 7px 10px; font-size: 14px;
+}
+.vivo-linha.jogador { background: var(--jogador); box-shadow: 0 0 0 1px rgba(225, 6, 0, 0.5) inset; }
+.vivo-linha.seguido { box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.6) inset; }
+.vivo-linha.fora { opacity: 0.55; }
+.vivo-linha .camp-cor { height: 18px; }
+.vivo-pos { text-align: right; font-variant-numeric: tabular-nums; }
+.vivo-sigla { letter-spacing: 0.6px; }
+.vivo-nome { color: var(--fraco); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vivo-ganho { font-size: 11px; font-weight: 700; text-align: right; }
+.vivo-dif { text-align: right; font-variant-numeric: tabular-nums; min-width: 52px; }
+.status-fora { color: var(--azul); font-weight: 700; }
+.tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.tiles-4 .tile { padding: 8px 10px; }
+.tiles-4 .tile b { font-size: 18px; }
+@media (max-width: 400px) {
+  .vivo-nome { display: none; }
+  .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 28px auto; }
+}

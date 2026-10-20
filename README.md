@@ -28,6 +28,14 @@ você descobre pelo cronômetro, pelo que o piloto sente e pelas dicas do mecân
 mais irregular, gasta mais pneu e erra mais. Carburação pobre demais pode travar o motor.
 O **caderno de acertos** guarda tudo o que você testou em cada pista.
 
+### Acompanhando a temporada
+
+- **Corrida ao vivo:** volta em destaque, pilotos por sigla com a cor da equipe, status de quem saiu (rodou, quebrou, motor),
+  o seu card (posição, largada, posições ganhas, pneu) e avisos quando você ganha ou perde posição.
+- **Tabela:** classificação com pontos e sobrenome em destaque, calendário com o seu resultado em cada etapa e a opção de
+  **seguir um rival** (★), que aparece no paddock e nos avisos da corrida.
+- **Piloto:** gráfico da posição no campeonato etapa a etapa e, depois de duas temporadas, o gráfico da carreira.
+
 ### Moral e confiança
 
 - **Confiança** (dentro da pista): sobe quando o piloto termina à frente de onde largou e com pódios; cai com acidentes
