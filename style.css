@@ -111,6 +111,12 @@ p { margin: 0; overflow-wrap: anywhere; }
 .balao { width: 100%; max-width: 480px; background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 20px; display: grid; gap: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); animation: subir 0.18s ease-out; }
 .balao h3 { color: var(--texto); font-size: 16px; text-transform: none; letter-spacing: 0; }
 .balao p { line-height: 1.55; }
+.balao { max-height: calc(100vh - 32px); overflow-y: auto; }
+.exemplos { display: grid; gap: 6px; }
+.exemplos b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fraco); }
+.exemplos ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
+.ajuste-nome { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.ajuste-nome .ajuda { width: 24px; height: 24px; font-size: 12px; }
 @keyframes subir { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* Chips e blocos de número */
@@ -245,7 +251,7 @@ tr.fora td { opacity: 0.45; }
 .acoes .principal .etapas i { background: rgba(255, 255, 255, 0.9); }
 .acoes .principal .etapas i.feita { background: rgba(255, 255, 255, 0.3); }
 .setup { display: grid; gap: 12px; }
-.ajuste { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px; align-items: center; }
+.ajuste { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px; align-items: center; }
 .segmentos { display: flex; gap: 4px; background: var(--painel-2); padding: 4px; border-radius: var(--raio-p); }
 .segmentos button { flex: 1; min-width: 0; padding: 7px 6px; background: transparent; border-color: transparent; border-radius: 9px; }
 .segmentos button.ativo { background: var(--painel-3); border-color: var(--fraco); font-weight: 600; }
