@@ -603,6 +603,12 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .mudanca.mudou b { color: var(--alerta); }
 .mudanca small { font-size: 12px; }
 .mudanca-rotulo { color: var(--texto); }
+.folha.folha-largada { justify-items: center; text-align: center; border-color: var(--borda); }
+.folha-largada h3 { font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--fraco); margin: 0; }
+.folha-largada p { margin: 0; }
+.largada-grande { font-size: 72px; font-weight: 900; font-style: italic; line-height: 1; color: var(--texto); }
+.largada-grande.top { color: var(--ouro); }
+.folha-largada .principal { width: 100%; }
 .folha-fundo { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 30; display: flex; align-items: flex-end; justify-content: center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 .folha-fundo[hidden] { display: none; }
 .folha { width: 100%; max-width: 480px; background: var(--painel); border: 1px solid rgba(255, 176, 32, 0.55); border-radius: var(--raio); padding: 20px; display: grid; gap: 14px; animation: subir 0.18s ease-out; }

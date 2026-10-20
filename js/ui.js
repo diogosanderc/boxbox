@@ -818,7 +818,36 @@
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
     else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
     else app.innerHTML = cabecalho + telaResultadoCorrida();
-    if (tela.mudancas === fds.sessao) app.insertAdjacentHTML('beforeend', folhaMudancas(fds.sessao));
+    if (tela.largada && fds.sessao === 'grid') app.insertAdjacentHTML('beforeend', folhaLargada());
+    else if (tela.mudancas === fds.sessao) app.insertAdjacentHTML('beforeend', folhaMudancas(fds.sessao));
+  }
+
+  // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
+  function folhaLargada() {
+    const q = estado.fds.quali;
+    const i = q.findIndex((x) => x.id === 'jogador');
+    const pos = i + 1;
+    const dif = q[i].tempo - q[0].tempo;
+    const titulo = pos === 1 ? 'Pole position!' : pos === 2 ? 'Primeira fila!' : pos <= 5 ? 'Ótima posição.' : pos <= 10 ? 'Bom lugar no grid.' : 'Vai ter que escalar o pelotão.';
+    return `<div class="folha-fundo" data-acao-fundo="fechar-largada"><div class="folha folha-largada" role="dialog" aria-modal="true" aria-labelledby="folha-largada-titulo">
+      <span class="passo-inicio">Classificação</span>
+      <h3 id="folha-largada-titulo">Você vai largar em</h3>
+      <div class="largada-grande ${pos <= 3 ? 'top' : ''}">P${pos}</div>
+      <p class="fraco">${titulo} ${pos === 1 ? `Sua volta: ${tempoVolta(q[0].tempo)}.` : `Sua volta: ${tempoVolta(q[i].tempo)} (${dif.toFixed(3).replace('.', ',')} s atrás da pole).`}</p>
+      ${estado.fds.recordeQuali ? chip('🏆 Novo recorde da pista!', 'chip-recorde') : ''}
+      <button class="principal grande" data-acao="fechar-largada">Continuar</button>
+    </div></div>`;
+  }
+
+  // A pista mudou o bastante para avisar? (a borracha sozinha não conta: ela sempre aumenta)
+  function houveMudanca(sessao) {
+    const clima = C.climaAtual(estado);
+    const molhado = clima.tarde.inicioChuva === 'quali';
+    const quali = Kart.condicao(clima, 'quali', molhado);
+    const antes = sessao === 'grid' ? quali : Kart.condicao(clima, 'treino', clima.manha.chove);
+    const agora = sessao === 'grid' ? Kart.condicao(clima, 'corrida', molhado) : quali;
+    return antes.molhado !== agora.molhado || Math.abs(agora.tempAr - antes.tempAr) >= 2
+      || Math.abs(agora.tempPista - antes.tempPista) >= 3 || (sessao === 'grid' && !agora.molhado && clima.tarde.chance >= 30);
   }
 
   // Folha que abre ao chegar na classificação e no grid: o que mudou na pista desde a sessão anterior.
@@ -1379,18 +1408,23 @@
       case 'ir-quali':
         C.irParaClassificacao(estado);
         salvar();
-        tela.mudancas = 'quali';
+        tela.mudancas = houveMudanca('quali') ? 'quali' : null;
         render();
         break;
       case 'fechar-mudancas':
         tela.mudancas = null;
         render();
         break;
+      case 'fechar-largada':
+        tela.largada = false;
+        tela.mudancas = houveMudanca('grid') ? 'grid' : null;
+        render();
+        break;
       case 'classificar':
         if (!erro(C.classificar(estado))) break;
         salvar();
         animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', () => {
-          tela.mudancas = 'grid';
+          tela.largada = true;
           render();
           if (estado.fds.recordeQuali) aviso('🏆 Novo recorde da pista!');
         });
@@ -1436,6 +1470,7 @@
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-pneu') { tela.pneuOpcoes = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-mudancas') { tela.mudancas = null; render(); }
+    if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-largada') app.querySelector('.folha-largada [data-acao="fechar-largada"]').click();
   });
 
   // Enter no campo do nome entra no paddock.
