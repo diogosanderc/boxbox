@@ -186,38 +186,45 @@
   };
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
-  // Desenho estilizado de cada kartódromo: uma curva fechada gerada pela semente do nome.
-  function tracado(pista, classe = '') {
-    let h = 7;
-    for (const ch of pista.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-    const rnd = Engine.criarRng(h);
-    const n = { travada: 15, mista: 12, veloz: 9 }[pista.tipo];
-    const pts = [];
-    for (let i = 0; i < n; i++) {
-      const ang = (i / n) * Math.PI * 2 + (rnd() - 0.5) * 0.35;
-      const dobra = rnd() < (pista.tipo === 'veloz' ? 0.2 : 0.38) ? 0.48 + rnd() * 0.17 : 1; // curvas que entram para dentro
-      const r = (0.62 + rnd() * 0.38) * dobra;
-      pts.push([Math.cos(ang) * r * 1.4, Math.sin(ang) * r * 0.8]);
+  // Traçado do kartódromo: retas entre os vértices e cantos arredondados, como num mapa de pista.
+  function caminhoPista(P, raio) {
+    const n = P.length;
+    const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const rumo = (a, b, d) => { const l = dist(a, b) || 1; return [a[0] + (b[0] - a[0]) * d / l, a[1] + (b[1] - a[1]) * d / l]; };
+    const cantos = P.map((v, i) => {
+      const ant = P[(i - 1 + n) % n];
+      const prox = P[(i + 1) % n];
+      const r = Math.min(raio, dist(ant, v) / 2, dist(v, prox) / 2);
+      return { entra: rumo(v, ant, r), v, sai: rumo(v, prox, r) };
+    });
+    const f = (q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`;
+    let d = `M${f(cantos[0].sai)}`;
+    for (let i = 1; i <= n; i++) {
+      const c = cantos[i % n];
+      d += ` L${f(c.entra)} Q${f(c.v)} ${f(c.sai)}`;
     }
-    const xs = pts.map((q) => q[0]);
-    const ys = pts.map((q) => q[1]);
+    return `${d} Z`;
+  }
+
+  // Centraliza e ajusta o traçado na caixa de 300×180, mantendo a proporção.
+  function enquadrar(pontos) {
+    const xs = pontos.map((q) => q[0]);
+    const ys = pontos.map((q) => q[1]);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    const esc2 = Math.min(260 / (x1 - x0), 140 / (y1 - y0));
-    const P = pts.map(([x, y]) => [20 + (x - x0) * esc2 + (260 - (x1 - x0) * esc2) / 2, 20 + (y - y0) * esc2 + (140 - (y1 - y0) * esc2) / 2]);
-    // Catmull-Rom fechado -> curvas de Bézier
-    let d = `M${P[0][0].toFixed(1)},${P[0][1].toFixed(1)}`;
-    for (let i = 0; i < n; i++) {
-      const [a, b, c, e] = [P[(i - 1 + n) % n], P[i], P[(i + 1) % n], P[(i + 2) % n]];
-      // Tensão baixa: curvas mais fechadas e trechos mais retos, como um traçado de verdade.
-      const c1 = [b[0] + (c[0] - a[0]) / 10, b[1] + (c[1] - a[1]) / 10];
-      const c2 = [c[0] - (e[0] - b[0]) / 10, c[1] - (e[1] - b[1]) / 10];
-      d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)}`;
-    }
+    const k = Math.min(264 / (x1 - x0), 144 / (y1 - y0));
+    const dx = (300 - (x1 - x0) * k) / 2;
+    const dy = (180 - (y1 - y0) * k) / 2;
+    return pontos.map(([x, y]) => [dx + (x - x0) * k, dy + (y - y0) * k]);
+  }
+
+  function tracado(pista, classe = '') {
+    const P = enquadrar(pista.tracado);
+    const largada = [(P[0][0] + P[1][0]) / 2, (P[0][1] + P[1][1]) / 2];
     const id = `brilho-${pista.id}-${classe || 'x'}`;
     return `<svg class="tracado ${classe}" viewBox="0 0 300 180" role="img" aria-label="Traçado de ${esc(pista.nome)}">
-      <defs><filter id="${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-      <path d="${d} Z" fill="none" stroke="var(--destaque-vivo)" stroke-width="6" stroke-linejoin="round" filter="url(#${id})"/>
-      <circle cx="${P[0][0].toFixed(1)}" cy="${P[0][1].toFixed(1)}" r="5" fill="#fff"/>
+      <defs><filter id="${id}" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <path d="${caminhoPista(P, 9)}" fill="none" stroke="var(--destaque-vivo)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" filter="url(#${id})"/>
+      <circle cx="${largada[0].toFixed(1)}" cy="${largada[1].toFixed(1)}" r="4.5" fill="#fff"/>
     </svg>`;
   }
 

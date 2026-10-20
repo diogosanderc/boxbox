@@ -203,4 +203,20 @@ test('pneu comprado entra junto com os do mesmo tipo', () => {
   assert.deepStrictEqual(e.pneus.map((p) => p.tipo), ['slick', 'slick', 'slick', 'slick', 'chuva', 'chuva']);
 });
 
+test('nenhum traçado de kartódromo se cruza', () => {
+  const lado = (p, q, r) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+  const cruza = (a, b, c, d) => lado(a, b, c) * lado(a, b, d) < 0 && lado(c, d, a) * lado(c, d, b) < 0;
+  for (const k of [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu]) {
+    const P = k.tracado;
+    const n = P.length;
+    assert.ok(n >= 8, k.id);
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 2; j < n; j++) {
+        if (i === 0 && j === n - 1) continue;
+        assert.ok(!cruza(P[i], P[(i + 1) % n], P[j], P[(j + 1) % n]), `${k.id}: segmentos ${i} e ${j} se cruzam`);
+      }
+    }
+  }
+});
+
 module.exports = { jogarFimDeSemana };

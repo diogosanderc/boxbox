@@ -30,26 +30,27 @@
   ];
 
   // tipo: travada (curvas lentas), mista ou veloz. altitude em metros. clima: temperatura média do ar.
+  // tracado: vértices da linha central da pista (caixa de 300×180), ligados por retas com cantos arredondados.
   const KARTODROMOS = {
     br: [
-      { id: 'granja', nome: 'Granja Viana', local: 'Cotia (SP)', tipo: 'mista', altitude: 790, clima: 24, tempoBase: 46.5 },
-      { id: 'aldeia', nome: 'Aldeia da Serra', local: 'Barueri (SP)', tipo: 'travada', altitude: 750, clima: 24, tempoBase: 44.0 },
-      { id: 'interlagos', nome: 'Kartódromo de Interlagos', local: 'São Paulo (SP)', tipo: 'veloz', altitude: 760, clima: 23, tempoBase: 48.0 },
-      { id: 'birigui', nome: 'Birigui', local: 'Birigui (SP)', tipo: 'veloz', altitude: 400, clima: 29, tempoBase: 50.5 },
-      { id: 'londrina', nome: 'Londrina', local: 'Londrina (PR)', tipo: 'mista', altitude: 580, clima: 24, tempoBase: 47.0 },
-      { id: 'taruma', nome: 'Tarumã', local: 'Viamão (RS)', tipo: 'veloz', altitude: 50, clima: 19, tempoBase: 49.0 },
-      { id: 'brasilia', nome: 'Kartódromo de Brasília', local: 'Brasília (DF)', tipo: 'mista', altitude: 1100, clima: 25, tempoBase: 47.5 },
-      { id: 'conde', nome: 'Conde', local: 'Conde (PB)', tipo: 'travada', altitude: 40, clima: 30, tempoBase: 43.5 },
+      { id: 'granja', tracado: [[30, 140], [200, 140], [260, 150], [280, 130], [270, 110], [220, 100], [200, 80], [240, 60], [270, 40], [250, 20], [150, 25], [120, 50], [140, 75], [110, 95], [60, 80], [30, 100], [20, 125]], nome: 'Granja Viana', local: 'Cotia (SP)', tipo: 'mista', altitude: 790, clima: 24, tempoBase: 46.5 },
+      { id: 'aldeia', tracado: [[20, 150], [120, 155], [140, 135], [110, 115], [130, 95], [180, 110], [200, 150], [270, 150], [285, 125], [240, 100], [270, 70], [280, 35], [250, 20], [200, 40], [170, 25], [110, 30], [60, 25], [30, 50], [70, 70], [40, 95], [20, 120]], nome: 'Aldeia da Serra', local: 'Barueri (SP)', tipo: 'travada', altitude: 750, clima: 24, tempoBase: 44.0 },
+      { id: 'interlagos', tracado: [[20, 60], [30, 30], [260, 25], [285, 45], [270, 70], [150, 80], [130, 100], [160, 120], [270, 125], [285, 150], [260, 165], [40, 160], [15, 140], [25, 110], [60, 95], [40, 80]], nome: 'Kartódromo de Interlagos', local: 'São Paulo (SP)', tipo: 'veloz', altitude: 760, clima: 23, tempoBase: 48.0 },
+      { id: 'birigui', tracado: [[30, 120], [120, 40], [150, 25], [260, 30], [285, 55], [270, 80], [200, 90], [190, 110], [250, 130], [270, 155], [240, 165], [60, 160], [25, 145]], nome: 'Birigui', local: 'Birigui (SP)', tipo: 'veloz', altitude: 400, clima: 29, tempoBase: 50.5 },
+      { id: 'londrina', tracado: [[25, 50], [60, 25], [140, 30], [160, 55], [140, 80], [170, 95], [230, 60], [275, 70], [280, 110], [240, 125], [260, 150], [230, 165], [120, 160], [90, 135], [50, 150], [20, 130], [40, 100], [20, 80]], nome: 'Londrina', local: 'Londrina (PR)', tipo: 'mista', altitude: 580, clima: 24, tempoBase: 47.0 },
+      { id: 'taruma', tracado: [[40, 40], [250, 30], [280, 50], [275, 75], [230, 85], [210, 105], [240, 130], [260, 150], [230, 165], [50, 155], [20, 130], [30, 100], [70, 90], [90, 70], [50, 65], [25, 55]], nome: 'Tarumã', local: 'Viamão (RS)', tipo: 'veloz', altitude: 50, clima: 19, tempoBase: 49.0 },
+      { id: 'brasilia', tracado: [[20, 100], [40, 40], [70, 25], [110, 40], [120, 80], [150, 90], [170, 60], [200, 30], [260, 30], [285, 60], [250, 90], [275, 120], [270, 155], [200, 165], [170, 140], [130, 150], [80, 160], [40, 150]], nome: 'Kartódromo de Brasília', local: 'Brasília (DF)', tipo: 'mista', altitude: 1100, clima: 25, tempoBase: 47.5 },
+      { id: 'conde', tracado: [[25, 150], [25, 110], [60, 95], [30, 70], [40, 30], [90, 25], [110, 55], [140, 40], [170, 20], [230, 25], [250, 55], [210, 75], [250, 95], [285, 110], [280, 150], [230, 160], [200, 130], [170, 160], [110, 165], [80, 140], [55, 160]], nome: 'Conde', local: 'Conde (PB)', tipo: 'travada', altitude: 40, clima: 30, tempoBase: 43.5 },
     ],
     eu: [
-      { id: 'lonato', nome: 'South Garda', local: 'Lonato (ITA)', tipo: 'mista', altitude: 100, clima: 22, tempoBase: 47.0 },
-      { id: 'genk', nome: 'Horensbergdam', local: 'Genk (BEL)', tipo: 'veloz', altitude: 60, clima: 17, tempoBase: 52.0 },
-      { id: 'zuera', nome: 'Zuera', local: 'Zaragoza (ESP)', tipo: 'mista', altitude: 300, clima: 25, tempoBase: 50.0 },
-      { id: 'sarno', nome: 'Circuito Internazionale', local: 'Sarno (ITA)', tipo: 'travada', altitude: 30, clima: 24, tempoBase: 46.0 },
-      { id: 'lemans', nome: 'Le Mans Karting', local: 'Le Mans (FRA)', tipo: 'veloz', altitude: 50, clima: 18, tempoBase: 51.0 },
-      { id: 'kristianstad', nome: 'Kristianstad', local: 'Kristianstad (SUE)', tipo: 'mista', altitude: 20, clima: 15, tempoBase: 49.0 },
-      { id: 'wackersdorf', nome: 'Prokart Raceland', local: 'Wackersdorf (ALE)', tipo: 'veloz', altitude: 400, clima: 16, tempoBase: 50.5 },
-      { id: 'franciacorta', nome: 'Franciacorta', local: 'Castrezzato (ITA)', tipo: 'travada', altitude: 120, clima: 23, tempoBase: 45.5 },
+      { id: 'lonato', tracado: [[158, 96], [276, 97], [280, 91], [277, 87], [250, 72], [246, 74], [244, 76], [188, 43], [134, 47], [128, 52], [133, 78], [129, 83], [77, 108], [69, 120], [63, 123], [27, 125], [20, 129], [25, 134], [58, 131], [96, 137], [102, 133], [97, 118], [102, 111], [151, 82], [156, 76], [150, 67], [153, 62], [158, 63], [173, 72], [174, 80], [168, 86], [158, 89], [155, 94]], nome: 'South Garda', local: 'Lonato (ITA)', tipo: 'mista', altitude: 100, clima: 22, tempoBase: 47.0 },
+      { id: 'genk', tracado: [[20, 90], [50, 40], [130, 25], [270, 30], [285, 60], [250, 75], [140, 80], [120, 100], [150, 115], [270, 120], [285, 145], [255, 165], [60, 160], [30, 140]], nome: 'Horensbergdam', local: 'Genk (BEL)', tipo: 'veloz', altitude: 60, clima: 17, tempoBase: 52.0 },
+      { id: 'zuera', tracado: [[30, 30], [150, 25], [170, 50], [150, 75], [180, 90], [230, 40], [280, 45], [275, 100], [230, 110], [250, 140], [220, 165], [120, 155], [100, 125], [60, 140], [25, 120], [40, 80]], nome: 'Zuera', local: 'Zaragoza (ESP)', tipo: 'mista', altitude: 300, clima: 25, tempoBase: 50.0 },
+      { id: 'sarno', tracado: [[20, 130], [30, 40], [70, 25], [90, 60], [120, 30], [160, 25], [175, 60], [140, 80], [170, 100], [220, 70], [250, 30], [285, 50], [270, 90], [240, 110], [280, 130], [260, 165], [180, 160], [150, 130], [110, 160], [50, 165]], nome: 'Circuito Internazionale', local: 'Sarno (ITA)', tipo: 'travada', altitude: 30, clima: 24, tempoBase: 46.0 },
+      { id: 'lemans', tracado: [[25, 120], [30, 50], [80, 25], [270, 35], [285, 70], [255, 90], [160, 95], [150, 120], [270, 135], [280, 160], [50, 165]], nome: 'Le Mans Karting', local: 'Le Mans (FRA)', tipo: 'veloz', altitude: 50, clima: 18, tempoBase: 51.0 },
+      { id: 'kristianstad', tracado: [[20, 60], [60, 25], [200, 30], [230, 60], [200, 85], [240, 100], [280, 90], [285, 140], [250, 160], [150, 150], [130, 120], [90, 150], [30, 160], [15, 120], [50, 95]], nome: 'Kristianstad', local: 'Kristianstad (SUE)', tipo: 'mista', altitude: 20, clima: 15, tempoBase: 49.0 },
+      { id: 'wackersdorf', tracado: [[30, 150], [20, 110], [60, 90], [40, 60], [60, 30], [250, 25], [285, 50], [260, 80], [180, 90], [170, 110], [270, 120], [285, 150], [250, 165]], nome: 'Prokart Raceland', local: 'Wackersdorf (ALE)', tipo: 'veloz', altitude: 400, clima: 16, tempoBase: 50.5 },
+      { id: 'franciacorta', tracado: [[25, 40], [80, 25], [100, 55], [80, 80], [120, 95], [150, 60], [140, 30], [200, 25], [220, 55], [260, 30], [285, 60], [250, 90], [280, 120], [260, 160], [200, 150], [180, 120], [150, 150], [100, 165], [40, 160], [20, 120], [55, 95], [30, 70]], nome: 'Franciacorta', local: 'Castrezzato (ITA)', tipo: 'travada', altitude: 120, clima: 23, tempoBase: 45.5 },
     ],
   };
 
