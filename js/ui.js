@@ -146,7 +146,8 @@
 
   const tile = (rotulo, valor, classe = '') => `<div class="tile"><span>${rotulo}</span><b class="${classe}">${valor}</b></div>`;
   const chip = (conteudo, classe = '') => `<span class="chip ${classe}">${conteudo}</span>`;
-  const nivelClasse = (v) => (v < 30 ? 'negativo' : v < 45 ? 'aviso' : 'dinheiro');
+  // Moral e confiança: até 40 vermelho, de 41 a 69 amarelo, a partir de 70 verde.
+  const nivelClasse = (v) => (v <= 40 ? 'negativo' : v < 70 ? 'aviso' : 'dinheiro');
 
   function anel(rotulo, valor) {
     return `<div class="anel-bloco"><div class="anel ${nivelClasse(valor)}" style="--v:${valor}" role="img" aria-label="${rotulo} ${valor} de 100"><b>${valor}</b></div><span>${rotulo}</span></div>`;
@@ -216,7 +217,7 @@
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
       </div>
       <div class="kpis">
-        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${apertado ? 'negativo' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('😊', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('🔥', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;

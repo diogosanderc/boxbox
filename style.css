@@ -94,6 +94,11 @@ input[type="text"], textarea {
 .kpi.negativo .kpi-barra i { background: var(--perigo); }
 .kpi.negativo { border-color: rgba(255, 107, 107, 0.45); }
 .kpi.negativo .kpi-valor, .kpi.negativo .kpi-sub { color: var(--perigo); }
+.kpi.dinheiro .kpi-valor { color: var(--ok); }
+.kpi.aviso .kpi-valor { color: var(--alerta); }
+/* Caixa positivo, mas sem dinheiro para pagar a próxima etapa */
+.kpi.apertado { border-color: rgba(255, 107, 107, 0.45); }
+.kpi.apertado .kpi-sub { color: var(--perigo); }
 
 /* ---------- estrutura ---------- */
 main { margin: 0 auto; padding: var(--espaco); display: grid; gap: var(--espaco); }
