@@ -134,8 +134,14 @@
       .map((k) => ({ k, peso: PESO[k] * e[k] * e[k], sinal: e[k] > 0 ? 1 : 0 }))
       .sort((a, b) => b.peso - a.peso);
     if (ordenados[0].peso < 0.06) return ['O kart está muito bom! Equilibrado, dá pra acelerar tudo.'];
-    const frases = [];
     const acerto = 0.35 + sensibilidade / 150;
+    // Quase no ponto: o piloto elogia e, se perceber, aponta o detalhe que falta (sem reclamação vaga).
+    if (ordenados[0].peso < 0.25) {
+      const frases = ['O kart está bom! Falta só um detalhe.'];
+      if (rnd() < acerto) frases.push(SINTOMAS[ordenados[0].k][ordenados[0].sinal].replace(/^./, (c) => `Só um pouco: ${c.toLowerCase()}`));
+      return frases;
+    }
+    const frases = [];
     for (const item of ordenados.slice(0, 2)) {
       if (item.peso < 0.06) break;
       const r = rnd();

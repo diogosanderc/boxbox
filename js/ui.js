@@ -164,6 +164,12 @@
       <div><span class="fraco">${rotulo}</span><b>${periodo.tempAr}°C</b><span class="chuva">💧 ${periodo.chance}%</span></div></div>`;
   }
 
+  // Recorde da pista: tempo, quem fez e quando.
+  function linhaRecorde() {
+    const r = C.recordePista(estado);
+    return `<div class="recorde ${r.jogador ? 'meu' : ''}"><span aria-hidden="true">🏆</span><span>Recorde da pista</span><b>${tempoVolta(r.tempo)}</b><small>${esc(r.jogador ? 'Você' : r.nome)} · ${r.ano}</small></div>`;
+  }
+
   // Condições da sessão. À tarde mostra quanto o ar e o asfalto mudaram desde o treino,
   // e em todas mostra a borracha na pista (que o jogador não teria como saber).
   function condicaoChips(sessao) {
@@ -173,7 +179,7 @@
     const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
     const delta = (agora, antes) => (t && agora !== antes ? ` <small>${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}</small>` : '');
     const borracha = molhado ? '' : chip(sessao === 'treino' ? 'Pouca borracha' : sessao === 'grid' ? 'Muita borracha' : 'Mais borracha');
-    return `<div class="chips">${chip(molhado ? '🌧 Molhado' : '☀️ Seco', molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}
+    return `${linhaRecorde()}<div class="chips">${chip(molhado ? '🌧 Molhado' : '☀️ Seco', molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}
       ${sessao !== 'treino' && !molhado ? chip(`💧 Corrida ${clima.tarde.chance}%`) : ''}</div>`;
   }
 
@@ -691,7 +697,7 @@
   // Sobre, números e traçado da pista: usado na tela "Ver pista" e na folha aberta durante o fim de semana.
   function conteudoPista(pista, camp) {
     const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
-    return `<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
+    return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
       <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? tile('Largura', `${pista.largura} m`) : ''}${pista.sentido ? tile('Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}</div>
       ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`;
   }
@@ -810,7 +816,7 @@
         </div>
       </div>
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
-          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span>
+          <div class="item-topo"><span class="chip">Saída ${saidas.length - i}</span>${s.recorde ? '<span class="chip chip-recorde">🏆 Recorde</span>' : ''}
             <span class="tempo-bloco">${deltaSaida(s, saidas[i + 1])}<b class="tempo">${tempoVolta(s.tempo)}</b></span>
             <span class="pos-mini ${s.posicao <= 3 ? 'top' : ''}">P${s.posicao}</span></div>
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
@@ -859,6 +865,7 @@
           <span id="volta" class="volta-grande"></span><span id="clima-corrida"></span><span class="espaco"></span>
           <button data-acao="play" id="btn-play"></button>
         </div>
+        ${linhaRecorde()}
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
@@ -943,6 +950,7 @@
         <section class="painel resultado-hero ${r.fora ? 'ruim' : r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>${r.fora ? esc(r.motivo) : 'Chegada'}</span><b>${medalha} ${r.fora ? 'Abandono' : 'P' + r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeonato', 'P' + C.posicaoNoCampeonato(estado))}${tile('Caixa', '+' + reais(r.ganho), 'dinheiro')}</div>
+          ${r.recorde ? chip('🏆 Novo recorde da pista na corrida!', 'chip-recorde') : ''}
           ${r.eventos.map((e) => chip(`⚠ ${esc(e)}`, 'chip-amarelo')).join('')}
           ${(r.cabeca || []).length ? `<div class="chips">${r.cabeca.map((x) => [
             x.confianca ? chip(`🔥 ${sinal(x.confianca)}`, x.confianca > 0 ? 'chip-dinheiro' : 'chip-negativo') : '',
@@ -1191,6 +1199,7 @@
         const voltas = Array.from({ length: C.VOLTAS_POR_SAIDA }, (_, i) => `Volta ${i + 1}/${C.VOLTAS_POR_SAIDA}`);
         animarPista(`Treino livre · saída ${estado.fds.saidas.length}`, voltas, 'O piloto está sentindo o kart…', () => {
           render();
+          if (r.saida.recorde) aviso('🏆 Novo recorde da pista!');
           // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
           const nova = app.querySelector('.saida');
           if (nova) nova.scrollIntoView({ behavior: menosMovimento() ? 'auto' : 'smooth', block: 'center' });
@@ -1205,7 +1214,10 @@
       case 'classificar':
         if (!erro(C.classificar(estado))) break;
         salvar();
-        animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', render);
+        animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', () => {
+          render();
+          if (estado.fds.recordeQuali) aviso('🏆 Novo recorde da pista!');
+        });
         break;
       case 'desfazer-grid':
         estado.fds.setup = { ...(estado.fds.setupQuali || estado.fds.setupCorrida) };

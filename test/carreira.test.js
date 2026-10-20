@@ -383,3 +383,31 @@ test('todo kartódromo tem ficha completa, e o asfalto muda o desgaste do pneu',
   for (let i = 0; i < Carreira.ETAPAS; i++) { e.etapa = i; desgastes.add(Carreira.pistaAtual(e).desgaste); }
   assert.ok(desgastes.size > 1);
 });
+
+test('recorde da pista: inicial fixo e quebrado por uma volta mais rápida', () => {
+  const e = Carreira.novoJogo({ seed: 5 });
+  Carreira.iniciarFimDeSemana(e);
+  const r0 = Carreira.recordePista(e);
+  assert.ok(r0.tempo > 30 && r0.nome && !r0.jogador);
+  assert.deepStrictEqual(Carreira.recordePista(Carreira.novoJogo({ seed: 99 }), Carreira.pistaAtual(e)), r0);
+  // o jogador faz uma volta bem abaixo do recorde no treino
+  const pista = Carreira.pistaAtual(e);
+  e.piloto.ritmo = 600;
+  const r = Carreira.saidaTreino(e);
+  assert.ok(r.saida.tempo < r0.tempo);
+  assert.ok(r.saida.recorde);
+  const novo = Carreira.recordePista(e);
+  assert.ok(novo.jogador && novo.tempo < r0.tempo && novo.sessao === 'treino');
+  assert.strictEqual(e.recordes[pista.id].tempo, novo.tempo);
+});
+
+test('kart quase no ponto: o piloto elogia em vez de reclamar', () => {
+  const rnd = Engine.criarRng(1);
+  const e = Object.fromEntries(Kart.ORDEM_AJUSTES.map((k) => [k, 0]));
+  e.pressao = 0.7; // um detalhe
+  for (let i = 0; i < 20; i++) {
+    const f = Kart.feedbackPiloto(e, 40, rnd);
+    assert.match(f[0], /bom/);
+    assert.ok(!f.some((x) => /estranho|não está legal|alguma coisa/.test(x)));
+  }
+});

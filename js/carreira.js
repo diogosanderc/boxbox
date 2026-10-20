@@ -397,6 +397,36 @@
   // ---------- fim de semana ----------
   const DESGASTE_ASFALTO = { liso: 0.8, medio: 0.9, abrasivo: 1.05 };
 
+  // ---------- recorde da pista ----------
+  // Recorde inicial (fictício, mas fixo para cada pista): um pouco mais rápido que a pole de um campeonato forte.
+  function recordeInicial(pista) {
+    const rnd = Engine.criarRng([...pista.id].reduce((h, c) => h * 31 + c.charCodeAt(0), 7) >>> 0);
+    const pais = Dados.KARTODROMOS.br.some((p) => p.id === pista.id) ? 'BRA' : 'ITA';
+    const nomes = Dados.NOMES[pais];
+    const nome = `${nomes.p[Math.floor(rnd() * nomes.p.length)]} ${nomes.s[Math.floor(rnd() * nomes.s.length)]}`;
+    return { tempo: Math.round((pista.tempoBase - 1.45 - rnd() * 0.3) * 1000) / 1000, nome, ano: 2020 + Math.floor(rnd() * 6), jogador: false };
+  }
+
+  function recordePista(estado, pista = pistaAtual(estado)) {
+    return (estado.recordes && estado.recordes[pista.id]) || recordeInicial(pista);
+  }
+
+  // Confere uma volta contra o recorde. Devolve true se for um novo recorde.
+  function tentarRecorde(estado, tempo, id, sessao) {
+    const pista = pistaAtual(estado);
+    if (!(tempo < recordePista(estado, pista).tempo)) return false;
+    if (!estado.recordes) estado.recordes = {};
+    estado.recordes[pista.id] = { tempo: Math.round(tempo * 1000) / 1000, nome: nomeDe(estado, id), ano: estado.ano, sessao, jogador: id === 'jogador' };
+    noticia(estado, `Recorde da pista em ${pista.nome}: ${nomeDe(estado, id)} faz ${tempo.toFixed(3)}!`);
+    return id === 'jogador';
+  }
+
+  // O melhor tempo de uma sessão (de quem for) contra o recorde.
+  function conferirRecorde(estado, tempos, sessao) {
+    const melhor = tempos.filter((t) => t.tempo).sort((a, b) => a.tempo - b.tempo)[0];
+    return melhor ? tentarRecorde(estado, melhor.tempo, melhor.id, sessao) : false;
+  }
+
   function pistaAtual(estado) {
     const etapa = estado.calendario[estado.etapa];
     const camp = campeonato(estado.campeonato);
@@ -536,6 +566,7 @@
     };
     if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com slick não dá pra andar.');
     if (pneu.uso > 20) saida.frases.push('Os pneus já estão no fim, difícil saber se o problema é o acerto.');
+    saida.recorde = conferirRecorde(estado, [{ id: 'jogador', tempo }, ...estado.rivais.map((r, i) => ({ id: r.id, tempo: tempos[i] }))], 'treino');
     fds.saidas.push(saida);
     registrarCaderno(estado, cond, saida);
     return { ok: true, saida };
@@ -601,6 +632,7 @@
     }
     tempos.sort((a, b) => a.tempo - b.tempo);
     fds.quali = tempos;
+    fds.recordeQuali = conferirRecorde(estado, tempos, 'classificação');
     fds.setupCorrida = { ...fds.setup };
     fds.setupQuali = { ...fds.setup };
     fds.pneuCorrida = fds.pneuId;
@@ -714,7 +746,8 @@
     // Experiência: um pouco de evolução a cada corrida (mais com a moral alta)
     const rnd = rngDe(estado);
     evoluir(p, rnd, 0.15 * fatorMoral(p));
-    fds.resultado = { pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
+    const recordeCorrida = conferirRecorde(estado, corrida.carros.map((c) => ({ id: c.id, tempo: c.melhorVolta })), 'corrida');
+    fds.resultado = { recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora });
     const clima = climaAtual(estado);
@@ -873,7 +906,7 @@
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
-    pistaAtual, climaAtual, leituraPista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
+    pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
     classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada,
   };

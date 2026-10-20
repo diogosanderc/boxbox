@@ -33,7 +33,8 @@ a temperatura do ar e do asfalto, a borracha acumulada ao longo do dia e a chuva
 você descobre pelo cronômetro, pelo que o piloto sente e pelas dicas do mecânico. Um kart desequilibrado é mais lento,
 mais irregular, gasta mais pneu e erra mais. Carburação pobre demais ou dentes demais na coroa forçam o motor e podem estourá-lo na corrida.
 A retífica é cara: a expressa deixa correr a etapa seguinte; a normal, mais barata, faz o piloto perder uma etapa.
-O **caderno de acertos** guarda tudo o que você testou em cada pista.
+O **caderno de acertos** guarda tudo o que você testou em cada pista. Cada pista tem um **recorde** (tempo, quem fez e quando), mostrado no treino, na
+classificação e na corrida: quem fizer uma volta mais rápida, em qualquer sessão, fica com ele.
 
 Cada kartódromo tem uma **ficha** (Ver pista): extensão, largura, sentido, retas, curvas lentas, médias e rápidas,
 grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasivo gasta mais pneu; retas longas facilitam a ultrapassagem.
