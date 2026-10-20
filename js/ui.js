@@ -65,7 +65,8 @@
     const eq = C.equipeBase(estado.equipeId);
     const camp = C.campeonato(estado.campeonato);
     statusEl.innerHTML = `<b>${esc(estado.piloto.nome)}</b> · ${estado.piloto.idade} anos · <span class="cor" style="background:${eq.cor}"></span>${esc(eq.nome)} · ${camp.curto} ${estado.ano}
-      · <span class="${estado.dinheiro < C.custoEtapa(estado) ? 'negativo' : 'dinheiro'}">${reais(estado.dinheiro)}</span>`;
+      · <span class="${estado.dinheiro < C.custoEtapa(estado) ? 'negativo' : 'dinheiro'}">${reais(estado.dinheiro)}</span>
+      · Moral <b class="${nivelClasse(estado.piloto.moral)}">${estado.piloto.moral}</b> · Confiança <b class="${nivelClasse(estado.piloto.confianca)}">${estado.piloto.confianca}</b>`;
   }
 
   function render() {
@@ -76,6 +77,25 @@
 
   function abas(lista, atual, acao = 'aba') {
     return `<div class="abas">${lista.map(([id, nome]) => `<button data-acao="${acao}" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${nome}</button>`).join('')}</div>`;
+  }
+
+  const nivelClasse = (v) => (v < 30 ? 'negativo' : v < 45 ? 'aviso' : 'dinheiro');
+
+  function painelCabeca() {
+    const p = estado.piloto;
+    return `<div class="painel">
+      <h3>Cabeça do piloto</h3>
+      ${medidor('Moral', p.moral, 'Motivação fora da pista. Moral alta acelera a evolução e deixa o piloto mais claro ao descrever o kart.')}
+      ${medidor('Confiança', p.confianca, 'Cabeça dentro da pista. Confiança alta dá ritmo e regularidade; baixa faz frear cedo e errar.')}
+      <p class="fala" style="margin-top:8px">${esc(C.humor(p))}</p>
+      <button data-acao="psicologo">Sessão com psicólogo esportivo · ${reais(C.precoPsicologo(estado))}</button>
+      <p class="fraco" style="font-size:13px;margin-bottom:0">Uma por etapa. Ajuda mais quando a cabeça está mal.</p>
+    </div>`;
+  }
+
+  function medidor(rotulo, valor, dica) {
+    return `<div class="medidor" title="${esc(dica)}"><div class="linha"><span>${rotulo}</span><span class="espaco"></span><b class="${nivelClasse(valor)}">${valor}</b></div>
+      <div class="progresso"><i class="${nivelClasse(valor)}-fundo" style="width:${valor}%"></i></div></div>`;
   }
 
   function barra(rotulo, valor, max = 100) {
@@ -218,6 +238,7 @@
     return `<div class="grade">
       <div class="painel"><h3>${esc(p.nome)}</h3>
         ${C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join('')}
+        <div style="margin-top:10px">${medidor('Moral', p.moral, '')}${medidor('Confiança', p.confianca, '')}</div>
         <p class="fraco" style="font-size:13px">Popularidade ${Math.round(p.popularidade)}. Alguns talentos não aparecem aqui: só a pista revela.</p></div>
       <div class="painel"><h3>Últimas corridas</h3>
         ${ultimos.length ? ultimos.map((h) => `<div>${h.ano} · ${esc(h.pista)}: <b>${h.fora ? 'abandono' : 'P' + h.pos}</b></div>`).join('') : '<p class="fraco">Nenhuma corrida ainda.</p>'}</div>
@@ -243,7 +264,7 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `<div class="grade">${painelProximaEtapa()}${painelOficina()}${painelDinheiro()}${painelPropostas()}</div>`,
+      resumo: () => `<div class="grade">${painelProximaEtapa()}${painelCabeca()}${painelOficina()}${painelDinheiro()}${painelPropostas()}</div>`,
       campeonato: tabelaCampeonato,
       piloto: painelPiloto,
       caderno: painelCaderno,
@@ -416,7 +437,7 @@
     const eu = corrida.carros.find((c) => c.jogador);
     document.getElementById('info-jogador').textContent = eu.fora
       ? `Fora da corrida: ${eu.motivoFora}`
-      : `P${eu.pos} · pneu ${Math.round((eu.uso / 26) * 100)}% gasto`;
+      : `P${eu.pos} · pneu ${Math.round((eu.uso / 26) * 100)}% gasto · confiança ${estado.piloto.confianca}`;
     app.querySelectorAll('[data-acao="modo"]').forEach((b) => { b.classList.toggle('ativo', b.dataset.modo === eu.modo); b.disabled = eu.fora || corrida.terminou; });
   }
 
@@ -451,6 +472,7 @@
         <h2>${r.fora ? `Abandono: ${esc(r.motivo)}` : `P${r.pos}${r.pos === 1 ? ' · VITÓRIA!' : r.pos <= 3 ? ' · pódio!' : ''}`}</h2>
         ${r.eventos.map((e) => `<p class="aviso">${esc(e)}</p>`).join('')}
         <p>${r.pontos} pontos · campeonato: <b>P${C.posicaoNoCampeonato(estado)}</b></p>
+        ${(r.cabeca || []).map((x) => `<div class="fraco" style="font-size:14px">${esc(x.motivo)}: ${[x.confianca ? `confiança ${x.confianca > 0 ? '+' : ''}${x.confianca}` : '', x.moral ? `moral ${x.moral > 0 ? '+' : ''}${x.moral}` : ''].filter(Boolean).join(' · ')}</div>`).join('')}
         <p>Entrou no caixa: <b class="dinheiro">${reais(r.ganho)}</b>${r.patrocinio ? ` (patrocínio ${reais(r.patrocinio)})` : ''}</p>
         ${r.olheiros.length ? `<p class="fraco">Olheiros assistindo: ${r.olheiros.map(esc).join(', ')}</p>` : ''}
         <button class="principal" data-acao="voltar-paddock">Voltar ao paddock</button>
@@ -538,7 +560,7 @@
         break;
       }
       case 'continuar':
-        estado = carregar();
+        estado = C.migrar(carregar());
         if (estado.fds && estado.fds.sessao === 'corrida') estado.fds.sessao = 'grid';
         ir(telaDaFase());
         break;
@@ -551,6 +573,9 @@
       case 'aba':
         tela.aba = alvo.dataset.aba;
         render();
+        break;
+      case 'psicologo':
+        if (erro(C.sessaoPsicologo(estado))) { salvar(); render(); aviso('Boa conversa. O piloto saiu mais leve.'); }
         break;
       case 'revisar':
         if (erro(C.revisarMotor(estado))) { salvar(); render(); aviso('Motor revisado.'); }

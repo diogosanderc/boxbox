@@ -80,7 +80,7 @@
       calendario: [], fds: null, ultimoFds: null, caderno: {}, noticias: [], historico: [], relatorio: null,
     };
     const rnd = rngDe(estado);
-    const p = { id: 'jogador', nome, pais: 'BRA', idade: 12, popularidade: 5 };
+    const p = { id: 'jogador', nome, pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
     for (const a of ATRIBUTOS) p[a] = Math.round(limitar(55 + rnd.gauss() * 4, 45, 65));
     // Ocultos: potencial (até onde pode chegar) e sensibilidade (quão bem sente o kart).
     p.potencial = Math.round(limitar(86 + rnd.gauss() * 4, 78, 96));
@@ -114,6 +114,59 @@
     montarGrid(estado);
     gerarOfertasPatrocinio(estado, rnd, 2);
     gerarOlheiros(estado, rnd);
+  }
+
+  // ---------- cabeça do piloto ----------
+  // Confiança (dentro da pista): mexe no ritmo, na regularidade e no risco de erro.
+  // Moral (fora da pista): mexe na evolução e em quão bem o piloto descreve o que sente no kart.
+  const PRECO_PSICOLOGO = 1500;
+
+  function mexerCabeca(estado, { moral = 0, confianca = 0 }, motivo) {
+    const p = estado.piloto;
+    p.moral = Math.round(limitar(p.moral + moral, 0, 100));
+    p.confianca = Math.round(limitar(p.confianca + confianca, 0, 100));
+    if (motivo && estado.fds && estado.fds.cabeca) estado.fds.cabeca.push({ motivo, moral, confianca });
+  }
+
+  function efeitoCabeca(p) {
+    const c = (p.confianca - 50) / 50; // -1 (arrasado) a 1 (voando)
+    return { tempo: -c * 0.25, sigma: 1 - c * 0.2, erro: Math.max(0.5, 1 - c * 0.5) };
+  }
+
+  const fatorMoral = (p) => 0.6 + p.moral / 125;
+
+  function humor(p) {
+    const frase = p.confianca >= 70 ? 'Confiante, acha que pode ganhar de qualquer um.'
+      : p.confianca >= 45 ? 'Tranquilo com o kart e com o próprio ritmo.'
+        : p.confianca >= 30 ? 'Inseguro, freando mais cedo do que devia.'
+          : 'Sem confiança nenhuma, com medo de errar.';
+    const extra = p.moral < 25 ? ' Anda desmotivado e já falou em largar o kart.' : p.moral >= 80 ? ' Super motivado.' : '';
+    return frase + extra;
+  }
+
+  // Uma conversa com o psicólogo esportivo entre as etapas (uma vez por etapa).
+  function sessaoPsicologo(estado) {
+    const chave = `${estado.ano}-${estado.campeonato}-${estado.etapa}`;
+    if (estado.psicologo === chave) return { ok: false, erro: 'Já teve sessão com o psicólogo antes desta etapa.' };
+    const preco = Math.round(PRECO_PSICOLOGO * campeonato(estado.campeonato).custo);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para o psicólogo.' };
+    estado.dinheiro -= preco;
+    estado.psicologo = chave;
+    const p = estado.piloto;
+    // Ajuda mais quem está mal.
+    mexerCabeca(estado, { moral: Math.round(4 + (60 - p.moral) * 0.15), confianca: Math.round(3 + (50 - p.confianca) * 0.15) });
+    return { ok: true };
+  }
+
+  const precoPsicologo = (estado) => Math.round(PRECO_PSICOLOGO * campeonato(estado.campeonato).custo);
+
+  // Saves antigos não tinham moral e confiança.
+  function migrar(estado) {
+    if (estado && estado.piloto && estado.piloto.moral == null) {
+      estado.piloto.moral = 60;
+      estado.piloto.confianca = 50;
+    }
+    return estado;
   }
 
   // ---------- equipe, kart e dinheiro ----------
@@ -184,6 +237,7 @@
     if (!of) return { ok: false, erro: 'Oferta expirada.' };
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.id !== id);
     estado.patrocinios.push(of);
+    mexerCabeca(estado, { moral: 2 });
     noticia(estado, `${of.empresa} fecha patrocínio com ${estado.piloto.nome}.`);
     return { ok: true };
   }
@@ -250,6 +304,7 @@
     if (daNova.length >= 2) daNova[0].equipe = antiga;
     estado.equipeId = pr.equipe;
     estado.contrato = { equipe: pr.equipe, custoEtapa: pr.custoEtapa, segundoPiloto: pr.segundoPiloto, tipo: pr.tipo };
+    mexerCabeca(estado, { moral: 5 });
     estado.propostas = estado.propostas.filter((p) => p.tipo === 'f4' || p.tipo === 'academia');
     noticia(estado, `${estado.piloto.nome} troca a ${equipeBase(antiga).nome} pela ${pr.nome}.`);
     if (pr.tipo === 'furada') noticia(estado, `Boatos no paddock: a ${pr.nome} anda atrasando pagamentos e o material não é o que dizem...`);
@@ -296,7 +351,7 @@
     }
     const anterior = estado.ultimoFds && estado.ultimoFds.setup;
     estado.fds = {
-      sessao: 'treino', saidas: [], sugestaoUsada: false, ia,
+      sessao: 'treino', saidas: [], sugestaoUsada: false, ia, cabeca: [],
       setup: anterior ? { ...anterior } : Kart.setupPadrao(),
       pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : 'slick') || {}).id || null,
       quali: null, resultado: null, custoPago: custo,
@@ -309,6 +364,7 @@
   function pularEtapa(estado) {
     const rnd = rngDe(estado);
     noticia(estado, `${estado.piloto.nome} fica fora da etapa de ${pistaAtual(estado).nome} por falta de dinheiro.`);
+    mexerCabeca(estado, { moral: -8, confianca: -4 });
     const ordem = estado.rivais
       .map((r) => ({ r, score: nota(r) + equipeBase(r.equipe).material * 0.5 + rnd.gauss() * 4 }))
       .sort((a, b) => b.score - a.score);
@@ -336,12 +392,13 @@
   function voltaLancada(estado, entrada, setup, pneuTipo, usoPneu, cond, rnd, voltas = 1) {
     const pista = pistaAtual(estado);
     const ef = Kart.efeito(setup, pista, cond, pneuTipo);
+    const cab = entrada.jogador ? efeitoCabeca(entrada.piloto) : { tempo: 0, sigma: 1 };
     let melhor = Infinity;
     for (let i = 0; i < voltas; i++) {
       const t = Engine.ritmoBase(entrada, pista) - 0.6
-        + ef.tempo + chuvaPiloto(entrada.piloto, cond)
+        + ef.tempo + cab.tempo + chuvaPiloto(entrada.piloto, cond)
         + Engine.PNEUS.Md.desgaste * (usoPneu + i * ef.desgaste)
-        + rnd.gauss() * (0.35 - entrada.piloto.consistencia * 0.0025) * ef.sigma;
+        + rnd.gauss() * (0.35 - entrada.piloto.consistencia * 0.0025) * ef.sigma * cab.sigma;
       melhor = Math.min(melhor, t);
     }
     return { tempo: melhor, efeito: ef };
@@ -389,7 +446,7 @@
     const e = Kart.erros(fds.setup, Kart.acertoIdeal(pista, cond, pneu.tipo));
     const saida = {
       setup: { ...fds.setup }, pneu: pneu.tipo, usoPneu: Math.round(pneu.uso), tempo, posicao, diferenca: tempo - melhorGeral,
-      frases: Kart.feedbackPiloto(e, estado.piloto.sensibilidade, rnd),
+      frases: Kart.feedbackPiloto(e, limitar(estado.piloto.sensibilidade + (estado.piloto.moral - 60) / 3, 10, 95), rnd),
       dica: Kart.dicaMecanico(e, equipeBase(estado.equipeId).mecanico, rnd),
     };
     if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com slick não dá pra andar.');
@@ -476,7 +533,8 @@
       const setup = c.jogador ? fds.setupCorrida : fds.ia[c.id].tarde;
       const pneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
       const ef = Kart.efeito(setup, pista, cond, pneu);
-      return { ...ef, tempo: ef.tempo + chuvaPiloto(c.piloto, cond) };
+      const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
+      return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31, {
       regraCompostos: false, pneuPadrao: 'Md', semBox: true, semSafetyCar: true, ajusteVolta,
@@ -504,6 +562,7 @@
         res[i].pos = i + 1;
         res[i + 1].pos = i + 2;
         eventos.push(`Ordem de equipe: você teve que deixar ${estado.rivais.find((r) => r.id === atras.id).nome} passar.`);
+        mexerCabeca(estado, { moral: -8 }, 'Ordem de equipe');
         res.forEach((r, k) => { r.pontos = !r.fora && k < Engine.PONTOS.length ? Engine.PONTOS[k] : 0; });
       }
     }
@@ -533,10 +592,22 @@
     if (pneu) pneu.uso = Math.round(carro.uso);
     estado.motorHoras += 1;
 
-    // Experiência: um pouco de evolução a cada corrida
+    // Cabeça do piloto: o resultado em relação à largada pesa na confiança.
+    const largada = fds.quali.findIndex((q) => q.id === 'jogador') + 1;
+    if (meu.fora && meu.motivoFora === 'Acidente') mexerCabeca(estado, { confianca: -12, moral: -3 }, 'Acidente');
+    else if (meu.fora) mexerCabeca(estado, { confianca: -2, moral: -5 }, `Abandono: ${meu.motivoFora.toLowerCase()}`);
+    else {
+      let conf = limitar(Math.round((largada - meu.pos) * 1.2), -8, 8);
+      if (meu.pos <= 3) conf += 4;
+      if (meu.pos === 1) conf += 4;
+      const texto = meu.pos === 1 ? 'Vitória' : meu.pos <= 3 ? 'Pódio' : largada === meu.pos ? `Terminou onde largou (P${meu.pos})` : `Largou P${largada}, terminou P${meu.pos}`;
+      mexerCabeca(estado, { confianca: conf, moral: meu.pos <= 3 ? 4 : meu.pos <= 10 ? 1 : -2 }, texto);
+    }
+
+    // Experiência: um pouco de evolução a cada corrida (mais com a moral alta)
     const rnd = rngDe(estado);
-    evoluir(p, rnd, 0.15);
-    fds.resultado = { pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome) };
+    evoluir(p, rnd, 0.15 * fatorMoral(p));
+    fds.resultado = { pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora });
     fds.sessao = 'fim';
@@ -557,6 +628,14 @@
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.expira >= estado.etapa);
     estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia');
     if (rnd() < 0.3 + estado.piloto.popularidade / 100) gerarOfertasPatrocinio(estado, rnd, 1);
+    // A confiança volta aos poucos para o normal; aperto de dinheiro pesa na moral.
+    const p = estado.piloto;
+    p.confianca = Math.round(p.confianca + (50 - p.confianca) * 0.15);
+    if (estado.etapa < ETAPAS && estado.dinheiro < custoEtapa(estado) * 1.5) {
+      mexerCabeca(estado, { moral: -4 });
+      noticia(estado, `${p.nome} sente o peso das contas apertadas em casa.`);
+    }
+    if (p.moral < 20) noticia(estado, `${p.nome} anda desmotivado e já falou em largar o kart.`);
     if (estado.etapa >= ETAPAS) return fimDeTemporada(estado);
     gerarOlheiros(estado, rnd);
     estado.fase = 'paddock';
@@ -608,7 +687,9 @@
 
     const p = estado.piloto;
     const antes = Object.fromEntries(ATRIBUTOS.map((a) => [a, p[a]]));
-    evoluir(p, rnd, 1);
+    if (pos === 1) mexerCabeca(estado, { moral: 15, confianca: 10 });
+    evoluir(p, rnd, fatorMoral(p));
+    p.moral = Math.round(p.moral + (60 - p.moral) * 0.3);
     p.sensibilidade = Math.min(95, p.sensibilidade + 3);
     p.idade += 1;
     p.popularidade = Math.round(p.popularidade * 0.8 * 10) / 10;
@@ -653,7 +734,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

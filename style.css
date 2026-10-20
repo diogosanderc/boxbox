@@ -146,3 +146,8 @@ select { max-width: 100%; }
 .fala { font-style: italic; }
 .mecanico { color: #8ab4ff; font-size: 14px; }
 .opcao { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; cursor: pointer; }
+
+.medidor { margin: 8px 0; }
+.dinheiro-fundo { background: var(--ok) !important; }
+.aviso-fundo { background: var(--alerta) !important; }
+.negativo-fundo { background: #ff6b6b !important; }

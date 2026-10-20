@@ -9,12 +9,15 @@ const Carreira = require('../js/carreira.js');
 function jogarFimDeSemana(estado, estrategia = 'padrao') {
   // Cuidados básicos de paddock: patrocínio, pneu novo e revisão do motor quando der.
   for (const o of estado.ofertasPatrocinio.slice()) Carreira.aceitarPatrocinio(estado, o.id);
-  if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 12)) Carreira.comprarPneu(estado, 'slick');
+  if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
   if (estado.motorHoras >= Carreira.HORAS_REVISAO) Carreira.revisarMotor(estado);
   const r = Carreira.iniciarFimDeSemana(estado);
   if (!r.ok) { Carreira.pularEtapa(estado); return null; }
   const pista = Carreira.pistaAtual(estado);
   const clima = Carreira.climaAtual(estado);
+  // Treina com o pneu mais velho e guarda o novo para a classificação e a corrida.
+  const velho = estado.pneus.filter((p) => p.tipo === 'slick').sort((a, b) => b.uso - a.uso)[0];
+  if (velho) Carreira.escolherPneu(estado, velho.id);
   for (let i = 0; i < 2; i++) Carreira.saidaTreino(estado);
   Carreira.irParaClassificacao(estado);
   const molhado = clima.tarde.inicioChuva === 'quali';
@@ -134,6 +137,52 @@ test('no grid dá para mudar o acerto e o pneu da corrida', () => {
   assert.strictEqual(e.fds.setupCorrida.pressao, antes.pressao + 1);
   assert.strictEqual(e.fds.pneuCorrida, novo.id);
   assert.strictEqual(corrida.carros.find((c) => c.jogador).tipoPneu, 'chuva');
+});
+
+test('confiança alta deixa o piloto mais rápido e mais regular', () => {
+  const alto = Carreira.efeitoCabeca({ confianca: 90 });
+  const baixo = Carreira.efeitoCabeca({ confianca: 10 });
+  assert.ok(alto.tempo < 0 && baixo.tempo > 0);
+  assert.ok(alto.sigma < 1 && baixo.sigma > 1);
+  assert.ok(alto.erro < baixo.erro);
+});
+
+test('resultado mexe na confiança e fica registrado', () => {
+  const e = Carreira.novoJogo({ seed: 12 });
+  const antes = e.piloto.confianca;
+  const r = jogarFimDeSemana(e, 'ideal');
+  assert.ok(r.cabeca.length >= 1);
+  const delta = r.cabeca.reduce((t, x) => t + x.confianca, 0);
+  assert.notStrictEqual(delta, 0);
+  assert.ok(e.piloto.confianca >= 0 && e.piloto.confianca <= 100);
+  assert.notStrictEqual(e.piloto.confianca, antes);
+});
+
+test('psicólogo: uma sessão por etapa, ajuda mais quem está mal', () => {
+  const e = Carreira.novoJogo({ seed: 13 });
+  e.piloto.moral = 20;
+  e.piloto.confianca = 20;
+  const dinheiro = e.dinheiro;
+  assert.ok(Carreira.sessaoPsicologo(e).ok);
+  assert.ok(e.piloto.moral > 25 && e.piloto.confianca > 25);
+  assert.ok(e.dinheiro < dinheiro);
+  assert.strictEqual(Carreira.sessaoPsicologo(e).ok, false);
+});
+
+test('ficar fora de uma etapa derruba a moral', () => {
+  const e = Carreira.novoJogo({ seed: 14 });
+  const antes = e.piloto.moral;
+  Carreira.pularEtapa(e);
+  assert.ok(e.piloto.moral < antes);
+});
+
+test('save antigo ganha moral e confiança', () => {
+  const e = Carreira.novoJogo({ seed: 15 });
+  delete e.piloto.moral;
+  delete e.piloto.confianca;
+  Carreira.migrar(e);
+  assert.strictEqual(e.piloto.moral, 60);
+  assert.strictEqual(e.piloto.confianca, 50);
 });
 
 module.exports = { jogarFimDeSemana };

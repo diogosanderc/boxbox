@@ -27,6 +27,14 @@ você descobre pelo cronômetro, pelo que o piloto sente e pelas dicas do mecân
 mais irregular, gasta mais pneu e erra mais. Carburação pobre demais pode travar o motor.
 O **caderno de acertos** guarda tudo o que você testou em cada pista.
 
+### Moral e confiança
+
+- **Confiança** (dentro da pista): sobe quando o piloto termina à frente de onde largou e com pódios; cai com acidentes
+  e corridas ruins. Confiança alta dá ritmo e regularidade; baixa faz o piloto frear cedo e errar mais.
+- **Moral** (fora da pista): sobe com pódios, patrocínio, troca de equipe e títulos; cai com ordem de equipe, abandonos,
+  contas apertadas e etapas perdidas. Moral alta acelera a evolução e deixa o piloto mais claro ao descrever o kart.
+- Uma sessão com o psicólogo esportivo por etapa ajuda a recuperar a cabeça.
+
 ## Código
 
 - `js/kart.js`: física escondida do kart (acerto ideal, efeito no ritmo, clima, falas do piloto e do mecânico).
@@ -43,5 +51,5 @@ npm test   # testes com o runner nativo do Node (18+)
 
 - Monopostos: F4, F3, F2 e a Superlicença, com pit stop, asa e acerto aerodinâmico.
 - Pistas de rua, ovais e circuitos com subida e descida; previsão do tempo que muda durante o dia.
-- Moral e confiança do piloto, preparo físico, redes sociais.
+- Preparo físico e redes sociais.
 - Empresário: negocia contratos e fareja propostas furadas.
