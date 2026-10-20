@@ -808,6 +808,39 @@
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
     else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
     else app.innerHTML = cabecalho + telaResultadoCorrida();
+    if (tela.mudancas === fds.sessao) app.insertAdjacentHTML('beforeend', folhaMudancas(fds.sessao));
+  }
+
+  // Folha que abre ao chegar na classificação e no grid: o que mudou na pista desde a sessão anterior.
+  // Não diz o que mexer no kart, só chama a atenção para as condições.
+  function folhaMudancas(sessao) {
+    const clima = C.climaAtual(estado);
+    const treino = Kart.condicao(clima, 'treino', clima.manha.chove);
+    const molhado = clima.tarde.inicioChuva === 'quali';
+    const quali = Kart.condicao(clima, 'quali', molhado);
+    const antes = sessao === 'grid' ? quali : treino;
+    const agora = sessao === 'grid' ? Kart.condicao(clima, 'corrida', molhado) : quali;
+    const nomeAntes = sessao === 'grid' ? 'Classificação' : 'Treino';
+    const nomeAgora = sessao === 'grid' ? 'Corrida' : 'Classificação';
+    const borracha = (c) => (c.molhado ? 'Lavada' : c.borracha < 0.5 ? 'Pouca' : c.borracha < 0.7 ? 'Mais' : 'Muita');
+    const ceu = (c) => (c.molhado ? '🌧 Chuva' : '☀️ Seco');
+    const linha = (rotulo, a, b, delta = '') => `<div class="mudanca ${a === b ? '' : 'mudou'}">
+      <span class="mudanca-rotulo">${rotulo}</span><span>${a}</span><span aria-hidden="true">${a === '' ? '' : '→'}</span><b>${b}${delta}</b></div>`;
+    const dif = (a, b) => (a === b ? '' : ` <small>${b > a ? '+' : '−'}${Math.abs(b - a)}°</small>`);
+    return `<div class="folha-fundo" data-acao-fundo="fechar-mudancas"><div class="folha folha-mudancas" role="dialog" aria-modal="true" aria-labelledby="folha-mudancas-titulo">
+      <span class="passo-inicio">${nomeAntes} → ${nomeAgora}</span>
+      <h3 id="folha-mudancas-titulo">As condições mudaram</h3>
+      <div class="mudancas">
+        ${linha('Céu', ceu(antes), ceu(agora))}
+        ${linha('🌡 Ar', `${antes.tempAr}°`, `${agora.tempAr}°`, dif(antes.tempAr, agora.tempAr))}
+        ${linha('Asfalto', `${antes.tempPista}°`, `${agora.tempPista}°`, dif(antes.tempPista, agora.tempPista))}
+        ${linha('Borracha', borracha(antes), borracha(agora))}
+        ${!agora.molhado ? `<div class="mudanca ${clima.tarde.chance >= 30 ? 'mudou' : ''}"><span class="mudanca-rotulo">💧 Chance de chuva na corrida</span><span></span><span></span><b>${clima.tarde.chance}%</b></div>` : ''}
+      </div>
+      ${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}
+      <p class="fraco">A pista não é a mesma de ${sessao === 'grid' ? 'agora há pouco' : 'manhã'}. Fique atento a como o kart vai se comportar.</p>
+      <button class="principal grande" data-acao="fechar-mudancas">Entendi</button>
+    </div></div>`;
   }
 
   // Pneu zerado rende menos nas primeiras voltas: no treino dá para amaciar sem gastar uma saída.
@@ -1274,12 +1307,18 @@
       case 'ir-quali':
         C.irParaClassificacao(estado);
         salvar();
+        tela.mudancas = 'quali';
+        render();
+        break;
+      case 'fechar-mudancas':
+        tela.mudancas = null;
         render();
         break;
       case 'classificar':
         if (!erro(C.classificar(estado))) break;
         salvar();
         animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', () => {
+          tela.mudancas = 'grid';
           render();
           if (estado.fds.recordeQuali) aviso('🏆 Novo recorde da pista!');
         });
@@ -1320,6 +1359,7 @@
   app.addEventListener('click', (ev) => {
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-pneu') { tela.pneuOpcoes = null; render(); }
+    if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-mudancas') { tela.mudancas = null; render(); }
   });
 
   // Enter no campo do nome entra no paddock.
