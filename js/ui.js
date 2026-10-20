@@ -82,7 +82,7 @@
   // ---------- ajuda: as explicações ficam atrás de um "?" ----------
   const AJUDAS = {
     jogo: ['Como jogar', 'Você é um piloto de kart de 12 anos e também o cabeça da carreira. Escolha a equipe, cuide do dinheiro, acerte o kart em cada pista e decida quais propostas aceitar. Meta: chegar à Fórmula 4.'],
-    equipe: ['Escolhendo a equipe', 'Kart e motor dizem quão rápido é o material. O mecânico não vem incluído: você acerta o kart sozinho e pode contratar o mecânico da equipe por etapa (quanto melhor, mais caro). A sobra é o que fica do caixa depois de pagar as 8 etapas: é com ela que você compra pneus e revisa o motor. As outras equipes podem te chamar depois, se você andar bem.'],
+    equipe: ['Escolhendo a equipe', 'Kart diz quão rápido é o material; estrutura, quão confiável. O kart não vem com mecânico: você acerta sozinho e pode contratar um mecânico no fim de semana. A sobra é o que fica do caixa depois de pagar as 8 etapas: é com ela que você compra pneus e revisa o motor. As outras equipes podem te chamar depois, se você andar bem.'],
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
@@ -90,7 +90,8 @@
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode estourar o motor). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
-    radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. O kart não tem mecânico: o acerto é seu, e o caderno guarda o que você testou. Se quiser ajuda, contrate o mecânico durante o treino: ele dá um palpite depois de cada saída e pode acertar o kart por você uma vez. Custa caro e vale só para esta etapa.'],
+    radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. Com um mecânico contratado, ele também comenta: o iniciante dá palpites; o experiente e o profissional dizem o que mudar e quanto.'],
+    mecanico: ['Mecânico', 'O kart não vem com mecânico: o acerto é seu. Dá para contratar um para o fim de semana. O iniciante é barato, dá palpites e fica no treino, na classificação e na corrida. O experiente faz uma análise técnica (o que mudar e quanto) e o profissional monta o kart para você; os dois cobram hora extra para trabalhar em cada sessão depois daquela em que foram contratados. Em cada sessão, cada um ajuda uma vez.'],
     quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid ainda dá para mexer em todo o acerto e trocar o jogo de pneus. Só o motor não: revisão é no paddock. Na corrida o asfalto tem ainda mais borracha que na classificação.'],
     // Um "?" para cada ajuste do kart: o que ele significa.
@@ -343,7 +344,6 @@
   function etiquetasEquipe(e, sobra) {
     const t = [];
     if (e.material >= 86) t.push(['⚡ Kart muito rápido', 'bom']); else if (e.material <= 76) t.push(['🐢 Kart mais lento', 'ruim']);
-    if (e.mecanico >= 85) t.push(['🔧 Mecânico craque', 'bom']); else if (e.mecanico <= 60) t.push(['🔧 Mecânico fraco', 'ruim']);
     if (e.organizacao >= 85) t.push(['🛡 Kart confiável', 'bom']); else if (e.organizacao <= 55) t.push(['⚠ Quebra mais', 'ruim']);
     if (sobra >= 25000) t.push(['💰 Sobra dinheiro', 'bom']); else if (sobra < 12000) t.push(['💸 Orçamento apertado', 'ruim']);
     if (!t.length) t.push(['⚖️ Equilibrada', 'neutro']);
@@ -369,7 +369,7 @@
               <span class="equipe-corpo">
                 <span class="fraco equipe-desc">${esc(e.descricao)}</span>
                 <span class="tags">${etiquetasEquipe(e, sobra)}</span>
-                <span class="equipe-barras">${barra('Kart', e.material)}${barra('Mecânico', e.mecanico)}${barra('Estrutura', e.organizacao)}</span>
+                <span class="equipe-barras">${barra('Kart', e.material)}${barra('Estrutura', e.organizacao)}</span>
                 <span class="equipe-dinheiro">
                   <span><small>Caixa</small><b>R$ ${kmil(e.caixa)}</b></span>
                   <span><small>Por etapa</small><b class="negativo">−R$ ${kmil(e.custoEtapa)}</b></span>
@@ -857,14 +857,35 @@
   }
 
   // Sem mecânico por padrão: contrata-se por etapa, e ele só ajuda durante o treino livre.
-  function botaoMecanico() {
+  // Card do mecânico: escolher um dos três tipos, pagar hora extra ou pedir ajuda nesta sessão.
+  function cartaoMecanico() {
     const fds = estado.fds;
-    const acabou = fds.saidas.length >= C.SAIDAS_TREINO;
-    if (!fds.mecanico) {
-      return `<button class="compra" data-acao="contratar-mecanico" data-confirmar="Confirmar: ${reais(C.precoMecanico(estado))}" ${acabou ? 'disabled' : ''}><b>🔧 Contratar mecânico</b><span>${reais(C.precoMecanico(estado))} · só esta etapa</span></button>`;
+    const m = C.mecanicoDoFds(fds);
+    if (!m) {
+      return cartao('Mecânico', `<p class="fraco mini">Você está acertando o kart sozinho. Se quiser ajuda, contrate alguém para o fim de semana.</p>
+        <div class="mecanicos">${Object.entries(C.MECANICOS).map(([tipo, x]) => {
+          const preco = C.precoMecanico(estado, tipo);
+          const extra = C.precoHoraExtra(estado, tipo);
+          return `<button class="compra mecanico-opcao mec-${tipo}" data-acao="contratar-mecanico" data-tipo="${tipo}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}>
+            <b>${x.icone} ${x.nome}</b><span class="mecanico-desc">${x.descricao}</span>
+            <span class="mecanico-preco"><b>${reais(preco)}</b>${extra ? ` · hora extra ${reais(extra)}` : ' · fim de semana todo'}</span></button>`;
+        }).join('')}</div>`, { ajuda: 'mecanico' });
     }
-    const usado = fds.sugestaoUsada;
-    return `<button data-acao="sugestao" ${usado || acabou ? 'disabled' : ''}>🔧 ${usado ? 'Mecânico já acertou' : acabou ? 'Treino acabou' : 'Mecânico, acerta o kart'}</button>`;
+    const info = C.MECANICOS[m.tipo];
+    const ativo = C.mecanicoAtivo(estado);
+    const conselho = m.usos[fds.sessao];
+    const rotulo = { palpite: 'Pedir um palpite', tecnica: 'Pedir a análise técnica', monta: 'Montar o kart' }[info.faz];
+    let corpo;
+    if (!ativo) {
+      const extra = C.precoHoraExtra(estado, m.tipo);
+      corpo = `<p class="fraco mini">Ele trabalhou na sessão anterior. Para ficar nesta, cobra hora extra.</p>
+        <button class="compra" data-acao="hora-extra" data-confirmar="Confirmar: −${reais(extra)}" ${estado.dinheiro < extra ? 'disabled' : ''}><b>⏱ Pagar hora extra</b><span>−${reais(extra)} · esta sessão</span></button>`;
+    } else if (conselho) {
+      corpo = `<div class="bolha mecanico"><span aria-hidden="true">${info.icone}</span><p>${conselho.map((c) => esc(c)).join('<br>')}</p></div>`;
+    } else {
+      corpo = `<button class="principal" data-acao="sugestao">${info.icone} ${rotulo}</button>`;
+    }
+    return cartao('Mecânico', `<div class="linha"><b>${info.icone} ${info.nome}</b><span class="espaco"></span>${chip(ativo ? 'Trabalhando' : 'Fora desta sessão', ativo ? 'chip-dinheiro' : '')}</div>${corpo}`, { ajuda: 'mecanico' });
   }
 
   // Diferença para a saída anterior: verde se foi mais rápida, vermelho se foi mais lenta.
@@ -884,11 +905,12 @@
     return `<div class="corrida">
       <div class="coluna">
         ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? 'setup' : 'quali' })}
+        ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         <div class="acoes">
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
-               <div class="botoes-2">${botaoMecanico()}<button data-acao="ir-quali">Ir para a classificação →</button></div>`
+               <button class="grande" data-acao="ir-quali">Ir para a classificação →</button>`
             : '<button class="principal grande" data-acao="classificar">Fazer a volta lançada</button>'}
         </div>
       </div>
@@ -922,6 +944,7 @@
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
         ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
+        ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         ${mudou ? '<div class="botoes-2"><button data-acao="desfazer-grid">↺ Acerto da classificação</button></div>' : ''}
       </div>
@@ -1285,11 +1308,16 @@
         break;
       }
       case 'contratar-mecanico':
-        if (erro(C.contratarMecanico(estado))) { salvar(); render(); aviso('Mecânico contratado para esta etapa.'); }
+        if (erro(C.contratarMecanico(estado, alvo.dataset.tipo))) { salvar(); render(); aviso(`${C.MECANICOS[alvo.dataset.tipo].nome} contratado para o fim de semana.`); }
         break;
-      case 'sugestao':
-        if (erro(C.pedirSugestao(estado, estado.fds.sessao))) { salvar(); render(); aviso('O mecânico ajustou o kart.'); }
+      case 'hora-extra':
+        if (erro(C.pagarHoraExtra(estado))) { salvar(); render(); aviso('O mecânico fica nesta sessão.'); }
         break;
+      case 'sugestao': {
+        const r = C.pedirSugestao(estado);
+        if (erro(r)) { salvar(); render(); aviso(r.faz === 'monta' ? 'O técnico montou o kart.' : 'O mecânico deu a opinião dele.'); }
+        break;
+      }
       case 'saida': {
         const r = C.saidaTreino(estado);
         if (!erro(r)) break;

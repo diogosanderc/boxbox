@@ -3,16 +3,16 @@
 (function (root) {
   'use strict';
 
-  // material: qualidade do kart e do motor. mecanico: precisão das dicas de acerto.
+  // material: qualidade do kart e do motor. mecanico: qualidade do acerto que a equipe faz nos karts dos rivais.
   // caixa: dinheiro inicial do seu projeto com a equipe. custoEtapa: quanto a equipe cobra por etapa (R$).
   // organizacao: oculto para o jogador; equipes desorganizadas prometem mais do que entregam.
   const EQUIPES = [
     { id: 'fulmine', nome: 'Fulmine Kart', cor: '#e10600', material: 90, mecanico: 92, caixa: 120000, custoEtapa: 14000, organizacao: 90,
-      descricao: 'Equipe campeã, material de ponta e o melhor mecânico do paddock. Cara.' },
+      descricao: 'Equipe campeã, material de ponta e estrutura enorme. Cara.' },
     { id: 'orbital', nome: 'Orbital Karting', cor: '#1e5bc6', material: 88, mecanico: 80, caixa: 105000, custoEtapa: 12500, organizacao: 85,
-      descricao: 'Estrutura grande e organizada. Kart rápido, mecânico bom.' },
+      descricao: 'Estrutura grande e organizada. Kart rápido e bem cuidado.' },
     { id: 'velox', nome: 'Velox Junior', cor: '#00b3a4', material: 86, mecanico: 86, caixa: 95000, custoEtapa: 11000, organizacao: 80,
-      descricao: 'Especialista em formar pilotos jovens. Mecânico paciente.' },
+      descricao: 'Especialista em formar pilotos jovens. Paciente com quem está começando.' },
     { id: 'rapido', nome: 'Rapido Corse', cor: '#ff8700', material: 87, mecanico: 64, caixa: 90000, custoEtapa: 10500, organizacao: 55,
       descricao: 'Chassi italiano muito rápido, mas a equipe é bagunçada.' },
     { id: 'tempesta', nome: 'Tempesta KR', cor: '#7a5cff', material: 83, mecanico: 75, caixa: 80000, custoEtapa: 8500, organizacao: 75,
@@ -20,7 +20,7 @@
     { id: 'faisca', nome: 'Faísca Kart', cor: '#f2c200', material: 81, mecanico: 70, caixa: 72000, custoEtapa: 7500, organizacao: 70,
       descricao: 'Equipe familiar, que conhece todo kartódromo do Brasil.' },
     { id: 'piccolo', nome: 'Piccolo Team', cor: '#2fbf71', material: 79, mecanico: 78, caixa: 64000, custoEtapa: 6500, organizacao: 82,
-      descricao: 'Kart simples, mas o mecânico ensina muito sobre acerto.' },
+      descricao: 'Kart simples, mas a equipe ensina muito sobre acerto.' },
     { id: 'ninja', nome: 'Ninja Kart', cor: '#9aa0a6', material: 80, mecanico: 52, caixa: 56000, custoEtapa: 5500, organizacao: 50,
       descricao: 'Promete muito e cobra pouco. Ninguém sabe bem como funciona.' },
     { id: 'formiga', nome: 'Formiga Racing', cor: '#b5651d', material: 76, mecanico: 60, caixa: 55000, custoEtapa: 4500, organizacao: 72,

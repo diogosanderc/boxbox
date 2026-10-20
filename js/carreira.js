@@ -313,22 +313,66 @@
     return { ok: true };
   }
 
-  // O kart não vem com mecânico: o jogador acerta sozinho. O mecânico da equipe pode ser contratado
-  // por etapa, só durante o treino livre; quanto melhor ele é, mais caro.
-  function precoMecanico(estado) {
-    const mec = equipeBase(estado.equipeId).mecanico;
-    return Math.round((3000 + mec * 70) * campeonato(estado.campeonato).custo / 100) * 100;
+  // ---------- mecânico ----------
+  // O kart não vem com mecânico: o jogador acerta sozinho. Dá para contratar um para o fim de semana:
+  // - iniciante: paga uma vez e fica o fim de semana todo; dá palpites.
+  // - experiente: análise técnica (o que mudar e quanto); fora da sessão em que foi contratado, cobra hora extra.
+  // - profissional: monta o kart para você; muito caro, e também cobra hora extra.
+  const MECANICOS = {
+    iniciante: { nome: 'Mecânico iniciante', icone: '🔧', preco: 3000, extra: 0, qualidade: 60, faz: 'palpite',
+      descricao: 'Dá palpites sobre o que mexer. Fica o fim de semana todo.' },
+    experiente: { nome: 'Mecânico experiente', icone: '🛠', preco: 6000, extra: 2500, qualidade: 82, faz: 'tecnica',
+      descricao: 'Anos de kart: diz o que mudar e quanto. Cobra hora extra a cada sessão a mais.' },
+    pro: { nome: 'Técnico profissional', icone: '🏆', preco: 16000, extra: 6000, qualidade: 96, faz: 'monta',
+      descricao: 'Monta o kart para você. Muito caro, e cobra hora extra a cada sessão a mais.' },
+  };
+  const SESSOES_MECANICO = ['treino', 'quali', 'grid'];
+
+  const precoMecanico = (estado, tipo) => Math.round(MECANICOS[tipo].preco * campeonato(estado.campeonato).custo / 100) * 100;
+  const precoHoraExtra = (estado, tipo) => Math.round(MECANICOS[tipo].extra * campeonato(estado.campeonato).custo / 100) * 100;
+
+  // O mecânico contratado (ou null). Carreiras antigas guardavam só true.
+  function mecanicoDoFds(fds) {
+    if (!fds || !fds.mecanico) return null;
+    if (fds.mecanico === true) fds.mecanico = { tipo: 'experiente', sessoes: { treino: true }, usos: {} };
+    return fds.mecanico;
   }
 
-  function contratarMecanico(estado) {
+  // O mecânico está trabalhando nesta sessão?
+  function mecanicoAtivo(estado) {
+    const m = mecanicoDoFds(estado.fds);
+    return !!m && (m.tipo === 'iniciante' || !!m.sessoes[estado.fds.sessao]);
+  }
+
+  function contratarMecanico(estado, tipo = 'iniciante') {
     const fds = estado.fds;
-    if (!fds || fds.sessao !== 'treino' || fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'Só dá para contratar o mecânico durante o treino livre.' };
-    if (fds.mecanico) return { ok: false, erro: 'O mecânico já está com você nesta etapa.' };
-    const preco = precoMecanico(estado);
+    if (!MECANICOS[tipo]) return { ok: false, erro: 'Mecânico desconhecido.' };
+    if (!fds || !SESSOES_MECANICO.includes(fds.sessao)) return { ok: false, erro: 'O mecânico é contratado no fim de semana, antes da largada.' };
+    if (mecanicoDoFds(fds)) return { ok: false, erro: 'Você já tem um mecânico neste fim de semana.' };
+    const preco = precoMecanico(estado, tipo);
     if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para contratar o mecânico.' };
     estado.dinheiro -= preco;
-    fds.mecanico = true;
+    fds.mecanico = { tipo, sessoes: { [fds.sessao]: true }, usos: {} };
     return { ok: true, preco };
+  }
+
+  // Hora extra: o experiente e o profissional trabalham numa sessão a mais.
+  function pagarHoraExtra(estado) {
+    const m = mecanicoDoFds(estado.fds);
+    if (!m) return { ok: false, erro: 'Você está sem mecânico.' };
+    if (mecanicoAtivo(estado)) return { ok: false, erro: 'O mecânico já está trabalhando nesta sessão.' };
+    const preco = precoHoraExtra(estado, m.tipo);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para a hora extra.' };
+    estado.dinheiro -= preco;
+    m.sessoes[estado.fds.sessao] = true;
+    return { ok: true, preco };
+  }
+
+  // Condição da pista na sessão atual (para o mecânico pensar no acerto certo).
+  function condicaoSessao(estado, sessao = estado.fds.sessao) {
+    const clima = climaAtual(estado);
+    if (sessao === 'treino') return Kart.condicao(clima, 'treino', clima.manha.chove);
+    return Kart.condicao(clima, sessao === 'grid' ? 'corrida' : 'quali', clima.tarde.inicioChuva === 'quali');
   }
 
   // O que falta antes de ir para a pista: slick novo, pneu de chuva (se a previsão pede) e revisão do motor.
@@ -545,7 +589,7 @@
     }
     const anterior = estado.ultimoFds && estado.ultimoFds.setup;
     estado.fds = {
-      sessao: 'treino', saidas: [], mecanico: false, sugestaoUsada: false, ia, cabeca: [],
+      sessao: 'treino', saidas: [], mecanico: null, ia, cabeca: [],
       setup: anterior ? { ...anterior } : Kart.setupPadrao(),
       pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : 'slick') || {}).id || null,
       quali: null, resultado: null, custoPago: custo,
@@ -618,6 +662,14 @@
     if (pneuPorId(estado, id)) estado.fds.pneuId = id;
   }
 
+  // O que o mecânico (se estiver trabalhando no treino) diz depois de uma saída.
+  function dicaDaSaida(estado, e, pista, cond, tipoPneu, rnd) {
+    if (!mecanicoAtivo(estado)) return null;
+    const info = MECANICOS[mecanicoDoFds(estado.fds).tipo];
+    if (info.faz === 'palpite') return Kart.dicaMecanico(e, info.qualidade, rnd);
+    return `Mecânico: ${Kart.analiseTecnica(estado.fds.setup, pista, cond, tipoPneu, info.qualidade, rnd).lista.slice(0, 2).join('. ')}.`;
+  }
+
   // Uma saída para a pista no treino livre: tempo, posição na tabela, o que o piloto sente e, se contratado, a dica do mecânico.
   function saidaTreino(estado) {
     const fds = estado.fds;
@@ -643,7 +695,7 @@
     const saida = {
       setup: { ...fds.setup }, pneu: pneu.tipo, usoPneu: Math.round(pneu.uso), tempo, posicao, diferenca: tempo - melhorGeral,
       frases: Kart.feedbackPiloto(e, limitar(estado.piloto.sensibilidade + (estado.piloto.moral - 60) / 3, 10, 95), rnd),
-      dica: fds.mecanico ? Kart.dicaMecanico(e, equipeBase(estado.equipeId).mecanico, rnd) : null,
+      dica: dicaDaSaida(estado, e, pista, cond, pneu.tipo, rnd),
     };
     if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com slick não dá pra andar.');
     if (pneu.uso > 20) saida.frases.push('Os pneus já estão no fim, difícil saber se o problema é o acerto.');
@@ -664,19 +716,31 @@
     if (lista.length > 60) lista.shift();
   }
 
-  // O mecânico contratado propõe um acerto (uma vez por fim de semana, só no treino livre).
-  function pedirSugestao(estado, sessao) {
+  // Pede ajuda ao mecânico (uma vez por sessão): palpite (iniciante), análise técnica (experiente)
+  // ou o kart montado (profissional).
+  function pedirSugestao(estado) {
     const fds = estado.fds;
-    if (fds.sessao !== 'treino') return { ok: false, erro: 'O mecânico só mexe no kart durante o treino livre.' };
-    if (fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'O treino livre acabou: o mecânico não mexe mais no kart.' };
-    if (!fds.mecanico) return { ok: false, erro: 'Você está sem mecânico nesta etapa.' };
-    if (fds.sugestaoUsada) return { ok: false, erro: 'O mecânico já deu a sugestão dele neste fim de semana.' };
-    const clima = climaAtual(estado);
-    const cond = Kart.condicao(clima, 'treino', clima.manha.chove);
+    const m = mecanicoDoFds(fds);
+    if (!m) return { ok: false, erro: 'Você está sem mecânico neste fim de semana.' };
+    if (!mecanicoAtivo(estado)) return { ok: false, erro: 'O mecânico só trabalha nesta sessão com hora extra.' };
+    if (m.usos[fds.sessao]) return { ok: false, erro: 'O mecânico já ajudou nesta sessão.' };
+    const info = MECANICOS[m.tipo];
+    const pista = pistaAtual(estado);
+    const cond = condicaoSessao(estado);
     const pneu = pneuPorId(estado, fds.pneuId);
-    fds.setup = Kart.sugestaoMecanico(pistaAtual(estado), cond, pneu ? pneu.tipo : 'slick', equipeBase(estado.equipeId).mecanico, rngDe(estado));
-    fds.sugestaoUsada = true;
-    return { ok: true };
+    const tipoPneu = pneu ? pneu.tipo : 'slick';
+    const rnd = rngDe(estado);
+    let conselho;
+    if (info.faz === 'palpite') {
+      conselho = [Kart.dicaMecanico(Kart.erros(fds.setup, Kart.acertoIdeal(pista, cond, tipoPneu)), info.qualidade, rnd).replace(/^Mecânico: /, '')];
+    } else if (info.faz === 'tecnica') {
+      conselho = Kart.analiseTecnica(fds.setup, pista, cond, tipoPneu, info.qualidade, rnd).lista;
+    } else {
+      fds.setup = Kart.sugestaoMecanico(pista, cond, tipoPneu, info.qualidade, rnd);
+      conselho = ['Montei o kart para essas condições. Pode acelerar.'];
+    }
+    m.usos[fds.sessao] = conselho;
+    return { ok: true, faz: info.faz, conselho };
   }
 
   // O que o piloto comenta da pista antes de cada sessão (treino, classificação ou grid).
@@ -987,7 +1051,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes,
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
+    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

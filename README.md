@@ -18,8 +18,12 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 3. **Fim de semana:**
    - **Treino livre (manhã):** 4 saídas para a pista. Mexa em pressão, eixo, bitola, relação e carburação.
      Depois de cada saída o piloto diz o que sentiu. O kart não tem mecânico: o acerto é seu, anotado no caderno.
-     Se quiser ajuda, contrate o mecânico da equipe durante o treino (vale só para a etapa e custa caro): ele dá um palpite
-     depois de cada saída e pode acertar o kart por você uma vez.
+     Se quiser ajuda, contrate um mecânico para o fim de semana (treino, classificação e corrida):
+     - **Iniciante:** barato, paga uma vez e fica o fim de semana todo; dá palpites.
+     - **Experiente:** diz o que mudar e quanto (análise técnica).
+     - **Técnico profissional:** muito caro, monta o kart para você.
+     O experiente e o profissional cobram **hora extra** para trabalhar em cada sessão depois daquela em que foram
+     contratados. Em cada sessão, o mecânico ajuda uma vez.
    - Ao chegar na classificação e no grid, uma janela mostra **o que mudou** na pista (céu, ar, asfalto, borracha e
      chance de chuva) e o que o piloto percebeu.
    - **Classificação (tarde):** escolha o acerto e o pneu; eles valem para a corrida. A tarde costuma ser mais quente. Ninguém mexe no kart por você: o acerto é seu.

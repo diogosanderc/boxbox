@@ -85,7 +85,7 @@ test('treino limitado e feedback do piloto', () => {
   Carreira.iniciarFimDeSemana(e);
   // sem mecânico contratado, só o piloto fala
   assert.strictEqual(Carreira.saidaTreino(e).saida.dica, null);
-  assert.ok(Carreira.contratarMecanico(e).ok);
+  assert.ok(Carreira.contratarMecanico(e, 'experiente').ok);
   for (let i = 1; i < Carreira.SAIDAS_TREINO; i++) {
     const r = Carreira.saidaTreino(e);
     assert.ok(r.ok);
@@ -128,34 +128,64 @@ test('sem dinheiro, a etapa é pulada e os rivais pontuam', () => {
   assert.strictEqual(Object.values(e.pontos).reduce((s, x) => s + x, 0), 101);
 });
 
-test('o mecânico é contratado por etapa e só ajuda durante o treino livre', () => {
-  const e = Carreira.novoJogo({ seed: 8 });
-  Carreira.iniciarFimDeSemana(e);
-  for (let i = 0; i < Carreira.SAIDAS_TREINO; i++) Carreira.saidaTreino(e);
-  assert.strictEqual(Carreira.contratarMecanico(e).ok, false);
-  assert.strictEqual(Carreira.pedirSugestao(e, 'treino').ok, false);
-  const f = Carreira.novoJogo({ seed: 8 });
-  Carreira.iniciarFimDeSemana(f);
-  Carreira.irParaClassificacao(f);
-  assert.strictEqual(Carreira.contratarMecanico(f).ok, false);
-  assert.strictEqual(Carreira.pedirSugestao(f, 'quali').ok, false);
-  const g = Carreira.novoJogo({ seed: 8 });
-  Carreira.iniciarFimDeSemana(g);
-  Carreira.saidaTreino(g);
-  assert.strictEqual(Carreira.pedirSugestao(g, 'treino').ok, false); // ainda sem mecânico
-  const antes = g.dinheiro;
-  assert.ok(Carreira.contratarMecanico(g).ok);
-  assert.strictEqual(g.dinheiro, antes - Carreira.precoMecanico(g));
-  assert.strictEqual(Carreira.contratarMecanico(g).ok, false); // não cobra duas vezes
-  assert.strictEqual(Carreira.pedirSugestao(g, 'treino').ok, true);
-  // na etapa seguinte o mecânico precisa ser contratado de novo
-  Carreira.irParaClassificacao(g);
-  Carreira.classificar(g);
-  Carreira.concluirCorrida(g, Engine.simularCompleta(Carreira.criarCorrida(g)));
-  Carreira.concluirEtapa(g);
-  Carreira.iniciarFimDeSemana(g);
-  assert.strictEqual(g.fds.mecanico, false);
+test('três tipos de mecânico: iniciante fica o fim de semana; experiente e profissional cobram hora extra', () => {
+  const fds = (seed) => { const e = Carreira.novoJogo({ seed }); e.dinheiro = 1e6; Carreira.iniciarFimDeSemana(e); return e; };
+  // sem mecânico, ninguém ajuda
+  const nada = fds(8);
+  assert.strictEqual(Carreira.pedirSugestao(nada).ok, false);
+
+  // iniciante: paga uma vez e trabalha no treino, na classificação e no grid; dá palpite, não mexe no kart
+  const a = fds(8);
+  let din = a.dinheiro;
+  assert.ok(Carreira.contratarMecanico(a, 'iniciante').ok);
+  assert.strictEqual(a.dinheiro, din - Carreira.precoMecanico(a, 'iniciante'));
+  assert.strictEqual(Carreira.contratarMecanico(a, 'pro').ok, false); // um por fim de semana
+  const setup = { ...a.fds.setup };
+  const r = Carreira.pedirSugestao(a);
+  assert.ok(r.ok && r.faz === 'palpite');
+  assert.deepStrictEqual(a.fds.setup, setup);
+  assert.strictEqual(Carreira.pedirSugestao(a).ok, false); // uma vez por sessão
+  Carreira.irParaClassificacao(a);
+  assert.ok(Carreira.mecanicoAtivo(a));
+  assert.ok(Carreira.pedirSugestao(a).ok);
+  Carreira.classificar(a);
+  assert.ok(Carreira.mecanicoAtivo(a));
+  assert.strictEqual(Carreira.pagarHoraExtra(a).ok, false);
+
+  // experiente: análise técnica; na sessão seguinte precisa de hora extra
+  const b = fds(8);
+  assert.ok(Carreira.contratarMecanico(b, 'experiente').ok);
+  const t = Carreira.pedirSugestao(b);
+  assert.ok(t.ok && t.faz === 'tecnica' && t.conselho.length >= 1);
+  Carreira.irParaClassificacao(b);
+  assert.strictEqual(Carreira.mecanicoAtivo(b), false);
+  assert.strictEqual(Carreira.pedirSugestao(b).ok, false);
+  din = b.dinheiro;
+  assert.ok(Carreira.pagarHoraExtra(b).ok);
+  assert.strictEqual(b.dinheiro, din - Carreira.precoHoraExtra(b, 'experiente'));
+  assert.ok(Carreira.pedirSugestao(b).ok);
+
+  // profissional: monta o kart perto do ideal para a sessão
+  const c = fds(8);
+  assert.ok(Carreira.precoMecanico(c, 'pro') > Carreira.precoMecanico(c, 'experiente'));
+  assert.ok(Carreira.precoHoraExtra(c, 'pro') > Carreira.precoHoraExtra(c, 'experiente'));
+  Carreira.irParaClassificacao(c);
+  assert.ok(Carreira.contratarMecanico(c, 'pro').ok);
+  assert.strictEqual(Carreira.pedirSugestao(c).faz, 'monta');
+  const clima = Carreira.climaAtual(c);
+  const cond = Kart.condicao(clima, 'quali', clima.tarde.inicioChuva === 'quali');
+  const pneu = c.pneus.find((p) => p.id === c.fds.pneuId).tipo;
+  const ideal = Kart.acertoIdeal(Carreira.pistaAtual(c), cond, pneu);
+  assert.ok(Kart.desequilibrio(Kart.erros(c.fds.setup, ideal)) < Kart.desequilibrio(Kart.erros(Kart.setupPadrao(), ideal)) || Kart.desequilibrio(Kart.erros(c.fds.setup, ideal)) < 0.3);
+
+  // na etapa seguinte começa sem mecânico
+  Carreira.classificar(c);
+  Carreira.concluirCorrida(c, Engine.simularCompleta(Carreira.criarCorrida(c)));
+  Carreira.concluirEtapa(c);
+  Carreira.iniciarFimDeSemana(c);
+  assert.strictEqual(c.fds.mecanico, null);
 });
+
 
 test('no grid o acerto é livre, mas o mecânico e o motor não', () => {
   const e = Carreira.novoJogo({ seed: 8 });
@@ -165,7 +195,7 @@ test('no grid o acerto é livre, mas o mecânico e o motor não', () => {
   const novo = { pressao: 15, eixo: 2, bitola: 0, coroa: 78, carburacao: 3 };
   Carreira.definirSetup(e, novo);
   assert.deepStrictEqual(e.fds.setup, novo);
-  assert.strictEqual(Carreira.pedirSugestao(e, 'grid').ok, false);
+  assert.strictEqual(Carreira.pedirSugestao(e).ok, false); // sem mecânico contratado
   assert.strictEqual(Carreira.revisarMotor(e).ok, false);
   // trocar o jogo de pneus continua permitido
   Carreira.comprarPneu(e, 'chuva');

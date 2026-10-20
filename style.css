@@ -424,6 +424,13 @@ th, td { padding-inline: 4px; }
 .recorde small { color: var(--fraco); }
 .recorde.meu { background: rgba(255, 210, 74, 0.1); border-color: rgba(255, 210, 74, 0.45); color: var(--ouro); }
 .chip-recorde { color: var(--ouro); border-color: rgba(255, 210, 74, 0.5); background: rgba(255, 210, 74, 0.1); }
+.mecanicos { display: grid; gap: 8px; }
+.compra.mecanico-opcao { justify-items: start; text-align: left; gap: 4px; padding: 12px 14px; }
+.mecanico-opcao .mecanico-desc { line-height: 1.4; }
+.mecanico-opcao .mecanico-preco { color: var(--texto); }
+.mecanico-opcao .mecanico-preco b { color: var(--texto); }
+.mec-pro { border-color: rgba(255, 210, 74, 0.45); }
+.mec-pro > b { color: var(--ouro); }
 .chip small { color: var(--alerta); font-size: 11px; font-weight: 700; }
 .compra { display: grid; gap: 2px; justify-items: center; }
 .compra span { font-size: 13px; color: var(--fraco); }

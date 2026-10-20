@@ -246,6 +246,27 @@
     return arredondarSetup(s);
   }
 
+  // Análise técnica do mecânico: o que mudar (com quantidade) para chegar perto do acerto que ele acha certo
+  // para a condição. Até três mudanças, das que mais pesam. A precisão depende da qualidade dele.
+  function analiseTecnica(setup, pista, cond, pneu, qualidade, rnd) {
+    const alvo = sugestaoMecanico(pista, cond, pneu, qualidade, rnd);
+    const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+    const frase = {
+      pressao: (d) => `${d < 0 ? 'Baixa' : 'Sobe'} ${String(Math.abs(d)).replace('.', ',')} psi na pressão`,
+      eixo: () => `Eixo: passa para ${AJUSTES.eixo.opcoes[alvo.eixo]}`,
+      bitola: () => `Bitola: passa para ${AJUSTES.bitola.opcoes[alvo.bitola]}`,
+      coroa: (d) => `${d > 0 ? 'Põe' : 'Tira'} ${plural(Math.abs(d), 'dente', 'dentes')} ${d > 0 ? 'na' : 'da'} coroa`,
+      carburacao: (d) => `Carburação ${plural(Math.abs(d), 'volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`,
+    };
+    const lista = ORDEM_AJUSTES
+      .map((k) => ({ k, d: alvo[k] - setup[k], peso: PESO[k] * Math.pow((alvo[k] - setup[k]) / TOLERANCIA[k], 2) }))
+      .filter((x) => x.d !== 0 && x.peso >= 0.02)
+      .sort((a, b) => b.peso - a.peso)
+      .slice(0, 3)
+      .map((x) => frase[x.k](x.d));
+    return { lista: lista.length ? lista : ['O acerto está no ponto. Não mexe em nada.'], alvo };
+  }
+
   // Acerto que uma equipe da IA usa (mecânicos melhores chegam mais perto do ideal).
   function setupIA(pista, cond, pneu, mecanico, rnd) {
     return sugestaoMecanico(pista, cond, pneu, Math.min(98, mecanico + 10), rnd);
@@ -263,7 +284,7 @@
   const Kart = {
     AJUSTES, ORDEM_AJUSTES, PNEUS_KART,
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito,
-    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
+    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
   else root.BoxKart = Kart;
