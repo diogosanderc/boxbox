@@ -91,6 +91,9 @@ grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasiv
 - `img/logo-barra.png`: logotipo horizontal, sem fundo, no topo do jogo (`img/logo-barra-original.png` é o original).
 - `img/bandeira.png`: a bandeira sozinha, sem fundo.
 
+- Fontes em `fontes/`: **Racing Sans One** (títulos e números grandes) e **Titillium Web** (texto), as duas com licença
+  livre (SIL Open Font License, arquivos OFL junto).
+
 ## Código
 
 - `js/kart.js`: física escondida do kart (acerto ideal, efeito no ritmo, clima, falas do piloto e do mecânico).

@@ -308,18 +308,53 @@
       </div>`;
   }
 
-  // Nome do piloto.
-  function telaInicio() {
-    app.innerHTML = `
-      <div class="tela-cheia">
-        <button class="redondo" data-acao="voltar-abertura" aria-label="Voltar">${icone('voltar')}</button>
-        <div class="tela-nome">
-          <span class="passo-inicio">Passo 1 de 2</span>
-          <h1>Como o piloto se chama?</h1>
-          <p class="fraco">Você tem 12 anos e vai começar a carreira no kart. A meta é chegar à Fórmula 1.</p>
-          <input type="text" id="nome-piloto" value="${esc(tela.nomePiloto || '')}" placeholder="Nome do piloto" maxlength="30" autocomplete="off" aria-label="Nome do piloto">
-          <button class="principal grande" data-acao="entrar">Continuar</button>
+  // Progresso do início: dois traços (nome e equipe).
+  const progressoInicio = (passo) => `<div class="progresso-inicio" aria-label="Passo ${passo} de 2"><i class="${passo >= 1 ? 'feito' : ''}"></i><i class="${passo >= 2 ? 'feito' : ''}"></i></div>`;
+
+  // Iniciais do nome para a "foto" da licença.
+  const iniciaisDe = (nome) => String(nome || '').trim().split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
+
+  // Licença de piloto que se monta enquanto o jogador digita o nome.
+  function cartaoLicenca(nome) {
+    const vazio = !String(nome || '').trim();
+    return `<div class="licenca ${vazio ? 'vazia' : ''}" aria-hidden="true">
+      <div class="licenca-topo"><img src="img/logo-barra.png" alt="" width="1000" height="146"><span>Licença de piloto</span></div>
+      <div class="licenca-corpo">
+        <span class="licenca-foto" data-licenca-iniciais>${vazio ? '?' : esc(iniciaisDe(nome))}</span>
+        <div class="licenca-dados">
+          <small>Nome</small>
+          <b data-licenca-nome>${vazio ? 'Seu nome aqui' : esc(nome)}</b>
+          <div class="licenca-campos">
+            <span><small>Idade</small><b>12</b></span>
+            <span><small>Categoria</small><b>Kart</b></span>
+            <span><small>País</small><b>BRA</b></span>
+          </div>
         </div>
+      </div>
+      <div class="licenca-faixa"></div>
+    </div>`;
+  }
+
+  // Nome do piloto: a licença se preenche enquanto ele digita.
+  function telaInicio() {
+    const nome = tela.nomePiloto || '';
+    app.innerHTML = `
+      <div class="tela-inicio">
+        <div class="inicio-topo">
+          <button class="redondo" data-acao="voltar-abertura" aria-label="Voltar">${icone('voltar')}</button>
+          ${progressoInicio(1)}
+          <span class="redondo-vazio"></span>
+        </div>
+        <div class="inicio-texto">
+          <h1>Qual é o seu nome, piloto?</h1>
+          <p class="fraco">Você tem 12 anos e começa a carreira no kart. O sonho: a Superlicença para correr na Fórmula 1.</p>
+        </div>
+        ${cartaoLicenca(nome)}
+        <label class="campo-nome"><span>Nome na licença</span>
+          <input type="text" id="nome-piloto" value="${esc(nome)}" placeholder="Ex.: Diogo Sander" maxlength="30" autocomplete="off" autocapitalize="words" enterkeyhint="next"></label>
+      </div>
+      <div class="barra-confirmar">
+        <button class="principal grande" data-acao="entrar" ${nome.trim() ? '' : 'disabled'}>Continuar</button>
       </div>`;
     document.getElementById('nome-piloto').focus();
   }
@@ -373,7 +408,7 @@
     app.innerHTML = `
       <div class="tela-equipe">
         <div class="linha"><button class="redondo" data-acao="trocar-nome" aria-label="Voltar">${icone('voltar')}</button><span class="espaco"></span>${botaoAjuda('equipe')}</div>
-        <div><span class="passo-inicio">Passo 2 de 2</span><h1>Escolha sua equipe</h1>
+        <div>${progressoInicio(2)}<h1>Escolha sua equipe</h1>
           <p class="fraco">Três equipes abriram as portas para ${esc(tela.nomePiloto)}. Toque em uma para escolher.</p></div>
         <div class="equipes-iniciais">
           ${tela.opcoes.map((id) => {
@@ -1500,6 +1535,18 @@
   });
 
   // Enter no campo do nome entra no paddock.
+  // Tela do nome: a licença e o botão acompanham o que é digitado (sem redesenhar a tela, para não perder o foco).
+  app.addEventListener('input', (ev) => {
+    if (ev.target.id !== 'nome-piloto') return;
+    const nome = ev.target.value;
+    tela.nomePiloto = nome;
+    const vazio = !nome.trim();
+    app.querySelector('.licenca').classList.toggle('vazia', vazio);
+    app.querySelector('[data-licenca-nome]').textContent = vazio ? 'Seu nome aqui' : nome.trim();
+    app.querySelector('[data-licenca-iniciais]').textContent = vazio ? '?' : iniciaisDe(nome);
+    app.querySelector('[data-acao="entrar"]').disabled = vazio;
+  });
+
   app.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter' && ev.target.id === 'nome-piloto') app.querySelector('[data-acao="entrar"]').click();
   });
