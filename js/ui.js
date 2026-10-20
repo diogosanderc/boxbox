@@ -101,6 +101,12 @@
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode estourar.'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
+    setupF4: ['Acerto do F4', 'Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
+    asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
+    asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
+    suspensao: ['Suspensão', 'É a firmeza das molas e amortecedores. Macia: o carro absorve zebras e ondulações, mas rola nas curvas. Dura: responde rápido, mas pula nas zebras.'],
+    altura: ['Altura do carro', 'É a distância do assoalho até o chão. Baixa: o carro gruda mais (efeito solo), mas pode bater no chão. Alta: mais seguro em ondulações e na chuva, com menos aderência.'],
+    relacao: ['Relação do câmbio', 'É o escalonamento das marchas. Curta: mais força na saída das curvas, mas a última marcha acaba antes do fim da reta. Longa: mais velocidade final, menos força nas retomadas.'],
     temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
@@ -678,7 +684,7 @@
   function painelCaderno() {
     const pistas = Object.keys(estado.caderno);
     if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino, a classificação e a corrida aparecem aqui.</p>');
-    const todas = [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu];
+    const todas = [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu, ...Dados.KARTODROMOS.f4];
     return `<div class="grade">${pistas.map((id) => cartao(esc(todas.find((x) => x.id === id).nome), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
   }
 
@@ -908,7 +914,7 @@
     const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : ''}"></i>`).join('');
     return `<div class="corrida">
       <div class="coluna">
-        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? 'setup' : 'quali' })}
+        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.categoria() === 'f4' ? 'setupF4' : 'setup') : 'quali' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         <div class="acoes">
@@ -973,7 +979,7 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao('Seu kart', '<div id="info-jogador" class="tiles tiles-4"></div>')}
+        ${cartao(Kart.categoria() === 'f4' ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.categoria() === 'f4' ? '<div id="box-f4"></div>' : ''}`)}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
@@ -1007,6 +1013,14 @@
       .map((e) => `<div class="ev-${e.tipo} ${e.carroId === 'jogador' ? 'ev-jogador' : ''}"><span class="v">V${e.volta}</span>${esc(e.texto)}</div>`).join('');
     const eu = corrida.carros.find((c) => c.jogador);
     const ganhou = eu.largada - eu.pos;
+    // F4: com chuva e pneu slick, o jogador pode chamar o carro para o box.
+    const boxF4 = document.getElementById('box-f4');
+    if (boxF4) {
+      boxF4.innerHTML = eu.fora || corrida.terminou ? ''
+        : eu.tipoPneu === 'chuva' ? chip('🛞 Pneu de chuva', 'chip-azul')
+          : corrida.boxJogador ? '<button class="grande" disabled>📻 Box pedido: entra na próxima volta</button>'
+            : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>🛞 Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
+    }
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
       : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${tile('Pneu', `${100 - desgastePct(eu.uso)}%`)}`;
@@ -1118,9 +1132,9 @@
     const ganhos = r.premios.reduce((t, p) => t + p.valor, 0) + r.bonus.filter((b) => b.cumpriu).reduce((t, b) => t + b.valor, 0);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Temporada ${r.ano}</h1>${chip(esc(camp.curto))}</div>
-      ${estado.propostas.length ? cartao('Propostas para a F4', estado.propostas.map((p) => `<div class="item">
+      ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
-          <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a F4</button></div>`).join(''), { classe: 'destaque' }) : ''}
+          <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${p.tipo === 'f3' ? 'F3' : 'F4'}</button></div>`).join(''), { classe: 'destaque' }) : ''}
       <div class="grade">
         <section class="painel resultado-hero ${r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? ['🥇', '🥈', '🥉'][r.pos - 1] : ''} P${r.pos}</b></div>
@@ -1148,10 +1162,10 @@
     const vitorias = estado.historico.filter((h) => !h.fora && h.pos === 1).length;
     app.innerHTML = `<section class="painel destaque tela-nome">
       <span class="capacete" aria-hidden="true">🏆</span>
-      <h1>Rumo à Fórmula 4!</h1>
+      <h1>Rumo à Fórmula ${f.categoria === 'f3' ? '3' : '4'}!</h1>
       <p><b>${esc(estado.piloto.nome)}</b> assinou com <b>${esc(f.proposta.nome)}</b> aos ${f.idade} anos.</p>
       <div class="tiles">${tile('Corridas', estado.historico.length)}${tile('Vitórias', vitorias)}${tile('Caixa', reais(estado.dinheiro), 'dinheiro')}</div>
-      <p class="fraco">Próximo capítulo: F4, F3, F2 e a Superlicença.</p>
+      <p class="fraco">Próximo capítulo: ${f.categoria === 'f3' ? 'F3, F2 e a Superlicença' : 'F4, F3, F2 e a Superlicença'}.</p>
       <button class="grande" data-acao="abandonar">Nova carreira</button>
     </section>`;
   }
@@ -1298,8 +1312,13 @@
         salvar();
         render();
         break;
-      case 'aceitar-proposta':
-        if (erro(C.aceitarProposta(estado, id))) { salvar(); ir(telaDaFase()); }
+      case 'aceitar-proposta': {
+        const r = C.aceitarProposta(estado, id);
+        if (erro(r)) { salvar(); ir(telaDaFase()); if (r.f4) aviso('Bem-vindo à Fórmula 4! O carro é outro: asas, suspensão e box.'); }
+        break;
+      }
+      case 'box-chuva':
+        if (corrida && !corrida.terminou) { corrida.boxJogador = true; atualizarCorrida(); }
         break;
       case 'recusar-proposta':
         C.recusarProposta(estado, id);

@@ -31,6 +31,30 @@
 
   // tipo: travada (curvas lentas), mista ou veloz. altitude em metros. clima: temperatura média do ar.
   // tracado: vértices da linha central da pista (caixa de 300×180), ligados por retas com cantos arredondados.
+  // Equipes da Fórmula 4 (fictícias). custoEtapa é multiplicado pelo custo do campeonato.
+  const EQUIPES_F4 = [
+    { id: 'f4-vortex', nome: 'Vortex Junior Team', cor: '#00a19c', material: 90, mecanico: 92, caixa: 0, custoEtapa: 9000, organizacao: 92,
+      descricao: 'Equipe da academia Vortex, de F1. Estrutura de ponta.' },
+    { id: 'f4-rossa', nome: 'Rossa Young Drivers', cor: '#d40000', material: 89, mecanico: 88, caixa: 0, custoEtapa: 8800, organizacao: 88,
+      descricao: 'O programa de jovens da Rossa. Muita pressão por resultado.' },
+    { id: 'f4-apex', nome: 'Apex Junior', cor: '#ff7a00', material: 87, mecanico: 86, caixa: 0, custoEtapa: 8000, organizacao: 85,
+      descricao: 'Campeã de F4 várias vezes. Engenheiros experientes.' },
+    { id: 'f4-lionheart', nome: 'Lionheart F4', cor: '#1b3fa0', material: 85, mecanico: 82, caixa: 0, custoEtapa: 7400, organizacao: 84,
+      descricao: 'Equipe inglesa tradicional, organizada e rápida.' },
+    { id: 'f4-scorpio', nome: 'Scorpio Racing', cor: '#3b3b3b', material: 84, mecanico: 76, caixa: 0, custoEtapa: 7000, organizacao: 72,
+      descricao: 'Carro rápido, equipe nem sempre organizada.' },
+    { id: 'f4-aquila', nome: 'Aquila Corse', cor: '#7a5cff', material: 82, mecanico: 78, caixa: 0, custoEtapa: 6400, organizacao: 78,
+      descricao: 'Italiana de médio porte, boa em pista molhada.' },
+    { id: 'f4-mistral', nome: 'Mistral Formula', cor: '#2fbf71', material: 80, mecanico: 80, caixa: 0, custoEtapa: 6000, organizacao: 80,
+      descricao: 'Francesa, ensina muito sobre acerto.' },
+    { id: 'f4-nordwind', nome: 'Nordwind Motorsport', cor: '#9aa0a6', material: 79, mecanico: 70, caixa: 0, custoEtapa: 5400, organizacao: 70,
+      descricao: 'Alemã, simples e barata.' },
+    { id: 'f4-pampa', nome: 'Pampa Racing', cor: '#f2c200', material: 77, mecanico: 72, caixa: 0, custoEtapa: 4800, organizacao: 74,
+      descricao: 'Equipe sul-americana que leva pilotos para a Europa.' },
+    { id: 'f4-box13', nome: 'Box 13 Formula', cor: '#b5651d', material: 75, mecanico: 66, caixa: 0, custoEtapa: 4200, organizacao: 70,
+      descricao: 'Pequena e barata. Para quem tem garra.' },
+  ];
+
   // Nomes de equipe sorteados a cada carreira (o perfil de cada equipe continua o mesmo). Todos fictícios.
   const NOMES_EQUIPES = [
     'Fulmine Kart', 'Orbital Karting', 'Velox Junior', 'Rapido Corse', 'Tempesta Racing', 'Faísca Kart',
@@ -60,6 +84,17 @@
       { id: 'taruma', tracado: [[40, 35], [250, 30], [280, 55], [240, 80], [215, 105], [270, 140], [240, 165], [55, 160], [25, 135], [80, 105], [85, 80], [30, 60]], nome: 'Tarumã', local: 'Viamão (RS)', tipo: 'veloz', altitude: 50, clima: 19, tempoBase: 49.0 },
       { id: 'brasilia', tracado: [[25, 110], [45, 45], [80, 25], [115, 45], [125, 85], [155, 95], [185, 50], [215, 30], [265, 35], [285, 65], [250, 95], [275, 130], [260, 160], [180, 160], [140, 140], [90, 160], [40, 150]], nome: 'Kartódromo de Brasília', local: 'Brasília (DF)', tipo: 'mista', altitude: 1100, clima: 25, tempoBase: 47.5 },
       { id: 'conde', tracado: [[30, 150], [25, 95], [70, 80], [35, 55], [55, 25], [150, 30], [170, 55], [210, 30], [270, 35], [280, 75], [230, 90], [275, 115], [270, 155], [200, 160], [175, 130], [140, 155]], nome: 'Conde', local: 'Conde (PB)', tipo: 'travada', altitude: 40, clima: 30, tempoBase: 43.5 },
+    ],
+    // Circuitos da F4 (autódromos de verdade; números aproximados).
+    f4: [
+      { id: 'imola', nome: 'Imola', local: 'Imola (ITA)', tipo: 'mista', altitude: 40, clima: 22, tempoBase: 104.0 },
+      { id: 'misano', nome: 'Misano', local: 'Misano Adriatico (ITA)', tipo: 'travada', altitude: 10, clima: 25, tempoBase: 99.0 },
+      { id: 'monza', nome: 'Monza', local: 'Monza (ITA)', tipo: 'veloz', altitude: 160, clima: 23, tempoBase: 112.0 },
+      { id: 'mugello', nome: 'Mugello', local: 'Scarperia (ITA)', tipo: 'veloz', altitude: 290, clima: 23, tempoBase: 111.0 },
+      { id: 'vallelunga', nome: 'Vallelunga', local: 'Campagnano (ITA)', tipo: 'travada', altitude: 220, clima: 22, tempoBase: 96.0 },
+      { id: 'spa', nome: 'Spa-Francorchamps', local: 'Stavelot (BEL)', tipo: 'veloz', altitude: 450, clima: 16, tempoBase: 150.0 },
+      { id: 'spielberg', nome: 'Spielberg', local: 'Spielberg (AUT)', tipo: 'mista', altitude: 680, clima: 18, tempoBase: 92.0 },
+      { id: 'castellet', nome: 'Le Castellet', local: 'Le Castellet (FRA)', tipo: 'mista', altitude: 400, clima: 24, tempoBase: 117.0 },
     ],
     eu: [
       { id: 'lonato', tracado: [[158, 96], [276, 97], [280, 91], [277, 87], [250, 72], [246, 74], [244, 76], [188, 43], [134, 47], [128, 52], [133, 78], [129, 83], [77, 108], [69, 120], [63, 123], [27, 125], [20, 129], [25, 134], [58, 131], [96, 137], [102, 133], [97, 118], [102, 111], [151, 82], [156, 76], [150, 67], [153, 62], [158, 63], [173, 72], [174, 80], [168, 86], [158, 89], [155, 94]], nome: 'South Garda', local: 'Lonato (ITA)', tipo: 'mista', altitude: 100, clima: 22, tempoBase: 47.0 },
@@ -110,6 +145,24 @@
     franciacorta: { extensao: 1050, largura: 8, sentido: 'anti-horário', retas: [150], curvas: { lentas: 6, medias: 4, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.4, ondePassar: 'Grampo depois da reta',
       sobre: 'Travada e exigente, com grampos e uma reta curta. Asfalto áspero e zebras altas cobram precisão.' },
   };
+  Object.assign(FICHAS, {
+    imola: { extensao: 4909, largura: 12, sentido: 'anti-horário', retas: [800, 450], curvas: { lentas: 4, medias: 7, rapidas: 6 }, grampos: 0, zebras: 'altas', asfalto: 'medio', desnivel: 'Subidas e descidas fortes', ultrapassagem: 0.4, ondePassar: 'Freada da Tamburello e da Tosa',
+      sobre: 'Clássica e exigente, com sobe e desce e zebras altas que castigam um carro duro. Ultrapassar é difícil.' },
+    misano: { extensao: 4226, largura: 12, sentido: 'horário', retas: [550, 400], curvas: { lentas: 6, medias: 6, rapidas: 4 }, grampos: 2, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.55, ondePassar: 'Grampos depois das retas',
+      sobre: 'Plana e travada, à beira do Adriático. Muitas curvas lentas: tração na saída é tudo.' },
+    monza: { extensao: 5793, largura: 13, sentido: 'horário', retas: [1100, 900, 600], curvas: { lentas: 3, medias: 3, rapidas: 5 }, grampos: 0, zebras: 'altas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.85, ondePassar: 'Primeira chicane e Ascari',
+      sobre: 'O templo da velocidade: retas enormes e pouca asa. Vácuo decide corrida; as chicanes têm zebras altas.' },
+    mugello: { extensao: 5245, largura: 13, sentido: 'horário', retas: [1140], curvas: { lentas: 2, medias: 6, rapidas: 7 }, grampos: 0, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Subidas e descidas nas colinas', ultrapassagem: 0.6, ondePassar: 'Fim da reta principal',
+      sobre: 'Rápida e fluida, no meio das colinas da Toscana. Curvas de alta em sequência e asfalto que gasta pneu.' },
+    vallelunga: { extensao: 4085, largura: 11, sentido: 'horário', retas: [600], curvas: { lentas: 6, medias: 5, rapidas: 3 }, grampos: 2, zebras: 'altas', asfalto: 'medio', desnivel: 'Leve desnível', ultrapassagem: 0.4, ondePassar: 'Grampo no fim da reta',
+      sobre: 'Travada e técnica, perto de Roma. Zebras altas e pouca reta: a classificação vale muito.' },
+    spa: { extensao: 7004, largura: 13, sentido: 'horário', retas: [1200, 900, 700], curvas: { lentas: 3, medias: 6, rapidas: 10 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Subidas e descidas fortes na floresta', ultrapassagem: 0.8, ondePassar: 'Fim da reta Kemmel',
+      sobre: 'Enorme e veloz, com subida forte e curvas de pé embaixo. O tempo muda de um setor para o outro: chuva é comum.' },
+    spielberg: { extensao: 4318, largura: 13, sentido: 'horário', retas: [800, 650, 500], curvas: { lentas: 4, medias: 3, rapidas: 3 }, grampos: 2, zebras: 'altas', asfalto: 'medio', desnivel: 'Subidas e descidas fortes', ultrapassagem: 0.7, ondePassar: 'Freadas no topo das subidas',
+      sobre: 'Curta, nas montanhas da Áustria: três retas em subida e freadas fortes. A altitude tira um pouco do efeito das asas.' },
+    castellet: { extensao: 5842, largura: 14, sentido: 'horário', retas: [1000, 600], curvas: { lentas: 4, medias: 6, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.6, ondePassar: 'Fim da reta Mistral',
+      sobre: 'Larga e plana, com a longa reta Mistral. Muito calor no verão e asfalto que gasta pneu.' },
+  });
   for (const regiao of Object.values(KARTODROMOS)) for (const p of regiao) Object.assign(p, FICHAS[p.id]);
 
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
@@ -120,15 +173,18 @@
       chuva: 0.25, premioCampeao: 50000, popularidade: 1.8 },
     { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 69, custo: 3.2, regiao: 'eu', voltas: 20,
       chuva: 0.3, premioCampeao: 120000, popularidade: 3 },
+    // Monopostos: só se entra por proposta de uma equipe de F4.
+    { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 4, premios: 1.5, regiao: 'f4', voltas: 14,
+      chuva: 0.3, premioCampeao: 80000, popularidade: 4, categoria: 'f4' },
   ];
 
   // Quem pode aparecer no paddock observando. nivelMin: a partir de qual campeonato aparece.
   const OLHEIROS = [
-    { id: 'apex-f4', nome: 'Apex Junior (F4)', tipo: 'f4', nivelMin: 1 },
-    { id: 'lionheart-f4', nome: 'Lionheart F4', tipo: 'f4', nivelMin: 1 },
-    { id: 'scorpio-f4', nome: 'Scorpio Racing (F4)', tipo: 'f4', nivelMin: 1 },
-    { id: 'vortex-academia', nome: 'Academia Vortex (equipe de F1)', tipo: 'academia', nivelMin: 2 },
-    { id: 'rossa-academia', nome: 'Programa Jovens Rossa (equipe de F1)', tipo: 'academia', nivelMin: 2 },
+    { id: 'apex-f4', nome: 'Apex Junior (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-apex' },
+    { id: 'lionheart-f4', nome: 'Lionheart F4', tipo: 'f4', nivelMin: 1, equipe: 'f4-lionheart' },
+    { id: 'scorpio-f4', nome: 'Scorpio Racing (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-scorpio' },
+    { id: 'vortex-academia', nome: 'Academia Vortex (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-vortex' },
+    { id: 'rossa-academia', nome: 'Programa Jovens Rossa (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-rossa' },
   ];
 
   // Nomes e sobrenomes comuns de cada país (sem sobrenomes de pilotos reais de F1).
@@ -166,7 +222,7 @@
       s: ['Ríos', 'Pereyra', 'Acosta', 'Fernández', 'Rodríguez', 'González', 'Gómez', 'Sosa', 'Díaz', 'Romero', 'Benítez', 'Medina', 'Herrera', 'Suárez', 'Aguirre', 'Giménez', 'Molina', 'Castro', 'Ortiz', 'Silva', 'Rojas', 'Luna', 'Ledesma', 'Cabrera', 'Ponce', 'Vera', 'Paz'],
     },
   };
-  const PAISES = { br: ['BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'ARG'], eu: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA'] };
+  const PAISES = { br: ['BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'ARG'], eu: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA'], f4: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA', 'ARG'] };
 
   // Patrocinadores por porte: locais no começo, maiores quando o piloto cresce.
   const PATROCINADORES = [
@@ -175,7 +231,7 @@
     ['Banco Atlântico', 'Petroluz', 'TecnoNet', 'Vela Energia', 'Aurora Seguros', 'Brisa Bebidas', 'Halcyon Air'],
   ];
 
-  const Dados = { EQUIPES, NOMES_EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
+  const Dados = { EQUIPES, EQUIPES_F4, NOMES_EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
   if (typeof module === 'object' && module.exports) module.exports = Dados;
   else root.BoxDados = Dados;
 })(this);

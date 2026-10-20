@@ -554,3 +554,73 @@ test('mercado de fim de ano: quem anda bem escolhe equipe melhor; a troca vale n
   // a vaga do jogador na nova equipe: só um rival nela
   assert.strictEqual(e.rivais.filter((x) => x.equipe === outra).length, 1);
 });
+
+test('F4: proposta leva aos monopostos, com carro, pistas e equipes próprias', () => {
+  const e = Carreira.novoJogo({ seed: 4, equipeId: 'fulmine' });
+  e.dinheiro = 1e6;
+  // simula o fim do kart com uma proposta de F4 na mão
+  for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, 'ideal');
+  e.propostas = [{ id: 'prx', tipo: 'f4', nome: 'Apex Junior (F4)', equipe: 'f4-apex' }];
+  const r = Carreira.aceitarProposta(e, 'prx');
+  assert.ok(r.ok && r.f4);
+  assert.strictEqual(e.campeonato, 'f4');
+  assert.strictEqual(e.equipeId, 'f4-apex');
+  assert.strictEqual(e.fase, 'paddock');
+  assert.strictEqual(Kart.categoria(), 'f4');
+  assert.ok(Kart.ORDEM_AJUSTES.includes('asaTraseira'));
+  assert.ok(Dados.KARTODROMOS.f4.some((p) => p.id === Carreira.pistaAtual(e).id));
+  assert.ok(e.rivais.every((x) => x.equipe.startsWith('f4-')));
+  // contrato: paga 60% do orçamento da equipe
+  assert.strictEqual(Carreira.custoEtapa(e), Math.round(Carreira.equipeBase('f4-apex').custoEtapa * 4 * 0.6 / 100) * 100);
+  // o fim de semana começa com o acerto padrão do F4 (não herda o do kart)
+  Carreira.iniciarFimDeSemana(e);
+  assert.deepStrictEqual(Object.keys(e.fds.setup).sort(), Kart.ORDEM_AJUSTES.slice().sort());
+  // acerto ideal do F4: pista veloz pede menos asa que pista travada
+  const cond = Kart.condicao({ manha: { tempAr: 20 }, tarde: { tempAr: 20 } }, 'quali', false);
+  const veloz = Dados.KARTODROMOS.f4.find((p) => p.tipo === 'veloz');
+  const travada = Dados.KARTODROMOS.f4.find((p) => p.tipo === 'travada');
+  assert.ok(Kart.acertoIdeal(veloz, cond, 'slick').asaTraseira < Kart.acertoIdeal(travada, cond, 'slick').asaTraseira);
+  // e a chuva pede mais asa
+  assert.ok(Kart.acertoIdeal(veloz, { ...cond, molhado: true }, 'chuva').asaTraseira > Kart.acertoIdeal(veloz, cond, 'slick').asaTraseira);
+  Carreira.migrar({ ...e, campeonato: 'regional' }); // volta o modelo do kart para os outros testes
+  assert.strictEqual(Kart.categoria(), 'kart');
+});
+
+test('F4: com chuva, quem para no box para pneu de chuva anda mais rápido', () => {
+  const tempos = {};
+  for (const box of [false, true]) {
+    let soma = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const e = Carreira.novoJogo({ seed });
+      e.dinheiro = 1e6;
+      e.propostas = [{ id: 'p', tipo: 'academia', nome: 'Vortex', equipe: 'f4-vortex' }];
+      Carreira.aceitarProposta(e, 'p');
+      Carreira.iniciarFimDeSemana(e);
+      const clima = Carreira.climaAtual(e);
+      clima.tarde.inicioChuva = 'corrida'; clima.tarde.voltaChuva = 4; clima.tarde.chove = true;
+      Carreira.irParaClassificacao(e);
+      Carreira.classificar(e);
+      const c = Carreira.criarCorrida(e);
+      c.boxJogador = box;
+      Engine.simularCompleta(c);
+      const eu = c.carros.find((x) => x.jogador);
+      if (box) assert.strictEqual(eu.tipoPneu, 'chuva');
+      soma += eu.fora ? 20 : eu.pos;
+    }
+    tempos[box] = soma;
+  }
+  Carreira.migrar({ campeonato: 'regional' });
+  assert.ok(tempos[true] < tempos[false], JSON.stringify(tempos));
+});
+
+test('F4: os 4 primeiros recebem proposta de F3', () => {
+  const e = Carreira.novoJogo({ seed: 9 });
+  e.dinheiro = 1e6;
+  e.propostas = [{ id: 'p', tipo: 'academia', nome: 'Vortex', equipe: 'f4-vortex' }];
+  Carreira.aceitarProposta(e, 'p');
+  for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, 'ideal');
+  const pos = e.relatorio.pos;
+  assert.strictEqual(e.propostas.some((p) => p.tipo === 'f3'), pos <= Carreira.VAGAS_SUBIDA);
+  assert.ok(!e.relatorio.opcoes.includes('internacional'));
+  Carreira.migrar({ campeonato: 'regional' });
+});

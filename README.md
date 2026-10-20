@@ -44,6 +44,14 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 - No paddock, toque num jogo para **vender** a outra equipe (até metade do preço, menos quanto mais gasto),
   **doar** para a escolinha (moral e popularidade sobem, uma vez por etapa) ou jogar fora. Cabem 6 jogos no estoque.
 
+### Fórmula 4
+
+Uma proposta de equipe de F4 (ou de uma academia de F1, que paga tudo) leva o piloto aos monopostos: **F4 Europa Series**,
+8 circuitos (Imola, Misano, Monza, Mugello, Vallelunga, Spa, Spielberg e Le Castellet) e 10 equipes próprias.
+O carro é outro: **asa dianteira e traseira, suspensão, altura, pressão e relação do câmbio**, com o seu próprio acerto ideal
+escondido (pista veloz pede pouca asa; chuva, calor e altitude pedem mais). Quando chove na corrida, dá para chamar o
+carro para o **box** e colocar pneu de chuva (a parada custa uns 24 segundos). Os 4 primeiros da F4 recebem proposta para a F3.
+
 ### O segredo do kart
 
 Cada pista e condição tem um **acerto ideal escondido**. Ele muda com o tipo de pista (travada, mista ou veloz), a altitude,
@@ -87,7 +95,7 @@ npm test   # testes com o runner nativo do Node (18+)
 
 ## Próximas ideias
 
-- Monopostos: F4, F3, F2 e a Superlicença, com pit stop, asa e acerto aerodinâmico.
+- Monopostos: F3, F2 e a Superlicença.
 - Pistas de rua, ovais e circuitos com subida e descida; previsão do tempo que muda durante o dia.
 - Preparo físico e redes sociais.
 - Empresário: negocia contratos e fareja propostas furadas.
