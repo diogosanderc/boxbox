@@ -75,7 +75,7 @@
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode travar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. O kart não tem mecânico: o acerto é seu, e o caderno guarda o que você testou. Se quiser ajuda, contrate o mecânico durante o treino: ele dá um palpite depois de cada saída e pode acertar o kart por você uma vez. Custa caro e vale só para esta etapa.'],
-    quali: ['Classificação', 'A volta lançada define o grid. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
+    quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid só cabem ajustes finos em relação à classificação (pressão ±1 psi, relação ±1 dente, carburação ±1). Eixo e bitola ficam travados. Dá para trocar o jogo de pneus. Na corrida o asfalto tem mais borracha que na classificação.'],
     // Um "?" para cada ajuste do kart: o que ele significa.
     pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.'],
@@ -163,11 +163,16 @@
       <div><span class="fraco">${rotulo}</span><b>${periodo.tempAr}°C</b><span class="chuva">💧 ${periodo.chance}%</span></div></div>`;
   }
 
+  // Condições da sessão. À tarde mostra quanto o ar e o asfalto mudaram desde o treino,
+  // e em todas mostra a borracha na pista (que o jogador não teria como saber).
   function condicaoChips(sessao) {
     const clima = C.climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
     const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : 'quali', molhado);
-    return `<div class="chips">${chip(molhado ? '🌧 Molhado' : '☀️ Seco', molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${c.tempAr}°`)}${chip(`Asfalto ${c.tempPista}°`)}
+    const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
+    const delta = (agora, antes) => (t && agora !== antes ? ` <small>${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}</small>` : '');
+    const borracha = molhado ? '' : chip(sessao === 'treino' ? 'Pouca borracha' : sessao === 'grid' ? 'Muita borracha' : 'Mais borracha');
+    return `<div class="chips">${chip(molhado ? '🌧 Molhado' : '☀️ Seco', molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}
       ${sessao !== 'treino' && !molhado ? chip(`💧 Corrida ${clima.tarde.chance}%`) : ''}</div>`;
   }
 
@@ -675,7 +680,7 @@
       <div class="coluna">
         <section class="painel largada">
           <div class="pos-grande"><span>Largada</span><b>P${meu}</b></div>
-          <div class="largada-info">${condicaoChips('quali')}${mudou ? chip('✎ Acerto alterado', 'chip-amarelo') : ''}</div>
+          <div class="largada-info">${condicaoChips('grid')}${mudou ? chip('✎ Acerto alterado', 'chip-amarelo') : ''}</div>
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
         ${cartao('Ajustes finos', editorSetup(), { ajuda: 'grid' })}
