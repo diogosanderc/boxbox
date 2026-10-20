@@ -76,7 +76,7 @@
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode travar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. O kart não tem mecânico: o acerto é seu, e o caderno guarda o que você testou. Se quiser ajuda, contrate o mecânico durante o treino: ele dá um palpite depois de cada saída e pode acertar o kart por você uma vez. Custa caro e vale só para esta etapa.'],
     quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
-    grid: ['Antes da largada', 'No grid só cabem ajustes finos em relação à classificação (pressão ±1 psi, relação ±1 dente, carburação ±1). Eixo e bitola ficam travados. Dá para trocar o jogo de pneus. Na corrida o asfalto tem mais borracha que na classificação.'],
+    grid: ['Antes da largada', 'No grid ainda dá para mexer em todo o acerto e trocar o jogo de pneus. Só o motor não: revisão é no paddock. Na corrida o asfalto tem ainda mais borracha que na classificação.'],
     // Um "?" para cada ajuste do kart: o que ele significa.
     pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.'],
     eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.'],
@@ -585,21 +585,17 @@
   // ---------- fim de semana ----------
   function editorSetup() {
     const s = estado.fds.setup;
-    // No grid, cada ajuste só anda dentro da faixa de ajuste fino; eixo e bitola ficam travados.
-    const lim = estado.fds.sessao === 'grid' ? C.limitesGrid(estado) : null;
     return `<div class="setup">${Kart.ORDEM_AJUSTES.map((k) => {
       const a = Kart.AJUSTES[k];
-      const travado = lim && C.AJUSTE_FINO_GRID[k] === 0;
       let controle;
       if (a.tipo === 'opcoes') {
-        controle = `<div class="segmentos">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}" ${travado && s[k] !== i ? 'disabled' : ''}>${o}</button>`).join('')}</div>`;
+        controle = `<div class="segmentos">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
       } else {
-        const [mn, mx] = lim ? lim[k] : [a.min, a.max];
         const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`) : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
-        controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= Math.max(mn, a.min) ? 'disabled' : ''}>−</button>
-          <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= Math.min(mx, a.max) ? 'disabled' : ''}>+</button></div>`;
+        controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
+          <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
       }
-      return `<div class="ajuste"><span class="ajuste-nome">${a.nome}${botaoAjuda(k)}${travado ? ' <span class="fraco mini">🔒 travado</span>' : lim ? ' <span class="fraco mini">ajuste fino</span>' : ''}</span>${controle}</div>`;
+      return `<div class="ajuste"><span class="ajuste-nome">${a.nome}${botaoAjuda(k)}</span>${controle}</div>`;
     }).join('')}</div>`;
   }
 
@@ -689,7 +685,7 @@
           ${leitura('grid')}
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
-        ${cartao('Ajustes finos', editorSetup(), { ajuda: 'grid' })}
+        ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         ${mudou ? '<div class="botoes-2"><button data-acao="desfazer-grid">↺ Acerto da classificação</button></div>' : ''}
       </div>

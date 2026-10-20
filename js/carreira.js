@@ -220,7 +220,9 @@
     estado.pneus = estado.pneus.filter((p) => p.id !== id);
   }
 
+  // O motor só é revisado no paddock: no fim de semana não dá para mexer nele.
   function revisarMotor(estado) {
+    if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
     const custo = Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para a revisão.' };
     estado.dinheiro -= custo;
@@ -472,21 +474,9 @@
     return { id: r.id, piloto: r, carro: carroDe(estado, e.id, false), equipe: { id: e.id, nome: e.nome, cor: e.cor }, jogador: false };
   }
 
-  // No grid só cabem ajustes finos em relação ao acerto da classificação; eixo e bitola ficam travados.
-  const AJUSTE_FINO_GRID = { pressao: 1, eixo: 0, bitola: 0, coroa: 1, carburacao: 1 };
-
-  function limitesGrid(estado) {
-    const base = estado.fds.setupQuali || estado.fds.setupCorrida;
-    return Object.fromEntries(Kart.ORDEM_AJUSTES.map((k) => [k, [base[k] - AJUSTE_FINO_GRID[k], base[k] + AJUSTE_FINO_GRID[k]]]));
-  }
-
+  // O acerto fica livre em todas as sessões, inclusive no grid.
   function definirSetup(estado, setup) {
-    const novo = Kart.arredondarSetup({ ...estado.fds.setup, ...setup });
-    if (estado.fds.sessao === 'grid') {
-      const lim = limitesGrid(estado);
-      for (const k of Kart.ORDEM_AJUSTES) novo[k] = limitar(novo[k], lim[k][0], lim[k][1]);
-    }
-    estado.fds.setup = novo;
+    estado.fds.setup = Kart.arredondarSetup({ ...estado.fds.setup, ...setup });
   }
 
   function escolherPneu(estado, id) {
@@ -850,7 +840,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

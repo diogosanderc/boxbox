@@ -18,7 +18,7 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
      Se quiser ajuda, contrate o mecânico da equipe durante o treino (vale só para a etapa e custa caro): ele dá um palpite
      depois de cada saída e pode acertar o kart por você uma vez.
    - **Classificação (tarde):** escolha o acerto e o pneu; eles valem para a corrida. A tarde costuma ser mais quente. Ninguém mexe no kart por você: o acerto é seu.
-   - **Corrida:** sem pit stop. No grid só cabem ajustes finos. Pode começar a chover no meio da bateria.
+   - **Corrida:** sem pit stop. No grid ainda dá para mexer em todo o acerto (o motor, não). Pode começar a chover no meio da bateria.
    - **Diagnóstico:** depois da bandeirada o piloto conta o que sentiu e para que lado cada ajuste deveria ter ido
      naquelas condições. O botão **Anotar** guarda isso (e uma anotação sua) no caderno da pista.
 4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Top 3 ou popularidade alta liberam o campeonato

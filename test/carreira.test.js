@@ -156,25 +156,22 @@ test('o mecânico é contratado por etapa e só ajuda durante o treino livre', (
   assert.strictEqual(g.fds.mecanico, false);
 });
 
-test('no grid só cabem ajustes finos e o mecânico não mexe', () => {
+test('no grid o acerto é livre, mas o mecânico e o motor não', () => {
   const e = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(e);
   Carreira.irParaClassificacao(e);
   Carreira.classificar(e);
-  const q = { ...e.fds.setupCorrida };
-  Carreira.definirSetup(e, { pressao: q.pressao + 3, eixo: q.eixo === 2 ? 0 : 2, bitola: q.bitola === 0 ? 2 : 0, coroa: q.coroa - 4, carburacao: q.carburacao + 2 });
-  assert.strictEqual(e.fds.setup.pressao, Math.min(16, q.pressao + 1));
-  assert.strictEqual(e.fds.setup.eixo, q.eixo);
-  assert.strictEqual(e.fds.setup.bitola, q.bitola);
-  assert.strictEqual(e.fds.setup.coroa, Math.max(76, q.coroa - 1));
-  assert.strictEqual(e.fds.setup.carburacao, Math.min(3, q.carburacao + 1));
+  const novo = { pressao: 15, eixo: 2, bitola: 0, coroa: 78, carburacao: 3 };
+  Carreira.definirSetup(e, novo);
+  assert.deepStrictEqual(e.fds.setup, novo);
   assert.strictEqual(Carreira.pedirSugestao(e, 'grid').ok, false);
+  assert.strictEqual(Carreira.revisarMotor(e).ok, false);
   // trocar o jogo de pneus continua permitido
   Carreira.comprarPneu(e, 'chuva');
-  const novo = e.pneus.filter((p) => p.tipo === 'chuva').sort((a, b) => a.uso - b.uso)[0];
-  Carreira.escolherPneu(e, novo.id);
+  const chuva = e.pneus.filter((p) => p.tipo === 'chuva').sort((a, b) => a.uso - b.uso)[0];
+  Carreira.escolherPneu(e, chuva.id);
   const corrida = Carreira.criarCorrida(e);
-  assert.strictEqual(e.fds.setupCorrida.pressao, Math.min(16, q.pressao + 1));
+  assert.deepStrictEqual(e.fds.setupCorrida, novo);
   assert.strictEqual(corrida.carros.find((c) => c.jogador).tipoPneu, 'chuva');
 });
 
