@@ -278,6 +278,17 @@
     noticias: '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
     local: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
     voltar: '<polyline points="15 18 9 12 15 6"/>',
+    regua: '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
+    voltas: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+    montanha: '<path d="M3 20l6-10 4 6 3-4 5 8z"/>',
+    largura: '<path d="M3 12h18"/><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/>',
+    sentido: '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>',
+    bandeira: '<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>',
+  };
+  // Título em caixa alta: primeira palavra forte, o resto fino ("KARTÓDROMO internacional...").
+  const tituloForte = (texto) => {
+    const [primeira, ...resto] = String(texto).split(' ');
+    return `<span class="t-forte">${esc(primeira)}</span>${resto.length ? ` <span class="t-fino">${esc(resto.join(' '))}</span>` : ''}`;
   };
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
@@ -439,7 +450,7 @@
       <header class="cartao-topo"><h3>Etapa ${estado.etapa + 1}/${C.ETAPAS}</h3><span class="etapas" aria-hidden="true">${pontos}</span><span class="espaco"></span>${botaoAjuda('etapa')}</header>
       <div class="hero-corpo">
         <div class="hero-pista">
-          <h2>${esc(pista.nome)}</h2>
+          <h2>${tituloForte(pista.nome)}</h2>
           <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
@@ -750,7 +761,10 @@
   function conteudoPista(pista, camp) {
     const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
     return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
-      <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? tile('Largura', `${pista.largura} m`) : ''}${pista.sentido ? tile('Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}</div>
+      <div class="dados">
+        ${dado('regua', 'Extensão', `${extensao} km`)}${dado('voltas', 'Voltas', camp.voltas)}${dado('montanha', 'Altitude', `${pista.altitude} m`)}
+        ${dado('bandeira', 'Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? dado('largura', 'Largura', `${pista.largura} m`) : ''}${pista.sentido ? dado('sentido', 'Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}
+      </div>
       ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`;
   }
 
@@ -773,6 +787,9 @@
     folhaPista.querySelector('.folha').scrollTop = 0;
   }
 
+  // Linha de dado: ícone, rótulo em caixa alta e valor grande.
+  const dado = (ic, rotulo, valor) => `<div class="dado">${icone(ic)}<span>${rotulo}</span><b>${valor}</b></div>`;
+
   function telaPista() {
     const pista = C.pistaAtual(estado);
     const camp = C.campeonato(estado.campeonato);
@@ -781,7 +798,7 @@
     app.innerHTML = `
       <div class="detalhe">
         <div class="linha"><button class="redondo" data-acao="voltar-paddock-pista" aria-label="Voltar">${icone('voltar')}</button></div>
-        <div class="detalhe-titulo"><h1>${esc(pista.nome)}</h1><p>${icone('local', 'ico-p')} ${esc(pista.local)}</p></div>
+        <div class="detalhe-titulo"><h1>${tituloForte(pista.nome)}</h1><p>${icone('local', 'ico-p')} ${esc(pista.local)}</p></div>
         <div class="segmentado" role="tablist">
           <button role="tab" data-acao="aba-pista" data-aba="pista" class="${aba === 'pista' ? 'ativo' : ''}" aria-selected="${aba === 'pista'}">Pista</button>
           <button role="tab" data-acao="aba-pista" data-aba="caderno" class="${aba === 'caderno' ? 'ativo' : ''}" aria-selected="${aba === 'caderno'}">Caderno</button>
@@ -819,7 +836,7 @@
   function telaFimDeSemana() {
     const fds = estado.fds;
     const pista = C.pistaAtual(estado);
-    const cabecalho = `<div class="linha cabecalho-tela"><h1>${esc(pista.nome)}</h1>${chip(tipoPista[pista.tipo])}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
+    const cabecalho = `<div class="linha cabecalho-tela"><h1>${tituloForte(pista.nome)}</h1>${chip(tipoPista[pista.tipo])}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
     if (fds.sessao === 'treino' || fds.sessao === 'quali') app.innerHTML = cabecalho + telaAcerto();
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
     else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }

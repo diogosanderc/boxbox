@@ -621,3 +621,80 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .folha-fundo[hidden] { display: none; }
 .folha { width: 100%; max-width: 480px; background: var(--painel); border: 1px solid rgba(255, 176, 32, 0.55); border-radius: var(--raio); padding: 20px; display: grid; gap: 14px; animation: subir 0.18s ease-out; }
 .folha h3 { color: var(--texto); font-size: 18px; text-transform: none; letter-spacing: 0; }
+
+/* ======================================================================
+   Tema "pista à noite": azul-marinho, dados em azul e mais respiro.
+   Fica no fim do arquivo para valer sobre as regras de cima.
+   ====================================================================== */
+:root {
+  --fundo: #070e1c;
+  --painel: #0e1930;
+  --painel-2: #142240;
+  --painel-3: #1b2c50;
+  --borda: rgba(140, 170, 230, 0.12);
+  --texto: #eef3fb;
+  --fraco: #8695b0;
+  --azul: #3d9bff;
+  --azul-claro: #8cc4ff;
+  --gap-vermelho: #ff5c6c;
+  --jogador: rgba(61, 155, 255, 0.16);
+  --raio: 22px;
+  --raio-m: 16px;
+  --espaco: 16px;
+}
+html { background: #040912; }
+body { background: radial-gradient(120% 60% at 50% 0%, #0d1a33 0%, var(--fundo) 60%) fixed, var(--fundo); }
+.topo { background: linear-gradient(180deg, #0c1730, #070e1c); }
+.topo-mini { background: rgba(7, 14, 28, 0.92); }
+
+/* títulos: caixa alta espaçada, primeira palavra forte e o resto fino */
+h1 { font-size: 22px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 800; }
+.t-fino { font-weight: 300; }
+.hero-pista h2 { font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 800; }
+.secao h2 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fraco); font-weight: 700; }
+h3 { font-size: 12px; letter-spacing: 0.16em; font-weight: 700; }
+.subtitulo { letter-spacing: 0.14em; font-weight: 700; }
+
+/* cartões e blocos */
+.painel { background: linear-gradient(180deg, #102040 0%, var(--painel) 100%); border-color: var(--borda); padding: 20px 18px; gap: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); }
+.tile, .item, .anotacao, .vazio, .kpi, .equipe-dinheiro > span { background: rgba(255, 255, 255, 0.035); border-color: var(--borda); }
+.tile b { color: var(--texto); }
+.tiles-2 .tile b, .tiles-4 .tile b { color: var(--azul-claro); }
+.chip { background: rgba(255, 255, 255, 0.05); border-color: var(--borda); }
+button { background: rgba(255, 255, 255, 0.05); border-color: var(--borda); }
+button.ativo { background: rgba(61, 155, 255, 0.14); border-color: var(--azul); }
+.segmentos, .passos { background: rgba(255, 255, 255, 0.04); }
+input[type="text"], textarea { background: rgba(255, 255, 255, 0.05); border-color: var(--borda); }
+.abas { background: rgba(255, 255, 255, 0.03); border-color: var(--borda); }
+.abas button.ativo { background: rgba(61, 155, 255, 0.16); border-color: var(--azul); }
+.balao, .folha, .na-pista { background: #0f1b33; }
+.ajuda { color: var(--azul-claro); border-color: rgba(61, 155, 255, 0.4); background: rgba(61, 155, 255, 0.1); }
+
+/* linhas de dados: ícone, rótulo em caixa alta e valor grande em azul */
+.dados { display: grid; gap: 4px; }
+.dado { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--borda); }
+.dado:last-child { border-bottom: 0; }
+.dado .ico { width: 22px; height: 22px; color: var(--fraco); }
+.dado span { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fraco); }
+.dado b { font-size: 20px; font-weight: 700; color: var(--azul); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* corrida ao vivo: lista limpa, sigla em caixa e diferença em vermelho */
+.volta-grande { color: var(--texto); font-weight: 700; letter-spacing: 0.16em; font-size: 13px; }
+.volta-grande b { font-size: 26px; letter-spacing: 0; }
+.volta-grande b span { color: var(--fraco); }
+.ao-vivo { gap: 0; }
+.vivo-linha { background: transparent; border-radius: 10px; padding: 8px 8px; }
+.vivo-linha + .vivo-linha { border-top: 1px solid rgba(140, 170, 230, 0.07); }
+.vivo-pos { font-weight: 700; }
+.vivo-sigla { font-weight: 800; letter-spacing: 0.08em; }
+.vivo-linha.jogador { background: rgba(61, 155, 255, 0.1); box-shadow: none; }
+.vivo-linha.jogador .vivo-sigla { background: var(--azul); color: #fff; border-radius: 6px; padding: 1px 6px; justify-self: start; }
+.vivo-linha.seguido .vivo-sigla { color: var(--alerta); }
+.vivo-dif { color: var(--gap-vermelho); font-weight: 600; }
+.vivo-dif .fraco { color: var(--fraco); font-weight: 500; }
+.status-fora { color: var(--fraco); }
+
+/* tabela do campeonato e resultado */
+.camp-linha { background: rgba(255, 255, 255, 0.03); border-color: var(--borda); }
+.camp-linha.jogador { background: rgba(61, 155, 255, 0.12); border-color: rgba(61, 155, 255, 0.5); }
+tr.jogador td { background: rgba(61, 155, 255, 0.12); }
