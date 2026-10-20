@@ -336,8 +336,7 @@
         <div class="hero-pista">
           <h2>${esc(pista.nome)}</h2>
           <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
-          ${resumoPista(pista)}
-          <button class="ver-pista" data-acao="ver-pista">Ver pista ›</button>
+          <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
@@ -615,14 +614,6 @@
       linha('⛰️', 'Desnível', esc(p.desnivel)),
       linha('🏁', 'Ultrapassagem', facil, esc(p.ondePassar)),
     ].join('');
-  }
-
-  // Resumo de uma linha para o card da etapa.
-  function resumoPista(p) {
-    if (!p.retas) return '';
-    const nCurvas = p.curvas.lentas + p.curvas.medias + p.curvas.rapidas;
-    const longas = p.retas.filter((m) => m >= 200).length;
-    return `<div class="chips">${chip(`🛣️ ${p.retas.length} ${p.retas.length === 1 ? 'reta' : 'retas'}${longas ? ` (${longas} ${longas === 1 ? 'longa' : 'longas'})` : ''}`)}${chip(`↪️ ${nCurvas} curvas`)}${chip(`🟥 Zebras ${ZEBRAS[p.zebras][0].toLowerCase().replace('sem zebra', 'não tem')}`)}${chip(`⬛ Asfalto ${ASFALTO[p.asfalto][0].toLowerCase()}`)}</div>`;
   }
 
   function telaPista() {

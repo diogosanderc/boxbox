@@ -387,7 +387,14 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .ficha-valor { display: grid; gap: 2px; min-width: 0; }
 .ficha-valor b { font-size: 15px; }
 .ficha-valor small { color: var(--fraco); font-size: 13px; line-height: 1.4; }
-.ver-pista { justify-self: start; font-weight: 600; }
+.ver-pista {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left;
+  padding: 12px 16px; border-radius: var(--raio-m); background: var(--alerta); border-color: var(--alerta); color: #1a1200;
+  font-size: 22px; font-weight: 800; box-shadow: 0 4px 16px rgba(255, 176, 32, 0.25);
+}
+.ver-pista-texto { display: grid; gap: 1px; }
+.ver-pista-texto b { font-size: 16px; }
+.ver-pista-texto small { font-size: 13px; font-weight: 600; opacity: 0.75; }
 .diagnostico { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 textarea { font-size: 15px; resize: vertical; min-height: 64px; }
 .nota { display: grid; gap: 4px; border-top: 1px solid var(--borda); padding-top: 8px; font-size: 13px; }
