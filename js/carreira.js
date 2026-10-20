@@ -1030,6 +1030,7 @@
       const a = sortear(rnd, Dados.OLHEIROS.filter((x) => x.tipo === 'academia'));
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'academia', nome: a.nome, texto: 'Entrar no programa de jovens pilotos de uma equipe de F1: eles pagam a F4.' });
     }
+    rel.equipes = equipesDisponiveis(estado, pos);
     estado.propostas = propostasF4;
     rel.propostasF4 = propostasF4.map((x) => x.nome);
     rel.dinheiroDepois = estado.dinheiro;
@@ -1042,9 +1043,32 @@
     noticia(estado, `${p.nome} termina ${rel.ano} em P${pos} na ${camp.nome}. Campeão: ${rel.campeao}.`);
   }
 
-  // Começa o ano seguinte no campeonato escolhido.
-  function proximaTemporada(estado, campeonatoId) {
+  // Mercado de fim de ano: quais equipes aceitam o piloto para o próximo ano.
+  // A sua sempre aceita; as pequenas também; as intermediárias querem top 12 (ou alguma popularidade);
+  // as de ponta querem top 6 (ou popularidade alta).
+  function equipesDisponiveis(estado, pos) {
+    const pop = estado.piloto.popularidade;
+    return Dados.EQUIPES.map((e) => e.id).filter((id) => {
+      if (id === estado.equipeId) return true;
+      const porte = porteDe(id);
+      if (porte === 'pequena') return true;
+      if (porte === 'media') return pos <= 12 || pop >= 15;
+      return pos <= 6 || pop >= 30;
+    });
+  }
+
+  // Começa o ano seguinte no campeonato e na equipe escolhidos.
+  function proximaTemporada(estado, campeonatoId, equipeId = estado.equipeId) {
     if (!estado.relatorio.opcoes.includes(campeonatoId)) return { ok: false, erro: 'Campeonato não disponível.' };
+    const equipes = estado.relatorio.equipes || [estado.equipeId];
+    if (!equipes.includes(equipeId)) return { ok: false, erro: 'Essa equipe não aceitou você.' };
+    if (equipeId !== estado.equipeId) {
+      const antes = Dados.EQUIPES.findIndex((e) => e.id === estado.equipeId);
+      const depois = Dados.EQUIPES.findIndex((e) => e.id === equipeId);
+      noticia(estado, `${estado.piloto.nome} troca a ${equipeBase(estado.equipeId).nome} pela ${equipeBase(equipeId).nome} para ${estado.ano}.`);
+      if (depois < antes) mexerCabeca(estado, { moral: 4 });
+      estado.equipeId = equipeId;
+    }
     estado.campeonato = campeonatoId;
     estado.contrato = null;
     estado.propostas = estado.propostas.filter((p) => p.tipo !== 'f4' && p.tipo !== 'academia');
@@ -1055,7 +1079,7 @@
 
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes,
-    VAGAS_SUBIDA, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    VAGAS_SUBIDA, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

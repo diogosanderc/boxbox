@@ -434,6 +434,14 @@ th, td { padding-inline: 4px; }
 .camp-linha.sobe .camp-pos b { color: var(--ok); }
 .camp-corte { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; font-weight: 700; color: var(--ok); }
 .camp-corte::before, .camp-corte::after { content: ''; flex: 1; height: 1px; background: rgba(47, 191, 113, 0.5); }
+.equipes-ano { display: grid; gap: 6px; }
+.equipe-ano { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; }
+.equipe-ano.ativo { border-color: var(--cor-equipe); background: var(--painel-3); }
+.equipe-ano-nome { display: grid; min-width: 0; }
+.equipe-ano-nome b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.equipe-ano-nome small { color: var(--fraco); font-size: 12px; }
+.equipe-ano > b { font-size: 14px; white-space: nowrap; }
+.equipe-ano > b small { font-size: 11px; font-weight: 500; }
 .chip small { color: var(--alerta); font-size: 11px; font-weight: 700; }
 .compra { display: grid; gap: 2px; justify-items: center; }
 .compra span { font-size: 13px; color: var(--fraco); }

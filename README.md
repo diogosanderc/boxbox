@@ -33,6 +33,8 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Os **4 primeiros** sobem:
    Copa Regional → Brasileiro → Europeu → F4 (o campeão brasileiro também recebe proposta de F4). Popularidade alta também
    libera o campeonato seguinte. Toda etapa paga prêmio aos 10 primeiros.
+   No fim do ano também dá para **trocar de equipe**: as pequenas sempre aceitam; as intermediárias querem top 12 e as de
+   ponta, top 6 (ou popularidade alta).
 
 ### Pneus
 

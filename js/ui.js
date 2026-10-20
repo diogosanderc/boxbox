@@ -1091,6 +1091,26 @@
   }
 
   // ---------- fim de temporada ----------
+  // Mercado de fim de ano: escolher a equipe do próximo ano entre as que aceitam o piloto.
+  function escolhaEquipeAno(campId) {
+    const r = estado.relatorio;
+    const lista = r.equipes || [estado.equipeId];
+    const escolhida = tela.proximaEquipe || estado.equipeId;
+    const custoCamp = C.campeonato(campId).custo;
+    const recusadas = Dados.EQUIPES.length - lista.length;
+    return `<span class="subtitulo">Equipe para ${estado.ano}</span>
+      <div class="equipes-ano">${lista.map((id) => {
+        const e = C.equipeBase(id);
+        const custo = Math.round(e.custoEtapa * custoCamp / 100) * 100;
+        return `<button class="equipe-ano ${escolhida === id ? 'ativo' : ''}" data-acao="escolher-equipe-ano" data-id="${id}" aria-pressed="${escolhida === id}" style="--cor-equipe:${e.cor}">
+          <i class="camp-cor" style="background:${e.cor}"></i>
+          <span class="equipe-ano-nome"><b>${esc(e.nome)}</b><small>${C.PORTES[C.porteDe(id)].nome} · Kart ${e.material}${id === estado.equipeId ? ' · atual' : ''}</small></span>
+          <b class="negativo">−${reais(custo)}<small>/etapa</small></b>
+        </button>`;
+      }).join('')}</div>
+      ${recusadas ? `<p class="fraco mini">${recusadas} ${recusadas === 1 ? 'equipe não quis' : 'equipes não quiseram'} você este ano. Resultado e popularidade abrem mais portas.</p>` : ''}`;
+  }
+
   function telaRelatorio() {
     const r = estado.relatorio;
     const camp = C.campeonato(r.campeonato);
@@ -1118,6 +1138,7 @@
             return `<button class="escolha ${escolha === id ? 'ativo' : ''}" data-acao="escolher-proximo" data-id="${id}" aria-pressed="${escolha === id}">
               <b>${esc(c.curto)}</b><span class="chips">${chip(id === r.campeonato ? '↺ Repetir' : '⬆ Subir', id === r.campeonato ? '' : 'chip-dinheiro')}${chip(`💸 ×${c.custo}`)}${c.regiao === 'eu' ? chip('🇪🇺') : ''}</span></button>`;
           }).join('')}</div>
+          ${escolhaEquipeAno(escolha)}
           <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`, { ajuda: 'temporada' })}
       </div>`;
   }
@@ -1382,8 +1403,12 @@
         salvar();
         ir(telaDaFase());
         break;
+      case 'escolher-equipe-ano':
+        tela.proximaEquipe = id;
+        render();
+        break;
       case 'nova-temporada':
-        if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1]))) { salvar(); ir(telaDaFase()); }
+        if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1], tela.proximaEquipe || estado.equipeId))) { salvar(); ir(telaDaFase()); }
         break;
     }
   });

@@ -537,3 +537,20 @@ test('equilíbrio: acerto ideal briga pelo top 4 no Regional; sem mexer no acert
   assert.ok(ideal.filter((p) => p <= Carreira.VAGAS_SUBIDA).length >= 3, `ideal: ${ideal}`);
   assert.ok(ideal.reduce((a, b) => a + b) < padrao.reduce((a, b) => a + b), `ideal ${ideal} x padrão ${padrao}`);
 });
+
+test('mercado de fim de ano: quem anda bem escolhe equipe melhor; a troca vale no ano seguinte', () => {
+  const e = Carreira.novoJogo({ seed: 2, equipeId: 'garagem' });
+  e.piloto.popularidade = 0;
+  assert.deepStrictEqual(Carreira.equipesDisponiveis(e, 18).sort(), ['formiga', 'garagem']);
+  assert.ok(Carreira.equipesDisponiveis(e, 10).includes('faisca'));
+  assert.ok(!Carreira.equipesDisponiveis(e, 10).includes('fulmine'));
+  assert.ok(Carreira.equipesDisponiveis(e, 3).includes('fulmine'));
+  for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, 'ideal');
+  const r = e.relatorio;
+  const outra = r.equipes.find((id) => id !== 'garagem');
+  assert.strictEqual(Carreira.proximaTemporada(e, r.opcoes[0], 'equipe-que-nao-existe').ok, false);
+  assert.ok(Carreira.proximaTemporada(e, r.opcoes[0], outra).ok);
+  assert.strictEqual(e.equipeId, outra);
+  // a vaga do jogador na nova equipe: só um rival nela
+  assert.strictEqual(e.rivais.filter((x) => x.equipe === outra).length, 1);
+});
