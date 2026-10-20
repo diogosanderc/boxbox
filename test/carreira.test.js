@@ -94,13 +94,14 @@ test('treino limitado e feedback do piloto', () => {
   assert.strictEqual(Carreira.saidaTreino(e).ok, false);
 });
 
-test('kart não para nos boxes', () => {
+test('kart não para nos boxes nem muda de modo (os rivais não atacam no fim)', () => {
   const e = Carreira.novoJogo({ seed: 4 });
   Carreira.iniciarFimDeSemana(e);
   Carreira.irParaClassificacao(e);
   Carreira.classificar(e);
   const c = Engine.simularCompleta(Carreira.criarCorrida(e));
   assert.ok(c.carros.every((x) => x.paradas === 0));
+  assert.ok(c.carros.every((x) => x.modo === 'normal'));
 });
 
 test('temporada completa gera relatório e opções para o ano seguinte', () => {

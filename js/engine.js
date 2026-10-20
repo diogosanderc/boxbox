@@ -139,7 +139,7 @@
     return {
       pista, seed, volta: 0, totalVoltas: pista.voltas, carros,
       regraCompostos: opcoes.regraCompostos !== false,
-      semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, ajusteVolta: opcoes.ajusteVolta || null,
+      semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, semModos: !!opcoes.semModos, ajusteVolta: opcoes.ajusteVolta || null,
       safetyCar: 0, eventos: [], terminou: false, _rnd: rnd,
     };
   }
@@ -228,9 +228,9 @@
       if (!sc && !parar && (c.melhorVolta === null || volta < c.melhorVolta)) c.melhorVolta = volta;
     }
 
-    // IA: ataca no fim da corrida
+    // IA: ataca no fim da corrida (menos quando a corrida não tem modos de pilotagem, como no kart)
     for (const c of ordemAnterior) {
-      if (!c.jogador && corrida.totalVoltas - v === 6) c.modo = 'atacar';
+      if (!corrida.semModos && !c.jogador && corrida.totalVoltas - v === 6) c.modo = 'atacar';
     }
 
     // Ordenação com disputa de posição: quem é mais rápido só passa se a ultrapassagem der certo.

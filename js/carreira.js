@@ -612,7 +612,7 @@
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31, {
-      regraCompostos: false, pneuPadrao: 'Md', semBox: true, semSafetyCar: true, ajusteVolta,
+      regraCompostos: false, pneuPadrao: 'Md', semBox: true, semSafetyCar: true, semModos: true, ajusteVolta,
     });
     for (const c of corrida.carros) {
       c.uso = c.jogador ? pneuJogador.uso : 1;
