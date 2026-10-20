@@ -30,8 +30,9 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
    - **Corrida:** sem pit stop. No grid ainda dá para mexer em todo o acerto (o motor, não). Pode começar a chover no meio da bateria.
    - **Diagnóstico:** depois da bandeirada o piloto conta o que sentiu e para que lado cada ajuste deveria ter ido
      naquelas condições. O botão **Anotar** guarda isso (e uma anotação sua) no caderno da pista.
-4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Top 3 ou popularidade alta liberam o campeonato
-   seguinte: Copa Regional → Brasileiro → Europeu. Brilhar no Brasileiro ou no Europeu traz proposta de F4.
+4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Os **4 primeiros** sobem:
+   Copa Regional → Brasileiro → Europeu → F4 (o campeão brasileiro também recebe proposta de F4). Popularidade alta também
+   libera o campeonato seguinte. Toda etapa paga prêmio aos 10 primeiros.
 
 ### Pneus
 

@@ -94,7 +94,7 @@
     const e = erros(setup, acertoIdeal(pista, cond, pneu));
     const d = desequilibrio(e);
     const r = {
-      tempo: Math.min(3.5, 0.45 * Math.pow(d, 0.9)),
+      tempo: Math.min(3.5, 1.1 * Math.pow(d, 0.9)),
       sigma: 1 + 0.4 * Math.min(d, 3),
       erro: 1 + 0.6 * Math.min(d, 4),
       desgaste: 1 + 0.25 * Math.abs(e.pressao) + 0.2 * Math.abs(e.eixo),
@@ -269,7 +269,7 @@
 
   // Acerto que uma equipe da IA usa (mecânicos melhores chegam mais perto do ideal).
   function setupIA(pista, cond, pneu, mecanico, rnd) {
-    return sugestaoMecanico(pista, cond, pneu, Math.min(98, mecanico + 10), rnd);
+    return sugestaoMecanico(pista, cond, pneu, Math.max(30, mecanico - 10), rnd);
   }
 
   function descreverSetup(s) {

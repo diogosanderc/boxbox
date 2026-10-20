@@ -51,7 +51,7 @@
   // Tempo de volta "limpo" do conjunto carro + piloto, sem pneu, combustível ou ruído.
   function ritmoBase(entrada, pista) {
     return pista.tempoBase
-      - (forcaCarro(entrada.carro, pista) - 75) * 0.06
+      - (forcaCarro(entrada.carro, pista) - 75) * 0.035
       - (entrada.piloto.ritmo - 80) * 0.035;
   }
 

@@ -101,7 +101,7 @@
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode estourar.'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
-    temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
+    temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
   const botaoAjuda = (chave) => `<button class="ajuda" data-acao="ajuda" data-chave="${chave}" aria-label="Ajuda: ${esc(AJUDAS[chave][0])}">?</button>`;
@@ -551,11 +551,15 @@
 
   function listaCampeonato() {
     const tabela = C.classificacaoCampeonato(estado);
+    const camp = C.campeonato(estado.campeonato);
+    const proximo = Dados.CAMPEONATOS[camp.ordem + 1];
+    const destino = proximo ? proximo.curto : 'F4';
     return `<div class="classificacao">${tabela.map((x, i) => {
       const eq = C.equipeBase(x.equipe);
       const eu = x.id === 'jogador';
       const seguido = estado.seguindo === x.id;
-      return `<div class="camp-linha ${eu ? 'jogador' : ''} ${seguido ? 'seguido' : ''}">
+      const corte = i === C.VAGAS_SUBIDA ? `<div class="camp-corte"><span>▲ Os ${C.VAGAS_SUBIDA} primeiros sobem para o ${destino}</span></div>` : '';
+      return `${corte}<div class="camp-linha ${eu ? 'jogador' : ''} ${seguido ? 'seguido' : ''} ${i < C.VAGAS_SUBIDA ? 'sobe' : ''}">
         <span class="camp-pos"><b>${i + 1}</b><small>${x.pontos} pts</small></span>
         <i class="camp-cor" style="background:${eq.cor}"></i>
         <span class="camp-nome"><span>${nomeDestaque(x.nome)}</span><small>${esc(eq.nome)}${x.vitorias ? ` · ${x.vitorias} vitória${x.vitorias > 1 ? 's' : ''}` : ''}</small></span>

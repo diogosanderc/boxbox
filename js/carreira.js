@@ -19,9 +19,12 @@
   const CUSTO_REVISAO = 2500;
   // Motor estourado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
   const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
-  const PREMIO_ETAPA = [1500, 800, 400]; // por pódio, multiplicado pelo custo do campeonato
+  // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
+  const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
+  // Os 4 primeiros do campeonato sobem de degrau (no Europeu, para a F4).
+  const VAGAS_SUBIDA = 4;
   const MAX_PATROCINIOS = 3;
-  const APOIO_FAMILIA = 25000; // por temporada, multiplicado pelo custo do campeonato
+  const APOIO_FAMILIA = 20000; // por temporada, multiplicado pelo custo do campeonato
 
   const limitar = (x, min, max) => Math.max(min, Math.min(max, x));
   const sortear = (rnd, lista) => lista[Math.floor(rnd() * lista.length)];
@@ -418,7 +421,7 @@
     for (let i = 0; i < quantidade; i++) {
       const empresa = sortear(rnd, Dados.PATROCINADORES[porte]);
       if (estado.patrocinios.some((p) => p.empresa === empresa) || estado.ofertasPatrocinio.some((p) => p.empresa === empresa)) continue;
-      const porEtapa = Math.round((1000 + Math.min(pop, 80) * 60) * [1, 1.6, 2.5][porte] * camp.custo * (0.7 + rnd() * 0.6) / 100) * 100;
+      const porEtapa = Math.round((1300 + Math.min(pop, 80) * 45) * [1, 1.4, 1.9][porte] * Math.sqrt(camp.custo) * (0.7 + rnd() * 0.6) / 100) * 100;
       const meta = rnd() < 0.5
         ? { tipo: 'posicao', alvo: Math.round(limitar(10 - porte * 3 + Math.floor(rnd() * 5) - 2, 1, 15)) }
         : { tipo: 'podios', alvo: 1 + porte + Math.floor(rnd() * 2) };
@@ -528,7 +531,7 @@
     const pais = Dados.KARTODROMOS.br.some((p) => p.id === pista.id) ? 'BRA' : 'ITA';
     const nomes = Dados.NOMES[pais];
     const nome = `${nomes.p[Math.floor(rnd() * nomes.p.length)]} ${nomes.s[Math.floor(rnd() * nomes.s.length)]}`;
-    return { tempo: Math.round((pista.tempoBase - 1.45 - rnd() * 0.3) * 1000) / 1000, nome, ano: 2020 + Math.floor(rnd() * 6), jogador: false };
+    return { tempo: Math.round((pista.tempoBase - 0.75 - rnd() * 0.3) * 1000) / 1000, nome, ano: 2020 + Math.floor(rnd() * 6), jogador: false };
   }
 
   function recordePista(estado, pista = pistaAtual(estado)) {
@@ -856,7 +859,7 @@
     const meu = res.find((r) => r.id === 'jogador');
     const p = estado.piloto;
     let ganho = 0;
-    if (!meu.fora && meu.pos <= 3) ganho += Math.round(PREMIO_ETAPA[meu.pos - 1] * camp.custo);
+    if (!meu.fora && meu.pos <= PREMIO_ETAPA.length) ganho += Math.round(PREMIO_ETAPA[meu.pos - 1] * camp.custo);
     const patroc = estado.patrocinios.reduce((s, x) => s + x.porEtapa, 0);
     ganho += patroc;
     estado.dinheiro += ganho;
@@ -891,7 +894,9 @@
 
     // Experiência: um pouco de evolução a cada corrida (mais com a moral alta)
     const rnd = rngDe(estado);
-    evoluir(p, rnd, 0.15 * fatorMoral(p));
+    // Andar na frente ensina mais: pódio e top 5 aceleram a evolução.
+    const aprendizado = meu.fora ? 0.12 : meu.pos <= 3 ? 0.3 : meu.pos <= 5 ? 0.22 : 0.15;
+    evoluir(p, rnd, aprendizado * fatorMoral(p));
     const recordeCorrida = conferirRecorde(estado, corrida.carros.map((c) => ({ id: c.id, tempo: c.melhorVolta })), 'corrida');
     fds.resultado = { recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
@@ -985,7 +990,7 @@
     const pos = posicaoNoCampeonato(estado);
     const rel = { ano: estado.ano, campeonato: camp.id, pos, pontos: estado.pontos.jogador, campeao: tabela[0].nome, premios: [], bonus: [], dinheiroAntes: estado.dinheiro };
 
-    if (pos <= 3) {
+    if (pos <= VAGAS_SUBIDA) {
       const premio = Math.round(camp.premioCampeao / 2 ** (pos - 1));
       estado.dinheiro += premio;
       rel.premios.push({ texto: `Prêmio de P${pos} no campeonato`, valor: premio });
@@ -1012,12 +1017,12 @@
     // Opções para o próximo ano
     const proximo = Dados.CAMPEONATOS[camp.ordem + 1];
     rel.opcoes = [camp.id];
-    if (proximo && (pos <= 3 || p.popularidade >= 20 * (camp.ordem + 1))) rel.opcoes.push(proximo.id);
+    if (proximo && (pos <= VAGAS_SUBIDA || p.popularidade >= 20 * (camp.ordem + 1))) rel.opcoes.push(proximo.id);
 
     // Equipes de F4 e academias de F1: só para quem brilhou nos campeonatos maiores.
     const propostasF4 = [];
     const interesseF4 = Dados.OLHEIROS.filter((o) => o.tipo === 'f4').map((o) => ({ o, i: estado.interesse[o.id] || 0 })).sort((a, b) => b.i - a.i);
-    if ((camp.ordem === 2 && pos <= 5) || (camp.ordem === 1 && pos === 1) || (interesseF4[0] && interesseF4[0].i >= 40)) {
+    if ((camp.ordem === 2 && pos <= VAGAS_SUBIDA) || (camp.ordem === 1 && pos === 1) || (interesseF4[0] && interesseF4[0].i >= 40)) {
       const o = interesseF4[0].o;
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f4', nome: o.nome, texto: 'Vaga na Fórmula 4 para o próximo ano. Você paga parte do orçamento.' });
     }
@@ -1050,7 +1055,7 @@
 
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes,
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    VAGAS_SUBIDA, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

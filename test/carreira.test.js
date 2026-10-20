@@ -9,7 +9,9 @@ const Carreira = require('../js/carreira.js');
 function jogarFimDeSemana(estado, estrategia = 'padrao') {
   // Cuidados básicos de paddock: patrocínio, pneu novo e revisão do motor quando der.
   for (const o of estado.ofertasPatrocinio.slice()) Carreira.aceitarPatrocinio(estado, o.id);
+  for (const p of estado.pneus.slice()) if (p.uso > 20) Carreira.venderPneu(estado, p.id);
   if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
+  if (estado.pneus.filter((p) => p.tipo === 'slick').length < 2) Carreira.comprarPneu(estado, 'slick');
   if (estado.motorHoras >= Carreira.HORAS_REVISAO) Carreira.revisarMotor(estado);
   if (estado.motorQuebrado && !Carreira.retificarMotor(estado, 'expressa').ok) { Carreira.retificarMotor(estado, 'normal'); return null; }
   const r = Carreira.iniciarFimDeSemana(estado);
@@ -522,4 +524,16 @@ test('nomes das equipes sorteados a cada carreira, sem repetir', () => {
   const vistos = new Set();
   for (let s = 1; s <= 30; s++) Object.values(Carreira.sortearNomesEquipes(s)).forEach((n) => vistos.add(n));
   assert.ok(vistos.size > 60);
+});
+
+test('equilíbrio: acerto ideal briga pelo top 4 no Regional; sem mexer no acerto, fica no meio', () => {
+  const temporada = (seed, estrategia) => {
+    const e = Carreira.novoJogo({ seed, equipeId: 'faisca' });
+    for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, estrategia);
+    return e.relatorio.pos;
+  };
+  const ideal = [1, 2, 3, 4].map((s) => temporada(s, 'ideal'));
+  const padrao = [1, 2, 3, 4].map((s) => temporada(s, 'padrao'));
+  assert.ok(ideal.filter((p) => p <= Carreira.VAGAS_SUBIDA).length >= 3, `ideal: ${ideal}`);
+  assert.ok(ideal.reduce((a, b) => a + b) < padrao.reduce((a, b) => a + b), `ideal ${ideal} x padrão ${padrao}`);
 });
