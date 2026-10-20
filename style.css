@@ -819,3 +819,10 @@ button.link-f4 { background: transparent; border-color: transparent; color: var(
 @media (prefers-reduced-motion: reduce) { .confete { display: none; } .campeao-trofeu .ico { animation: none; } }
 .motivo-f4 { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: var(--raio-p); background: rgba(47, 191, 113, 0.1); color: var(--ok); font-weight: 600; }
 .motivo-f4 .ico-i { flex: none; margin: 0.15em 0 0; }
+
+/* ---------- app do iPhone ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+button, .chip, .tag, img { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Telas sem o cabeçalho (abertura, nome, equipe) também fogem do notch e da ilha. */
+body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }

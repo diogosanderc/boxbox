@@ -101,10 +101,36 @@ grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasiv
 - `js/engine.js`: motor de corrida volta a volta (desgaste, ultrapassagem, quebras), com gancho por volta para acerto e clima.
 - `js/data.js`: equipes, kartódromos, campeonatos, nomes e patrocinadores (equipes, pilotos e empresas são fictícios).
 - `js/ui.js`: interface.
+- `js/armazenamento.js`: onde a carreira fica salva (arquivo no iPhone, localStorage no navegador).
 
 ```bash
 npm test   # testes com o runner nativo do Node (18+)
 ```
+
+## App para iPhone
+
+O jogo é só para iOS. Ele roda dentro de um app nativo feito com **Capacitor 6** (o mesmo esquema do
+GOLAÇO): o Xcode abre o projeto em `ios/`, e o jogo vai junto na pasta `www/`.
+
+- **Save:** a carreira fica num arquivo (`superlicenca-save.json`) na pasta de documentos do app, pelo
+  plugin `@capacitor/filesystem`. Só some se o jogo for apagado, entra no backup do iPhone e não sofre a
+  limpeza que o iOS faz nos dados de sites. A gravação passa por um arquivo temporário, então fechar o
+  app no meio não estraga o save. Um save antigo no `localStorage` é levado para o arquivo na primeira
+  abertura.
+- **App:** `com.diogosander.superlicenca`, nome "Superlicença", só iPhone, só retrato, barra de status
+  clara, fundo azul-marinho sem flash branco, iOS 15 ou mais novo. Time de assinatura `2H5Z26H77P`
+  (o mesmo do GOLAÇO).
+
+No Mac, na primeira vez:
+
+```bash
+npm install
+npm run ios    # monta www/, sincroniza com o projeto iOS e abre o Xcode
+```
+
+Depois de mudar o jogo, `npm run sync` atualiza o app (ou `npm run ios` para já abrir o Xcode).
+Antes de enviar para a App Store: criar o app `com.diogosander.superlicenca` no App Store Connect e
+subir `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` no Xcode a cada envio.
 
 ## Próximas ideias
 

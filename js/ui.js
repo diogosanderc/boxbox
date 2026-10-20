@@ -45,14 +45,15 @@
     return m ? `${m}:${(s - m * 60).toFixed(3).padStart(6, '0')}` : s.toFixed(3);
   }
 
+  // O save mora no BoxSave (js/armazenamento.js): arquivo no iPhone, localStorage no navegador.
   function salvar() {
-    try { localStorage.setItem(CHAVE_SAVE, JSON.stringify(estado)); } catch (e) { /* sem armazenamento: segue sem salvar */ }
+    BoxSave.gravar(CHAVE_SAVE, JSON.stringify(estado));
   }
   function carregar() {
-    try { return JSON.parse(localStorage.getItem(CHAVE_SAVE)); } catch (e) { return null; }
+    try { return JSON.parse(BoxSave.ler(CHAVE_SAVE)); } catch (e) { return null; }
   }
   function apagarSave() {
-    try { localStorage.removeItem(CHAVE_SAVE); } catch (e) { /* ignora */ }
+    BoxSave.apagar(CHAVE_SAVE);
   }
 
   let timerAviso = null;
@@ -1674,5 +1675,6 @@
     }
   });
 
-  render();
+  // Só desenha depois de ler o save do arquivo (no iPhone a leitura é assíncrona).
+  BoxSave.iniciar(CHAVE_SAVE).catch(() => {}).then(render);
 })();

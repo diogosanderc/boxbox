@@ -1,0 +1,11 @@
+{
+  "appId": "com.diogosander.superlicenca",
+  "appName": "Superlicença",
+  "webDir": "www",
+  "backgroundColor": "#070e1c",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#070e1c",
+    "scrollEnabled": true
+  }
+}
