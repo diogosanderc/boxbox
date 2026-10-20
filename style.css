@@ -122,3 +122,27 @@ select { max-width: 100%; }
   max-width: calc(100% - 32px); background: var(--alerta); color: #111; font-weight: 600;
   padding: 10px 16px; border-radius: 8px; z-index: 20; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
+
+/* ---------- carreira do piloto ---------- */
+.cartao-equipe.ativo { border-color: var(--texto); background: var(--jogador); }
+.cartao-equipe .barra { grid-template-columns: 80px 1fr 28px; font-size: 13px; margin: 3px 0; }
+.previsao { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; padding: 10px; background: var(--painel-2); border-radius: 8px; font-size: 14px; }
+.oferta { border: 1px solid var(--borda); border-radius: 8px; padding: 10px; margin-top: 8px; display: grid; gap: 6px; }
+.destaque { border-color: var(--ok); }
+.setup { display: grid; gap: 10px; }
+.ajuste { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
+@media (max-width: 480px) { .ajuste { grid-template-columns: 1fr; gap: 4px; } }
+.segmentos { display: flex; gap: 4px; flex-wrap: wrap; }
+.segmentos button { flex: 1; min-width: 70px; }
+.passos { display: flex; align-items: center; gap: 10px; }
+.passos button { width: 38px; padding: 6px 0; font-weight: 700; }
+.passos b { min-width: 150px; text-align: center; font-variant-numeric: tabular-nums; }
+.passos-fds { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0 16px; }
+.passos-fds span { padding: 4px 10px; border-radius: 14px; font-size: 13px; background: var(--painel-2); color: var(--fraco); border: 1px solid var(--borda); }
+.passos-fds span.feito { color: var(--texto); }
+.passos-fds span.atual { background: var(--destaque); border-color: var(--destaque); color: #fff; font-weight: 600; }
+.saida { border-top: 1px solid var(--borda); padding: 10px 0; display: grid; gap: 4px; }
+.saida:first-of-type { border-top: 0; }
+.fala { font-style: italic; }
+.mecanico { color: #8ab4ff; font-size: 14px; }
+.opcao { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; cursor: pointer; }

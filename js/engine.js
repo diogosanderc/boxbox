@@ -20,6 +20,7 @@
   };
 
   const PONTOS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+  const SEM_AJUSTE = { tempo: 0, sigma: 1, erro: 1, quebra: 0, desgaste: 1, motivoQuebra: 'Quebra' };
   const PENALIDADE_COMPOSTO = 10; // segundos por não usar dois compostos
 
   // Gerador pseudoaleatório com semente (mulberry32), para corridas reproduzíveis.
@@ -138,6 +139,7 @@
     return {
       pista, seed, volta: 0, totalVoltas: pista.voltas, carros,
       regraCompostos: opcoes.regraCompostos !== false,
+      semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, ajusteVolta: opcoes.ajusteVolta || null,
       safetyCar: 0, eventos: [], terminou: false, _rnd: rnd,
     };
   }
@@ -171,17 +173,20 @@
         parar = true;
         novoPneu = c.boxPedido;
         c.boxPedido = null;
-      } else if ((c.auto || !c.jogador) && decidirParada(c, corrida)) {
+      } else if (!corrida.semBox && (c.auto || !c.jogador) && decidirParada(c, corrida)) {
         parar = true;
         novoPneu = (corrida.regraCompostos ? escolherPneu : escolherPneuLivre)(c, pista, corrida.totalVoltas - v + 1);
       }
 
+      // Ajuste externo por volta (acerto do carro, clima...): segundos extras e multiplicadores de risco.
+      const extra = { ...SEM_AJUSTE, ...(corrida.ajusteVolta ? corrida.ajusteVolta(c, v, corrida) : null) };
       let volta = ritmoBase(c, pista)
         + PNEUS[c.pneu].ritmo
         + perdaPorDesgaste(c.pneu, c.uso)
         + (corrida.totalVoltas - v) * 0.035 // combustível
         + modo.ritmo
-        + rnd.gauss() * (0.35 - c.piloto.consistencia * 0.0025);
+        + extra.tempo
+        + rnd.gauss() * (0.35 - c.piloto.consistencia * 0.0025) * extra.sigma;
 
       if (v === 1) volta += rnd.gauss() * 0.5 - (c.piloto.largada - 80) * 0.02;
       if (sc) volta = Math.max(volta, pista.tempoBase * 1.4) + rnd() * 0.2;
@@ -204,18 +209,18 @@
       }
 
       // Quebras e erros
-      const chanceQuebra = (1 - c.carro.confiabilidade / 100) * 0.006;
-      const chanceErro = (100 - c.piloto.consistencia) * 0.00006 * modo.risco * (sc ? 0.2 : 1);
+      const chanceQuebra = (1 - c.carro.confiabilidade / 100) * 0.006 + extra.quebra;
+      const chanceErro = (100 - c.piloto.consistencia) * 0.00006 * modo.risco * (sc ? 0.2 : 1) * extra.erro;
       const sorteio = rnd();
       if (sorteio < chanceQuebra + chanceErro) {
         c.fora = true;
-        c.motivoFora = sorteio < chanceQuebra ? 'Quebra' : 'Acidente';
+        c.motivoFora = sorteio < chanceQuebra ? (sorteio < extra.quebra ? extra.motivoQuebra : 'Quebra') : 'Acidente';
         registrar(corrida, `${c.piloto.nome} abandona: ${c.motivoFora.toLowerCase()}!`, 'abandono', c.id);
         abandonosNaVolta += 1;
         continue;
       }
 
-      c.uso += (sc ? 0.4 : 1) * modo.pneu * pista.desgaste / fatorPneuPiloto(c.piloto);
+      c.uso += (sc ? 0.4 : 1) * modo.pneu * extra.desgaste * pista.desgaste / fatorPneuPiloto(c.piloto);
       c.idadePneu += 1;
       c.tempo += volta;
       c.voltas = v;
@@ -268,7 +273,7 @@
     if (sc) {
       corrida.safetyCar -= 1;
       if (corrida.safetyCar === 0) registrar(corrida, 'Safety car recolhido. Relargada!', 'sc');
-    } else if (v < corrida.totalVoltas - 3 && (abandonosNaVolta > 0 ? rnd() < 0.5 : rnd() < 0.004)) {
+    } else if (!corrida.semSafetyCar && v < corrida.totalVoltas - 3 && (abandonosNaVolta > 0 ? rnd() < 0.5 : rnd() < 0.004)) {
       corrida.safetyCar = 3 + Math.floor(rnd() * 3);
       registrar(corrida, 'SAFETY CAR na pista!', 'sc');
     }
@@ -316,7 +321,7 @@
   const Engine = {
     PNEUS, ORDEM_PNEUS, MODOS, PONTOS,
     criarRng, forcaCarro, ritmoBase, vidaPneu, classificar,
-    criarCorrida, passo, simularCompleta, resultado, escolherPneu,
+    criarCorrida, passo, simularCompleta, resultado, escolherPneu, registrar,
   };
   if (typeof module === 'object' && module.exports) module.exports = Engine;
   else root.BoxEngine = Engine;
