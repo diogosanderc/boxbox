@@ -700,7 +700,7 @@ tr.jogador td { background: rgba(61, 155, 255, 0.12); }
 
 /* ---------- tela do nome: licença de piloto ---------- */
 .tela-inicio { display: grid; gap: 22px; padding: 4px 0 110px; }
-.inicio-topo { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 16px; }
+.inicio-topo { display: grid; grid-template-columns: auto minmax(0, 1fr) 44px; align-items: center; gap: 16px; }
 .redondo-vazio { width: 44px; }
 .progresso-inicio { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .progresso-inicio i { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); }
@@ -709,7 +709,7 @@ tr.jogador td { background: rgba(61, 155, 255, 0.12); }
 .inicio-texto { display: grid; gap: 8px; }
 .inicio-texto h1 { font-size: 26px; text-transform: none; letter-spacing: 0; line-height: 1.15; }
 .inicio-texto p { line-height: 1.5; }
-.licenca { position: relative; overflow: hidden; border-radius: 20px; padding: 16px 16px 20px; display: grid; gap: 14px;
+.licenca { position: relative; overflow: hidden; border-radius: 20px; padding: 16px; display: grid; gap: 14px;
   background: linear-gradient(135deg, #16284d 0%, #0f1b36 55%, #1a1030 100%); border: 1px solid rgba(140, 170, 230, 0.22);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08); transition: opacity 0.2s; }
 .licenca::after { content: ''; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(225, 6, 0, 0.25), transparent 70%); }
@@ -727,8 +727,6 @@ tr.jogador td { background: rgba(61, 155, 255, 0.12); }
 .licenca-campos { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 16px; margin-top: 8px; }
 .licenca-campos span { display: grid; gap: 1px; }
 .licenca-campos b { font-size: 15px; }
-.licenca-faixa { position: absolute; left: 0; right: 0; bottom: 0; height: 6px;
-  background: repeating-linear-gradient(90deg, #fff 0 6px, #0b1222 6px 12px); opacity: 0.85; }
 .campo-nome { display: grid; gap: 8px; }
 .campo-nome span { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fraco); }
 .campo-nome input { font-size: 20px; padding: 16px; border-radius: 16px; }
@@ -755,3 +753,9 @@ h1 { font-size: 28px; }
 .kpi-valor { font-size: 24px; }
 .kpi-caixa .kpi-valor { font-size: 30px; }
 .dado b { font-size: 22px; }
+
+/* Botão de voltar: pílula com seta e texto, bem visível */
+button.voltar { display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px 8px 10px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); color: var(--texto); font-weight: 700; font-size: 15px; }
+button.voltar .ico { width: 20px; height: 20px; stroke-width: 2.6; }
+button.voltar:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.5); }

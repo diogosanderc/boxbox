@@ -331,7 +331,6 @@
           </div>
         </div>
       </div>
-      <div class="licenca-faixa"></div>
     </div>`;
   }
 
@@ -341,7 +340,7 @@
     app.innerHTML = `
       <div class="tela-inicio">
         <div class="inicio-topo">
-          <button class="redondo" data-acao="voltar-abertura" aria-label="Voltar">${icone('voltar')}</button>
+          <button class="voltar" data-acao="voltar-abertura">${icone('voltar')}<span>Voltar</span></button>
           ${progressoInicio(1)}
           <span class="redondo-vazio"></span>
         </div>
@@ -407,7 +406,7 @@
     const escolhida = tela.escolhida && C.equipeBase(tela.escolhida);
     app.innerHTML = `
       <div class="tela-equipe">
-        <div class="linha"><button class="redondo" data-acao="trocar-nome" aria-label="Voltar">${icone('voltar')}</button><span class="espaco"></span>${botaoAjuda('equipe')}</div>
+        <div class="linha"><button class="voltar" data-acao="trocar-nome">${icone('voltar')}<span>Voltar</span></button><span class="espaco"></span>${botaoAjuda('equipe')}</div>
         <div>${progressoInicio(2)}<h1>Escolha sua equipe</h1>
           <p class="fraco">Três equipes abriram as portas para ${esc(tela.nomePiloto)}. Toque em uma para escolher.</p></div>
         <div class="equipes-iniciais">
@@ -830,7 +829,7 @@
     const anotacoes = estado.caderno[pista.id] || [];
     app.innerHTML = `
       <div class="detalhe">
-        <div class="linha"><button class="redondo" data-acao="voltar-paddock-pista" aria-label="Voltar">${icone('voltar')}</button></div>
+        <div class="linha"><button class="voltar" data-acao="voltar-paddock-pista">${icone('voltar')}<span>Paddock</span></button></div>
         <div class="detalhe-titulo"><h1>${tituloForte(pista.nome)}</h1><p>${icone('local', 'ico-p')} ${esc(pista.local)}</p></div>
         <div class="segmentado" role="tablist">
           <button role="tab" data-acao="aba-pista" data-aba="pista" class="${aba === 'pista' ? 'ativo' : ''}" aria-selected="${aba === 'pista'}">Pista</button>
