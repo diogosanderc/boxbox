@@ -137,7 +137,7 @@
   naPista.innerHTML = `<div class="na-pista" role="status" aria-live="polite">
     <span class="subtitulo" data-titulo></span>
     <b class="na-pista-passo" data-passo></b>
-    <div class="na-pista-trilho"><i data-barra></i><svg class="na-pista-kart" data-kart viewBox="0 0 48 24" aria-hidden="true"><path class="carro-corpo" d="M2 17l7-5 11-1 3-4h6l2 4 9 1 4-4h3v9z"/><circle class="carro-capacete" cx="26" cy="7.5" r="2.6"/><circle cx="12" cy="18" r="5"/><circle cx="38" cy="18" r="5"/></svg></div>
+    <div class="na-pista-trilho"><i data-barra></i><span class="na-pista-kart" data-kart aria-hidden="true">🏎️</span></div>
     <span class="fraco mini" data-dica></span>
   </div>`;
   document.body.appendChild(naPista);

@@ -501,11 +501,8 @@ textarea { font-size: 15px; resize: vertical; min-height: 64px; }
 .na-pista-trilho { position: relative; height: 10px; margin: 14px 12px 6px; background: var(--painel-2); border-radius: 999px; }
 .na-pista-trilho i { display: block; height: 100%; width: 0; background: var(--destaque); border-radius: 999px; }
 .na-pista-trilho { margin-top: 36px; }
-/* Carro em silhueta flat, apoiado em cima da barra. */
-.na-pista-kart { position: absolute; bottom: 6px; left: 0; width: 68px; height: 34px; transform: translateX(-50%) scaleX(-1); filter: drop-shadow(0 2px 6px rgba(225, 6, 0, 0.6)); }
-.na-pista-kart .carro-corpo { fill: var(--destaque); }
-.na-pista-kart circle { fill: #10182a; stroke: #e8eef8; stroke-width: 1.6; }
-.na-pista-kart .carro-capacete { fill: #fff; stroke: none; }
+/* O emoji do carro olha para a esquerda: espelhado para andar para a direita, apoiado em cima da barra. */
+.na-pista-kart { position: absolute; bottom: 2px; left: 0; font-size: 40px; line-height: 1; transform: translateX(-50%) scaleX(-1); filter: drop-shadow(0 2px 6px rgba(225, 6, 0, 0.6)); }
 
 /* ---------- classificação do campeonato ---------- */
 .classificacao, .calendario, .ao-vivo { display: grid; gap: 6px; }
