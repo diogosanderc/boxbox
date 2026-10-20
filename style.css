@@ -335,16 +335,9 @@ tr.fora td { opacity: 0.45; }
 .grade-4 { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
 .item .chip, .anotacao .chip { white-space: normal; }
 
-/* ---------- traçado e tela da pista ---------- */
+/* ---------- tela da pista ---------- */
 .ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .ico-p { width: 16px; height: 16px; vertical-align: -3px; }
-.tracado { display: block; width: 100%; height: auto; overflow: visible; }
-.mini-pista {
-  display: flex; align-items: center; gap: 12px; padding: 8px 14px 8px 8px; text-align: left; border-radius: var(--raio-m);
-  background: radial-gradient(120% 120% at 20% 50%, rgba(225, 6, 0, 0.25), var(--painel-2) 70%);
-}
-.mini-pista .tracado { width: 96px; flex: none; }
-.mini-pista span { font-weight: 600; font-size: 14px; }
 button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; }
 .detalhe { display: grid; gap: 18px; max-width: 640px; width: 100%; margin: 0 auto; }
 .detalhe-titulo { display: grid; gap: 4px; }
@@ -352,8 +345,8 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .segmentado { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; background: var(--painel-2); padding: 4px; border-radius: var(--raio-p); }
 .segmentado button { border: 1px solid transparent; background: transparent; border-radius: 9px; font-weight: 600; }
 .segmentado button.ativo { background: var(--painel-3); border-color: var(--fraco); }
-.pista-palco { padding: 20px 24px; border-radius: var(--raio); background: radial-gradient(70% 70% at 50% 50%, rgba(225, 6, 0, 0.22), var(--painel) 75%); border: 1px solid var(--borda); }
 .sobre { line-height: 1.6; }
 .tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tiles-2 .tile b { font-size: 22px; }
 .secao { display: grid; gap: 8px; }
+.ver-pista { justify-self: start; font-weight: 600; }

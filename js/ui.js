@@ -186,78 +186,6 @@
   };
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
-  // ---------- traçado da pista ----------
-  // Os vértices de data.js viram retas ligadas por arcos de círculo (filetes): cada canto recebe
-  // o maior raio que cabe (até raioMax) sem passar da metade das retas vizinhas.
-  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-  const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
-
-  function caminhoComFiletes(P, raioMax) {
-    const n = P.length;
-    const cantos = P.map((v, i) => {
-      const a = P[(i - 1 + n) % n];
-      const b = P[(i + 1) % n];
-      const L1 = dist(v, a);
-      const L2 = dist(v, b);
-      const e1 = [(a[0] - v[0]) / L1, (a[1] - v[1]) / L1];
-      const e2 = [(b[0] - v[0]) / L2, (b[1] - v[1]) / L2];
-      const angulo = Math.acos(Math.max(-1, Math.min(1, e1[0] * e2[0] + e1[1] * e2[1])));
-      const tanMeio = Math.tan(angulo / 2);
-      const r = Math.min(raioMax, Math.min(L1, L2) * 0.5 * tanMeio);
-      const t = r / tanMeio;
-      return {
-        entra: [v[0] + e1[0] * t, v[1] + e1[1] * t],
-        sai: [v[0] + e2[0] * t, v[1] + e2[1] * t],
-        r,
-        sentido: e1[0] * e2[1] - e1[1] * e2[0] < 0 ? 1 : 0,
-      };
-    });
-    const f = (q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`;
-    let d = `M${f(cantos[0].sai)}`;
-    for (let i = 1; i <= n; i++) {
-      const c = cantos[i % n];
-      d += ` L${f(c.entra)} A${c.r.toFixed(1)},${c.r.toFixed(1)} 0 0 ${c.sentido} ${f(c.sai)}`;
-    }
-    return `${d} Z`;
-  }
-
-  // Centraliza e ajusta o traçado na caixa de 300×180, mantendo a proporção.
-  function enquadrar(pontos) {
-    const xs = pontos.map((q) => q[0]);
-    const ys = pontos.map((q) => q[1]);
-    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    const k = Math.min(256 / (x1 - x0), 136 / (y1 - y0));
-    const dx = (300 - (x1 - x0) * k) / 2;
-    const dy = (180 - (y1 - y0) * k) / 2;
-    return pontos.map(([x, y]) => [dx + (x - x0) * k, dy + (y - y0) * k]);
-  }
-
-  function tracado(pista, classe = '') {
-    const V = enquadrar(pista.tracado);
-    const mini = classe === 'mini';
-    // Traçados decalcados com muitos vértices (como Lonato) pedem raio menor.
-    const d = caminhoComFiletes(V, V.length > 24 ? 7 : 34);
-    // Largada no meio da reta mais longa, com uma seta indicando o sentido.
-    let iLonga = 0;
-    V.forEach((a, i) => { if (dist(a, V[(i + 1) % V.length]) > dist(V[iLonga], V[(iLonga + 1) % V.length])) iLonga = i; });
-    const a = V[iLonga];
-    const b = V[(iLonga + 1) % V.length];
-    const m = lerp(a, b, 0.5);
-    const L = dist(a, b);
-    const [ux, uy] = [(b[0] - a[0]) / L, (b[1] - a[1]) / L];
-    const [nx, ny] = [-uy, ux];
-    const f = (x) => x.toFixed(1);
-    const seta = lerp(a, b, 0.5 + Math.min(0.22, 22 / L));
-    const id = `brilho-${pista.id}-${classe || 'x'}`;
-    return `<svg class="tracado ${classe}" viewBox="0 0 300 180" role="img" aria-label="Traçado de ${esc(pista.nome)}">
-      <defs><filter id="${id}" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="${mini ? 2 : 3.5}"/></filter></defs>
-      <path d="${d}" fill="none" stroke="var(--destaque-vivo)" stroke-width="${mini ? 6 : 7}" stroke-linejoin="round" filter="url(#${id})" opacity="0.55"/>
-      <path d="${d}" fill="none" stroke="var(--destaque-vivo)" stroke-width="${mini ? 5 : 4.5}" stroke-linejoin="round"/>
-      ${mini ? '' : `<line x1="${f(m[0] + nx * 7)}" y1="${f(m[1] + ny * 7)}" x2="${f(m[0] - nx * 7)}" y2="${f(m[1] - ny * 7)}" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M${f(seta[0] - ux * 4 + nx * 3.5)},${f(seta[1] - uy * 4 + ny * 3.5)} L${f(seta[0])},${f(seta[1])} L${f(seta[0] - ux * 4 - nx * 3.5)},${f(seta[1] - uy * 4 - ny * 3.5)}" fill="none" stroke="rgba(255, 255, 255, 0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(${f(nx * 11)},${f(ny * 11)})"/>`}
-    </svg>`;
-  }
-
   // ---------- início ----------
   function telaInicio() {
     const save = carregar();
@@ -315,7 +243,7 @@
         <div class="hero-pista">
           <h2>${esc(pista.nome)}</h2>
           <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
-          <button class="mini-pista" data-acao="ver-pista" aria-label="Ver a pista ${esc(pista.nome)}">${tracado(pista, 'mini')}<span>Ver pista ›</span></button>
+          <button class="ver-pista" data-acao="ver-pista">Ver pista ›</button>
         </div>
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
@@ -464,7 +392,6 @@
           <button role="tab" data-acao="aba-pista" data-aba="caderno" class="${aba === 'caderno' ? 'ativo' : ''}" aria-selected="${aba === 'caderno'}">Caderno</button>
         </div>
         ${aba === 'pista' ? `
-          <div class="pista-palco">${tracado(pista, 'grande')}</div>
           <section class="secao"><h2>Sobre</h2><p class="fraco sobre">${SOBRE_TIPO[pista.tipo]} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
           <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}</div>`
         : `<div class="anotacoes">${anotacoes.length ? anotacoes.map((l) => `<div class="anotacao">
