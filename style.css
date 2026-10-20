@@ -351,3 +351,12 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .secao { display: grid; gap: 8px; }
 .ver-pista { justify-self: start; font-weight: 600; }
 .anotacao-corrida { border-color: rgba(225, 6, 0, 0.45); }
+
+/* Barra "na pista" durante o treino e a volta lançada */
+.na-pista-fundo { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 25; display: grid; place-items: center; padding: 16px; }
+.na-pista-fundo[hidden] { display: none; }
+.na-pista { width: 100%; max-width: 420px; background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 22px; display: grid; gap: 12px; }
+.na-pista-passo { font-size: 22px; font-variant-numeric: tabular-nums; }
+.na-pista-trilho { position: relative; height: 10px; margin: 14px 12px 6px; background: var(--painel-2); border-radius: 999px; }
+.na-pista-trilho i { display: block; height: 100%; width: 0; background: var(--destaque); border-radius: 999px; }
+.na-pista-kart { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; border: 5px solid var(--destaque); box-shadow: 0 0 12px rgba(225, 6, 0, 0.8); }

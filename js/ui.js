@@ -95,6 +95,38 @@
   balao.addEventListener('click', (ev) => { if (ev.target === balao || ev.target.closest('[data-fechar]')) balao.hidden = true; });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') balao.hidden = true; });
 
+  // ---------- "na pista": barra animada enquanto o treino ou a volta lançada acontece ----------
+  const naPista = document.createElement('div');
+  naPista.className = 'na-pista-fundo';
+  naPista.hidden = true;
+  naPista.innerHTML = `<div class="na-pista" role="status" aria-live="polite">
+    <span class="subtitulo" data-titulo></span>
+    <b class="na-pista-passo" data-passo></b>
+    <div class="na-pista-trilho"><i data-barra></i><span class="na-pista-kart" data-kart aria-hidden="true"></span></div>
+    <span class="fraco mini" data-dica></span>
+  </div>`;
+  document.body.appendChild(naPista);
+  const menosMovimento = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // passos: textos mostrados em sequência; ao terminar chama depois().
+  function animarPista(titulo, passos, dica, depois) {
+    const duracao = menosMovimento() ? 400 : 450 * passos.length;
+    const el = (q) => naPista.querySelector(q);
+    el('[data-titulo]').textContent = titulo;
+    el('[data-dica]').textContent = dica;
+    naPista.hidden = false;
+    const inicio = performance.now();
+    const quadro = (agora) => {
+      const t = Math.min(1, (agora - inicio) / duracao);
+      el('[data-barra]').style.width = `${t * 100}%`;
+      el('[data-kart]').style.left = `${t * 100}%`;
+      el('[data-passo]').textContent = passos[Math.min(passos.length - 1, Math.floor(t * passos.length))];
+      if (t < 1) requestAnimationFrame(quadro);
+      else setTimeout(() => { naPista.hidden = true; depois(); }, 180);
+    };
+    requestAnimationFrame(quadro);
+  }
+
   // ---------- peças visuais ----------
   function cartao(titulo, corpo, { ajuda, classe = '', extra = '' } = {}) {
     return `<section class="painel ${classe}">
@@ -778,16 +810,28 @@
       case 'sugestao':
         if (erro(C.pedirSugestao(estado, estado.fds.sessao))) { salvar(); render(); aviso('O mecânico ajustou o kart.'); }
         break;
-      case 'saida':
-        if (erro(C.saidaTreino(estado))) { salvar(); render(); }
+      case 'saida': {
+        const r = C.saidaTreino(estado);
+        if (!erro(r)) break;
+        salvar();
+        const voltas = Array.from({ length: C.VOLTAS_POR_SAIDA }, (_, i) => `Volta ${i + 1}/${C.VOLTAS_POR_SAIDA}`);
+        animarPista(`Treino livre · saída ${estado.fds.saidas.length}`, voltas, 'O piloto está sentindo o kart…', () => {
+          render();
+          // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
+          const nova = app.querySelector('.saida');
+          if (nova) nova.scrollIntoView({ behavior: menosMovimento() ? 'auto' : 'smooth', block: 'center' });
+        });
         break;
+      }
       case 'ir-quali':
         C.irParaClassificacao(estado);
         salvar();
         render();
         break;
       case 'classificar':
-        if (erro(C.classificar(estado))) { salvar(); render(); }
+        if (!erro(C.classificar(estado))) break;
+        salvar();
+        animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', render);
         break;
       case 'desfazer-grid':
         estado.fds.setup = { ...(estado.fds.setupQuali || estado.fds.setupCorrida) };
