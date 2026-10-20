@@ -533,8 +533,8 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade grade-4">${cartaoCabeca()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
-      campeonato: () => `<div class="grade grade-4">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
+      campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia"><b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),

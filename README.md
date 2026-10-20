@@ -6,7 +6,7 @@ A meta desta primeira fase é sair do kart com uma vaga na Fórmula 4.
 
 ## Como jogar
 
-Abra `index.html` no navegador (não precisa de servidor nem instalação). A carreira é salva sozinha no navegador.
+Abra `index.html` no navegador do celular (não precisa de servidor nem instalação). O jogo é feito só para celular: no computador ele aparece numa coluna com largura de telefone. A carreira é salva sozinha no navegador.
 
 1. **Nome do piloto** na primeira tela. Depois, **escolha a equipe**: só três abrem as portas no começo (uma de ponta,
    uma intermediária e uma pequena, sorteadas a cada jogo). As outras podem fazer propostas durante a temporada.

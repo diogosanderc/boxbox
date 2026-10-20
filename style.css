@@ -26,8 +26,10 @@
 * { box-sizing: border-box; }
 /* Nada rola para o lado: a página fica travada na largura da tela. */
 html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior-x: none; }
+html { background: #050608; }
+/* Jogo só para celular: no computador fica uma coluna com largura de telefone, centralizada. */
 body {
-  margin: 0;
+  max-width: 480px; margin: 0 auto; min-height: 100vh;
   background: var(--fundo);
   color: var(--texto);
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -69,7 +71,7 @@ input[type="text"], textarea {
 .status-piloto { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
 
 /* ---------- estrutura ---------- */
-main { max-width: 1200px; margin: 0 auto; padding: var(--espaco); display: grid; gap: var(--espaco); }
+main { margin: 0 auto; padding: var(--espaco); display: grid; gap: var(--espaco); }
 main > * { min-width: 0; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 h1 { font-size: 28px; }
@@ -84,7 +86,7 @@ p { margin: 0; overflow-wrap: anywhere; }
 .linha { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
 .espaco { flex: 1; }
 .cabecalho-tela { gap: 12px; }
-.grade { display: grid; gap: var(--espaco); grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); align-items: start; }
+.grade { display: grid; gap: var(--espaco); grid-template-columns: minmax(0, 1fr); align-items: start; }
 .coluna { display: grid; gap: var(--espaco); min-width: 0; align-content: start; }
 .painel {
   background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio);
@@ -166,7 +168,7 @@ p { margin: 0; overflow-wrap: anywhere; }
 
 /* Próxima etapa (cartão principal) */
 .hero { border-color: rgba(225, 6, 0, 0.45); background: linear-gradient(160deg, rgba(225, 6, 0, 0.12), var(--painel) 45%); }
-.hero-corpo { display: grid; gap: 14px; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.9fr); align-items: center; }
+.hero-corpo { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: center; }
 .hero-pista { display: grid; gap: 8px; min-width: 0; }
 .hero-pista h2 { font-size: 26px; }
 .hero-acao { display: grid; gap: 8px; }
@@ -227,7 +229,7 @@ tr.fora td { opacity: 0.45; }
 .capacete { font-size: 44px; line-height: 1; }
 .campo { display: grid; gap: 6px; }
 .campo label { font-size: 12px; color: var(--fraco); text-transform: uppercase; letter-spacing: 0.6px; }
-.equipes-iniciais { display: grid; gap: var(--espaco); grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.equipes-iniciais { display: grid; gap: var(--espaco); grid-template-columns: minmax(0, 1fr); }
 .equipe-card { background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
 .equipe-topo { background: var(--cor-equipe); padding: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); display: grid; gap: 8px; justify-items: start; }
 .equipe-topo h2 { font-size: 24px; }
@@ -242,13 +244,13 @@ tr.fora td { opacity: 0.45; }
 .passos-fds span { padding: 5px 12px; border-radius: 999px; font-size: 13px; background: var(--painel-2); color: var(--fraco); border: 1px solid var(--borda); }
 .passos-fds span.feito { color: var(--ok); }
 .passos-fds span.atual { background: var(--destaque); border-color: var(--destaque); color: #fff; font-weight: 600; }
-.corrida { display: grid; gap: var(--espaco); grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+.corrida { display: grid; gap: var(--espaco); grid-template-columns: minmax(0, 1fr); align-items: start; }
 .acoes { display: grid; gap: 8px; }
 .acoes .principal .etapas { margin-left: 8px; vertical-align: middle; }
 .acoes .principal .etapas i { background: rgba(255, 255, 255, 0.9); }
 .acoes .principal .etapas i.feita { background: rgba(255, 255, 255, 0.3); }
 .setup { display: grid; gap: 12px; }
-.ajuste { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px; align-items: center; }
+.ajuste { display: grid; align-items: center; }
 .segmentos { display: flex; gap: 4px; background: var(--painel-2); padding: 4px; border-radius: var(--raio-p); }
 .segmentos button { flex: 1; min-width: 0; padding: 7px 6px; background: transparent; border-color: transparent; border-radius: 9px; }
 .segmentos button.ativo { background: var(--painel-3); border-color: var(--fraco); font-weight: 600; }
@@ -307,37 +309,30 @@ tr.fora td { opacity: 0.45; }
   padding: 10px 18px; border-radius: 999px; z-index: 20; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); text-align: center;
 }
 
-/* ---------- celular ---------- */
-@media (max-width: 960px) {
-  .corrida { grid-template-columns: minmax(0, 1fr); }
-  .hero-corpo { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 600px) {
-  :root { --espaco: 12px; }
-  h1 { font-size: 24px; }
-  .topo { padding: 8px 12px; }
-  .marca { font-size: 19px; }
-  .marca small { display: none; }
-  .status { font-size: 13px; width: 100%; justify-content: space-between; }
-  .chip { font-size: 12px; padding: 3px 9px; }
-  .painel { padding: 16px 14px; }
-  .opc { display: none; }
-  table { font-size: 13px; }
-  th, td { padding-inline: 4px; }
-  .ajuste { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-  .barra { grid-template-columns: 96px minmax(0, 1fr) auto; }
-  .hero-pista h2 { font-size: 22px; }
-  .pos-grande b { font-size: 34px; }
-  .tela-nome { margin-top: 3vh; }
-  /* Abas viram uma barra de 5 botões: ícone em cima, nome embaixo */
-  .abas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 4px; }
-  .abas button { flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 11px; border-radius: var(--raio-p); border-color: transparent; background: transparent; }
-  .abas button span:first-child { font-size: 18px; }
-  .abas button.ativo { background: var(--jogador); border-color: var(--destaque); }
-}
+/* ---------- celular (o jogo é só para celular: estas regras valem sempre) ---------- */
+:root { --espaco: 12px; }
+h1 { font-size: 24px; }
+.topo { padding: 8px 12px; }
+.marca { font-size: 19px; }
+.marca small { display: none; }
+.status { font-size: 13px; width: 100%; justify-content: space-between; }
+.chip { font-size: 12px; padding: 3px 9px; }
+.painel { padding: 16px 14px; }
+.opc { display: none; }
+table { font-size: 13px; }
+th, td { padding-inline: 4px; }
+.ajuste { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.barra { grid-template-columns: 96px minmax(0, 1fr) auto; }
+.hero-pista h2 { font-size: 22px; }
+.pos-grande b { font-size: 34px; }
+.tela-nome { margin-top: 3vh; }
+/* Abas viram uma barra de 5 botões: ícone em cima, nome embaixo */
+.abas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 4px; }
+.abas button { flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 11px; border-radius: var(--raio-p); border-color: transparent; background: transparent; }
+.abas button span:first-child { font-size: 18px; }
+.abas button.ativo { background: var(--jogador); border-color: var(--destaque); }
 .compra { display: grid; gap: 2px; justify-items: center; }
 .compra span { font-size: 13px; color: var(--fraco); }
-.grade-4 { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
 .item .chip, .anotacao .chip { white-space: normal; }
 
 /* ---------- tela da pista ---------- */
