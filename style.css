@@ -786,3 +786,10 @@ button.redondo .ico { width: 20px; height: 20px; }
 .toast .ico-i { color: var(--azul-claro); }
 .checklist > b .ico-i, .checklist.ok .ico-i { width: 1.1em; height: 1.1em; }
 .capacete .sem-carga { color: var(--perigo); }
+
+/* Ajustes do kart: a opção escolhida fica bem marcada. */
+.segmentos button.ativo { background: var(--azul); border-color: var(--azul); color: #fff; font-weight: 700; box-shadow: 0 0 0 3px rgba(61, 155, 255, 0.25), 0 4px 12px rgba(61, 155, 255, 0.35); }
+.segmentos button:not(.ativo):not(:disabled):active { background: rgba(61, 155, 255, 0.14); }
+.passos { border: 1px solid rgba(61, 155, 255, 0.45); box-shadow: 0 0 0 3px rgba(61, 155, 255, 0.12); }
+.passos b { color: var(--azul-claro); font-weight: 700; }
+.passos button:not(:disabled):active { background: var(--azul); color: #fff; }
