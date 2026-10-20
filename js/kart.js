@@ -243,15 +243,19 @@
       return frases;
     }
     const frases = [];
+    // Frase insegura: a reclamação errada sempre sai assim; a certa, de vez em quando.
+    // O jogador aprende que "acho que..." vale menos, sem virar uma regra garantida.
+    const DUVIDAS = ['Não tenho certeza, mas ', 'Acho que ', 'Pode ser impressão minha, mas '];
+    const emDuvida = (f) => DUVIDAS[Math.floor(rnd() * DUVIDAS.length)] + f.replace(/^./, (c) => c.toLowerCase());
     for (const item of ordenados.slice(0, 2)) {
       if (item.peso < 0.06) break;
       const r = rnd();
-      if (r < acerto) frases.push(SINTOMAS[item.k][item.sinal]);
+      if (r < acerto) frases.push(rnd() < 0.15 ? emDuvida(SINTOMAS[item.k][item.sinal]) : SINTOMAS[item.k][item.sinal]);
       else if (r < acerto + (1 - acerto) * 0.6) { const v = vagos(); frases.push(v[Math.floor(rnd() * v.length)]); }
       else {
-        // Pilotos inexperientes às vezes reclamam da coisa errada.
+        // Pilotos inexperientes às vezes reclamam da coisa errada (e aí falam sem convicção).
         const outro = M.ORDEM[Math.floor(rnd() * M.ORDEM.length)];
-        frases.push(SINTOMAS[outro][rnd() < 0.5 ? 0 : 1]);
+        frases.push(emDuvida(SINTOMAS[outro][rnd() < 0.5 ? 0 : 1]));
       }
     }
     return [...new Set(frases)];
