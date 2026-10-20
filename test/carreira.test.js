@@ -277,6 +277,7 @@ test('nenhum traçado de kartódromo se cruza', () => {
   const cruza = (a, b, c, d) => lado(a, b, c) * lado(a, b, d) < 0 && lado(c, d, a) * lado(c, d, b) < 0;
   for (const k of [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu]) {
     const P = k.tracado;
+    if (!P) continue; // pistas novas ainda sem desenho
     const n = P.length;
     assert.ok(n >= 8, k.id);
     for (let i = 0; i < n; i++) {

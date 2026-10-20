@@ -76,14 +76,16 @@
 
   const KARTODROMOS = {
     br: [
-      { id: 'granja', tracado: [[40, 150], [250, 150], [275, 135], [265, 115], [150, 105], [130, 90], [150, 75], [255, 60], [270, 40], [250, 25], [90, 25], [55, 40], [70, 70], [45, 95], [30, 125]], nome: 'Granja Viana', local: 'Cotia (SP)', tipo: 'mista', altitude: 790, clima: 24, tempoBase: 46.5 },
+      { id: 'granja', tracado: [[40, 150], [250, 150], [275, 135], [265, 115], [150, 105], [130, 90], [150, 75], [255, 60], [270, 40], [250, 25], [90, 25], [55, 40], [70, 70], [45, 95], [30, 125]], nome: 'Kartódromo Internacional da Granja Viana', local: 'Cotia (SP)', tipo: 'mista', altitude: 853, clima: 24, tempoBase: 46.5 },
       { id: 'aldeia', tracado: [[30, 150], [170, 150], [190, 130], [170, 110], [110, 105], [95, 85], [115, 70], [200, 75], [230, 100], [250, 150], [280, 140], [275, 90], [240, 55], [260, 30], [230, 20], [60, 25], [30, 45], [45, 75], [30, 105]], nome: 'Aldeia da Serra', local: 'Barueri (SP)', tipo: 'travada', altitude: 750, clima: 24, tempoBase: 44.0 },
-      { id: 'interlagos', tracado: [[30, 40], [260, 30], [285, 55], [260, 75], [140, 85], [130, 105], [150, 120], [265, 125], [285, 150], [260, 165], [45, 160], [20, 135], [40, 100], [25, 70]], nome: 'Kartódromo de Interlagos', local: 'São Paulo (SP)', tipo: 'veloz', altitude: 760, clima: 23, tempoBase: 48.0 },
-      { id: 'birigui', tracado: [[30, 130], [110, 50], [150, 30], [255, 30], [280, 55], [255, 80], [180, 90], [175, 110], [255, 125], [275, 150], [250, 165], [55, 165], [25, 150]], nome: 'Birigui', local: 'Birigui (SP)', tipo: 'veloz', altitude: 400, clima: 29, tempoBase: 50.5 },
+      { id: 'interlagos', tracado: [[30, 40], [260, 30], [285, 55], [260, 75], [140, 85], [130, 105], [150, 120], [265, 125], [285, 150], [260, 165], [45, 160], [20, 135], [40, 100], [25, 70]], nome: 'Kartódromo Municipal Ayrton Senna', local: 'Interlagos, São Paulo (SP)', tipo: 'veloz', altitude: 780, clima: 23, tempoBase: 48.0 },
+      { id: 'birigui', tracado: [[30, 130], [110, 50], [150, 30], [255, 30], [280, 55], [255, 80], [180, 90], [175, 110], [255, 125], [275, 150], [250, 165], [55, 165], [25, 150]], nome: 'Speed Park', local: 'Birigui (SP)', tipo: 'veloz', altitude: 406, clima: 29, tempoBase: 50.5 },
       { id: 'londrina', tracado: [[30, 60], [60, 30], [150, 30], [170, 60], [150, 85], [175, 100], [240, 60], [275, 75], [275, 120], [250, 140], [260, 160], [130, 165], [100, 140], [50, 155], [25, 125]], nome: 'Londrina', local: 'Londrina (PR)', tipo: 'mista', altitude: 580, clima: 24, tempoBase: 47.0 },
       { id: 'taruma', tracado: [[40, 35], [250, 30], [280, 55], [240, 80], [215, 105], [270, 140], [240, 165], [55, 160], [25, 135], [80, 105], [85, 80], [30, 60]], nome: 'Tarumã', local: 'Viamão (RS)', tipo: 'veloz', altitude: 50, clima: 19, tempoBase: 49.0 },
       { id: 'brasilia', tracado: [[25, 110], [45, 45], [80, 25], [115, 45], [125, 85], [155, 95], [185, 50], [215, 30], [265, 35], [285, 65], [250, 95], [275, 130], [260, 160], [180, 160], [140, 140], [90, 160], [40, 150]], nome: 'Kartódromo de Brasília', local: 'Brasília (DF)', tipo: 'mista', altitude: 1100, clima: 25, tempoBase: 47.5 },
-      { id: 'conde', tracado: [[30, 150], [25, 95], [70, 80], [35, 55], [55, 25], [150, 30], [170, 55], [210, 30], [270, 35], [280, 75], [230, 90], [275, 115], [270, 155], [200, 160], [175, 130], [140, 155]], nome: 'Conde', local: 'Conde (PB)', tipo: 'travada', altitude: 40, clima: 30, tempoBase: 43.5 },
+      { id: 'conde', tracado: [[30, 150], [25, 95], [70, 80], [35, 55], [55, 25], [150, 30], [170, 55], [210, 30], [270, 35], [280, 75], [230, 90], [275, 115], [270, 155], [200, 160], [175, 130], [140, 155]], nome: 'Circuito Internacional Paladino', local: 'Conde (PB)', tipo: 'travada', altitude: 112, clima: 30, tempoBase: 43.5 },
+      { id: 'betim', nome: 'Kartódromo Internacional de Betim', local: 'Betim (MG)', tipo: 'mista', altitude: 860, clima: 25, tempoBase: 47.0 },
+      { id: 'itu', nome: 'Arena Itu', local: 'Itu (SP)', tipo: 'veloz', altitude: 583, clima: 25, tempoBase: 48.5 },
     ],
     // Circuitos da F4 (autódromos de verdade; números aproximados).
     f4: [
@@ -128,6 +130,10 @@
       sobre: 'Pista mista no planalto, a 1.100 m: o ar rarefeito tira força do motor. Asfalto áspero e sol forte gastam o pneu.' },
     conde: { extensao: 960, largura: 7, sentido: 'horário', retas: [130], curvas: { lentas: 6, medias: 3, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.35, ondePassar: 'Grampo da curva 4',
       sobre: 'Curta e muito travada, à beira-mar. Muito calor e asfalto abrasivo: o pneu sofre. Zebras altas nos grampos.' },
+    betim: { extensao: 1120, largura: 8, sentido: 'anti-horário', retas: [190, 130], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Leve desnível', ultrapassagem: 0.55, ondePassar: 'Freada do fim da reta principal',
+      sobre: 'Tradicional de Minas, recebe grandes campeonatos. Mista, no alto (860 m): o motor perde força e a carburação muda. Asfalto áspero, que gasta pneu.' },
+    itu: { extensao: 1170, largura: 9, sentido: 'horário', retas: [230, 160], curvas: { lentas: 2, medias: 4, rapidas: 4 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.7, ondePassar: 'Fim da reta principal',
+      sobre: 'Rápida e moderna, com retas longas e curvas de alta. Asfalto liso, que poupa pneu; o vácuo ajuda a passar.' },
     lonato: { extensao: 1010, largura: 8, sentido: 'horário', retas: [190, 100], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.55, ondePassar: 'Fim da reta principal',
       sobre: 'Palco dos grandes campeonatos europeus. Mista, técnica e com muita borracha: um erro de acerto aparece no cronômetro.' },
     genk: { extensao: 1360, largura: 9, sentido: 'anti-horário', retas: [250, 210, 140], curvas: { lentas: 2, medias: 4, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.75, ondePassar: 'Fim das retas, principalmente a primeira',
