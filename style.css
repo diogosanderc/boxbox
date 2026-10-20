@@ -62,13 +62,38 @@ input[type="text"], textarea {
 /* ---------- topo ---------- */
 .topo {
   display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap;
-  padding: 10px 16px; border-bottom: 3px solid var(--destaque); background: #0a0b0e;
+  padding: 10px 16px; border-bottom: 3px solid var(--destaque); background: linear-gradient(180deg, #14161c, #0a0b0e);
 }
 .marca { font-weight: 900; font-size: 22px; letter-spacing: 1px; font-style: italic; }
 .marca span { color: var(--destaque); }
 .marca small { font-size: 12px; font-weight: 500; color: var(--fraco); font-style: normal; letter-spacing: 0; }
-.status { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; font-size: 14px; min-width: 0; }
-.status-piloto { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.status { display: grid; gap: 12px; min-width: 0; width: 100%; }
+.status:empty { display: none; }
+/* Cabeçalho de app: perfil do piloto e três indicadores grandes */
+.perfil { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 16px; color: #fff; box-shadow: 0 0 0 2px var(--fundo), 0 0 0 4px rgba(255, 255, 255, 0.12); }
+.avatar-claro { color: #111; }
+.perfil-texto { display: grid; min-width: 0; line-height: 1.25; }
+.perfil-texto b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil-texto small, .perfil-camp small { color: var(--fraco); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil-camp { display: grid; justify-items: end; line-height: 1.2; padding: 6px 12px; border-radius: var(--raio-p); background: var(--painel-2); border: 1px solid var(--borda); }
+.perfil-camp b { font-size: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+/* Caixa ocupa a linha inteira: valor grande à esquerda, custo da etapa à direita */
+.kpi-caixa { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 12px; }
+.kpi-caixa .kpi-rotulo { grid-column: 1 / -1; }
+.kpi-caixa .kpi-valor { font-size: 24px; }
+.kpi-caixa .kpi-sub { text-align: right; padding-bottom: 4px; }
+.kpi { display: grid; gap: 4px; align-content: start; min-width: 0; padding: 10px 12px; border-radius: var(--raio-m); background: var(--painel); border: 1px solid var(--borda); }
+.kpi-rotulo { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fraco); }
+.kpi-valor { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-sub { font-size: 12px; color: var(--fraco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-barra { height: 5px; border-radius: 999px; background: var(--painel-3); overflow: hidden; margin-top: 4px; }
+.kpi-barra i { display: block; height: 100%; border-radius: inherit; background: var(--ok); }
+.kpi.aviso .kpi-barra i { background: var(--alerta); }
+.kpi.negativo .kpi-barra i { background: var(--perigo); }
+.kpi.negativo { border-color: rgba(255, 107, 107, 0.45); }
+.kpi.negativo .kpi-valor, .kpi.negativo .kpi-sub { color: var(--perigo); }
 
 /* ---------- estrutura ---------- */
 main { margin: 0 auto; padding: var(--espaco); display: grid; gap: var(--espaco); }
@@ -312,10 +337,9 @@ tr.fora td { opacity: 0.45; }
 /* ---------- celular (o jogo é só para celular: estas regras valem sempre) ---------- */
 :root { --espaco: 12px; }
 h1 { font-size: 24px; }
-.topo { padding: 8px 12px; }
 .marca { font-size: 19px; }
 .marca small { display: none; }
-.status { font-size: 13px; width: 100%; justify-content: space-between; }
+.topo { padding: 12px 16px 14px; gap: 12px; }
 .chip { font-size: 12px; padding: 3px 9px; }
 .painel { padding: 16px 14px; }
 .opc { display: none; }

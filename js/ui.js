@@ -205,9 +205,21 @@
     const eq = C.equipeBase(estado.equipeId);
     const camp = C.campeonato(estado.campeonato);
     const p = estado.piloto;
-    statusEl.innerHTML = `<span class="status-piloto"><span class="cor" style="background:${eq.cor}"></span><b>${esc(p.nome)}</b> <span class="fraco">${p.idade}a · ${camp.curto} ${estado.ano}</span></span>
-      <span class="chips">${chip(`💰 ${reais(estado.dinheiro)}`, estado.dinheiro < C.custoEtapa(estado) ? 'chip-vermelho' : '')}
-      ${chip(`😊 ${p.moral}`, 'chip-' + nivelClasse(p.moral))}${chip(`🔥 ${p.confianca}`, 'chip-' + nivelClasse(p.confianca))}</span>`;
+    const iniciais = p.nome.split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
+    const custo = C.custoEtapa(estado);
+    const apertado = estado.dinheiro < custo;
+    const kpi = (icone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo"><span aria-hidden="true">${icone}</span>${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
+    const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
+    statusEl.innerHTML = `<div class="perfil">
+        <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
+        <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
+        <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
+      </div>
+      <div class="kpis">
+        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${apertado ? 'negativo' : ''}`, `<small class="kpi-sub">${apertado ? 'Não paga a etapa' : `Etapa ${kmil(custo)}`}</small>`)}
+        ${kpi('😊', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
+        ${kpi('🔥', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
+      </div>`;
   }
 
   function render() {
