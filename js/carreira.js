@@ -395,13 +395,17 @@
   }
 
   // ---------- fim de semana ----------
+  const DESGASTE_ASFALTO = { liso: 0.8, medio: 0.9, abrasivo: 1.05 };
+
   function pistaAtual(estado) {
     const etapa = estado.calendario[estado.etapa];
     const camp = campeonato(estado.campeonato);
     const p = Dados.KARTODROMOS[camp.regiao].find((x) => x.id === etapa.pista);
     return {
-      ...p, voltas: camp.voltas, perdaBox: 99, desgaste: 0.9,
-      ultrapassagem: { travada: 0.4, mista: 0.55, veloz: 0.7 }[p.tipo],
+      ...p, voltas: camp.voltas, perdaBox: 99,
+      // Asfalto abrasivo gasta mais pneu; liso, menos. Retas longas facilitam a ultrapassagem.
+      desgaste: DESGASTE_ASFALTO[p.asfalto] || 0.9,
+      ultrapassagem: p.ultrapassagem != null ? p.ultrapassagem : { travada: 0.4, mista: 0.55, veloz: 0.7 }[p.tipo],
       peso: { motor: 1, aero: 0.3, chassi: 1.4 },
     };
   }
@@ -514,7 +518,7 @@
     const clima = climaAtual(estado);
     const cond = Kart.condicao(clima, 'treino', clima.manha.chove);
     const { tempo, efeito } = voltaLancada(estado, entradaJogador(estado), fds.setup, pneu.tipo, pneu.uso, cond, rnd, VOLTAS_POR_SAIDA);
-    pneu.uso += VOLTAS_POR_SAIDA * efeito.desgaste;
+    pneu.uso += VOLTAS_POR_SAIDA * efeito.desgaste * pista.desgaste / 0.9;
 
     // Melhor tempo de cada rival até agora no treino (cada um também deu suas voltas).
     const tempos = estado.rivais.map((r) => {

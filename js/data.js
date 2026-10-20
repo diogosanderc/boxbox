@@ -54,6 +54,45 @@
     ],
   };
 
+  // Ficha de cada kartódromo, para o piloto conhecer a pista. Os números são aproximados (pistas reais, dados de jogo).
+  // retas: comprimento em metros das retas principais. curvas: lentas/médias/rápidas. zebras: altas, baixas ou sem.
+  // asfalto: liso (gasta pouco pneu), medio ou abrasivo (gasta muito). ultrapassagem: 0 (difícil) a 1 (fácil).
+  const FICHAS = {
+    granja: { extensao: 1080, largura: 8, sentido: 'anti-horário', retas: [170, 120], curvas: { lentas: 4, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Leve subida no miolo', ultrapassagem: 0.55, ondePassar: 'Freada do fim da reta principal',
+      sobre: 'Pista tradicional, de miolo travado e duas retas que pedem saída limpa da curva anterior. As zebras baixas deixam cortar bastante.' },
+    aldeia: { extensao: 980, largura: 7, sentido: 'horário', retas: [140], curvas: { lentas: 6, medias: 4, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.35, ondePassar: 'Grampo depois da reta',
+      sobre: 'Muito travada e estreita, cheia de curvas lentas em sequência. Zebras altas: quem cortar demais desequilibra o kart. O asfalto áspero come o pneu.' },
+    interlagos: { extensao: 1180, largura: 9, sentido: 'anti-horário', retas: [240, 190], curvas: { lentas: 2, medias: 4, rapidas: 4 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Descida forte no fim da reta', ultrapassagem: 0.75, ondePassar: 'Fim das duas retas longas',
+      sobre: 'Rápida, com duas retas grandes e curvas de alta no meio. Velocidade final conta muito e o vácuo ajuda a passar. Asfalto liso, que poupa pneu.' },
+    birigui: { extensao: 1240, largura: 9, sentido: 'horário', retas: [260, 160], curvas: { lentas: 2, medias: 3, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.7, ondePassar: 'Grampo no fim da reta principal',
+      sobre: 'Uma das pistas mais rápidas do Brasil: reta enorme e sequência de curvas de pé embaixo. Calor forte quase o ano todo.' },
+    londrina: { extensao: 1090, largura: 8, sentido: 'anti-horário', retas: [180, 110], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'altas', asfalto: 'medio', desnivel: 'Ondulações na curva 3', ultrapassagem: 0.55, ondePassar: 'Freada da curva 1',
+      sobre: 'Equilibrada, com um pouco de tudo. As zebras altas e as ondulações no meio da volta castigam um kart duro demais.' },
+    taruma: { extensao: 1200, largura: 9, sentido: 'horário', retas: [230, 200], curvas: { lentas: 2, medias: 3, rapidas: 4 }, grampos: 1, zebras: 'sem', asfalto: 'liso', desnivel: 'Subida longa na reta oposta', ultrapassagem: 0.7, ondePassar: 'Fim da reta principal',
+      sobre: 'Veloz e fluida, com duas retas longas. Sem zebras: quem sai da pista perde muito. No inverno gaúcho o asfalto fica gelado.' },
+    brasilia: { extensao: 1120, largura: 8, sentido: 'anti-horário', retas: [190, 130], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.55, ondePassar: 'Freada do fim da reta',
+      sobre: 'Pista mista no planalto, a 1.100 m: o ar rarefeito tira força do motor. Asfalto áspero e sol forte gastam o pneu.' },
+    conde: { extensao: 960, largura: 7, sentido: 'horário', retas: [130], curvas: { lentas: 6, medias: 3, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.35, ondePassar: 'Grampo da curva 4',
+      sobre: 'Curta e muito travada, à beira-mar. Muito calor e asfalto abrasivo: o pneu sofre. Zebras altas nos grampos.' },
+    lonato: { extensao: 1010, largura: 8, sentido: 'horário', retas: [190, 100], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.55, ondePassar: 'Fim da reta principal',
+      sobre: 'Palco dos grandes campeonatos europeus. Mista, técnica e com muita borracha: um erro de acerto aparece no cronômetro.' },
+    genk: { extensao: 1360, largura: 9, sentido: 'anti-horário', retas: [250, 210, 140], curvas: { lentas: 2, medias: 4, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.75, ondePassar: 'Fim das retas, principalmente a primeira',
+      sobre: 'Longa e rápida, com três retas e curvas de alta. Clima belga: frio e chuva aparecem sem avisar.' },
+    zuera: { extensao: 1700, largura: 10, sentido: 'horário', retas: [220, 180], curvas: { lentas: 4, medias: 6, rapidas: 5 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Leve desnível no setor 2', ultrapassagem: 0.6, ondePassar: 'Grampos no fim das retas',
+      sobre: 'Enorme e larga, com todo tipo de curva. Calor seco espanhol e asfalto áspero: cuidar do pneu decide a corrida.' },
+    sarno: { extensao: 1700, largura: 10, sentido: 'anti-horário', retas: [170], curvas: { lentas: 7, medias: 6, rapidas: 3 }, grampos: 3, zebras: 'altas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.4, ondePassar: 'Grampo no fim da reta',
+      sobre: 'Muito técnica e travada, cheia de grampos e chicanes. Tração na saída das curvas lentas é tudo.' },
+    lemans: { extensao: 1350, largura: 9, sentido: 'horário', retas: [260, 170], curvas: { lentas: 2, medias: 4, rapidas: 4 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.7, ondePassar: 'Freada da reta principal',
+      sobre: 'Rápida, com reta longa e curvas abertas. Asfalto liso que poupa pneu; o ar fresco deixa o motor forte.' },
+    kristianstad: { extensao: 1100, largura: 8, sentido: 'anti-horário', retas: [170, 120], curvas: { lentas: 3, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'sem', asfalto: 'liso', desnivel: 'Subidas e descidas na floresta', ultrapassagem: 0.5, ondePassar: 'Fim da reta principal',
+      sobre: 'Mista, no meio da floresta sueca, com sobe e desce. Quase sempre fria: o pneu demora a esquentar.' },
+    wackersdorf: { extensao: 1190, largura: 9, sentido: 'horário', retas: [240, 150], curvas: { lentas: 2, medias: 4, rapidas: 4 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.7, ondePassar: 'Grampo no fim da reta',
+      sobre: 'Veloz e moderna, com reta longa e curvas de alta. Clima alemão frio, com chuva frequente.' },
+    franciacorta: { extensao: 1050, largura: 8, sentido: 'anti-horário', retas: [150], curvas: { lentas: 6, medias: 4, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.4, ondePassar: 'Grampo depois da reta',
+      sobre: 'Travada e exigente, com grampos e uma reta curta. Asfalto áspero e zebras altas cobram precisão.' },
+  };
+  for (const regiao of Object.values(KARTODROMOS)) for (const p of regiao) Object.assign(p, FICHAS[p.id]);
+
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
   const CAMPEONATOS = [
     { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 57, custo: 1, regiao: 'br', voltas: 16,

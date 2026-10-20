@@ -336,6 +336,7 @@
         <div class="hero-pista">
           <h2>${esc(pista.nome)}</h2>
           <div class="chips">${chip(tipoPista[pista.tipo])}${chip(`⛰ ${pista.altitude} m`)}${chip(esc(pista.local))}</div>
+          ${resumoPista(pista)}
           <button class="ver-pista" data-acao="ver-pista">Ver pista ›</button>
           ${chipRival()}
         </div>
@@ -588,11 +589,47 @@
     veloz: 'Traçado veloz, de retas longas e curvas rápidas. Pede velocidade final e coragem nas tangências.',
   };
 
+  // Ficha detalhada do traçado: retas, curvas, zebras, asfalto, desnível e onde ultrapassar.
+  const ZEBRAS = {
+    altas: ['Altas', 'Cortar demais desequilibra o kart.'],
+    baixas: ['Baixas', 'Dá para cortar bastante.'],
+    sem: ['Sem zebra', 'Sair do traçado custa caro.'],
+  };
+  const ASFALTO = {
+    liso: ['Liso', 'Poupa o pneu.'],
+    medio: ['Médio', 'Desgaste normal de pneu.'],
+    abrasivo: ['Abrasivo', 'Áspero: gasta muito pneu.'],
+  };
+  function fichaPista(p) {
+    const longas = p.retas.filter((m) => m >= 200).length;
+    const nCurvas = p.curvas.lentas + p.curvas.medias + p.curvas.rapidas;
+    const facil = p.ultrapassagem >= 0.65 ? 'Fácil' : p.ultrapassagem >= 0.5 ? 'Média' : 'Difícil';
+    const linha = (icone, rotulo, valor, detalhe = '') => `<div class="ficha-linha"><span class="ficha-icone" aria-hidden="true">${icone}</span>
+      <span class="ficha-rotulo">${rotulo}</span><span class="ficha-valor"><b>${valor}</b>${detalhe ? `<small>${detalhe}</small>` : ''}</span></div>`;
+    return [
+      linha('🛣️', 'Retas', `${p.retas.length} ${p.retas.length === 1 ? 'reta' : 'retas'}${longas ? ` · ${longas} ${longas === 1 ? 'longa' : 'longas'}` : ''}`, p.retas.map((m) => `${m} m`).join(' · ')),
+      linha('↪️', 'Curvas', `${nCurvas} curvas`, `${p.curvas.lentas} lentas · ${p.curvas.medias} médias · ${p.curvas.rapidas} rápidas`),
+      linha('⤵️', 'Grampos', p.grampos, p.grampos >= 2 ? 'Freadas fortes e tração na saída.' : ''),
+      linha('🟥', 'Zebras', ZEBRAS[p.zebras][0], ZEBRAS[p.zebras][1]),
+      linha('⬛', 'Asfalto', ASFALTO[p.asfalto][0], ASFALTO[p.asfalto][1]),
+      linha('⛰️', 'Desnível', esc(p.desnivel)),
+      linha('🏁', 'Ultrapassagem', facil, esc(p.ondePassar)),
+    ].join('');
+  }
+
+  // Resumo de uma linha para o card da etapa.
+  function resumoPista(p) {
+    if (!p.retas) return '';
+    const nCurvas = p.curvas.lentas + p.curvas.medias + p.curvas.rapidas;
+    const longas = p.retas.filter((m) => m >= 200).length;
+    return `<div class="chips">${chip(`🛣️ ${p.retas.length} ${p.retas.length === 1 ? 'reta' : 'retas'}${longas ? ` (${longas} ${longas === 1 ? 'longa' : 'longas'})` : ''}`)}${chip(`↪️ ${nCurvas} curvas`)}${chip(`🟥 Zebras ${ZEBRAS[p.zebras][0].toLowerCase().replace('sem zebra', 'não tem')}`)}${chip(`⬛ Asfalto ${ASFALTO[p.asfalto][0].toLowerCase()}`)}</div>`;
+  }
+
   function telaPista() {
     const pista = C.pistaAtual(estado);
     const camp = C.campeonato(estado.campeonato);
     const aba = tela.aba || 'pista';
-    const extensao = (pista.tempoBase * 75 / 3600).toFixed(2).replace('.', ',');
+    const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
     const anotacoes = estado.caderno[pista.id] || [];
     app.innerHTML = `
       <div class="detalhe">
@@ -603,8 +640,9 @@
           <button role="tab" data-acao="aba-pista" data-aba="caderno" class="${aba === 'caderno' ? 'ativo' : ''}" aria-selected="${aba === 'caderno'}">Caderno</button>
         </div>
         ${aba === 'pista' ? `
-          <section class="secao"><h2>Sobre</h2><p class="fraco sobre">${SOBRE_TIPO[pista.tipo]} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
-          <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}</div>`
+          <section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
+          <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? tile('Largura', `${pista.largura} m`) : ''}${pista.sentido ? tile('Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}</div>
+          ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`
         : `<div class="anotacoes">${anotacoes.length ? blocosCaderno(anotacoes) : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
         ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para a pista · ${reais(C.custoEtapa(estado))}</button>` : ''}
       </div>

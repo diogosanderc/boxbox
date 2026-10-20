@@ -379,6 +379,14 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tiles-2 .tile b { font-size: 22px; }
 .secao { display: grid; gap: 8px; }
+.ficha { display: grid; background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; }
+.ficha-linha { display: grid; grid-template-columns: 26px 104px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; }
+.ficha-linha + .ficha-linha { border-top: 1px solid var(--borda); }
+.ficha-icone { font-size: 18px; line-height: 1.3; }
+.ficha-rotulo { color: var(--fraco); font-size: 13px; line-height: 1.7; }
+.ficha-valor { display: grid; gap: 2px; min-width: 0; }
+.ficha-valor b { font-size: 15px; }
+.ficha-valor small { color: var(--fraco); font-size: 13px; line-height: 1.4; }
 .ver-pista { justify-self: start; font-weight: 600; }
 .diagnostico { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 textarea { font-size: 15px; resize: vertical; min-height: 64px; }

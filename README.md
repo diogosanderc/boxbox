@@ -33,6 +33,9 @@ mais irregular, gasta mais pneu e erra mais. Carburação pobre demais ou dentes
 A retífica é cara: a expressa deixa correr a etapa seguinte; a normal, mais barata, faz o piloto perder uma etapa.
 O **caderno de acertos** guarda tudo o que você testou em cada pista.
 
+Cada kartódromo tem uma **ficha** (Ver pista): extensão, largura, sentido, retas, curvas lentas, médias e rápidas,
+grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasivo gasta mais pneu; retas longas facilitam a ultrapassagem.
+
 ### Acompanhando a temporada
 
 - **Corrida ao vivo:** volta em destaque, pilotos por sigla com a cor da equipe, status de quem saiu (rodou, quebrou, motor),

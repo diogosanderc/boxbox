@@ -370,3 +370,16 @@ test('forçar o motor pode estourá-lo; a retífica é cara e a normal custa a e
   assert.strictEqual(f.motorQuebrado, false);
   assert.strictEqual(f.etapa, 1); // perdeu a etapa
 });
+
+test('todo kartódromo tem ficha completa, e o asfalto muda o desgaste do pneu', () => {
+  for (const p of [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu]) {
+    assert.ok(p.extensao > 0 && p.largura > 0 && p.retas.length > 0 && p.sobre, p.id);
+    assert.ok(['altas', 'baixas', 'sem'].includes(p.zebras), p.id);
+    assert.ok(['liso', 'medio', 'abrasivo'].includes(p.asfalto), p.id);
+    assert.ok(p.curvas.lentas + p.curvas.medias + p.curvas.rapidas > 0, p.id);
+  }
+  const e = Carreira.novoJogo({ seed: 1 });
+  const desgastes = new Set();
+  for (let i = 0; i < Carreira.ETAPAS; i++) { e.etapa = i; desgastes.add(Carreira.pistaAtual(e).desgaste); }
+  assert.ok(desgastes.size > 1);
+});
