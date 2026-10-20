@@ -194,4 +194,13 @@ test('no começo só 3 equipes: uma de ponta, uma intermediária e uma pequena',
   }
 });
 
+test('pneu comprado entra junto com os do mesmo tipo', () => {
+  const e = Carreira.novoJogo({ seed: 16 });
+  e.dinheiro = 100000;
+  Carreira.comprarPneu(e, 'slick');
+  Carreira.comprarPneu(e, 'chuva');
+  Carreira.comprarPneu(e, 'slick');
+  assert.deepStrictEqual(e.pneus.map((p) => p.tipo), ['slick', 'slick', 'slick', 'slick', 'chuva', 'chuva']);
+});
+
 module.exports = { jogarFimDeSemana };

@@ -200,7 +200,11 @@
     const preco = Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
     if (!gratis) estado.dinheiro -= preco;
-    estado.pneus.push({ id: `pn${estado.proxPneu++}`, tipo, uso: 0 });
+    // Jogo novo entra junto com os do mesmo tipo (slicks com slicks, chuva com chuva).
+    const novo = { id: `pn${estado.proxPneu++}`, tipo, uso: 0 };
+    const ultimo = estado.pneus.map((p) => p.tipo).lastIndexOf(tipo);
+    if (ultimo >= 0) estado.pneus.splice(ultimo + 1, 0, novo);
+    else estado.pneus.splice(tipo === 'slick' ? 0 : estado.pneus.length, 0, novo);
     return { ok: true };
   }
 
