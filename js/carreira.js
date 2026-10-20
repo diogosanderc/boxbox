@@ -553,6 +553,18 @@
     return { ok: true };
   }
 
+  // O que o piloto comenta da pista antes de cada sessão (treino, classificação ou grid).
+  function leituraPista(estado, sessao) {
+    const clima = climaAtual(estado);
+    const pista = pistaAtual(estado);
+    const treino = Kart.condicao(clima, 'treino', clima.manha.chove);
+    if (sessao === 'treino') return Kart.falaCondicoes(pista, treino, null, 0);
+    const molhado = clima.tarde.inicioChuva === 'quali';
+    const quali = Kart.condicao(clima, 'quali', molhado);
+    if (sessao === 'quali') return Kart.falaCondicoes(pista, quali, treino, clima.tarde.chance);
+    return Kart.falaCondicoes(pista, Kart.condicao(clima, 'corrida', molhado), quali, clima.tarde.chance);
+  }
+
   function irParaClassificacao(estado) {
     const clima = climaAtual(estado);
     const pneu = pneuMaisNovo(estado, clima.tarde.inicioChuva === 'quali' ? 'chuva' : 'slick');
@@ -841,7 +853,7 @@
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
-    pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
+    pistaAtual, climaAtual, leituraPista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
     classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada,
   };

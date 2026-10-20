@@ -143,6 +143,40 @@
     return [...new Set(frases)];
   }
 
+  // O piloto comenta a pista antes da sessão: pistas do que mudou (calor, borracha, ar, chuva, altitude),
+  // sem dizer o acerto. antes: condição da sessão anterior (null no treino).
+  function falaCondicoes(pista, cond, antes, chanceChuva) {
+    const f = [];
+    if (!antes) {
+      if (cond.molhado) f.push('Pista molhada logo cedo: o kart vai precisar de toda a aderência que der.');
+      else if (cond.tempPista <= 24) f.push('Manhã fria, o asfalto está gelado. O pneu vai demorar pra pegar temperatura.');
+      else if (cond.tempPista >= 34) f.push('Já está quente de manhã, o pneu vai esquentar rápido.');
+      else f.push('Temperatura boa de manhã, nada de muito frio nem muito calor.');
+      if (!cond.molhado) f.push('A pista ainda está verde, com pouca borracha. Vai escorregar mais que à tarde.');
+      if (cond.tempAr <= 15) f.push('O ar está frio: o motor fica forte e pede mais combustível.');
+      else if (cond.tempAr >= 26) f.push('O ar está quente: o motor esquenta fácil, cuidado com a mistura.');
+      if (pista.altitude >= 700) f.push('Aqui é alto, o ar é mais fraco: o motor rende menos.');
+      return f;
+    }
+    if (cond.molhado && !antes.molhado) f.push('Choveu! Esquece o acerto do seco, agora é outro kart.');
+    else if (!cond.molhado && antes.molhado) f.push('A pista secou. O acerto da chuva não serve mais.');
+    else if (!cond.molhado) {
+      const dAsf = cond.tempPista - antes.tempPista;
+      if (dAsf >= 8) f.push('O asfalto está pelando, bem mais quente que de manhã. O pneu vai esquentar muito mais rápido.');
+      else if (dAsf >= 3) f.push('O asfalto esquentou um pouco desde a manhã.');
+      else if (dAsf <= -3) f.push('O asfalto esfriou, o pneu vai demorar mais pra esquentar.');
+      if (cond.borracha - antes.borracha >= 0.25) f.push('A pista emborrachou desde a manhã: tem muito mais aderência, principalmente atrás.');
+      else if (cond.borracha > antes.borracha) f.push('Tem ainda mais borracha que na classificação: a traseira vai grudar um pouco mais.');
+    }
+    const dAr = cond.tempAr - antes.tempAr;
+    if (dAr >= 4) f.push('O ar esquentou também: o motor não vai respirar igual à manhã.');
+    else if (dAr <= -4) f.push('O ar esfriou: o motor não vai respirar igual à manhã.');
+    if (!cond.molhado && chanceChuva >= 50) f.push('Olha esse céu... tem cara de chuva na corrida.');
+    else if (!cond.molhado && chanceChuva >= 30) f.push('Pode ser que chova na corrida, não dá pra saber.');
+    if (!f.length) f.push('A pista está parecida com antes.');
+    return f;
+  }
+
   function dicaMecanico(e, mecanico, rnd) {
     const pior = ORDEM_AJUSTES.map((k) => ({ k, peso: PESO[k] * e[k] * e[k] })).sort((a, b) => b.peso - a.peso)[0];
     if (pior.peso < 0.06) return 'Mecânico: não mexe em nada, está no ponto.';
@@ -215,7 +249,7 @@
   const Kart = {
     AJUSTES, ORDEM_AJUSTES, PNEUS_KART,
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, desequilibrio, efeito,
-    feedbackPiloto, diagnostico, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
+    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
   else root.BoxKart = Kart;

@@ -651,7 +651,7 @@
     const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : ''}"></i>`).join('');
     return `<div class="corrida">
       <div class="coluna">
-        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${editorSetup()}`, { ajuda: treino ? 'setup' : 'quali' })}
+        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? 'setup' : 'quali' })}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         <div class="acoes">
           ${treino
@@ -671,6 +671,11 @@
     </div>`;
   }
 
+  // Falas do piloto sobre a pista antes da sessão: as pistas do que mudou.
+  function leitura(sessao) {
+    return `<div class="leitura">${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}</div>`;
+  }
+
   function telaGrid() {
     const fds = estado.fds;
     const pole = fds.quali[0].tempo;
@@ -681,6 +686,7 @@
         <section class="painel largada">
           <div class="pos-grande"><span>Largada</span><b>P${meu}</b></div>
           <div class="largada-info">${condicaoChips('grid')}${mudou ? chip('✎ Acerto alterado', 'chip-amarelo') : ''}</div>
+          ${leitura('grid')}
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
         ${cartao('Ajustes finos', editorSetup(), { ajuda: 'grid' })}

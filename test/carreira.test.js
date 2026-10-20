@@ -323,3 +323,22 @@ test('diagnóstico depois da corrida e anotação no caderno', () => {
   assert.deepStrictEqual(entrada.nota.ajustes, r.diagnostico.ajustes.map((a) => a.texto));
   assert.ok(r.anotado);
 });
+
+test('o piloto comenta o que mudou na pista entre as sessões', () => {
+  const pista = Dados.KARTODROMOS.br.find((p) => p.altitude >= 700);
+  const clima = { manha: { tempAr: 18, chove: false }, tarde: { tempAr: 26, chove: false, inicioChuva: null } };
+  const manha = Kart.condicao(clima, 'treino', false);
+  const tarde = Kart.condicao(clima, 'quali', false);
+  const treino = Kart.falaCondicoes(pista, manha, null, 0).join(' ');
+  assert.match(treino, /verde/);
+  assert.match(treino, /alto/);
+  const quali = Kart.falaCondicoes(pista, tarde, manha, 60).join(' ');
+  assert.match(quali, /asfalto está pelando/);
+  assert.match(quali, /emborrachou/);
+  assert.match(quali, /ar esquentou/);
+  assert.match(quali, /chuva/);
+  assert.match(Kart.falaCondicoes(pista, Kart.condicao(clima, 'quali', true), manha, 90).join(' '), /Choveu/);
+  const e = Carreira.novoJogo({ seed: 2 });
+  Carreira.iniciarFimDeSemana(e);
+  for (const s of ['treino', 'quali', 'grid']) assert.ok(Carreira.leituraPista(e, s).length > 0);
+});
