@@ -78,6 +78,8 @@
 
   function telaDaFase() {
     if (!estado) return { nome: 'abertura' };
+    // Fim de temporada: primeiro o suspense e o resumo; o relatório (propostas, próximo ano) vem depois.
+    if (estado.fase === 'relatorio' && estado.relatorio && !estado.relatorio.resumoVisto) return { nome: 'fimTemporada' };
     return { nome: estado.fase, aba: 'resumo' };
   }
 
@@ -262,8 +264,8 @@
   function render() {
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
-    document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe'].includes(tela.nome));
-    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
+    document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
+    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, f4: telaF4, falencia: telaFalencia };
     telas[tela.nome]();
     deslizarSegmentos();
   }
@@ -1315,7 +1317,6 @@
     const ganhos = r.premios.reduce((t, p) => t + p.valor, 0) + r.bonus.filter((b) => b.cumpriu).reduce((t, b) => t + b.valor, 0);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Temporada ${r.ano}</h1>${chip(esc(camp.curto))}</div>
-      ${r.pos === 1 ? heroCampeao(r, camp) : ''}
       ${r.f4Espera ? cartao('F4 garantida', `<p><b>${esc(r.f4Espera.nome)}</b> quer você na Fórmula 4, mas a FIA só permite a partir dos ${r.f4Espera.idade} anos. A vaga fica guardada: continue no kart e a proposta chega no fim da temporada em que você tiver ${r.f4Espera.idade}.</p>`, { classe: 'destaque' }) : ''}
       ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', (r.motivoF4 ? `<p class="motivo-f4">${ic('subir')}${esc(r.motivoF4)}</p>` : '') + estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
@@ -1342,18 +1343,107 @@
       </div>`;
   }
 
-  // Título: troféu grande, confete e os números do ano.
-  function heroCampeao(r, camp) {
-    const confete = Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${((i * 7) % 10) / 10}s;--r:${(i * 53) % 360}deg;--c:${['#e10600', '#ffd24a', '#ffffff', '#3d9bff'][i % 4]}"></i>`).join('');
-    const numeros = r.vitorias != null ? `<div class="campeao-numeros"><span><b>${r.vitorias}</b>${r.vitorias === 1 ? 'vitória' : 'vitórias'}</span><span><b>${r.podios}</b>pódios</span><span><b>${r.pontos}</b>pontos</span></div>` : '';
-    return `<section class="campeao-hero">
-      <div class="confete" aria-hidden="true">${confete}</div>
-      <span class="campeao-trofeu">${icone('trofeu')}</span>
-      <span class="campeao-ano">Temporada ${r.ano}</span>
-      <h2>Campeão</h2>
-      <p>${esc(camp.nome)}</p>
-      ${numeros}
-    </section>`;
+  // ---------- fim de temporada: suspense e resumo visual ----------
+  const PASSOS_FIM = ['Bandeirada final da temporada…', 'Somando os pontos…', 'Conferindo os prêmios…', 'Ouvindo os olheiros…'];
+  // Nome curto da pista pela cidade: "Kartódromo Internacional da Granja Viana" -> "Cotia".
+  const nomeCurtoPista = (nome) => {
+    const p = Object.values(Dados.KARTODROMOS).flat().find((x) => x.nome === nome);
+    return p ? p.local.split(' (')[0].split(',')[0] : nome;
+  };
+  const confete = (n) => Array.from({ length: n }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${((i * 7) % 10) / 10}s;--r:${(i * 53) % 360}deg;--c:${['#e10600', '#ffd24a', '#ffffff', '#3d9bff'][i % 4]}"></i>`).join('');
+
+  function telaFimTemporada() {
+    const r = estado.relatorio;
+    const camp = C.campeonato(r.campeonato);
+    if (tela.passo !== 'resumo') {
+      app.innerHTML = `
+        <div class="abertura carregando fim-carregando">
+          <div class="fim-titulo">
+            <span class="campeao-ano">${esc(camp.nome)}</span>
+            <h1>Temporada ${r.ano}</h1>
+            <div class="bandeira-quadriculada" aria-hidden="true"></div>
+          </div>
+          <div class="carregando-bloco" role="status" aria-live="polite">
+            <div class="carregando-trilho"><i data-barra></i></div>
+            <span class="fraco" data-passo>${PASSOS_FIM[0]}</span>
+          </div>
+        </div>`;
+      const duracao = menosMovimento() ? 500 : 3400;
+      const inicio = performance.now();
+      const minha = tela;
+      const quadro = (agora) => {
+        if (tela !== minha) return;
+        const t = Math.min(1, (agora - inicio) / duracao);
+        app.querySelector('[data-barra]').style.width = `${t * 100}%`;
+        app.querySelector('[data-passo]').textContent = PASSOS_FIM[Math.min(PASSOS_FIM.length - 1, Math.floor(t * PASSOS_FIM.length))];
+        if (t < 1) requestAnimationFrame(quadro);
+        else setTimeout(() => { if (tela === minha) { tela.passo = 'resumo'; render(); } }, 300);
+      };
+      requestAnimationFrame(quadro);
+      return;
+    }
+
+    const corridas = estado.historico.filter((h) => h.ano === r.ano && h.campeonato === r.campeonato);
+    const validas = corridas.filter((h) => !h.fora);
+    const vitorias = validas.filter((h) => h.pos === 1).length;
+    const podios = validas.filter((h) => h.pos <= 3).length;
+    const abandonos = corridas.length - validas.length;
+    const melhor = validas.reduce((m, h) => (!m || h.pos < m.pos ? h : m), null);
+    const ganhos = r.premios.reduce((t, p) => t + p.valor, 0) + r.bonus.filter((b) => b.cumpriu).reduce((t, b) => t + b.valor, 0);
+    const maiorEvolucao = (r.evolucao || []).reduce((m, x) => (!m || x.depois - x.antes > m.depois - m.antes ? x : m), null);
+    const frase = r.pos === 1 ? 'Campeão!' : r.pos === 2 ? 'Vice-campeão' : r.pos === 3 ? 'Pódio no campeonato' : r.pos <= C.VAGAS_SUBIDA ? `Entre os ${C.VAGAS_SUBIDA} primeiros` : 'Fora do top 4';
+    const posicoes = estado.evolucao.filter((e) => e.ano === r.ano && e.campeonato === r.campeonato).map((e) => ({ rotulo: `Etapa ${e.etapa}`, curto: `E${e.etapa}`, pos: e.pos }));
+    const destaque = (ic0, rotulo, valor, detalhe) => `<div class="fim-destaque">${icone(ic0)}<span>${rotulo}</span><b>${valor}</b>${detalhe ? `<small>${detalhe}</small>` : ''}</div>`;
+    let i = 0;
+    const bloco = (html) => `<div class="fim-entra" style="--i:${i++}">${html}</div>`;
+
+    app.innerHTML = `
+      <div class="fim-resumo">
+        <section class="fim-hero ${r.pos === 1 ? 'campeao' : r.pos <= 3 ? 'podio' : ''}">
+          ${r.pos === 1 ? `<div class="confete" aria-hidden="true">${confete(32)}</div>` : ''}
+          <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
+          <span class="fim-voce">Você terminou em</span>
+          <b class="fim-pos">${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P<span data-contagem>${menosMovimento() ? r.pos : 20}</span></b>
+          <span class="fim-frase">${frase}</span>
+          ${r.pos > 1 ? `<span class="fim-campeao">Campeão: ${esc(r.campeao)}</span>` : ''}
+        </section>
+        ${bloco(`<div class="fim-numeros">
+          <span><b>${vitorias}</b>${vitorias === 1 ? 'vitória' : 'vitórias'}</span>
+          <span><b>${podios}</b>pódios</span>
+          <span><b>${r.pontos}</b>pontos</span>
+          <span><b>${abandonos}</b>${abandonos === 1 ? 'abandono' : 'abandonos'}</span>
+        </div>`)}
+        ${bloco(cartao('Etapa por etapa', `<div class="fim-etapas">${corridas.map((h) => `<div class="fim-etapa">
+            <span class="resultado-bolinha ${h.fora ? 'fora' : h.pos === 1 ? 'ouro' : h.pos <= 3 ? 'podio' : h.pos <= 10 ? 'pontos' : ''}">${h.fora ? icone('x') : h.pos}</span>
+            <small>${esc(nomeCurtoPista(h.pista))}</small></div>`).join('')}</div>`))}
+        ${posicoes.length >= 2 ? bloco(cartao('No campeonato', graficoPosicao(posicoes))) : ''}
+        ${bloco(`<div class="fim-destaques">
+          ${melhor ? destaque('bandeira', 'Melhor corrida', `P${melhor.pos}`, esc(nomeCurtoPista(melhor.pista))) : ''}
+          ${maiorEvolucao ? destaque('subir', 'Mais evoluiu', `+${maiorEvolucao.depois - maiorEvolucao.antes}`, C.NOMES_ATRIBUTOS[maiorEvolucao.a]) : ''}
+          ${destaque('carteira', 'Ganhos no ano', ganhos ? `+R$ ${kmil(ganhos)}` : '—', ganhos ? '' : 'Sem prêmios este ano')}
+          ${destaque('estrela', 'Propostas', estado.propostas.length || r.f4Espera ? 'Chegaram!' : '—', estado.propostas.length ? `${estado.propostas.length} na mesa` : r.f4Espera ? 'F4 guardada' : 'Nenhuma este ano')}
+        </div>`)}
+        ${bloco('<button class="principal grande" data-acao="ver-relatorio">Continuar</button>')}
+      </div>`;
+
+    // Contagem regressiva da posição: de P20 até a posição final.
+    if (!menosMovimento()) {
+      const el = app.querySelector('[data-contagem]');
+      const inicio = performance.now();
+      const minha = tela;
+      const de = 20;
+      const passo = (agora) => {
+        if (tela !== minha || !el.isConnected) return;
+        const t = Math.min(1, (agora - inicio) / 1300);
+        const suave = 1 - (1 - t) ** 3;
+        el.textContent = Math.round(de - (de - r.pos) * suave);
+        if (t < 1) requestAnimationFrame(passo);
+        else el.closest('.fim-hero').classList.add('revelado');
+      };
+      requestAnimationFrame(passo);
+    } else {
+      app.querySelector('.fim-hero').classList.add('revelado');
+    }
   }
 
   function telaF4() {
@@ -1624,6 +1714,12 @@
         if (erro(C.anotarCorrida(estado, campo ? campo.value : ''))) { salvar(); render(); aviso('Anotado no caderno.'); }
         break;
       }
+      case 'ver-relatorio':
+        estado.relatorio.resumoVisto = true;
+        salvar();
+        ir(telaDaFase());
+        window.scrollTo(0, 0);
+        break;
       case 'voltar-paddock':
         C.concluirEtapa(estado);
         salvar();
