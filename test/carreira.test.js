@@ -123,6 +123,21 @@ test('sem dinheiro, a etapa é pulada e os rivais pontuam', () => {
   assert.strictEqual(Object.values(e.pontos).reduce((s, x) => s + x, 0), 101);
 });
 
+test('o mecânico só ajuda durante o treino livre', () => {
+  const e = Carreira.novoJogo({ seed: 8 });
+  Carreira.iniciarFimDeSemana(e);
+  for (let i = 0; i < Carreira.SAIDAS_TREINO; i++) Carreira.saidaTreino(e);
+  assert.strictEqual(Carreira.pedirSugestao(e, 'treino').ok, false);
+  const f = Carreira.novoJogo({ seed: 8 });
+  Carreira.iniciarFimDeSemana(f);
+  Carreira.irParaClassificacao(f);
+  assert.strictEqual(Carreira.pedirSugestao(f, 'quali').ok, false);
+  const g = Carreira.novoJogo({ seed: 8 });
+  Carreira.iniciarFimDeSemana(g);
+  Carreira.saidaTreino(g);
+  assert.strictEqual(Carreira.pedirSugestao(g, 'treino').ok, true);
+});
+
 test('no grid só cabem ajustes finos e o mecânico não mexe', () => {
   const e = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(e);

@@ -74,10 +74,9 @@
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode travar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
-    radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu e o mecânico dá um palpite. Pilotos experientes e motivados descrevem melhor o problema.'],
-    quali: ['Classificação', 'A volta lançada define o grid. O acerto e o pneu daqui continuam na corrida, mas ainda dá para mexer no grid.'],
+    radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu e o mecânico dá um palpite. Pilotos experientes e motivados descrevem melhor o problema. O mecânico pode acertar o kart por você uma vez, enquanto ainda houver saída no treino.'],
+    quali: ['Classificação', 'A volta lançada define o grid. Depois do treino livre o mecânico não mexe mais no kart: o acerto é com você. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid o mecânico não mexe no kart: só cabem ajustes finos em relação à classificação (pressão ±1 psi, relação ±1 dente, carburação ±1). Eixo e bitola ficam travados. Dá para trocar o jogo de pneus. Na corrida o asfalto tem mais borracha que na classificação.'],
-    pilotagem: ['Pilotagem', 'Atacar ganha tempo, mas gasta pneu e aumenta o risco de rodar. Poupar segura o pneu para o fim.'],
     temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
@@ -603,9 +602,12 @@
     return p && p.uso > 15 ? chip('⚠ Pneu gasto para a corrida', 'chip-amarelo') : '';
   }
 
+  // O mecânico só mexe no kart durante o treino livre, enquanto ainda há saídas.
   function botaoMecanico() {
-    const usado = estado.fds.sugestaoUsada;
-    return `<button data-acao="sugestao" ${usado ? 'disabled' : ''}>🔧 ${usado ? 'Mecânico já ajudou' : 'Pedir ao mecânico'}</button>`;
+    const fds = estado.fds;
+    const usado = fds.sugestaoUsada;
+    const acabou = fds.saidas.length >= C.SAIDAS_TREINO;
+    return `<button data-acao="sugestao" ${usado || acabou ? 'disabled' : ''}>🔧 ${usado ? 'Mecânico já ajudou' : acabou ? 'Treino acabou' : 'Pedir ao mecânico'}</button>`;
   }
 
   // Diferença para a saída anterior: verde se foi mais rápida, vermelho se foi mais lenta.
@@ -630,7 +632,7 @@
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
                <div class="botoes-2">${botaoMecanico()}<button data-acao="ir-quali">Ir para a classificação →</button></div>`
-            : `<button class="principal grande" data-acao="classificar">Fazer a volta lançada</button>${botaoMecanico()}`}
+            : '<button class="principal grande" data-acao="classificar">Fazer a volta lançada</button>'}
         </div>
       </div>
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
@@ -670,8 +672,6 @@
     </div>`;
   }
 
-  const ICONE_MODO = { atacar: '⚡', normal: '➖', poupar: '🛡' };
-
   function htmlCorrida() {
     return `<div class="corrida">
       <section class="painel">
@@ -684,8 +684,7 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao('Pilotagem', `<div id="info-jogador" class="tiles tiles-4"></div>
-          <div class="segmentos modos">${Object.entries(Engine.MODOS).map(([k, m]) => `<button data-acao="modo" data-modo="${k}">${ICONE_MODO[k]} ${m.nome}</button>`).join('')}</div>`, { ajuda: 'pilotagem' })}
+        ${cartao('Seu kart', '<div id="info-jogador" class="tiles tiles-4"></div>')}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
@@ -722,7 +721,6 @@
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
       : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${tile('Pneu', `${100 - desgastePct(eu.uso)}%`)}`;
-    app.querySelectorAll('[data-acao="modo"]').forEach((b) => { b.classList.toggle('ativo', b.dataset.modo === eu.modo); b.disabled = eu.fora || corrida.terminou; });
     avisosDaCorrida(eu);
   }
 
@@ -1015,10 +1013,6 @@
         break;
       case 'pular':
         finalizarCorrida();
-        break;
-      case 'modo':
-        corrida.carros.find((c) => c.jogador).modo = alvo.dataset.modo;
-        atualizarCorrida();
         break;
       case 'voltar-paddock':
         C.concluirEtapa(estado);

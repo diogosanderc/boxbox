@@ -523,11 +523,11 @@
   // O mecânico propõe um acerto para a próxima sessão (uma vez por fim de semana).
   function pedirSugestao(estado, sessao) {
     const fds = estado.fds;
-    if (fds.sessao === 'grid') return { ok: false, erro: 'No grid só dá para fazer ajustes finos: o mecânico não mexe no kart agora.' };
+    if (fds.sessao !== 'treino') return { ok: false, erro: 'O mecânico só mexe no kart durante o treino livre.' };
+    if (fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'O treino livre acabou: o mecânico não mexe mais no kart.' };
     if (fds.sugestaoUsada) return { ok: false, erro: 'O mecânico já deu a sugestão dele neste fim de semana.' };
     const clima = climaAtual(estado);
-    const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
-    const cond = Kart.condicao(clima, { treino: 'treino', quali: 'quali', grid: 'corrida' }[sessao] || 'quali', molhado);
+    const cond = Kart.condicao(clima, 'treino', clima.manha.chove);
     const pneu = pneuPorId(estado, fds.pneuId);
     fds.setup = Kart.sugestaoMecanico(pistaAtual(estado), cond, pneu ? pneu.tipo : 'slick', equipeBase(estado.equipeId).mecanico, rngDe(estado));
     fds.sugestaoUsada = true;
