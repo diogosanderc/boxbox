@@ -801,3 +801,21 @@ button.redondo .ico { width: 20px; height: 20px; }
 .seg-pilula { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 9px; background: var(--destaque); box-shadow: 0 6px 14px rgba(225, 6, 0, 0.35); pointer-events: none; }
 .seg-pilula.anima { transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), width 0.42s cubic-bezier(0.34, 1.45, 0.64, 1); }
 button.link-f4 { background: transparent; border-color: transparent; color: var(--azul-claro); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- campeão ---------- */
+.campeao-hero { position: relative; overflow: hidden; display: grid; justify-items: center; text-align: center; gap: 2px; padding: 28px 16px 22px; margin-bottom: 14px; border-radius: var(--raio-g, 20px);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 210, 74, 0.28), transparent 60%), linear-gradient(180deg, #1a2342, var(--painel)); border: 1px solid rgba(255, 210, 74, 0.55); }
+.campeao-trofeu .ico { width: 84px; height: 84px; stroke-width: 1.5; color: var(--ouro); filter: drop-shadow(0 0 18px rgba(255, 210, 74, 0.6)); animation: trofeu-entra 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.campeao-ano { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ouro); }
+.campeao-hero h2 { margin: 0; font-family: var(--fonte-titulo); font-style: italic; font-weight: 900; font-size: 46px; line-height: 1; text-transform: uppercase; color: #fff; text-shadow: 0 4px 18px rgba(225, 6, 0, 0.55); }
+.campeao-hero p { margin: 4px 0 0; color: var(--texto); font-weight: 600; }
+.campeao-numeros { display: flex; gap: 22px; margin-top: 14px; }
+.campeao-numeros span { display: grid; font-size: 12px; color: var(--fraco); text-transform: uppercase; letter-spacing: 0.08em; }
+.campeao-numeros b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 26px; color: #fff; letter-spacing: 0; }
+.confete { position: absolute; inset: 0; pointer-events: none; }
+.confete i { position: absolute; top: -12px; left: var(--x); width: 7px; height: 12px; border-radius: 2px; background: var(--c); opacity: 0; transform: rotate(var(--r)); animation: confete-cai 2.6s ease-in var(--d) 2 forwards; }
+@keyframes confete-cai { 0% { opacity: 1; transform: translateY(0) rotate(var(--r)); } 100% { opacity: 0; transform: translateY(330px) rotate(calc(var(--r) + 540deg)); } }
+@keyframes trofeu-entra { from { transform: scale(0.4) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .confete { display: none; } .campeao-trofeu .ico { animation: none; } }
+.motivo-f4 { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: var(--raio-p); background: rgba(47, 191, 113, 0.1); color: var(--ok); font-weight: 600; }
+.motivo-f4 .ico-i { flex: none; margin: 0.15em 0 0; }

@@ -1066,7 +1066,8 @@
     const camp = campeonato(estado.campeonato);
     const tabela = classificacaoCampeonato(estado);
     const pos = posicaoNoCampeonato(estado);
-    const rel = { ano: estado.ano, campeonato: camp.id, pos, pontos: estado.pontos.jogador, campeao: tabela[0].nome, premios: [], bonus: [], dinheiroAntes: estado.dinheiro };
+    const rel = { ano: estado.ano, campeonato: camp.id, pos, pontos: estado.pontos.jogador, campeao: tabela[0].nome, premios: [], bonus: [], dinheiroAntes: estado.dinheiro,
+      vitorias: estado.vitorias.jogador || 0, podios: estado.podios.jogador || 0 };
 
     if (pos <= VAGAS_SUBIDA) {
       const premio = Math.round(camp.premioCampeao / 2 ** (pos - 1));
@@ -1104,6 +1105,11 @@
     const noKart = (camp.categoria || 'kart') === 'kart';
     if (noKart && ((camp.ordem === 2 && pos <= VAGAS_SUBIDA) || (camp.ordem === 1 && pos === 1) || (interesseF4[0] && interesseF4[0].i >= 40))) {
       const o = interesseF4[0].o;
+      // Por que as equipes vieram: mostrado acima das propostas.
+      if (camp.ordem === 2 && pos === 1) rel.motivoF4 = 'Campeão europeu! As equipes de F4 e as academias de F1 querem você.';
+      else if (camp.ordem === 2 && pos <= VAGAS_SUBIDA) rel.motivoF4 = `Você terminou em P${pos} no ${camp.curto}: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de F4${pos <= 2 ? ' e das academias de F1' : ''}.`;
+      else if (camp.ordem === 1 && pos === 1) rel.motivoF4 = 'O título brasileiro chamou a atenção de uma equipe de F4.';
+      else rel.motivoF4 = `${o.nome} acompanhou suas corridas e gostou do que viu.`;
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f4', nome: o.nome, equipe: o.equipe, texto: 'Vaga na Fórmula 4 para o próximo ano. Você paga 60% do orçamento da equipe.' });
     }
     if (noKart && camp.ordem === 2 && pos <= 2) {
@@ -1114,7 +1120,10 @@
     if (noKart) {
       const novas = propostasF4.splice(0, propostasF4.length);
       if (p.idade >= IDADE_F4) {
-        if (estado.f4Reservada && !novas.some((x) => x.tipo === estado.f4Reservada.tipo)) novas.push({ ...estado.f4Reservada, id: `pr${estado.proxId++}` });
+        if (estado.f4Reservada && !novas.some((x) => x.tipo === estado.f4Reservada.tipo)) {
+          if (!novas.length) rel.motivoF4 = `Você completou ${IDADE_F4} anos: a vaga guardada na F4 chegou.`;
+          novas.push({ ...estado.f4Reservada, id: `pr${estado.proxId++}` });
+        }
         estado.f4Reservada = null;
         propostasF4.push(...novas);
       } else if (novas.length) {
@@ -1126,6 +1135,7 @@
     }
     // Na F4, os 4 primeiros recebem proposta para a F3 (próximo capítulo).
     if (!noKart && pos <= VAGAS_SUBIDA) {
+      rel.motivoF4 = pos === 1 ? 'Campeão da F4! A Fórmula 3 abriu as portas.' : `Você terminou em P${pos} na F4: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de F3.`;
       propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f3', nome: pos === 1 ? 'Academia Vortex (F3)' : 'Apex Racing (F3)', texto: 'Vaga na Fórmula 3 para o próximo ano.' });
     }
     rel.equipes = equipesDisponiveis(estado, pos);

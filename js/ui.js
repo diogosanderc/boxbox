@@ -1314,14 +1314,15 @@
     const ganhos = r.premios.reduce((t, p) => t + p.valor, 0) + r.bonus.filter((b) => b.cumpriu).reduce((t, b) => t + b.valor, 0);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Temporada ${r.ano}</h1>${chip(esc(camp.curto))}</div>
+      ${r.pos === 1 ? heroCampeao(r, camp) : ''}
       ${r.f4Espera ? cartao('F4 garantida', `<p><b>${esc(r.f4Espera.nome)}</b> quer você na Fórmula 4, mas a FIA só permite a partir dos ${r.f4Espera.idade} anos. A vaga fica guardada: continue no kart e a proposta chega no fim da temporada em que você tiver ${r.f4Espera.idade}.</p>`, { classe: 'destaque' }) : ''}
-      ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', estado.propostas.map((p) => `<div class="item">
+      ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', (r.motivoF4 ? `<p class="motivo-f4">${ic('subir')}${esc(r.motivoF4)}</p>` : '') + estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
           <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${p.tipo === 'f3' ? 'F3' : 'F4'}</button></div>`).join(''), { classe: 'destaque' }) : ''}
       <div class="grade">
         <section class="painel resultado-hero ${r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P${r.pos}</b></div>
-          <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeão', esc(r.campeao.split(' ')[0]))}${tile('Ganhos', '+' + reais(ganhos), 'dinheiro')}</div>
+          <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeão', r.pos === 1 ? 'Você' : esc(r.campeao.split(' ')[0]))}</div><div class="tiles">${tile('Ganhos no ano', '+' + reais(ganhos), 'dinheiro')}</div>
         </section>
         ${cartao('Evolução', r.evolucao.length
           ? r.evolucao.map((x) => `<div class="barra"><span>${C.NOMES_ATRIBUTOS[x.a]}</span><span class="trilho"><i style="width:${x.depois}%"></i></span><b>${x.depois} <span class="dinheiro mini">${sinal(x.depois - x.antes)}</span></b></div>`).join('')
@@ -1338,6 +1339,20 @@
           ${escolhaEquipeAno(escolha)}
           <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`, { ajuda: 'temporada' })}
       </div>`;
+  }
+
+  // Título: troféu grande, confete e os números do ano.
+  function heroCampeao(r, camp) {
+    const confete = Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${((i * 7) % 10) / 10}s;--r:${(i * 53) % 360}deg;--c:${['#e10600', '#ffd24a', '#ffffff', '#3d9bff'][i % 4]}"></i>`).join('');
+    const numeros = r.vitorias != null ? `<div class="campeao-numeros"><span><b>${r.vitorias}</b>${r.vitorias === 1 ? 'vitória' : 'vitórias'}</span><span><b>${r.podios}</b>pódios</span><span><b>${r.pontos}</b>pontos</span></div>` : '';
+    return `<section class="campeao-hero">
+      <div class="confete" aria-hidden="true">${confete}</div>
+      <span class="campeao-trofeu">${icone('trofeu')}</span>
+      <span class="campeao-ano">Temporada ${r.ano}</span>
+      <h2>Campeão</h2>
+      <p>${esc(camp.nome)}</p>
+      ${numeros}
+    </section>`;
   }
 
   function telaF4() {
