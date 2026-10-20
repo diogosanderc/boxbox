@@ -350,3 +350,4 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .tiles-2 .tile b { font-size: 22px; }
 .secao { display: grid; gap: 8px; }
 .ver-pista { justify-self: start; font-weight: 600; }
+.anotacao-corrida { border-color: rgba(225, 6, 0, 0.45); }

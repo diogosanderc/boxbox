@@ -219,4 +219,24 @@ test('nenhum traçado de kartódromo se cruza', () => {
   }
 });
 
+test('caderno anota treinos, classificação e corrida com as posições certas, em ordem', () => {
+  const e = Carreira.novoJogo({ seed: 21 });
+  Carreira.iniciarFimDeSemana(e);
+  const pista = Carreira.pistaAtual(e);
+  Carreira.saidaTreino(e);
+  Carreira.saidaTreino(e);
+  const saidas = e.fds.saidas.map((x) => x.posicao);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  const grid = e.fds.quali.findIndex((q) => q.id === 'jogador') + 1;
+  const res = Carreira.concluirCorrida(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  const cad = e.caderno[pista.id];
+  assert.deepStrictEqual(cad.map((l) => l.sessao), ['treino', 'treino', 'quali', 'corrida']);
+  assert.deepStrictEqual(cad.slice(0, 2).map((l) => l.posicao), saidas);
+  assert.strictEqual(cad[2].posicao, grid);
+  assert.strictEqual(cad[3].posicao, res.pos);
+  assert.strictEqual(cad[3].fora, res.fora);
+  assert.ok(cad.every((l) => l.etapa === 1));
+});
+
 module.exports = { jogarFimDeSemana };

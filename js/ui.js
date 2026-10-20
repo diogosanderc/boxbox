@@ -339,19 +339,35 @@
     </div>`;
   }
 
+  // Anotações agrupadas por fim de semana (mais recente primeiro), em ordem: treinos, classificação, corrida.
+  function blocosCaderno(lista) {
+    const grupos = new Map();
+    for (const l of lista) {
+      const chave = `${l.ano}-${l.campeonato || ''}-${l.etapa || 0}`;
+      if (!grupos.has(chave)) grupos.set(chave, []);
+      grupos.get(chave).push(l);
+    }
+    return [...grupos.values()].reverse().map((itens) => {
+      const l0 = itens[0];
+      let treino = 0;
+      const linhas = itens.map((l) => {
+        const nome = l.sessao === 'treino' ? `Treino ${++treino}` : l.sessao === 'corrida' ? 'Corrida' : 'Classificação';
+        const pos = l.fora ? 'Abandono' : `P${l.posicao}`;
+        return `<div class="anotacao ${l.sessao === 'corrida' ? 'anotacao-corrida' : ''}">
+          <div class="item-topo"><span class="chips">${chip(nome, l.sessao === 'corrida' ? 'chip-grande' : '')}${chip(l.molhado ? '🌧' : '☀️')}${chip(`${l.tempPista}°`)}</span>
+            <b>${l.tempo ? tempoVolta(l.tempo) : '—'} <span class="pos-mini ${!l.fora && l.posicao <= 3 ? 'top' : ''}">${pos}</span></b></div>
+          <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
+        </div>`;
+      }).join('');
+      return `<div class="anotacoes"><span class="subtitulo">${l0.ano}${l0.etapa ? ` · etapa ${l0.etapa}` : ''}${l0.campeonato ? ` · ${esc(C.campeonato(l0.campeonato).curto)}` : ''}</span>${linhas}</div>`;
+    }).join('');
+  }
+
   function painelCaderno() {
     const pistas = Object.keys(estado.caderno);
-    if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino e cada classificação aparecem aqui.</p>');
+    if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino, a classificação e a corrida aparecem aqui.</p>');
     const todas = [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu];
-    return `<div class="grade">${pistas.map((id) => {
-      const pista = todas.find((x) => x.id === id);
-      const linhas = estado.caderno[id].slice().sort((a, b) => a.posicao - b.posicao).slice(0, 6);
-      return cartao(esc(pista.nome), `<div class="anotacoes">${linhas.map((l) => `<div class="anotacao">
-          <div class="item-topo"><span class="chips">${chip(l.sessao === 'treino' ? 'Treino' : 'Classif.')}${chip(l.molhado ? '🌧' : '☀️')}${chip(`${l.tempPista}°`)}</span>
-            <b>${tempoVolta(l.tempo)} <span class="pos-mini">P${l.posicao}</span></b></div>
-          <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
-        </div>`).join('')}</div>`);
-    }).join('')}</div>`;
+    return `<div class="grade">${pistas.map((id) => cartao(esc(todas.find((x) => x.id === id).nome), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
   }
 
   function telaPaddock() {
@@ -382,7 +398,7 @@
     const camp = C.campeonato(estado.campeonato);
     const aba = tela.aba || 'pista';
     const extensao = (pista.tempoBase * 75 / 3600).toFixed(2).replace('.', ',');
-    const anotacoes = (estado.caderno[pista.id] || []).slice().sort((a, b) => a.posicao - b.posicao).slice(0, 6);
+    const anotacoes = estado.caderno[pista.id] || [];
     app.innerHTML = `
       <div class="detalhe">
         <div class="linha"><button class="redondo" data-acao="voltar-paddock-pista" aria-label="Voltar">${icone('voltar')}</button></div>
@@ -394,10 +410,7 @@
         ${aba === 'pista' ? `
           <section class="secao"><h2>Sobre</h2><p class="fraco sobre">${SOBRE_TIPO[pista.tipo]} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
           <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}</div>`
-        : `<div class="anotacoes">${anotacoes.length ? anotacoes.map((l) => `<div class="anotacao">
-            <div class="item-topo"><span class="chips">${chip(l.sessao === 'treino' ? 'Treino' : 'Classif.')}${chip(l.molhado ? '🌧' : '☀️')}${chip(`${l.tempPista}°`)}</span>
-              <b>${tempoVolta(l.tempo)} <span class="pos-mini">P${l.posicao}</span></b></div>
-            <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div></div>`).join('') : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
+        : `<div class="anotacoes">${anotacoes.length ? blocosCaderno(anotacoes) : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
         ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para a pista · ${reais(C.custoEtapa(estado))}</button>` : ''}
       </div>`;
   }

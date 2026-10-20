@@ -476,10 +476,11 @@
     const pista = pistaAtual(estado);
     const lista = estado.caderno[pista.id] || (estado.caderno[pista.id] = []);
     lista.push({
-      ano: estado.ano, sessao: estado.fds.sessao, tempAr: cond.tempAr, tempPista: cond.tempPista, molhado: cond.molhado,
-      setup: saida.setup, pneu: saida.pneu, tempo: saida.tempo, posicao: saida.posicao,
+      ano: estado.ano, campeonato: estado.campeonato, etapa: estado.etapa + 1, sessao: saida.sessao || estado.fds.sessao,
+      tempAr: cond.tempAr, tempPista: cond.tempPista, molhado: cond.molhado,
+      setup: saida.setup, pneu: saida.pneu, tempo: saida.tempo, posicao: saida.posicao, fora: !!saida.fora,
     });
-    if (lista.length > 40) lista.shift();
+    if (lista.length > 60) lista.shift();
   }
 
   // O mecânico propõe um acerto para a próxima sessão (uma vez por fim de semana).
@@ -626,6 +627,11 @@
     fds.resultado = { pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora });
+    const clima = climaAtual(estado);
+    registrarCaderno(estado, Kart.condicao(clima, 'corrida', !!corrida.molhado), {
+      sessao: 'corrida', setup: { ...fds.setupCorrida }, pneu: carro.tipoPneu || (pneu ? pneu.tipo : 'slick'),
+      tempo: carro.melhorVolta, posicao: meu.pos, fora: meu.fora,
+    });
     fds.sessao = 'fim';
     fds.classificacao = res.map((r) => ({ id: r.id, pos: r.pos, fora: r.fora, motivo: r.motivoFora, pontos: r.pontos, dif: r.diferenca, equipe: r.equipe }));
     return fds.resultado;
