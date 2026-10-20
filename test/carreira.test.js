@@ -621,7 +621,7 @@ test('F4: os 4 primeiros recebem proposta de F3', () => {
   Carreira.aceitarProposta(e, 'p');
   for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, 'ideal');
   const pos = e.relatorio.pos;
-  assert.strictEqual(e.propostas.some((p) => p.tipo === 'f3'), pos <= Carreira.VAGAS_SUBIDA);
+  assert.strictEqual(e.propostas.some((p) => p.tipo === 'subida' && p.campeonato === 'f3'), pos <= Carreira.VAGAS_SUBIDA);
   assert.ok(!e.relatorio.opcoes.includes('internacional'));
   Carreira.migrar({ campeonato: 'regional' });
 });
@@ -645,4 +645,83 @@ test('F4 só a partir dos 15 anos: a proposta fica guardada', () => {
   assert.strictEqual(e.piloto.idade, 15);
   assert.ok(e.propostas.some((p) => p.tipo === 'f4' || p.tipo === 'academia'));
   assert.strictEqual(e.f4Reservada, null);
+});
+
+// Leva o jogador direto ao fim de temporada numa posição escolhida.
+function fecharTemporada(e, pos) {
+  const ids = e.rivais.map((r) => r.id);
+  const ordem = ids.slice(); ordem.splice(pos - 1, 0, 'jogador');
+  ordem.forEach((id, i) => { e.pontos[id] = 400 - i * 10; });
+  e.etapa = Carreira.ETAPAS - 1;
+  Carreira.concluirEtapa(e);
+  assert.strictEqual(e.relatorio.pos, pos);
+}
+
+test('escada dos monopostos: F4 → F3 → F2 → F1, com Superlicença no fim', () => {
+  const e = Carreira.novoJogo({ seed: 21 });
+  Carreira.comecarNaF4(e);
+  assert.strictEqual(e.campeonato, 'f4');
+  for (const [de, para] of [['f4', 'f3'], ['f3', 'f2'], ['f2', 'f1']]) {
+    assert.strictEqual(e.campeonato, de);
+    fecharTemporada(e, 1);
+    const pr = e.propostas.filter((p) => p.tipo === 'subida');
+    assert.ok(pr.length >= 1 && pr.every((p) => p.campeonato === para), JSON.stringify(e.propostas));
+    assert.ok(e.relatorio.motivoF4.includes('Campeão'));
+    assert.ok(Carreira.aceitarProposta(e, pr[0].id).ok);
+    assert.strictEqual(e.campeonato, para);
+    assert.ok(Dados.EQUIPES_MONO[para].some((x) => x.id === e.equipeId));
+    assert.ok(Dados.KARTODROMOS[para].some((p) => p.id === Carreira.pistaAtual(e).id));
+    assert.strictEqual(Kart.categoria(), 'f4'); // mesmo modelo de monoposto
+  }
+  assert.strictEqual(e.fase, 'superlicenca');
+  assert.ok(e.final && e.final.equipe);
+  // Na F1 não há proposta para subir: os 4 primeiros só repetem.
+  e.fase = 'paddock';
+  fecharTemporada(e, 2);
+  assert.ok(!e.propostas.some((p) => p.tipo === 'subida'));
+  Carreira.migrar({ campeonato: 'regional' });
+});
+
+test('F1: a equipe paga salário em vez de cobrar a etapa', () => {
+  const e = Carreira.novoJogo({ seed: 5 });
+  Carreira.comecarNaF4(e);
+  e.propostas = [{ id: 'x', tipo: 'subida', campeonato: 'f1', pago: true, equipe: 'f1-grove', nome: 'Grove' }];
+  Carreira.aceitarProposta(e, 'x');
+  e.fase = 'paddock';
+  assert.strictEqual(Carreira.custoEtapa(e), 0);
+  const salario = Carreira.salarioEtapa(e);
+  assert.ok(salario > 0);
+  const antes = e.dinheiro;
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  assert.strictEqual(e.dinheiro, antes + salario);
+  Carreira.migrar({ campeonato: 'regional' });
+});
+
+test('F3 a F1: calendário na ordem real e recorde separado por categoria', () => {
+  const e = Carreira.novoJogo({ seed: 8 });
+  Carreira.comecarNaF4(e);
+  e.propostas = [{ id: 'x', tipo: 'subida', campeonato: 'f2', pago: true, equipe: 'f2-prima', nome: 'Prima' }];
+  Carreira.aceitarProposta(e, 'x');
+  const lista = Dados.KARTODROMOS.f2.map((p) => p.id);
+  const ordem = e.calendario.map((c) => lista.indexOf(c.pista));
+  assert.deepStrictEqual(ordem, ordem.slice().sort((a, b) => a - b));
+  assert.strictEqual(new Set(e.calendario.map((c) => c.pista)).size, Carreira.ETAPAS);
+  // a volta recorde da F2 não vale para a F4 na mesma pista
+  const pista = Carreira.pistaAtual(e);
+  const recF2 = Carreira.recordePista(e, pista).tempo;
+  assert.ok(Math.abs(recF2 - pista.tempoBase) < 2);
+  Carreira.migrar({ campeonato: 'regional' });
+});
+
+test('todas as pistas e equipes de F3, F2 e F1 têm dados completos', () => {
+  for (const reg of ['f3', 'f2', 'f1']) {
+    assert.ok(Dados.KARTODROMOS[reg].length >= Carreira.ETAPAS);
+    for (const p of Dados.KARTODROMOS[reg]) {
+      for (const k of ['extensao', 'retas', 'curvas', 'zebras', 'asfalto', 'sobre', 'tempoBase']) assert.ok(p[k] != null, `${reg}/${p.id} sem ${k}`);
+    }
+    const eqs = Dados.EQUIPES_MONO[reg];
+    assert.strictEqual(eqs.length, 10);
+    for (const x of eqs) assert.ok(['ponta', 'media', 'pequena'].includes(x.porte));
+    if (reg === 'f1') for (const x of eqs) assert.ok(x.salario > 0);
+  }
 });

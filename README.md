@@ -53,7 +53,22 @@ Uma proposta de equipe de F4 (ou de uma academia de F1, que paga tudo) leva o pi
 8 circuitos (Imola, Misano, Monza, Mugello, Vallelunga, Spa, Spielberg e Le Castellet) e 10 equipes próprias.
 O carro é outro: **asa dianteira e traseira, suspensão, altura, pressão e relação do câmbio**, com o seu próprio acerto ideal
 escondido (pista veloz pede pouca asa; chuva, calor e altitude pedem mais). Quando chove na corrida, dá para chamar o
-carro para o **box** e colocar pneu de chuva (a parada custa uns 24 segundos). Os 4 primeiros da F4 recebem proposta para a F3.
+carro para o **box** e colocar pneu de chuva (a parada custa uns 24 segundos).
+
+### F3, F2 e F1
+
+Nos monopostos, os **4 primeiros** de cada campeonato recebem proposta da categoria seguinte: **F4 → F3 → F2 → F1**.
+P1 e P2 entram pelo programa de jovens pilotos (a equipe paga a temporada); P3 e P4 pagam 60% do orçamento. O carro
+é o mesmo tipo de monoposto, com rivais mais fortes a cada degrau.
+
+- **Pistas reais**, com ficha técnica e etapas na ordem do calendário de verdade (o jogo escolhe 8 por ano):
+  F3 com 10 circuitos (Albert Park, Sakhir, Imola, Mônaco, Barcelona, Spielberg, Silverstone, Spa, Hungaroring, Monza),
+  F2 com 14 (os da F3 mais Jeddah, Baku, Lusail e Yas Marina) e F1 com 24 (de Melbourne a Abu Dhabi, passando por
+  Interlagos). Cada categoria tem o seu tempo de volta e o seu recorde na mesma pista.
+- **Equipes e pilotos fictícios** que lembram os reais (ex.: Scuderia Rossa, Argento Grand Prix, Papaya Racing,
+  Prima Racing), sem usar nomes ou marcas protegidas. Pilotos de 13 nacionalidades.
+- **F1:** a equipe paga **salário** por etapa em vez de cobrar. Assinar com a F1 abre a tela da **Superlicença**,
+  com a escada da carreira do kart até ali.
 
 ### O segredo do kart
 

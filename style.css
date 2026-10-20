@@ -868,3 +868,11 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .tile b.negativo { color: var(--perigo); }
 .tile b.dinheiro { color: var(--ok); }
 .tile b.aviso { color: var(--alerta); }
+
+/* Superlicença: a chegada à F1 */
+.superlicenca { margin-bottom: 14px; }
+.superlicenca .fim-frase { font-size: 28px; }
+.escada { display: grid; gap: 6px; }
+.degrau { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: var(--painel-2); }
+.degrau span:first-child { color: var(--fraco); font-variant-numeric: tabular-nums; }
+.degrau b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; }

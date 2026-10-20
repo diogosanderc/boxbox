@@ -85,7 +85,7 @@
 
   // ---------- ajuda: as explicações ficam atrás de um "?" ----------
   const AJUDAS = {
-    jogo: ['Como jogar', 'Você é um piloto de kart de 12 anos e também o cabeça da carreira. Escolha a equipe, cuide do dinheiro, acerte o kart em cada pista e decida quais propostas aceitar. Meta: chegar à Fórmula 4.'],
+    jogo: ['Como jogar', 'Você é um piloto de kart de 12 anos e também o cabeça da carreira. Escolha a equipe, cuide do dinheiro, acerte o kart em cada pista e decida quais propostas aceitar. Meta: subir do kart à Fórmula 4, F3, F2 e chegar à Fórmula 1.'],
     equipe: ['Escolhendo a equipe', 'Kart diz quão rápido é o material; estrutura, quão confiável. O kart não vem com mecânico: você acerta sozinho e pode contratar um mecânico no fim de semana. A sobra é o que fica do caixa depois de pagar as 8 etapas: é com ela que você compra pneus e revisa o motor. As outras equipes podem te chamar depois, se você andar bem.'],
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
@@ -113,7 +113,7 @@
     suspensao: ['Suspensão', 'É a firmeza das molas e amortecedores. Macia: o carro absorve zebras e ondulações, mas rola nas curvas. Dura: responde rápido, mas pula nas zebras.'],
     altura: ['Altura do carro', 'É a distância do assoalho até o chão. Baixa: o carro gruda mais (efeito solo), mas pode bater no chão. Alta: mais seguro em ondulações e na chuva, com menos aderência.'],
     relacao: ['Relação do câmbio', 'É o escalonamento das marchas. Curta: mais força na saída das curvas, mas a última marcha acaba antes do fim da reta. Longa: mais velocidade final, menos força nas retomadas.'],
-    temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
+    temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 → F3 → F2 → F1 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
   const botaoAjuda = (chave) => `<button class="ajuda" data-acao="ajuda" data-chave="${chave}" aria-label="Ajuda: ${esc(AJUDAS[chave][0])}">?</button>`;
@@ -265,7 +265,7 @@
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
     document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
-    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, f4: telaF4, falencia: telaFalencia };
+    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia };
     telas[tela.nome]();
     deslizarSegmentos();
   }
@@ -587,7 +587,8 @@
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
           ${checklist()}
-          ${tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : `−${reais(custo)}`, estado.contrato && estado.contrato.custoEtapa === 0 ? '' : 'negativo')}
+          ${estado.campeonato === 'f1' ? tile('Salário da etapa', `+${reais(C.salarioEtapa(estado))}`, 'dinheiro')
+            : tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : `−${reais(custo)}`, estado.contrato && estado.contrato.custoEtapa === 0 ? '' : 'negativo')}
           ${estado.motorQuebrado ? blocoRetifica(custo) : semDinheiro
             ? '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'
             : '<button class="principal grande" data-acao="ir-fds">Ir para a pista</button>'}
@@ -705,12 +706,12 @@
     const tabela = C.classificacaoCampeonato(estado);
     const camp = C.campeonato(estado.campeonato);
     const proximo = Dados.CAMPEONATOS[camp.ordem + 1];
-    const destino = proximo ? proximo.curto : 'F4';
+    const destino = proximo ? proximo.curto : null;
     return `<div class="classificacao">${tabela.map((x, i) => {
       const eq = C.equipeBase(x.equipe);
       const eu = x.id === 'jogador';
       const seguido = estado.seguindo === x.id;
-      const corte = i === C.VAGAS_SUBIDA ? `<div class="camp-corte"><span>▲ Os ${C.VAGAS_SUBIDA} primeiros sobem para o ${destino}</span></div>` : '';
+      const corte = destino && i === C.VAGAS_SUBIDA ? `<div class="camp-corte"><span>▲ Os ${C.VAGAS_SUBIDA} primeiros sobem para ${camp.ordem >= 2 ? 'a' : 'o'} ${destino}</span></div>` : '';
       return `${corte}<div class="camp-linha ${eu ? 'jogador' : ''} ${seguido ? 'seguido' : ''} ${i < C.VAGAS_SUBIDA ? 'sobe' : ''}">
         <span class="camp-pos"><b>${i + 1}</b><small>${x.pontos} pts</small></span>
         <i class="camp-cor" style="background:${eq.cor}"></i>
@@ -860,7 +861,7 @@
 
   // Ficha detalhada do traçado: retas, curvas, zebras, asfalto, desnível e onde ultrapassar.
   const ZEBRAS = {
-    altas: ['Altas', 'Cortar demais desequilibra o kart.'],
+    altas: ['Altas', 'Cortar demais desequilibra o carro.'],
     baixas: ['Baixas', 'Dá para cortar bastante.'],
     sem: ['Sem zebra', 'Sair do traçado custa caro.'],
   };
@@ -1318,9 +1319,9 @@
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Temporada ${r.ano}</h1>${chip(esc(camp.curto))}</div>
       ${r.f4Espera ? cartao('F4 garantida', `<p><b>${esc(r.f4Espera.nome)}</b> quer você na Fórmula 4, mas a FIA só permite a partir dos ${r.f4Espera.idade} anos. A vaga fica guardada: continue no kart e a proposta chega no fim da temporada em que você tiver ${r.f4Espera.idade}.</p>`, { classe: 'destaque' }) : ''}
-      ${estado.propostas.length ? cartao(estado.propostas.some((p) => p.tipo === 'f3') ? 'Proposta para a F3' : 'Propostas para a F4', (r.motivoF4 ? `<p class="motivo-f4">${ic('subir')}${esc(r.motivoF4)}</p>` : '') + estado.propostas.map((p) => `<div class="item">
+      ${estado.propostas.length ? cartao(`${estado.propostas.length > 1 ? 'Propostas' : 'Proposta'} para a ${destinoProposta(estado.propostas[0])}`, (r.motivoF4 ? `<p class="motivo-f4">${ic('subir')}${esc(r.motivoF4)}</p>` : '') + estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
-          <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${p.tipo === 'f3' ? 'F3' : 'F4'}</button></div>`).join(''), { classe: 'destaque' }) : ''}
+          <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${destinoProposta(p)}</button></div>`).join(''), { classe: 'destaque' }) : ''}
       <div class="grade">
         <section class="painel resultado-hero ${r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P${r.pos}</b></div>
@@ -1446,17 +1447,31 @@
     }
   }
 
-  function telaF4() {
+  // Para qual categoria a proposta leva (F4, F3, F2 ou F1).
+  const destinoProposta = (p) => C.campeonato(p.campeonato || (p.tipo === 'f3' ? 'f3' : 'f4')).curto;
+
+  // Chegada à F1: a Superlicença, o fim da escada que começou no kart aos 12 anos.
+  function telaSuperlicenca() {
     const f = estado.final;
-    const vitorias = estado.historico.filter((h) => !h.fora && h.pos === 1).length;
-    app.innerHTML = `<section class="painel destaque tela-nome">
-      <span class="capacete">${icone('trofeu')}</span>
-      <h1>Rumo à Fórmula ${f.categoria === 'f3' ? '3' : '4'}!</h1>
-      <p><b>${esc(estado.piloto.nome)}</b> assinou com <b>${esc(f.proposta.nome)}</b> aos ${f.idade} anos.</p>
-      <div class="tiles">${tile('Corridas', estado.historico.length)}${tile('Vitórias', vitorias)}${tile('Caixa', reais(estado.dinheiro), 'dinheiro')}</div>
-      <p class="fraco">Próximo capítulo: ${f.categoria === 'f3' ? 'F3, F2 e a Superlicença' : 'F4, F3, F2 e a Superlicença'}.</p>
-      <button class="grande" data-acao="abandonar">Nova carreira</button>
-    </section>`;
+    const corridas = estado.historico.filter((h) => !h.fora);
+    const vitorias = corridas.filter((h) => h.pos === 1).length;
+    const titulos = estado.temporadas.filter((t) => t.pos === 1).length;
+    app.innerHTML = `<section class="fim-hero campeao revelado superlicenca">
+        <div class="confete" aria-hidden="true">${confete(32)}</div>
+        <span class="campeao-ano">Superlicença conquistada</span>
+        <span class="fim-voce">${esc(estado.piloto.nome)}, ${f.idade} anos</span>
+        <b class="fim-pos">F1</b>
+        <span class="fim-frase">Você chegou à Fórmula 1</span>
+        <span class="fim-campeao">Piloto titular da ${esc(f.equipe)} em ${f.ano}</span>
+      </section>
+      <div class="fim-numeros">
+        <span><b>${estado.temporadas.length}</b>temporadas</span>
+        <span><b>${estado.historico.length}</b>corridas</span>
+        <span><b>${vitorias}</b>vitórias</span>
+        <span><b>${titulos}</b>títulos</span>
+      </div>
+      ${cartao('Do kart à F1', `<div class="escada">${estado.temporadas.map((t) => `<div class="degrau"><span>${t.ano}</span><b>${esc(C.campeonato(t.campeonato).curto)}</b><span class="${t.pos === 1 ? 'dinheiro' : ''}">P${t.pos}</span></div>`).join('')}</div>`)}
+      <button class="principal grande" data-acao="comecar-f1">Correr na F1</button>`;
   }
 
   function telaFalencia() {
@@ -1606,7 +1621,7 @@
         break;
       case 'aceitar-proposta': {
         const r = C.aceitarProposta(estado, id);
-        if (erro(r)) { salvar(); ir(telaDaFase()); if (r.f4) aviso('Bem-vindo à Fórmula 4! O carro é outro: asas, suspensão e box.'); }
+        if (erro(r)) { salvar(); ir(telaDaFase()); if (r.f4) aviso('Bem-vindo à Fórmula 4! O carro é outro: asas, suspensão e box.'); else if (estado.fase === 'paddock') aviso(`Bem-vindo à ${C.campeonato(estado.campeonato).curto}!`); }
         break;
       }
       case 'box-chuva':
@@ -1714,6 +1729,12 @@
         if (erro(C.anotarCorrida(estado, campo ? campo.value : ''))) { salvar(); render(); aviso('Anotado no caderno.'); }
         break;
       }
+      case 'comecar-f1':
+        estado.fase = 'paddock';
+        salvar();
+        ir(telaDaFase());
+        window.scrollTo(0, 0);
+        break;
       case 'ver-relatorio':
         estado.relatorio.resumoVisto = true;
         salvar();

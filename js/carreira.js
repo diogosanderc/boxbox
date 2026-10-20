@@ -40,7 +40,7 @@
   // Nomes das equipes desta carreira (sorteados no novo jogo); sem sorteio, valem os nomes de Dados.EQUIPES.
   let nomesEquipes = {};
   const equipeBase = (id) => {
-    const e = Dados.EQUIPES.find((x) => x.id === id) || Dados.EQUIPES_F4.find((x) => x.id === id);
+    const e = Dados.EQUIPES.find((x) => x.id === id) || Object.values(Dados.EQUIPES_MONO).flat().find((x) => x.id === id);
     return e && nomesEquipes[id] ? { ...e, nome: nomesEquipes[id] } : e;
   };
 
@@ -85,11 +85,16 @@
     media: ['f4-scorpio', 'f4-aquila', 'f4-mistral', 'f4-nordwind'],
     pequena: ['f4-pampa', 'f4-box13'],
   };
-  const porteDe = (id) => Object.keys(PORTES).find((k) => PORTES[k].equipes.includes(id) || PORTES_F4[k].includes(id));
+  const porteDe = (id) => {
+    const e = equipeBase(id);
+    return (e && e.porte) || Object.keys(PORTES).find((k) => PORTES[k].equipes.includes(id) || PORTES_F4[k].includes(id));
+  };
 
-  // Categoria do campeonato atual (kart ou f4) e as equipes dela.
+  // Categoria do carro no campeonato atual: 'kart' ou 'f4' (monoposto, vale da F4 à F1), e as equipes do campeonato.
   const categoriaDe = (estado) => campeonato(estado.campeonato).categoria || 'kart';
-  const equipesDaCategoria = (estado) => (categoriaDe(estado) === 'f4' ? Dados.EQUIPES_F4 : Dados.EQUIPES);
+  const equipesDaCategoria = (estado) => (categoriaDe(estado) === 'f4' ? Dados.EQUIPES_MONO[estado.campeonato] : Dados.EQUIPES);
+  // Escada dos monopostos: os 4 primeiros de cada um recebem proposta do seguinte.
+  const PROXIMA_CATEGORIA = { f4: 'f3', f3: 'f2', f2: 'f1' };
   // O modelo do carro (ajustes, acerto ideal, falas) acompanha a categoria.
   function sincronizarCategoria(estado) {
     Kart.usarCategoria(categoriaDe(estado));
@@ -106,7 +111,8 @@
     let sobrenome = sortear(rnd, n.s);
     for (let i = 0; i < 30 && usados.has(sobrenome); i++) sobrenome = sortear(rnd, n.s);
     usados.add(sobrenome);
-    const p = { id: `r${estado.proxId++}`, nome: `${sortear(rnd, n.p)} ${sobrenome}`, pais, idade: 11 + Math.floor(rnd() * 5) };
+    const idades = { f4: [15, 3], f3: [16, 4], f2: [18, 5], f1: [19, 17] }[estado.campeonato] || [11, 5];
+    const p = { id: `r${estado.proxId++}`, nome: `${sortear(rnd, n.p)} ${sobrenome}`, pais, idade: idades[0] + Math.floor(rnd() * idades[1]) };
     for (const a of ATRIBUTOS) p[a] = Math.round(limitar(nivel + rnd.gauss() * 5, 35, 95));
     return p;
   }
@@ -175,11 +181,14 @@
       const j = Math.floor(rnd() * (i + 1));
       [pistas[i], pistas[j]] = [pistas[j], pistas[i]];
     }
-    estado.calendario = pistas.slice(0, ETAPAS).map((p) => ({ pista: p.id, clima: Kart.gerarClima(p, camp, rnd) }));
+    const escolhidas = pistas.slice(0, ETAPAS);
+    // Da F3 à F1 as etapas seguem a ordem do calendário real (Austrália no começo, Abu Dhabi no fim).
+    if (camp.ordem >= 4) escolhidas.sort((a, b) => Dados.KARTODROMOS[camp.regiao].indexOf(a) - Dados.KARTODROMOS[camp.regiao].indexOf(b));
+    estado.calendario = escolhidas.map((p) => ({ pista: p.id, clima: Kart.gerarClima(p, camp, rnd) }));
     estado.etapa = 0;
     estado.fase = 'paddock';
     estado.fds = null;
-    if (estado.ano > 2027 || estado.etapa > 0) {
+    if ((estado.ano > 2027 || estado.etapa > 0) && camp.id !== 'f1') {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
       estado.dinheiro += apoio;
       noticia(estado, `A família junta R$ ${apoio.toLocaleString('pt-BR')} para a temporada.`);
@@ -210,10 +219,10 @@
 
   function humor(p) {
     const frase = p.confianca >= 70 ? 'Confiante, acha que pode ganhar de qualquer um.'
-      : p.confianca >= 45 ? 'Tranquilo com o kart e com o próprio ritmo.'
+      : p.confianca >= 45 ? `Tranquilo com o ${Kart.veiculo} e com o próprio ritmo.`
         : p.confianca >= 30 ? 'Inseguro, freando mais cedo do que devia.'
           : 'Sem confiança nenhuma, com medo de errar.';
-    const extra = p.moral < 25 ? ' Anda desmotivado e já falou em largar o kart.' : p.moral >= 80 ? ' Super motivado.' : '';
+    const extra = p.moral < 25 ? ' Anda desmotivado e já falou em largar as corridas.' : p.moral >= 80 ? ' Super motivado.' : '';
     return frase + extra;
   }
 
@@ -245,6 +254,11 @@
       estado.piloto.confianca = 50;
     }
     if (estado && !estado.evolucao) { estado.evolucao = []; estado.temporadas = []; estado.seguindo = null; }
+    // Versões antigas paravam na tela "Rumo à F3": agora a F3 é jogável.
+    if (estado && estado.fase === 'f4' && estado.final && estado.final.categoria === 'f3') {
+      estado.final = null;
+      entrarNaCategoria(estado, { tipo: 'subida', campeonato: 'f3', pago: true, equipe: 'f3-prima' });
+    }
     return estado;
   }
 
@@ -255,8 +269,16 @@
 
   // ---------- equipe, kart e dinheiro ----------
   function custoEtapa(estado) {
+    if (estado.campeonato === 'f1') return 0; // na F1 a equipe paga o piloto
     if (estado.contrato && estado.contrato.equipe === estado.equipeId) return estado.contrato.custoEtapa;
     return Math.round(equipeBase(estado.equipeId).custoEtapa * campeonato(estado.campeonato).custo);
+  }
+
+  // Salário por etapa (só na F1).
+  function salarioEtapa(estado) {
+    if (estado.campeonato !== 'f1') return 0;
+    if (estado.contrato && estado.contrato.equipe === estado.equipeId && estado.contrato.salario) return estado.contrato.salario;
+    return equipeBase(estado.equipeId).salario || 0;
   }
 
   function carroDe(estado, equipeId, jogador) {
@@ -355,9 +377,9 @@
     iniciante: { nome: 'Mecânico iniciante', icone: 'chave', preco: 3000, extra: 0, qualidade: 60, faz: 'palpite',
       descricao: 'Dá palpites sobre o que mexer. Fica o fim de semana todo.' },
     experiente: { nome: 'Mecânico experiente', icone: 'ajustes', preco: 6000, extra: 2500, qualidade: 82, faz: 'tecnica',
-      descricao: 'Anos de kart: diz o que mudar e quanto. Cobra hora extra a cada sessão a mais.' },
+      descricao: 'Anos de pista: diz o que mudar e quanto. Cobra hora extra a cada sessão a mais.' },
     pro: { nome: 'Técnico profissional', icone: 'trofeu', preco: 16000, extra: 6000, qualidade: 96, faz: 'monta',
-      descricao: 'Monta o kart para você. Muito caro, e cobra hora extra a cada sessão a mais.' },
+      descricao: 'Monta o acerto para você. Muito caro, e cobra hora extra a cada sessão a mais.' },
   };
   const SESSOES_MECANICO = ['treino', 'quali', 'grid'];
 
@@ -524,16 +546,30 @@
     }
   }
 
+  // Propostas da categoria seguinte: quanto melhor a posição, melhor a equipe.
+  // P1 e P2 entram pelo programa de jovens (a equipe paga); P3 e P4 pagam 60%. Na F1, salário.
+  function propostasDeSubida(estado, destino, pos, rnd) {
+    const lista = Dados.EQUIPES_MONO[destino];
+    const faixas = { 1: [0, 2], 2: [1, 3], 3: [3, 5], 4: [5, 7] }[pos];
+    const indices = pos === 1 ? [0, 2 + Math.floor(rnd() * 2)] : [faixas[0] + Math.floor(rnd() * (faixas[1] - faixas[0] + 1))];
+    const prox = campeonato(destino);
+    return indices.map((i) => {
+      const e = lista[Math.min(i, lista.length - 1)];
+      const pago = pos <= 2;
+      const texto = destino === 'f1'
+        ? `Vaga de piloto titular na ${prox.curto}. Salário de R$ ${e.salario.toLocaleString('pt-BR')} por etapa.`
+        : pago ? `Vaga na ${prox.curto} pelo programa de jovens pilotos: a equipe paga a temporada.`
+          : `Vaga na ${prox.curto} para o próximo ano. Você paga 60% do orçamento da equipe.`;
+      return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
+    });
+  }
+
   function aceitarProposta(estado, id) {
     const pr = estado.propostas.find((p) => p.id === id);
     if (!pr) return { ok: false, erro: 'Proposta expirada.' };
-    if (pr.tipo === 'f3') {
-      estado.fase = 'f4';
-      estado.final = { proposta: pr, ano: estado.ano, idade: estado.piloto.idade, categoria: 'f3' };
-      noticia(estado, `${estado.piloto.nome} assina com ${pr.nome} e sobe para a Fórmula 3!`);
-      return { ok: true };
-    }
-    if (pr.tipo === 'f4' || pr.tipo === 'academia') return entrarNaF4(estado, pr);
+    if (pr.tipo === 'subida') return entrarNaCategoria(estado, pr);
+    if (pr.tipo === 'f3') return entrarNaCategoria(estado, { tipo: 'subida', campeonato: 'f3', pago: true, equipe: 'f3-prima' }); // proposta de versão antiga
+    if (pr.tipo === 'f4' || pr.tipo === 'academia') return entrarNaCategoria(estado, { ...pr, campeonato: 'f4', pago: pr.tipo === 'academia' });
     if (estado.dinheiro < pr.multa) return { ok: false, erro: 'Dinheiro insuficiente para pagar a multa de rescisão.' };
     estado.dinheiro -= pr.multa;
     const antiga = estado.equipeId;
@@ -559,24 +595,34 @@
     p.popularidade = 35;
     estado.dinheiro = 120000;
     estado.noticias = [];
-    return entrarNaF4(estado, { tipo: 'f4', equipe: 'f4-apex' });
+    return entrarNaCategoria(estado, { tipo: 'f4', campeonato: 'f4', equipe: 'f4-apex' });
   }
 
-  function entrarNaF4(estado, pr) {
-    const equipeId = pr.equipe || 'f4-apex';
-    estado.campeonato = 'f4';
+  // Assina com uma equipe de monoposto (F4, F3, F2 ou F1) e começa a temporada lá.
+  function entrarNaCategoria(estado, pr) {
+    const campId = pr.campeonato || 'f4';
+    const camp = campeonato(campId);
+    const equipeId = pr.equipe || Dados.EQUIPES_MONO[campId][2].id;
+    const vinhaDoKart = categoriaDe(estado) === 'kart';
+    estado.campeonato = campId;
     estado.equipeId = equipeId;
     const base = equipeBase(equipeId);
     estado.contrato = {
       equipe: equipeId, tipo: pr.tipo, segundoPiloto: false,
-      custoEtapa: pr.tipo === 'academia' ? 0 : Math.round(base.custoEtapa * campeonato('f4').custo * 0.6 / 100) * 100,
+      custoEtapa: pr.pago || campId === 'f1' ? 0 : Math.round(base.custoEtapa * camp.custo * 0.6 / 100) * 100,
+      salario: campId === 'f1' ? base.salario : 0,
     };
     estado.propostas = [];
     estado.seguindo = null;
-    noticia(estado, `${estado.piloto.nome} assina com a ${base.nome} e deixa o kart rumo aos monopostos!`);
+    noticia(estado, vinhaDoKart ? `${estado.piloto.nome} assina com a ${base.nome} e deixa o kart rumo aos monopostos!` : `${estado.piloto.nome} assina com a ${base.nome} e sobe para a ${camp.curto}!`);
     iniciarTemporada(estado);
-    noticia(estado, `${estado.piloto.nome} estreia na ${campeonato('f4').nome} em ${estado.ano}.`);
-    return { ok: true, f4: true };
+    noticia(estado, `${estado.piloto.nome} estreia na ${camp.nome} em ${estado.ano}.`);
+    // Chegar à F1 é o fim da escada: primeiro a festa da Superlicença, depois o paddock.
+    if (campId === 'f1') {
+      estado.fase = 'superlicenca';
+      estado.final = { equipe: base.nome, ano: estado.ano, idade: estado.piloto.idade };
+    }
+    return { ok: true, f4: campId === 'f4' };
   }
 
   function recusarProposta(estado, id) {
@@ -596,8 +642,10 @@
     return { tempo: Math.round((pista.tempoBase - 0.75 - rnd() * 0.3) * 1000) / 1000, nome, ano: 2020 + Math.floor(rnd() * 6), jogador: false };
   }
 
+  // Kart e F4 usam o id da pista; da F3 à F1 o recorde é por categoria (a mesma pista aparece em várias).
+  const chaveRecorde = (estado, pista) => (campeonato(estado.campeonato).ordem >= 4 ? `${estado.campeonato}:${pista.id}` : pista.id);
   function recordePista(estado, pista = pistaAtual(estado)) {
-    return (estado.recordes && estado.recordes[pista.id]) || recordeInicial(pista);
+    return (estado.recordes && estado.recordes[chaveRecorde(estado, pista)]) || recordeInicial(pista);
   }
 
   // Confere uma volta contra o recorde. Devolve true se for um novo recorde.
@@ -605,7 +653,7 @@
     const pista = pistaAtual(estado);
     if (!(tempo < recordePista(estado, pista).tempo)) return false;
     if (!estado.recordes) estado.recordes = {};
-    estado.recordes[pista.id] = { tempo: Math.round(tempo * 1000) / 1000, nome: nomeDe(estado, id), ano: estado.ano, sessao, jogador: id === 'jogador' };
+    estado.recordes[chaveRecorde(estado, pista)] = { tempo: Math.round(tempo * 1000) / 1000, nome: nomeDe(estado, id), ano: estado.ano, sessao, jogador: id === 'jogador' };
     noticia(estado, `Recorde da pista em ${pista.nome}: ${nomeDe(estado, id)} faz ${tempo.toFixed(3)}!`);
     return id === 'jogador';
   }
@@ -636,6 +684,7 @@
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
+    estado.dinheiro += salarioEtapa(estado);
     const rnd = rngDe(estado);
     const pista = pistaAtual(estado);
     const clima = climaAtual(estado);
@@ -806,7 +855,7 @@
       conselho = Kart.analiseTecnica(fds.setup, pista, cond, tipoPneu, info.qualidade, rnd).lista;
     } else {
       fds.setup = Kart.sugestaoMecanico(pista, cond, tipoPneu, info.qualidade, rnd);
-      conselho = ['Montei o kart para essas condições. Pode acelerar.'];
+      conselho = [`Montei o ${Kart.veiculo} para essas condições. Pode acelerar.`];
     }
     m.usos[fds.sessao] = conselho;
     return { ok: true, faz: info.faz, conselho };
@@ -1023,7 +1072,7 @@
     estado.fds = null;
     estado.etapa += 1;
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.expira >= estado.etapa);
-    estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia');
+    estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia' || o.tipo === 'subida');
     if (rnd() < 0.3 + estado.piloto.popularidade / 100) gerarOfertasPatrocinio(estado, rnd, 1);
     // A confiança volta aos poucos para o normal; aperto de dinheiro pesa na moral.
     const p = estado.piloto;
@@ -1032,7 +1081,7 @@
       mexerCabeca(estado, { moral: -4 });
       noticia(estado, `${p.nome} sente o peso das contas apertadas em casa.`);
     }
-    if (p.moral < 20) noticia(estado, `${p.nome} anda desmotivado e já falou em largar o kart.`);
+    if (p.moral < 20) noticia(estado, `${p.nome} anda desmotivado e já falou em largar as corridas.`);
     if (estado.etapa >= ETAPAS) return fimDeTemporada(estado);
     gerarOlheiros(estado, rnd);
     estado.fase = 'paddock';
@@ -1133,10 +1182,12 @@
         noticia(estado, `${melhor.nome} quer ${p.nome} na F4 assim que completar ${IDADE_F4} anos.`);
       }
     }
-    // Na F4, os 4 primeiros recebem proposta para a F3 (próximo capítulo).
-    if (!noKart && pos <= VAGAS_SUBIDA) {
-      rel.motivoF4 = pos === 1 ? 'Campeão da F4! A Fórmula 3 abriu as portas.' : `Você terminou em P${pos} na F4: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de F3.`;
-      propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f3', nome: pos === 1 ? 'Academia Vortex (F3)' : 'Apex Racing (F3)', texto: 'Vaga na Fórmula 3 para o próximo ano.' });
+    // Nos monopostos, os 4 primeiros recebem proposta da categoria seguinte (F4 → F3 → F2 → F1).
+    const destino = !noKart && pos <= VAGAS_SUBIDA && PROXIMA_CATEGORIA[camp.id];
+    if (destino) {
+      const prox = campeonato(destino);
+      rel.motivoF4 = pos === 1 ? `Campeão da ${camp.curto}! As equipes de ${prox.curto} querem você.` : `Você terminou em P${pos} na ${camp.curto}: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de ${prox.curto}.`;
+      propostasF4.push(...propostasDeSubida(estado, destino, pos, rnd));
     }
     rel.equipes = equipesDisponiveis(estado, pos);
     estado.propostas = propostasF4;
@@ -1180,9 +1231,9 @@
       estado.equipeId = equipeId;
     }
     estado.campeonato = campeonatoId;
-    // Contrato de F4 (60% ou academia) continua na mesma equipe; trocar de equipe ou de campeonato zera.
+    // Contrato de monoposto (60%, programa de jovens ou salário) continua na mesma equipe; trocar de equipe ou de campeonato zera.
     if (!(estado.contrato && estado.contrato.equipe === estado.equipeId && categoriaDe(estado) === 'f4')) estado.contrato = null;
-    estado.propostas = estado.propostas.filter((p) => p.tipo !== 'f4' && p.tipo !== 'academia');
+    estado.propostas = estado.propostas.filter((p) => p.tipo !== 'f4' && p.tipo !== 'academia' && p.tipo !== 'subida');
     iniciarTemporada(estado);
     noticia(estado, `${estado.piloto.nome} disputa a ${campeonato(campeonatoId).nome} em ${estado.ano}.`);
     return { ok: true };
@@ -1191,7 +1242,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

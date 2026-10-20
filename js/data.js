@@ -55,6 +55,76 @@
       descricao: 'Pequena e barata. Para quem tem garra.' },
   ];
 
+  // Equipes de F3, F2 e F1: fictícias, com nomes e cores que lembram as reais.
+  // porte: ponta, media ou pequena. salario (só F1): o que a equipe paga ao piloto por etapa.
+  const EQUIPES_F3 = [
+      { id: 'f3-prima', nome: 'Prima Racing', cor: '#e10600', material: 90, mecanico: 90, caixa: 0, custoEtapa: 9000, organizacao: 86, porte: 'ponta',
+        descricao: 'Fábrica de campeões italiana. Carro sempre na frente.' },
+      { id: 'f3-arte', nome: 'Arte Grand Prix', cor: '#1a1a1a', material: 89, mecanico: 88, caixa: 0, custoEtapa: 8800, organizacao: 85, porte: 'ponta',
+        descricao: 'Francesa, rigorosa e de engenharia fina.' },
+      { id: 'f3-trident', nome: 'Tridente Motorsport', cor: '#2b5cff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 8400, organizacao: 84, porte: 'ponta',
+        descricao: 'Italiana, rápida em ritmo de corrida.' },
+      { id: 'f3-hitec', nome: 'HiTec Pulse', cor: '#ffffff', material: 87, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 84, porte: 'ponta',
+        descricao: 'Inglesa, aposta em dados e simulador.' },
+      { id: 'f3-campo', nome: 'Campo Racing', cor: '#ff7a00', material: 85, mecanico: 82, caixa: 0, custoEtapa: 7400, organizacao: 80, porte: 'media',
+        descricao: 'Espanhola de tradição, boa em pista quente.' },
+      { id: 'f3-vanamstel', nome: 'Van Amstel Racing', cor: '#ff9f1c', material: 84, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'media',
+        descricao: 'Holandesa, ótima em formar jovens.' },
+      { id: 'f3-polder', nome: 'Polder Motorsport', cor: '#00a19c', material: 83, mecanico: 80, caixa: 0, custoEtapa: 6600, organizacao: 78, porte: 'media',
+        descricao: 'Holandesa, cresce a cada temporada.' },
+      { id: 'f3-dama', nome: 'Dama Racing', cor: '#7a5cff', material: 82, mecanico: 78, caixa: 0, custoEtapa: 6200, organizacao: 76, porte: 'media',
+        descricao: 'Francesa, sempre perto dos pontos.' },
+      { id: 'f3-jenner', nome: 'Jenner Motorsport', cor: '#2fbf71', material: 79, mecanico: 72, caixa: 0, custoEtapa: 5400, organizacao: 72, porte: 'pequena',
+        descricao: 'Suíça e pequena. Carro honesto, pouco dinheiro.' },
+      { id: 'f3-kiwi', nome: 'Kiwi Motorsport', cor: '#9aa0a6', material: 77, mecanico: 70, caixa: 0, custoEtapa: 4800, organizacao: 70, porte: 'pequena',
+        descricao: 'Novata, ainda aprendendo a categoria.' },
+  ];
+  const EQUIPES_F2 = [
+      { id: 'f2-prima', nome: 'Prima Racing', cor: '#e10600', material: 91, mecanico: 90, caixa: 0, custoEtapa: 9000, organizacao: 86, porte: 'ponta',
+        descricao: 'A mais vitoriosa das categorias de base.' },
+      { id: 'f2-arte', nome: 'Arte Grand Prix', cor: '#1a1a1a', material: 90, mecanico: 90, caixa: 0, custoEtapa: 8800, organizacao: 86, porte: 'ponta',
+        descricao: 'Leva muitos pilotos direto para a F1.' },
+      { id: 'f2-dama', nome: 'Dama Racing', cor: '#7a5cff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 84, porte: 'ponta',
+        descricao: 'Francesa, rápida nas pistas de rua.' },
+      { id: 'f2-campo', nome: 'Campo Racing', cor: '#ff7a00', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 83, porte: 'ponta',
+        descricao: 'Espanhola, forte em ritmo de corrida.' },
+      { id: 'f2-hitec', nome: 'HiTec Pulse', cor: '#ffffff', material: 86, mecanico: 84, caixa: 0, custoEtapa: 7400, organizacao: 82, porte: 'media',
+        descricao: 'Inglesa, muito boa em classificação.' },
+      { id: 'f2-invictus', nome: 'Invictus Racing', cor: '#ff3e9a', material: 85, mecanico: 82, caixa: 0, custoEtapa: 7000, organizacao: 80, porte: 'media',
+        descricao: 'Ambiciosa, com dinheiro novo e carro bom.' },
+      { id: 'f2-polder', nome: 'Polder Motorsport', cor: '#00a19c', material: 84, mecanico: 80, caixa: 0, custoEtapa: 6600, organizacao: 78, porte: 'media',
+        descricao: 'Holandesa, regular e organizada.' },
+      { id: 'f2-trident', nome: 'Tridente Motorsport', cor: '#2b5cff', material: 83, mecanico: 80, caixa: 0, custoEtapa: 6200, organizacao: 78, porte: 'media',
+        descricao: 'Italiana, oscila entre pódio e meio do grid.' },
+      { id: 'f2-vanamstel', nome: 'Van Amstel Racing', cor: '#ff9f1c', material: 80, mecanico: 74, caixa: 0, custoEtapa: 5400, organizacao: 72, porte: 'pequena',
+        descricao: 'Holandesa, aposta em pilotos estreantes.' },
+      { id: 'f2-falcao', nome: 'Desert Falcon Racing', cor: '#c9a227', material: 77, mecanico: 70, caixa: 0, custoEtapa: 4800, organizacao: 70, porte: 'pequena',
+        descricao: 'A caçula do grid, com orçamento curto.' },
+  ];
+  const EQUIPES_F1 = [
+      { id: 'f1-rossa', nome: 'Scuderia Rossa', cor: '#dc0000', material: 96, mecanico: 94, caixa: 0, custoEtapa: 9500, organizacao: 88, porte: 'ponta', salario: 220000,
+        descricao: 'A equipe mais tradicional do mundo. Pressão enorme e torcida apaixonada.' },
+      { id: 'f1-argento', nome: 'Argento Grand Prix', cor: '#00d2be', material: 96, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 92, porte: 'ponta', salario: 200000,
+        descricao: 'Flechas de prata: estrutura gigante e engenharia impecável.' },
+      { id: 'f1-toro', nome: 'Taurus Energy Racing', cor: '#1e41ff', material: 97, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 90, porte: 'ponta', salario: 200000,
+        descricao: 'Bebida energética, carro agressivo e um time obcecado por vencer.' },
+      { id: 'f1-papaya', nome: 'Papaya Racing', cor: '#ff8000', material: 97, mecanico: 93, caixa: 0, custoEtapa: 9300, organizacao: 90, porte: 'ponta', salario: 180000,
+        descricao: 'Laranja de Woking, de volta ao topo com um carro rapidíssimo.' },
+      { id: 'f1-verde', nome: 'Verde Britannia', cor: '#006f62', material: 90, mecanico: 88, caixa: 0, custoEtapa: 8600, organizacao: 84, porte: 'media', salario: 140000,
+        descricao: 'Verde inglês, muito dinheiro e vontade de virar equipe grande.' },
+      { id: 'f1-grove', nome: 'Grove Racing', cor: '#005aff', material: 89, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 82, porte: 'media', salario: 120000,
+        descricao: 'Equipe histórica de Grove, reconstruindo para voltar a vencer.' },
+      { id: 'f1-alpes', nome: 'Alpes Bleu', cor: '#0090ff', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 80, porte: 'media', salario: 110000,
+        descricao: 'Azul francês com motor próprio, ora brilha, ora some.' },
+      { id: 'f1-faenza', nome: 'Faenza Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 100000,
+        descricao: 'Equipe irmã de uma grande: trampolim para pilotos jovens.' },
+      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 90000,
+        descricao: 'Americana e enxuta. Compra peças de quem pode.' },
+      { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 80000,
+        descricao: 'Suíça, em transição para virar equipe de fábrica.' },
+  ];
+  const EQUIPES_MONO = { f4: EQUIPES_F4, f3: EQUIPES_F3, f2: EQUIPES_F2, f1: EQUIPES_F1 };
+
   // Nomes de equipe sorteados a cada carreira (o perfil de cada equipe continua o mesmo). Todos fictícios.
   const NOMES_EQUIPES = [
     'Fulmine Kart', 'Orbital Karting', 'Velox Junior', 'Rapido Corse', 'Tempesta Racing', 'Faísca Kart',
@@ -97,6 +167,61 @@
       { id: 'spa', nome: 'Spa-Francorchamps', local: 'Stavelot (BEL)', tipo: 'veloz', altitude: 450, clima: 16, tempoBase: 150.0 },
       { id: 'spielberg', nome: 'Spielberg', local: 'Spielberg (AUT)', tipo: 'mista', altitude: 680, clima: 18, tempoBase: 92.0 },
       { id: 'castellet', nome: 'Le Castellet', local: 'Le Castellet (FRA)', tipo: 'mista', altitude: 400, clima: 24, tempoBase: 117.0 },
+    ],
+    // Monopostos acima da F4: circuitos reais, na ordem do calendário (o jogo escolhe 8 por ano).
+    f3: [
+      { id: 'melbourne', nome: 'Albert Park', local: 'Melbourne (AUS)', tipo: 'mista', altitude: 10, clima: 21, tempoBase: 94.4 },
+      { id: 'bahrein', nome: 'Sakhir', local: 'Sakhir (BRN)', tipo: 'mista', altitude: 10, clima: 27, tempoBase: 108.6 },
+      { id: 'imola', nome: 'Imola', local: 'Imola (ITA)', tipo: 'mista', altitude: 40, clima: 22, tempoBase: 90.9 },
+      { id: 'monaco', nome: 'Mônaco', local: 'Monte Carlo (MON)', tipo: 'travada', altitude: 20, clima: 22, tempoBase: 85.0 },
+      { id: 'barcelona', nome: 'Barcelona-Catalunha', local: 'Montmeló (ESP)', tipo: 'mista', altitude: 115, clima: 25, tempoBase: 88.5 },
+      { id: 'spielberg', nome: 'Spielberg', local: 'Spielberg (AUT)', tipo: 'mista', altitude: 680, clima: 18, tempoBase: 77.9 },
+      { id: 'silverstone', nome: 'Silverstone', local: 'Silverstone (ING)', tipo: 'veloz', altitude: 150, clima: 17, tempoBase: 103.8 },
+      { id: 'spa', nome: 'Spa-Francorchamps', local: 'Stavelot (BEL)', tipo: 'veloz', altitude: 450, clima: 16, tempoBase: 125.1 },
+      { id: 'hungaroring', nome: 'Hungaroring', local: 'Mogyoród (HUN)', tipo: 'travada', altitude: 260, clima: 27, tempoBase: 92.0 },
+      { id: 'monza', nome: 'Monza', local: 'Monza (ITA)', tipo: 'veloz', altitude: 160, clima: 23, tempoBase: 96.8 },
+    ],
+    f2: [
+      { id: 'melbourne', nome: 'Albert Park', local: 'Melbourne (AUS)', tipo: 'mista', altitude: 10, clima: 21, tempoBase: 88.0 },
+      { id: 'bahrein', nome: 'Sakhir', local: 'Sakhir (BRN)', tipo: 'mista', altitude: 10, clima: 27, tempoBase: 101.2 },
+      { id: 'jeddah', nome: 'Jeddah Corniche', local: 'Jeddah (SAU)', tipo: 'veloz', altitude: 5, clima: 28, tempoBase: 97.9 },
+      { id: 'imola', nome: 'Imola', local: 'Imola (ITA)', tipo: 'mista', altitude: 40, clima: 22, tempoBase: 84.7 },
+      { id: 'monaco', nome: 'Mônaco', local: 'Monte Carlo (MON)', tipo: 'travada', altitude: 20, clima: 22, tempoBase: 79.2 },
+      { id: 'barcelona', nome: 'Barcelona-Catalunha', local: 'Montmeló (ESP)', tipo: 'mista', altitude: 115, clima: 25, tempoBase: 82.5 },
+      { id: 'spielberg', nome: 'Spielberg', local: 'Spielberg (AUT)', tipo: 'mista', altitude: 680, clima: 18, tempoBase: 72.6 },
+      { id: 'silverstone', nome: 'Silverstone', local: 'Silverstone (ING)', tipo: 'veloz', altitude: 150, clima: 17, tempoBase: 96.8 },
+      { id: 'spa', nome: 'Spa-Francorchamps', local: 'Stavelot (BEL)', tipo: 'veloz', altitude: 450, clima: 16, tempoBase: 116.6 },
+      { id: 'hungaroring', nome: 'Hungaroring', local: 'Mogyoród (HUN)', tipo: 'travada', altitude: 260, clima: 27, tempoBase: 85.8 },
+      { id: 'monza', nome: 'Monza', local: 'Monza (ITA)', tipo: 'veloz', altitude: 160, clima: 23, tempoBase: 90.2 },
+      { id: 'baku', nome: 'Baku', local: 'Baku (AZE)', tipo: 'veloz', altitude: -25, clima: 24, tempoBase: 114.4 },
+      { id: 'lusail', nome: 'Lusail', local: 'Lusail (CAT)', tipo: 'veloz', altitude: 15, clima: 27, tempoBase: 92.4 },
+      { id: 'abudhabi', nome: 'Yas Marina', local: 'Abu Dhabi (EAU)', tipo: 'mista', altitude: 5, clima: 28, tempoBase: 94.6 },
+    ],
+    f1: [
+      { id: 'melbourne', nome: 'Albert Park', local: 'Melbourne (AUS)', tipo: 'mista', altitude: 10, clima: 21, tempoBase: 80.0 },
+      { id: 'xangai', nome: 'Xangai', local: 'Xangai (CHN)', tipo: 'mista', altitude: 5, clima: 20, tempoBase: 94.0 },
+      { id: 'suzuka', nome: 'Suzuka', local: 'Suzuka (JAP)', tipo: 'veloz', altitude: 45, clima: 18, tempoBase: 91.0 },
+      { id: 'bahrein', nome: 'Sakhir', local: 'Sakhir (BRN)', tipo: 'mista', altitude: 10, clima: 27, tempoBase: 92.0 },
+      { id: 'jeddah', nome: 'Jeddah Corniche', local: 'Jeddah (SAU)', tipo: 'veloz', altitude: 5, clima: 28, tempoBase: 89.0 },
+      { id: 'miami', nome: 'Miami', local: 'Miami (EUA)', tipo: 'mista', altitude: 5, clima: 29, tempoBase: 89.0 },
+      { id: 'imola', nome: 'Imola', local: 'Imola (ITA)', tipo: 'mista', altitude: 40, clima: 22, tempoBase: 77.0 },
+      { id: 'monaco', nome: 'Mônaco', local: 'Monte Carlo (MON)', tipo: 'travada', altitude: 20, clima: 22, tempoBase: 72.0 },
+      { id: 'barcelona', nome: 'Barcelona-Catalunha', local: 'Montmeló (ESP)', tipo: 'mista', altitude: 115, clima: 25, tempoBase: 75.0 },
+      { id: 'montreal', nome: 'Gilles Villeneuve', local: 'Montreal (CAN)', tipo: 'veloz', altitude: 15, clima: 22, tempoBase: 74.0 },
+      { id: 'spielberg', nome: 'Spielberg', local: 'Spielberg (AUT)', tipo: 'mista', altitude: 680, clima: 18, tempoBase: 66.0 },
+      { id: 'silverstone', nome: 'Silverstone', local: 'Silverstone (ING)', tipo: 'veloz', altitude: 150, clima: 17, tempoBase: 88.0 },
+      { id: 'spa', nome: 'Spa-Francorchamps', local: 'Stavelot (BEL)', tipo: 'veloz', altitude: 450, clima: 16, tempoBase: 106.0 },
+      { id: 'hungaroring', nome: 'Hungaroring', local: 'Mogyoród (HUN)', tipo: 'travada', altitude: 260, clima: 27, tempoBase: 78.0 },
+      { id: 'zandvoort', nome: 'Zandvoort', local: 'Zandvoort (HOL)', tipo: 'mista', altitude: 5, clima: 18, tempoBase: 72.0 },
+      { id: 'monza', nome: 'Monza', local: 'Monza (ITA)', tipo: 'veloz', altitude: 160, clima: 23, tempoBase: 82.0 },
+      { id: 'baku', nome: 'Baku', local: 'Baku (AZE)', tipo: 'veloz', altitude: -25, clima: 24, tempoBase: 104.0 },
+      { id: 'singapura', nome: 'Marina Bay', local: 'Singapura (SGP)', tipo: 'travada', altitude: 10, clima: 30, tempoBase: 93.0 },
+      { id: 'austin', nome: 'Circuito das Américas', local: 'Austin (EUA)', tipo: 'mista', altitude: 150, clima: 26, tempoBase: 96.0 },
+      { id: 'mexico', nome: 'Hermanos Rodríguez', local: 'Cidade do México (MEX)', tipo: 'veloz', altitude: 2240, clima: 20, tempoBase: 79.0 },
+      { id: 'pace', nome: 'Interlagos', local: 'São Paulo (BRA)', tipo: 'mista', altitude: 780, clima: 23, tempoBase: 72.0 },
+      { id: 'lasvegas', nome: 'Las Vegas', local: 'Las Vegas (EUA)', tipo: 'veloz', altitude: 620, clima: 14, tempoBase: 95.0 },
+      { id: 'lusail', nome: 'Lusail', local: 'Lusail (CAT)', tipo: 'veloz', altitude: 15, clima: 27, tempoBase: 84.0 },
+      { id: 'abudhabi', nome: 'Yas Marina', local: 'Abu Dhabi (EAU)', tipo: 'mista', altitude: 5, clima: 28, tempoBase: 86.0 },
     ],
     eu: [
       { id: 'lonato', tracado: [[158, 96], [276, 97], [280, 91], [277, 87], [250, 72], [246, 74], [244, 76], [188, 43], [134, 47], [128, 52], [133, 78], [129, 83], [77, 108], [69, 120], [63, 123], [27, 125], [20, 129], [25, 134], [58, 131], [96, 137], [102, 133], [97, 118], [102, 111], [151, 82], [156, 76], [150, 67], [153, 62], [158, 63], [173, 72], [174, 80], [168, 86], [158, 89], [155, 94]], nome: 'South Garda', local: 'Lonato (ITA)', tipo: 'mista', altitude: 100, clima: 22, tempoBase: 47.0 },
@@ -169,6 +294,49 @@
     castellet: { extensao: 5842, largura: 14, sentido: 'horário', retas: [1000, 600], curvas: { lentas: 4, medias: 6, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.6, ondePassar: 'Fim da reta Mistral',
       sobre: 'Larga e plana, com a longa reta Mistral. Muito calor no verão e asfalto que gasta pneu.' },
   });
+  // Circuitos de F3, F2 e F1 (dados aproximados dos traçados reais).
+  Object.assign(FICHAS, {
+    melbourne: { extensao: 5278, largura: 14, sentido: 'horário', retas: [800, 650, 500], curvas: { lentas: 4, medias: 6, rapidas: 4 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.6, ondePassar: 'Freada da curva 1 e da curva 11',
+      sobre: 'Circuito de rua em volta do lago do Albert Park. Asfalto liso, que fica escorregadio no começo do fim de semana.' },
+    xangai: { extensao: 5451, largura: 15, sentido: 'horário', retas: [1170, 600], curvas: { lentas: 5, medias: 6, rapidas: 3 }, grampos: 2, zebras: 'baixas', asfalto: 'medio', desnivel: 'Plana', ultrapassagem: 0.75, ondePassar: 'Grampo no fim da reta de 1,2 km',
+      sobre: 'Começa com um caracol que fecha sem parar e termina numa das maiores retas do campeonato. Castiga o pneu dianteiro esquerdo.' },
+    suzuka: { extensao: 5807, largura: 12, sentido: 'em oito', retas: [900, 600], curvas: { lentas: 4, medias: 6, rapidas: 8 }, grampos: 1, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Subidas e descidas', ultrapassagem: 0.4, ondePassar: 'Freada da chicane antes da reta',
+      sobre: 'Traçado em forma de oito, com os esses no primeiro setor e a 130R de pé embaixo. Favorita dos pilotos e muito exigente.' },
+    bahrein: { extensao: 5412, largura: 15, sentido: 'horário', retas: [1090, 600, 500], curvas: { lentas: 6, medias: 5, rapidas: 4 }, grampos: 3, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Leve desnível', ultrapassagem: 0.8, ondePassar: 'Curva 1, curva 4 e curva 11',
+      sobre: 'No meio do deserto, corrida ao entardecer. Freadas fortes e asfalto áspero com areia: o pneu traseiro sofre muito.' },
+    jeddah: { extensao: 6174, largura: 13, sentido: 'anti-horário', retas: [1000, 800], curvas: { lentas: 3, medias: 8, rapidas: 16 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.6, ondePassar: 'Grampo da curva 27 e curva 1',
+      sobre: 'Circuito de rua mais rápido do mundo, à beira do Mar Vermelho. Muros colados e curvas cegas de alta: erro custa caro.' },
+    miami: { extensao: 5412, largura: 13, sentido: 'anti-horário', retas: [1280, 700], curvas: { lentas: 5, medias: 7, rapidas: 7 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.65, ondePassar: 'Freada da curva 11 e da curva 17',
+      sobre: 'Em volta do estádio, com calor e umidade fortes. Trecho travado e lento no meio e duas retas longas.' },
+    monaco: { extensao: 3337, largura: 9, sentido: 'horário', retas: [500], curvas: { lentas: 11, medias: 5, rapidas: 3 }, grampos: 1, zebras: 'altas', asfalto: 'liso', desnivel: 'Subida forte até o Cassino', ultrapassagem: 0.1, ondePassar: 'Saída do túnel, na freada da chicane',
+      sobre: 'As ruas de Monte Carlo: estreitas, sem área de escape e quase sem ultrapassagem. A classificação decide a corrida.' },
+    barcelona: { extensao: 4657, largura: 12, sentido: 'horário', retas: [1050], curvas: { lentas: 5, medias: 5, rapidas: 4 }, grampos: 0, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Leve desnível', ultrapassagem: 0.45, ondePassar: 'Freada da curva 1',
+      sobre: 'Todo mundo testa aqui, então todo mundo conhece. Mistura de curvas de alta e baixa: se o carro anda bem aqui, anda em qualquer lugar.' },
+    montreal: { extensao: 4361, largura: 12, sentido: 'anti-horário', retas: [1100, 600], curvas: { lentas: 6, medias: 4, rapidas: 4 }, grampos: 1, zebras: 'altas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.75, ondePassar: 'Grampo e última chicane',
+      sobre: 'Numa ilha, com retas e chicanes de zebras altas. O Muro dos Campeões espera quem erra a última chicane.' },
+    silverstone: { extensao: 5891, largura: 15, sentido: 'horário', retas: [800, 750, 600], curvas: { lentas: 3, medias: 6, rapidas: 9 }, grampos: 0, zebras: 'baixas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.7, ondePassar: 'Stowe e Brooklands',
+      sobre: 'Antigo aeródromo, casa do automobilismo inglês. Maggotts e Becketts em sequência pedem um carro com muita asa e coragem.' },
+    hungaroring: { extensao: 4381, largura: 12, sentido: 'horário', retas: [800], curvas: { lentas: 6, medias: 6, rapidas: 2 }, grampos: 2, zebras: 'baixas', asfalto: 'medio', desnivel: 'Fundo de vale', ultrapassagem: 0.3, ondePassar: 'Freada da curva 1',
+      sobre: 'Travada e quente, parece um kartódromo grande. Pouca reta e muita curva: ultrapassar é difícil e a classificação pesa.' },
+    zandvoort: { extensao: 4259, largura: 11, sentido: 'horário', retas: [700], curvas: { lentas: 4, medias: 4, rapidas: 6 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Dunas, com curvas inclinadas', ultrapassagem: 0.3, ondePassar: 'Freada da Tarzan',
+      sobre: 'Entre as dunas do Mar do Norte, com curvas inclinadas e areia que voa para a pista. Estreita e de pouca ultrapassagem.' },
+    baku: { extensao: 6003, largura: 10, sentido: 'anti-horário', retas: [2200, 500], curvas: { lentas: 8, medias: 6, rapidas: 6 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Subida no trecho do castelo', ultrapassagem: 0.8, ondePassar: 'Fim da reta de 2,2 km',
+      sobre: 'Circuito de rua com a maior reta do calendário e um trecho de 7 metros de largura no castelo antigo. Vácuo e caos.' },
+    singapura: { extensao: 4940, largura: 11, sentido: 'anti-horário', retas: [800], curvas: { lentas: 11, medias: 6, rapidas: 2 }, grampos: 2, zebras: 'altas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.3, ondePassar: 'Freada da curva 14',
+      sobre: 'Corrida noturna nas ruas, com calor e umidade enormes. Muitas curvas lentas e muros: o piloto chega no limite físico.' },
+    austin: { extensao: 5513, largura: 15, sentido: 'anti-horário', retas: [1200, 600], curvas: { lentas: 5, medias: 7, rapidas: 8 }, grampos: 1, zebras: 'baixas', asfalto: 'medio', desnivel: 'Subida forte até a curva 1', ultrapassagem: 0.7, ondePassar: 'Curva 1 no alto do morro e curva 12',
+      sobre: 'Começa com uma subida íngreme até a curva 1 e copia trechos famosos de outras pistas. Asfalto com ondulações.' },
+    mexico: { extensao: 4304, largura: 13, sentido: 'horário', retas: [1300], curvas: { lentas: 5, medias: 6, rapidas: 6 }, grampos: 0, zebras: 'altas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.65, ondePassar: 'Freada da curva 1',
+      sobre: 'A 2.240 metros de altitude, o ar rarefeito tira asa e potência. O carro anda com asa máxima e mesmo assim desliza.' },
+    pace: { extensao: 4309, largura: 13, sentido: 'anti-horário', retas: [1000, 600], curvas: { lentas: 4, medias: 5, rapidas: 6 }, grampos: 1, zebras: 'altas', asfalto: 'medio', desnivel: 'Subidas e descidas fortes', ultrapassagem: 0.8, ondePassar: 'S do Senna e fim da Reta Oposta',
+      sobre: 'O Autódromo José Carlos Pace: sobe e desce, anti-horário e com chuva que chega de repente. Ultrapassagem no S do Senna.' },
+    lasvegas: { extensao: 6201, largura: 14, sentido: 'anti-horário', retas: [1900, 800], curvas: { lentas: 6, medias: 6, rapidas: 5 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.8, ondePassar: 'Fim da Strip',
+      sobre: 'Corrida de madrugada na Strip, com frio no deserto: o pneu não pega temperatura. Retas enormes e pouca asa.' },
+    lusail: { extensao: 5419, largura: 12, sentido: 'horário', retas: [1070], curvas: { lentas: 3, medias: 5, rapidas: 8 }, grampos: 0, zebras: 'altas', asfalto: 'abrasivo', desnivel: 'Plana', ultrapassagem: 0.5, ondePassar: 'Freada da curva 1',
+      sobre: 'Feita para motos, cheia de curvas de média e alta em sequência. Muito calor e zebras que machucam o pneu.' },
+    abudhabi: { extensao: 5281, largura: 14, sentido: 'anti-horário', retas: [1200, 600], curvas: { lentas: 5, medias: 5, rapidas: 6 }, grampos: 1, zebras: 'baixas', asfalto: 'liso', desnivel: 'Plana', ultrapassagem: 0.65, ondePassar: 'Grampo da curva 5 e curva 9',
+      sobre: 'Última etapa do ano, do dia para a noite. A pista esfria durante a corrida e o carro muda de comportamento.' },
+  });
   for (const regiao of Object.values(KARTODROMOS)) for (const p of regiao) Object.assign(p, FICHAS[p.id]);
 
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
@@ -182,6 +350,13 @@
     // Monopostos: só se entra por proposta de uma equipe de F4.
     { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 4, premios: 1.5, regiao: 'f4', voltas: 14,
       chuva: 0.3, premioCampeao: 80000, popularidade: 4, categoria: 'f4' },
+    // Depois da F4, sobe-se por proposta: os 4 primeiros de cada categoria são chamados pela seguinte.
+    { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, nivel: 79, custo: 6, premios: 2, regiao: 'f3', voltas: 16,
+      chuva: 0.25, premioCampeao: 150000, popularidade: 6, categoria: 'f4' },
+    { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, nivel: 83, custo: 9, premios: 3, regiao: 'f2', voltas: 18,
+      chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f4' },
+    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, nivel: 87, custo: 12, premios: 6, regiao: 'f1', voltas: 20,
+      chuva: 0.2, premioCampeao: 1000000, popularidade: 12, categoria: 'f4' },
   ];
 
   // Quem pode aparecer no paddock observando. nivelMin: a partir de qual campeonato aparece.
@@ -223,12 +398,35 @@
       p: ['Pablo', 'Álvaro', 'Diego', 'Iker', 'Hugo', 'Martín', 'Lucas', 'Mateo', 'Leo', 'Daniel', 'Alejandro', 'Manuel', 'Adrián', 'Marcos', 'Javier', 'David', 'Sergio', 'Carlos', 'Jorge', 'Raúl', 'Rubén', 'Gonzalo', 'Íñigo', 'Unai', 'Aitor', 'Asier', 'Marc', 'Pol', 'Arnau', 'Oriol', 'Fernando', 'Jaime', 'Nacho', 'Roberto', 'Andrés'],
       s: ['García', 'Navarro', 'Ruiz', 'Ortega', 'Fernández', 'González', 'Rodríguez', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín', 'Jiménez', 'Hernández', 'Díaz', 'Moreno', 'Muñoz', 'Álvarez', 'Romero', 'Alonso', 'Gutiérrez', 'Torres', 'Domínguez', 'Vázquez', 'Ramos', 'Gil', 'Ramírez', 'Serrano', 'Blanco', 'Molina', 'Morales', 'Suárez', 'Delgado', 'Castro', 'Ortiz', 'Rubio', 'Marín', 'Sanz', 'Iglesias', 'Medina', 'Garrido', 'Cortés', 'Castillo'],
     },
+    AUS: {
+      p: ['Jack', 'Liam', 'Cooper', 'Harrison', 'Riley', 'Lachlan', 'Mitchell', 'Brodie', 'Callum', 'Darcy', 'Flynn', 'Hayden', 'Jett', 'Kai', 'Lincoln', 'Mason', 'Nate', 'Oscar', 'Ryder', 'Tyson'],
+      s: ['Hargreaves', 'Mcintyre', 'Thornton', 'Fairweather', 'Kingsley', 'Pemberton', 'Whitlock', 'Ashby', 'Bramwell', 'Calloway', 'Dunmore', 'Everingham', 'Fitzroy', 'Gillespie', 'Holloway', 'Kilbride', 'Lockwood', 'Merriman', 'Northcott', 'Prendergast'],
+    },
+    JAP: {
+      p: ['Haruto', 'Sota', 'Yuto', 'Ren', 'Kaito', 'Riku', 'Hinata', 'Takumi', 'Daiki', 'Kenta', 'Shota', 'Ryota', 'Hayato', 'Kosei', 'Itsuki', 'Yamato', 'Sora', 'Taiga', 'Asahi', 'Minato'],
+      s: ['Fujimoto', 'Hasegawa', 'Ikeda', 'Kawaguchi', 'Matsuda', 'Mori', 'Nishimura', 'Ogawa', 'Sakamoto', 'Shimizu', 'Takeda', 'Uchida', 'Watanabe', 'Yoshida', 'Hirano', 'Kondo', 'Murata', 'Okabe', 'Sugimoto', 'Tamura'],
+    },
+    MEX: {
+      p: ['Emiliano', 'Diego', 'Leonardo', 'Santino', 'Iker', 'Rodrigo', 'Alonso', 'Patricio', 'Gael', 'Ximeno', 'Uriel', 'Sebastián', 'Axel', 'Marcos', 'Andrés', 'Rogelio', 'Ernesto', 'Julián', 'Esteban', 'Octavio'],
+      s: ['Villaseñor', 'Arreola', 'Cisneros', 'Echeverría', 'Garza', 'Ibarra', 'Larios', 'Montemayor', 'Najera', 'Ochoa', 'Quezada', 'Robles', 'Salinas', 'Treviño', 'Urquiza', 'Valdivia', 'Zamora', 'Cárdenas', 'Elizondo', 'Fuentes'],
+    },
+    CAN: {
+      p: ['Logan', 'Owen', 'Nolan', 'Félix', 'Xavier', 'Mathis', 'Zachary', 'Carter', 'Hunter', 'Wyatt', 'Jacob', 'Gabriel', 'Olivier', 'Raphaël', 'Tristan', 'Connor', 'Eli', 'Brayden', 'Jayden', 'Rowan'],
+      s: ['Tremblay', 'Gagnon', 'Bouchard', 'Gauthier', 'Lapointe', 'Desjardins', 'Leclair', 'Morissette', 'Pelletier', 'Thibodeau', 'Beaulieu', 'Champagne', 'Fortier', 'Lachance', 'Ouellette', 'MacKinnon', 'Fraser', 'Sinclair', 'Whitfield', 'Callahan'],
+    },
+    BEL: {
+      p: ['Arthur', 'Louis', 'Jules', 'Victor', 'Lucas', 'Noah', 'Mathis', 'Wout', 'Lander', 'Senne', 'Rune', 'Bram', 'Jasper', 'Milan', 'Lowie', 'Thibault', 'Émile', 'Cédric', 'Gilles', 'Remco'],
+      s: ['Peeters', 'Claes', 'Goossens', 'Wouters', 'Maes', 'Mertens', 'Willems', 'Dubois', 'Lambert', 'Dupont', 'Verstraete', 'De Smet', 'Van Damme', 'Hermans', 'Janssens', 'Lemaire', 'Michiels', 'Segers', 'Thys', 'Vermeulen'],
+    },
     ARG: {
       p: ['Mateo', 'Franco', 'Santiago', 'Thiago', 'Benjamín', 'Joaquín', 'Valentino', 'Bautista', 'Lautaro', 'Felipe', 'Tomás', 'Agustín', 'Facundo', 'Nicolás', 'Ignacio', 'Lucas', 'Gonzalo', 'Juan', 'Emiliano', 'Maximiliano', 'Bruno', 'Ramiro', 'Juan Pablo', 'Esteban'],
       s: ['Ríos', 'Pereyra', 'Acosta', 'Fernández', 'Rodríguez', 'González', 'Gómez', 'Sosa', 'Díaz', 'Romero', 'Benítez', 'Medina', 'Herrera', 'Suárez', 'Aguirre', 'Giménez', 'Molina', 'Castro', 'Ortiz', 'Silva', 'Rojas', 'Luna', 'Ledesma', 'Cabrera', 'Ponce', 'Vera', 'Paz'],
     },
   };
-  const PAISES = { br: ['BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'ARG'], eu: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA'], f4: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA', 'ARG'] };
+  const PAISES = { br: ['BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'ARG'], eu: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA'], f4: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA', 'ARG'],
+    f3: ['ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA', 'ARG', 'AUS', 'JAP', 'BEL', 'MEX', 'CAN'],
+    f2: ['ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA', 'ARG', 'AUS', 'JAP', 'BEL', 'MEX', 'CAN'],
+    f1: ['ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'HOL', 'ESP', 'BRA', 'ARG', 'AUS', 'JAP', 'BEL', 'MEX', 'CAN'] };
 
   // Patrocinadores por porte: locais no começo, maiores quando o piloto cresce.
   const PATROCINADORES = [
@@ -237,7 +435,7 @@
     ['Banco Atlântico', 'Petroluz', 'TecnoNet', 'Vela Energia', 'Aurora Seguros', 'Brisa Bebidas', 'Halcyon Air'],
   ];
 
-  const Dados = { EQUIPES, EQUIPES_F4, NOMES_EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
+  const Dados = { EQUIPES, EQUIPES_F4, EQUIPES_MONO, NOMES_EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
   if (typeof module === 'object' && module.exports) module.exports = Dados;
   else root.BoxDados = Dados;
 })(this);
