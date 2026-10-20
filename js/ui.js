@@ -617,11 +617,37 @@
     ].join('');
   }
 
+  // Sobre, números e traçado da pista: usado na tela "Ver pista" e na folha aberta durante o fim de semana.
+  function conteudoPista(pista, camp) {
+    const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
+    return `<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
+      <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? tile('Largura', `${pista.largura} m`) : ''}${pista.sentido ? tile('Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}</div>
+      ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`;
+  }
+
+  // Folha com a ficha da pista, aberta por cima do treino, da classificação, do grid ou da corrida
+  // (fica fora do #app para não interromper a corrida ao vivo).
+  const folhaPista = document.createElement('div');
+  folhaPista.className = 'folha-fundo';
+  folhaPista.hidden = true;
+  document.body.appendChild(folhaPista);
+  folhaPista.addEventListener('click', (ev) => { if (ev.target === folhaPista || ev.target.closest('[data-fechar]')) folhaPista.hidden = true; });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') folhaPista.hidden = true; });
+  function abrirFichaPista() {
+    const pista = C.pistaAtual(estado);
+    folhaPista.innerHTML = `<div class="folha folha-pista" role="dialog" aria-modal="true" aria-labelledby="folha-pista-titulo">
+      <div class="folha-pista-topo"><h3 id="folha-pista-titulo">${esc(pista.nome)}</h3><button class="redondo" data-fechar aria-label="Fechar">✕</button></div>
+      ${conteudoPista(pista, C.campeonato(estado.campeonato))}
+      <button class="principal grande" data-fechar>Voltar</button>
+    </div>`;
+    folhaPista.hidden = false;
+    folhaPista.querySelector('.folha').scrollTop = 0;
+  }
+
   function telaPista() {
     const pista = C.pistaAtual(estado);
     const camp = C.campeonato(estado.campeonato);
     const aba = tela.aba || 'pista';
-    const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
     const anotacoes = estado.caderno[pista.id] || [];
     app.innerHTML = `
       <div class="detalhe">
@@ -631,10 +657,7 @@
           <button role="tab" data-acao="aba-pista" data-aba="pista" class="${aba === 'pista' ? 'ativo' : ''}" aria-selected="${aba === 'pista'}">Pista</button>
           <button role="tab" data-acao="aba-pista" data-aba="caderno" class="${aba === 'caderno' ? 'ativo' : ''}" aria-selected="${aba === 'caderno'}">Caderno</button>
         </div>
-        ${aba === 'pista' ? `
-          <section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
-          <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}${pista.largura ? tile('Largura', `${pista.largura} m`) : ''}${pista.sentido ? tile('Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}</div>
-          ${pista.retas ? `<section class="secao"><h2>Traçado</h2><div class="ficha">${fichaPista(pista)}</div></section>` : ''}`
+        ${aba === 'pista' ? conteudoPista(pista, camp)
         : `<div class="anotacoes">${anotacoes.length ? blocosCaderno(anotacoes) : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
         ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para a pista · ${reais(C.custoEtapa(estado))}</button>` : ''}
       </div>
@@ -667,7 +690,7 @@
   function telaFimDeSemana() {
     const fds = estado.fds;
     const pista = C.pistaAtual(estado);
-    const cabecalho = `<div class="linha cabecalho-tela"><h1>${esc(pista.nome)}</h1>${chip(tipoPista[pista.tipo])}</div>${passosFds(fds.sessao)}`;
+    const cabecalho = `<div class="linha cabecalho-tela"><h1>${esc(pista.nome)}</h1>${chip(tipoPista[pista.tipo])}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
     if (fds.sessao === 'treino' || fds.sessao === 'quali') app.innerHTML = cabecalho + telaAcerto();
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
     else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
@@ -956,6 +979,9 @@
         C.seguir(estado, id);
         salvar();
         render();
+        break;
+      case 'ficha-pista':
+        abrirFichaPista();
         break;
       case 'ver-pista':
         ir({ nome: 'pista', aba: 'pista' });

@@ -507,6 +507,14 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .pendencia { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 14px; }
 .pendencia button { white-space: nowrap; padding: 8px 12px; }
 @media (max-width: 400px) { .pendencia { grid-template-columns: minmax(0, 1fr); } }
+.folha.folha-pista { max-height: calc(100vh - 32px); overflow-y: auto; border-color: rgba(199, 125, 255, 0.55); }
+.folha.folha-pista { padding: 16px; }
+.folha-pista .tiles-2 .tile b { font-size: 18px; }
+.folha-pista .ficha-linha { grid-template-columns: 24px 96px minmax(0, 1fr); padding: 10px 12px; }
+.folha-pista-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.folha-pista-topo h3 { font-size: 20px; text-transform: none; letter-spacing: 0; color: var(--texto); }
+.ver-pista-mini { padding: 8px 14px; border-radius: 999px; background: #2a1740; border: 1px solid #c77dff; color: #c77dff; font-weight: 700; font-size: 14px; white-space: nowrap; }
 .folha-fundo { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 30; display: flex; align-items: flex-end; justify-content: center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.folha-fundo[hidden] { display: none; }
 .folha { width: 100%; max-width: 480px; background: var(--painel); border: 1px solid rgba(255, 176, 32, 0.55); border-radius: var(--raio); padding: 20px; display: grid; gap: 14px; animation: subir 0.18s ease-out; }
 .folha h3 { color: var(--texto); font-size: 18px; text-transform: none; letter-spacing: 0; }
