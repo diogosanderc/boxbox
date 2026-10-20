@@ -926,7 +926,11 @@
       corpo = `<p class="fraco mini">Ele trabalhou na sessão anterior. Para ficar nesta, cobra hora extra.</p>
         <button class="compra" data-acao="hora-extra" data-confirmar="Confirmar: −${reais(extra)}" ${estado.dinheiro < extra ? 'disabled' : ''}><b>⏱ Pagar hora extra</b><span>−${reais(extra)} · esta sessão</span></button>`;
     } else if (conselho) {
-      corpo = `<div class="bolha mecanico"><span aria-hidden="true">${info.icone}</span><p>${conselho.map((c) => esc(c)).join('<br>')}</p></div>`;
+      // Palpite (iniciante) é uma frase; análise técnica e kart montado viram uma lista "ajuste → o que fazer".
+      const itens = conselho.map((c) => c.split(': '));
+      corpo = info.faz === 'tecnica' && itens.every((x) => x.length === 2)
+        ? `<ul class="conselho">${itens.map(([nome, acao]) => `<li><span>${esc(nome)}</span><b>${esc(acao)}</b></li>`).join('')}</ul>`
+        : `<p class="conselho-texto">${conselho.map((c) => esc(c)).join('<br>')}</p>`;
     } else {
       corpo = `<button class="principal" data-acao="sugestao">${info.icone} ${rotulo}</button>`;
     }

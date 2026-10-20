@@ -77,18 +77,6 @@
         alturaBanco: ['baixar o banco', 'subir o banco'],
         coroa: ['tirar dentes da coroa', 'pôr mais dentes na coroa'], carburacao: ['empobrecer', 'enriquecer'],
       },
-      fraseTecnica(k, d, alvo, AJ) {
-        const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
-        return {
-          pressao: () => `${d < 0 ? 'Baixa' : 'Sobe'} ${String(Math.abs(d)).replace('.', ',')} psi na pressão`,
-          eixo: () => `Eixo: passa para ${AJ.eixo.opcoes[alvo.eixo]}`,
-          bitolaTraseira: () => `Bitola traseira: passa para ${AJ.bitolaTraseira.opcoes[alvo.bitolaTraseira]}`,
-          bitola: () => `Bitola: passa para ${AJ.bitola.opcoes[alvo.bitola]}`,
-          alturaBanco: () => `Banco: passa para ${AJ.alturaBanco.opcoes[alvo.alturaBanco]}`,
-          coroa: () => `${d > 0 ? 'Põe' : 'Tira'} ${plural(Math.abs(d), 'dente', 'dentes')} ${d > 0 ? 'na' : 'da'} coroa`,
-          carburacao: () => `Carburação ${plural(Math.abs(d), 'volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`,
-        }[k]();
-      },
       descrever(s, AJ) {
         // Acertos antigos do caderno podem não ter os ajustes mais novos.
         return this.ORDEM.filter((k) => k in s).map((k) => {
@@ -142,17 +130,6 @@
       VERBO: {
         asaDianteira: ['tirar asa', 'pôr mais asa'], asaTraseira: ['tirar asa', 'pôr mais asa'], suspensao: ['amaciar', 'endurecer'],
         altura: ['baixar o carro', 'subir o carro'], pressao: ['baixar', 'subir'], relacao: ['encurtar', 'alongar'],
-      },
-      fraseTecnica(k, d, alvo, AJ) {
-        const pontos = (n) => `${n} ${n === 1 ? 'ponto' : 'pontos'}`;
-        return {
-          asaDianteira: () => `${d > 0 ? 'Põe' : 'Tira'} ${pontos(Math.abs(d))} de asa dianteira`,
-          asaTraseira: () => `${d > 0 ? 'Põe' : 'Tira'} ${pontos(Math.abs(d))} de asa traseira`,
-          suspensao: () => `Suspensão: passa para ${AJ.suspensao.opcoes[alvo.suspensao]}`,
-          altura: () => `Altura: passa para ${AJ.altura.opcoes[alvo.altura]}`,
-          pressao: () => `${d < 0 ? 'Baixa' : 'Sobe'} ${String(Math.abs(d)).replace('.', ',')} psi na pressão`,
-          relacao: () => `Relação: passa para ${AJ.relacao.opcoes[alvo.relacao]}`,
-        }[k]();
       },
       descrever(s, AJ) {
         return `Asas ${s.asaDianteira}/${s.asaTraseira} · susp. ${AJ.suspensao.opcoes[s.suspensao]} · alt. ${AJ.altura.opcoes[s.altura]} · ${s.pressao} psi · ${AJ.relacao.opcoes[s.relacao]}`;
@@ -368,17 +345,31 @@
     return arredondarSetup(s);
   }
 
+  // O que fazer num ajuste, em poucas palavras ("baixar 1 psi", "mudar para Duro", "pôr 2 dentes").
+  function acaoAjuste(k, d, alvo) {
+    const a = M.AJUSTES[k];
+    const n = Math.abs(d);
+    const plural = (um, varios) => `${String(n).replace('.', ',')} ${n === 1 ? um : varios}`;
+    if (a.tipo === 'opcoes') return `mudar para ${a.opcoes[alvo[k]]}`;
+    if (k === 'pressao') return `${d < 0 ? 'baixar' : 'subir'} ${plural('psi', 'psi')}`;
+    if (k === 'coroa') return `${d > 0 ? 'pôr' : 'tirar'} ${plural('dente', 'dentes')}`;
+    if (k === 'carburacao') return `${plural('volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`;
+    return `${d > 0 ? 'pôr' : 'tirar'} ${plural('ponto', 'pontos')}`; // asas
+  }
+
   // Análise técnica do mecânico: o que mudar (com quantidade) para chegar perto do acerto que ele acha certo
   // para a condição. Até três mudanças, das que mais pesam. A precisão depende da qualidade dele.
   function analiseTecnica(setup, pista, cond, pneu, qualidade, rnd) {
     const alvo = sugestaoMecanico(pista, cond, pneu, qualidade, rnd);
-    const lista = M.ORDEM
+    const itens = M.ORDEM
       .map((k) => ({ k, d: alvo[k] - setup[k], peso: M.PESO[k] * Math.pow((alvo[k] - setup[k]) / M.TOLERANCIA[k], 2) }))
       .filter((x) => x.d !== 0 && x.peso >= 0.02)
       .sort((a, b) => b.peso - a.peso)
       .slice(0, 3)
-      .map((x) => M.fraseTecnica(x.k, x.d, alvo, M.AJUSTES));
-    return { lista: lista.length ? lista : ['O acerto está no ponto. Não mexe em nada.'], alvo };
+      .map((x) => ({ nome: M.AJUSTES[x.k].nome, acao: acaoAjuste(x.k, x.d, alvo) }));
+    // lista: "Nome do ajuste: o que fazer", sempre com o mesmo nome que aparece na tela.
+    const lista = itens.map((x) => `${x.nome}: ${x.acao}`);
+    return { itens, lista: lista.length ? lista : ['O acerto está no ponto. Não mexe em nada.'], alvo };
   }
 
   // Acerto que uma equipe da IA usa (mecânicos melhores chegam mais perto do ideal).

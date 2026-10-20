@@ -721,7 +721,9 @@
     if (!mecanicoAtivo(estado)) return null;
     const info = MECANICOS[mecanicoDoFds(estado.fds).tipo];
     if (info.faz === 'palpite') return Kart.dicaMecanico(e, info.qualidade, rnd);
-    return `Mecânico: ${Kart.analiseTecnica(estado.fds.setup, pista, cond, tipoPneu, info.qualidade, rnd).lista.slice(0, 2).join('. ')}.`;
+    const { itens } = Kart.analiseTecnica(estado.fds.setup, pista, cond, tipoPneu, info.qualidade, rnd);
+    if (!itens.length) return 'Mecânico: não mexe em nada, está no ponto.';
+    return `Mecânico: ${itens.slice(0, 2).map((x) => `${x.nome}, ${x.acao}`).join('. ')}.`;
   }
 
   // Uma saída para a pista no treino livre: tempo, posição na tabela, o que o piloto sente e, se contratado, a dica do mecânico.
