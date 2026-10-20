@@ -733,23 +733,23 @@ tr.jogador td { background: rgba(61, 155, 255, 0.12); }
 .campo-nome input:focus { border-color: var(--azul); outline: none; box-shadow: 0 0 0 3px rgba(61, 155, 255, 0.25); }
 
 /* ---------- fontes ----------
-   Titillium Web (texto, com cara de F1) e Racing Sans One (títulos e números grandes). Licença OFL, em fontes/. */
+   Titillium Web (texto, com cara de F1) e Saira itálico (títulos e números grandes). Licença OFL, em fontes/. */
 @font-face { font-family: 'Titillium Web'; src: url('fontes/TitilliumWeb-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Titillium Web'; src: url('fontes/TitilliumWeb-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
 @font-face { font-family: 'Titillium Web'; src: url('fontes/TitilliumWeb-Bold.ttf') format('truetype'); font-weight: 700 800; font-display: swap; }
 @font-face { font-family: 'Titillium Web'; src: url('fontes/TitilliumWeb-Black.ttf') format('truetype'); font-weight: 900; font-display: swap; }
-@font-face { font-family: 'Racing Sans One'; src: url('fontes/RacingSansOne-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
-:root { --fonte: 'Titillium Web', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; --fonte-titulo: 'Racing Sans One', 'Titillium Web', system-ui, sans-serif; }
+@font-face { font-family: 'Saira'; src: url('fontes/Saira-Italic.ttf') format('truetype'); font-weight: 100 900; font-style: italic; font-display: swap; }
+:root { --fonte: 'Titillium Web', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; --fonte-titulo: 'Saira', 'Titillium Web', system-ui, sans-serif; }
 body, button, input, textarea { font-family: var(--fonte); }
 body { font-size: 16px; }
 
 /* títulos: uma fonte só, sem mistura de grosso e fino */
-h1, .hero-pista h2, .inicio-texto h1 { font-family: var(--fonte-titulo); font-weight: 400; text-transform: none; letter-spacing: 0.01em; line-height: 1.1; }
+h1, .hero-pista h2, .inicio-texto h1 { font-family: var(--fonte-titulo); font-weight: 800; font-style: italic; text-transform: none; letter-spacing: 0; line-height: 1.1; }
 h1 { font-size: 28px; }
 .hero-pista h2 { font-size: 26px; }
 .t-forte, .t-fino { font-weight: inherit; }
 /* números grandes com cara de corrida */
-.pos-grande b, .largada-grande, .volta-grande b, .kpi-valor, .dado b { font-family: var(--fonte-titulo); font-weight: 400; letter-spacing: 0.01em; }
+.pos-grande b, .largada-grande, .volta-grande b, .kpi-valor, .dado b { font-family: var(--fonte-titulo); font-weight: 800; font-style: italic; letter-spacing: 0; }
 .kpi-valor { font-size: 24px; }
 .kpi-caixa .kpi-valor { font-size: 30px; }
 .dado b { font-size: 22px; }
