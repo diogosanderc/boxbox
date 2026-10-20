@@ -120,4 +120,20 @@ test('sem dinheiro, a etapa é pulada e os rivais pontuam', () => {
   assert.strictEqual(Object.values(e.pontos).reduce((s, x) => s + x, 0), 101);
 });
 
+test('no grid dá para mudar o acerto e o pneu da corrida', () => {
+  const e = Carreira.novoJogo({ seed: 8 });
+  Carreira.iniciarFimDeSemana(e);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  const antes = { ...e.fds.setupCorrida };
+  Carreira.definirSetup(e, { pressao: antes.pressao + 1, eixo: antes.eixo === 2 ? 0 : 2 });
+  Carreira.comprarPneu(e, 'chuva');
+  const novo = e.pneus[e.pneus.length - 1];
+  Carreira.escolherPneu(e, novo.id);
+  const corrida = Carreira.criarCorrida(e);
+  assert.strictEqual(e.fds.setupCorrida.pressao, antes.pressao + 1);
+  assert.strictEqual(e.fds.pneuCorrida, novo.id);
+  assert.strictEqual(corrida.carros.find((c) => c.jogador).tipoPneu, 'chuva');
+});
+
 module.exports = { jogarFimDeSemana };

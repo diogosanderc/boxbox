@@ -342,23 +342,32 @@
   function telaGrid() {
     const fds = estado.fds;
     const pole = fds.quali[0].tempo;
-    const pneu = estado.pneus.find((p) => p.id === fds.pneuCorrida);
     const meu = fds.quali.findIndex((q) => q.id === 'jogador') + 1;
-    return `<div class="grade">
+    const mudou = fds.pneuId !== fds.pneuCorrida || Kart.ORDEM_AJUSTES.some((k) => fds.setup[k] !== fds.setupCorrida[k]);
+    const pneu = estado.pneus.find((p) => p.id === fds.pneuId);
+    return `<div class="corrida">
+      <div class="painel">
+        <div class="linha"><h3 style="margin:0">Largando em P${meu}</h3><span class="espaco"></span><button class="principal" data-acao="largar">Largar!</button></div>
+        <p>${condicaoTexto('quali')}</p>
+        <p class="fraco" style="font-size:13px">Antes da largada dá para mexer no kart e trocar o pneu. Na corrida o asfalto tem mais borracha que na classificação.
+          ${mudou ? '<b class="aviso">Acerto alterado desde a classificação.</b>' : 'Por enquanto, o mesmo acerto da classificação.'}</p>
+        ${editorSetup()}
+        <h3 style="margin-top:14px">Pneus</h3>
+        ${tabelaPneus(true)}
+        ${pneu && pneu.uso > 15 ? '<p class="aviso">Esse jogo de pneus já está gasto para uma bateria inteira.</p>' : ''}
+        <div class="linha" style="margin-top:12px">
+          ${mudou ? '<button data-acao="desfazer-grid">Voltar ao acerto da classificação</button>' : ''}
+          <button data-acao="sugestao" ${fds.sugestaoUsada ? 'disabled' : ''}>Pedir acerto ao mecânico${fds.sugestaoUsada ? ' (já usado)' : ''}</button>
+        </div>
+      </div>
       <div class="painel tabela-rolagem"><h3>Grid de largada</h3>
-        <table><tr><th>Pos</th><th>Piloto</th><th>Equipe</th><th class="num">Tempo</th><th class="num">Dif.</th></tr>
+        <table><tr><th>Pos</th><th>Piloto</th><th class="num">Tempo</th><th class="num">Dif.</th></tr>
         ${fds.quali.map((q, i) => {
           const eqId = q.id === 'jogador' ? estado.equipeId : estado.rivais.find((r) => r.id === q.id).equipe;
           const eq = C.equipeBase(eqId);
           return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}</td>
-            <td class="fraco">${esc(eq.nome)}</td><td class="num">${tempoVolta(q.tempo)}</td><td class="num">${i ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
+            <td class="num">${tempoVolta(q.tempo)}</td><td class="num">${i ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
         }).join('')}</table></div>
-      <div class="painel"><h3>Sua largada</h3>
-        <h2>P${meu}</h2>
-        <p>Pneu: <b>${pneu ? Kart.PNEUS_KART[pneu.tipo].nome : '—'}</b> · ${esc(Kart.descreverSetup(fds.setupCorrida))}</p>
-        <p class="fraco">${condicaoTexto('quali')}</p>
-        <button class="principal" data-acao="largar">Largar!</button>
-      </div>
     </div>`;
   }
 
@@ -602,6 +611,12 @@
       case 'classificar':
         if (erro(C.classificar(estado))) { salvar(); render(); }
         break;
+      case 'desfazer-grid':
+        estado.fds.setup = { ...estado.fds.setupCorrida };
+        estado.fds.pneuId = estado.fds.pneuCorrida;
+        salvar();
+        render();
+        break;
       case 'largar':
         corrida = C.criarCorrida(estado);
         estado.fds.sessao = 'corrida';
@@ -641,6 +656,7 @@
     if (el.dataset.acao === 'pneu') {
       C.escolherPneu(estado, el.dataset.id);
       salvar();
+      if (estado.fds.sessao === 'grid') render();
     } else if (el.dataset.acao === 'proximo') {
       tela.proximo = el.dataset.id;
     }

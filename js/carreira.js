@@ -415,7 +415,7 @@
     if (fds.sugestaoUsada) return { ok: false, erro: 'O mecânico já deu a sugestão dele neste fim de semana.' };
     const clima = climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
-    const cond = Kart.condicao(clima, sessao === 'treino' ? 'treino' : 'quali', molhado);
+    const cond = Kart.condicao(clima, { treino: 'treino', quali: 'quali', grid: 'corrida' }[sessao] || 'quali', molhado);
     const pneu = pneuPorId(estado, fds.pneuId);
     fds.setup = Kart.sugestaoMecanico(pistaAtual(estado), cond, pneu ? pneu.tipo : 'slick', equipeBase(estado.equipeId).mecanico, rngDe(estado));
     fds.sugestaoUsada = true;
@@ -454,6 +454,11 @@
   // Monta a corrida (não é salva: se a página recarregar, a bateria recomeça).
   function criarCorrida(estado) {
     const fds = estado.fds;
+    // No grid o piloto ainda pode mexer no kart e trocar o pneu: vale o que estiver montado na largada.
+    if (fds.sessao === 'grid' && pneuPorId(estado, fds.pneuId)) {
+      fds.setupCorrida = { ...fds.setup };
+      fds.pneuCorrida = fds.pneuId;
+    }
     const pista = pistaAtual(estado);
     const clima = climaAtual(estado);
     const pneuJogador = pneuPorId(estado, fds.pneuCorrida) || { tipo: 'slick', uso: 0 };
