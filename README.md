@@ -84,6 +84,12 @@ grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasiv
   contas apertadas e etapas perdidas. Moral alta acelera a evolução e deixa o piloto mais claro ao descrever o kart.
 - Uma sessão com o psicólogo esportivo por etapa ajuda a recuperar a cabeça.
 
+## Identidade visual
+
+- `img/logo.png`: logotipo (sem fundo) usado na abertura e no carregamento; `img/logo-original.png` é o arquivo original.
+- `img/icone.png` e `img/icone-180.png`: ícone (a bandeira quadriculada) para a aba do navegador e a tela inicial do celular.
+- `img/bandeira.png`: a bandeira sozinha, sem fundo, no topo do jogo.
+
 ## Código
 
 - `js/kart.js`: física escondida do kart (acerto ideal, efeito no ritmo, clima, falas do piloto e do mecânico).

@@ -65,7 +65,9 @@ input[type="text"], textarea {
   padding: 10px 16px; border-bottom: 3px solid var(--destaque); background: linear-gradient(180deg, #14161c, #0a0b0e);
 }
 .marca { font-weight: 900; font-size: 22px; letter-spacing: 1px; font-style: italic; }
-.marca span { color: var(--destaque); }
+.marca { display: inline-flex; align-items: center; gap: 8px; }
+.marca .marca-super { color: var(--destaque); }
+.marca-icone { height: 22px; width: auto; }
 .marca small { font-size: 12px; font-weight: 500; color: var(--fraco); font-style: normal; letter-spacing: 0; }
 .status { display: grid; gap: 12px; min-width: 0; width: 100%; }
 .status:empty { display: none; }
@@ -274,10 +276,8 @@ body.sem-topo .topo { display: none; }
 .abertura { min-height: calc(100vh - 2 * var(--espaco)); display: grid; grid-template-rows: 1fr auto; gap: 24px; padding: 8vh 4px 4vh;
   background: radial-gradient(closest-side at 50% 42%, rgba(225, 6, 0, 0.24), transparent); }
 .abertura-marca { display: grid; justify-items: center; align-content: center; gap: 10px; text-align: center; }
-.abertura-kart { font-size: 72px; line-height: 1; transform: scaleX(-1); filter: drop-shadow(0 8px 24px rgba(225, 6, 0, 0.55)); }
-.logo { font-size: clamp(30px, 9.6vw, 50px); font-weight: 900; font-style: italic; letter-spacing: 0.5px; line-height: 1; margin: 0; }
-.logo span { color: var(--destaque); }
-.abertura-marca p { margin: 0; color: var(--fraco); font-size: 15px; letter-spacing: 0.2em; text-transform: uppercase; }
+.logo-img { width: min(86%, 380px); height: auto; filter: drop-shadow(0 10px 30px rgba(225, 6, 0, 0.25)); }
+.logo-img-menor { width: min(70%, 300px); }
 .abertura-acoes { display: grid; gap: 10px; }
 .carregando { grid-template-rows: 1fr auto; }
 .carregando-bloco { display: grid; gap: 10px; justify-items: center; padding-bottom: 6vh; }
@@ -400,7 +400,6 @@ body.sem-topo .topo { display: none; }
 :root { --espaco: 12px; }
 h1 { font-size: 24px; }
 .marca { font-size: 19px; }
-.marca small { display: none; }
 .topo { padding: 12px 16px 14px; gap: 12px; }
 .chip { font-size: 12px; padding: 3px 9px; }
 .painel { padding: 16px 14px; }

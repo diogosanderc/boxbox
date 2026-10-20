@@ -299,9 +299,7 @@
     app.innerHTML = `
       <div class="abertura">
         <div class="abertura-marca">
-          <span class="abertura-kart" aria-hidden="true">🏎️</span>
-          <h1 class="logo">SUPER<span>LICENÇA</span></h1>
-          <p>Do kart à Fórmula 1</p>
+          <img class="logo-img" src="img/logo.png" alt="Superlicença: do kart ao topo" width="1200" height="776">
         </div>
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
@@ -331,7 +329,7 @@
   function telaCarregando() {
     app.innerHTML = `
       <div class="abertura carregando">
-        <div class="abertura-marca"><h1 class="logo">SUPER<span>LICENÇA</span></h1></div>
+        <div class="abertura-marca"><img class="logo-img logo-img-menor" src="img/logo.png" alt="Superlicença" width="1200" height="776"></div>
         <div class="carregando-bloco" role="status" aria-live="polite">
           <div class="carregando-trilho"><i data-barra></i></div>
           <span class="fraco" data-passo>${PASSOS_CARREGANDO[0]}</span>
