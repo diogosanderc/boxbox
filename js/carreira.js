@@ -228,6 +228,22 @@
     return { ok: true };
   }
 
+  // O que falta antes de ir para a pista: slick novo, pneu de chuva (se a previsão pede) e revisão do motor.
+  function pendenciasEtapa(estado) {
+    const lista = [];
+    if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
+      lista.push({ id: 'slick', texto: 'Nenhum slick novo para a classificação e a corrida.' });
+    }
+    const clima = estado.calendario[estado.etapa] && estado.calendario[estado.etapa].clima;
+    if (clima && clima.tarde.chance >= 40 && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
+      lista.push({ id: 'chuva', texto: `Previsão de ${clima.tarde.chance}% de chuva à tarde e nenhum pneu de chuva em bom estado.` });
+    }
+    if (estado.motorHoras >= HORAS_REVISAO) {
+      lista.push({ id: 'motor', texto: estado.motorHoras > HORAS_REVISAO ? 'Motor cansado, perdendo força.' : 'Motor na hora da revisão.' });
+    }
+    return lista;
+  }
+
   const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
   const precoRevisao = (estado) => Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
 
@@ -782,7 +798,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

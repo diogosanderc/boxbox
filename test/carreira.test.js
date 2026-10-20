@@ -245,4 +245,19 @@ test('caderno anota treinos, classificação e corrida com as posições certas,
   assert.ok(cad.every((l) => l.etapa === 1));
 });
 
+test('pendências antes da etapa: slick novo, chuva prevista e motor', () => {
+  const e = Carreira.novoJogo({ seed: 31 });
+  e.calendario[e.etapa].clima.tarde.chance = 10;
+  assert.deepStrictEqual(Carreira.pendenciasEtapa(e), []);
+  for (const p of e.pneus) p.uso = 20;
+  e.calendario[e.etapa].clima.tarde.chance = 60;
+  e.motorHoras = Carreira.HORAS_REVISAO;
+  assert.deepStrictEqual(Carreira.pendenciasEtapa(e).map((x) => x.id), ['slick', 'chuva', 'motor']);
+  e.dinheiro = 100000;
+  Carreira.comprarPneu(e, 'slick');
+  Carreira.comprarPneu(e, 'chuva');
+  Carreira.revisarMotor(e);
+  assert.deepStrictEqual(Carreira.pendenciasEtapa(e), []);
+});
+
 module.exports = { jogarFimDeSemana };

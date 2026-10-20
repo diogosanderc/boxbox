@@ -266,6 +266,29 @@
   }
 
   // ---------- paddock ----------
+  function botaoResolver(id) {
+    if (id === 'motor') return `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`;
+    return `<button class="principal" data-acao="comprar-pneu" data-tipo="${id}">+ ${id === 'slick' ? 'Slick' : 'Chuva'} · ${reais(C.precoPneu(estado, id))}</button>`;
+  }
+
+  function checklist() {
+    const pend = C.pendenciasEtapa(estado);
+    if (!pend.length) return `<div class="checklist ok">✓ Tudo pronto: pneus e motor em dia.</div>`;
+    return `<div class="checklist"><b>⚠ Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
+  }
+
+  // Folha que sobe ao tocar em "Ir para a pista" quando ainda falta algo.
+  function folhaChecagem() {
+    if (!tela.checagem) return '';
+    const pend = C.pendenciasEtapa(estado);
+    return `<div class="folha-fundo" data-acao-fundo="fechar-checagem"><div class="folha" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+      <h3 id="folha-titulo">${pend.length ? 'Antes de ir…' : 'Tudo pronto!'}</h3>
+      ${pend.length ? pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('') : '<p class="fraco">Pneus e motor em dia.</p>'}
+      <div class="botoes-2"><button data-acao="fechar-checagem">Voltar</button>
+        <button class="${pend.length ? '' : 'principal'}" data-acao="ir-fds-confirmado">${pend.length ? 'Ir mesmo assim' : 'Ir para a pista'}</button></div>
+    </div></div>`;
+  }
+
   function chipRival() {
     if (!estado.seguindo) return '';
     const tabela = C.classificacaoCampeonato(estado);
@@ -293,6 +316,7 @@
         </div>
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
+          ${checklist()}
           ${tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : reais(custo), semDinheiro ? 'negativo' : '')}
           ${semDinheiro
             ? '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'
@@ -504,7 +528,8 @@
       <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`🏆 P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
       ${abas([['resumo', '🏁', 'Etapa'], ['campeonato', '🏆', 'Tabela'], ['piloto', '🧑', 'Piloto'], ['caderno', '📓', 'Caderno'], ['noticias', '📰', 'Notícias']], aba)}
       ${conteudo}
-      <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>`;
+      <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>
+      ${folhaChecagem()}`;
   }
 
   const SOBRE_TIPO = {
@@ -532,7 +557,8 @@
           <div class="tiles tiles-2">${tile('Extensão', `${extensao} km`)}${tile('Voltas', camp.voltas)}${tile('Altitude', `${pista.altitude} m`)}${tile('Tipo', tipoPista[pista.tipo].replace(/^\S+\s/, ''))}</div>`
         : `<div class="anotacoes">${anotacoes.length ? blocosCaderno(anotacoes) : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
         ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para a pista · ${reais(C.custoEtapa(estado))}</button>` : ''}
-      </div>`;
+      </div>
+      ${folhaChecagem()}`;
   }
 
   // ---------- fim de semana ----------
@@ -599,7 +625,7 @@
     return `<div class="corrida">
       <div class="coluna">
         ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${editorSetup()}`, { ajuda: treino ? 'setup' : 'quali' })}
-        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}`)}
+        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         <div class="acoes">
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
@@ -631,7 +657,7 @@
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
         ${cartao('Ajustes finos', editorSetup(), { ajuda: 'grid' })}
-        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}`)}
+        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         ${mudou ? '<div class="botoes-2"><button data-acao="desfazer-grid">↺ Acerto da classificação</button></div>' : ''}
       </div>
       ${cartao('Grid', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
@@ -914,7 +940,15 @@
         render();
         break;
       case 'ir-fds':
+        if (C.pendenciasEtapa(estado).length) { tela.checagem = true; render(); break; }
+      // sem pendências: segue direto
+      // falls through
+      case 'ir-fds-confirmado':
         if (erro(C.iniciarFimDeSemana(estado))) { salvar(); ir({ nome: 'fds' }); }
+        break;
+      case 'fechar-checagem':
+        tela.checagem = false;
+        render();
         break;
       case 'pular-etapa':
         C.pularEtapa(estado);
@@ -995,6 +1029,10 @@
         if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1]))) { salvar(); ir(telaDaFase()); }
         break;
     }
+  });
+
+  app.addEventListener('click', (ev) => {
+    if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
   });
 
   // Enter no campo do nome entra no paddock.

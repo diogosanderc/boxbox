@@ -445,3 +445,14 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
   .vivo-nome { display: none; }
   .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 28px auto; }
 }
+
+/* ---------- checklist de pneus e motor ---------- */
+.checklist { display: grid; gap: 8px; padding: 12px; border-radius: var(--raio-m); border: 1px solid rgba(255, 176, 32, 0.55); background: rgba(255, 176, 32, 0.08); }
+.checklist > b { color: var(--alerta); }
+.checklist.ok { border-color: rgba(47, 191, 113, 0.5); background: rgba(47, 191, 113, 0.08); color: var(--ok); font-weight: 600; }
+.pendencia { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 14px; }
+.pendencia button { white-space: nowrap; padding: 8px 12px; }
+@media (max-width: 400px) { .pendencia { grid-template-columns: minmax(0, 1fr); } }
+.folha-fundo { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 30; display: flex; align-items: flex-end; justify-content: center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.folha { width: 100%; max-width: 480px; background: var(--painel); border: 1px solid rgba(255, 176, 32, 0.55); border-radius: var(--raio); padding: 20px; display: grid; gap: 14px; animation: subir 0.18s ease-out; }
+.folha h3 { color: var(--texto); font-size: 18px; text-transform: none; letter-spacing: 0; }
