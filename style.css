@@ -151,3 +151,22 @@ select { max-width: 100%; }
 .dinheiro-fundo { background: var(--ok) !important; }
 .aviso-fundo { background: var(--alerta) !important; }
 .negativo-fundo { background: #ff6b6b !important; }
+
+/* ---------- início ---------- */
+.tela-nome { max-width: 560px; margin: 8vh auto 0; }
+.tela-nome input[type="text"] { max-width: none; font-size: 18px; padding: 10px 12px; }
+.equipes-iniciais { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 16px; }
+.equipe-card { background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.equipe-topo { background: var(--cor-equipe); padding: 14px 16px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+.equipe-topo h2 { margin: 6px 0 0; font-size: 22px; }
+.equipe-topo .etiqueta { background: rgba(0, 0, 0, 0.35); border-color: transparent; color: #fff; }
+.equipe-corpo { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.equipe-corpo p { margin: 0; }
+.equipe-corpo .barra { grid-template-columns: 100px 1fr 30px; }
+.equipe-numeros { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; font-size: 14px; }
+.equipe-numeros dt { color: var(--fraco); }
+.equipe-numeros dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.equipe-resumo { font-size: 13px; flex: 1; }
+.equipe-corpo button { width: 100%; padding: 10px; }
+.equipe-card.topo-claro .equipe-topo { color: #111; text-shadow: none; }
+.equipe-card.topo-claro .equipe-topo .etiqueta { background: rgba(0, 0, 0, 0.75); }

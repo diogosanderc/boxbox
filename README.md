@@ -8,7 +8,8 @@ A meta desta primeira fase é sair do kart com uma vaga na Fórmula 4.
 
 Abra `index.html` no navegador (não precisa de servidor nem instalação). A carreira é salva sozinha no navegador.
 
-1. **Escolha a equipe** entre 10 opções: material do kart, qualidade do mecânico, caixa inicial e custo por etapa.
+1. **Nome do piloto** na primeira tela. Depois, **escolha a equipe**: só três abrem as portas no começo (uma de ponta,
+   uma intermediária e uma pequena, sorteadas a cada jogo). As outras podem fazer propostas durante a temporada.
 2. **Paddock:** antes de cada etapa veja a pista e a previsão do tempo, compre pneus, revise o motor, aceite patrocínios
    e avalie propostas de outras equipes (algumas são furada).
 3. **Fim de semana:**

@@ -71,7 +71,7 @@
 
   function render() {
     atualizarStatus();
-    const telas = { inicio: telaInicio, paddock: telaPaddock, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
+    const telas = { inicio: telaInicio, equipe: telaEquipe, paddock: telaPaddock, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
     telas[tela.nome]();
   }
 
@@ -105,27 +105,63 @@
   // ---------- início: escolha da equipe ----------
   function telaInicio() {
     const save = carregar();
-    const escolhida = tela.equipe || null;
     app.innerHTML = `
-      <div class="painel" style="margin-bottom:16px;max-width:820px">
+      <div class="painel tela-nome">
         <h1>Do kart à Fórmula 1</h1>
-        <p>Você é um piloto de 12 anos começando no kart e também o cabeça da própria carreira. Escolhe a equipe, cuida do dinheiro,
-        busca patrocínio, faz o <b>acerto do kart</b> para cada pista, clima e pneu, e decide quais propostas aceitar.</p>
-        <p class="fraco">Escada: Copa Regional → Brasileiro → Europeu → proposta da Fórmula 4.</p>
-        ${save ? `<p><button class="principal" data-acao="continuar">Continuar a carreira de ${esc(save.piloto.nome)} (${save.ano})</button></p>` : ''}
-        <div class="campo"><label for="nome-piloto">Nome do piloto</label><input type="text" id="nome-piloto" value="${esc(tela.nomePiloto || '')}" placeholder="Seu nome" maxlength="30"></div>
-      </div>
-      <h2>Escolha sua equipe de kart</h2>
-      <div class="equipes">
-        ${Dados.EQUIPES.map((e) => `<button class="cartao-equipe ${escolhida === e.id ? 'ativo' : ''}" style="border-left-color:${e.cor}" data-acao="escolher-equipe" data-id="${e.id}">
-          <b>${esc(e.nome)}</b>
-          <div class="fraco" style="font-size:13px;margin-bottom:6px">${esc(e.descricao)}</div>
-          ${barra('Material', e.material)}${barra('Mecânico', e.mecanico)}
-          <div style="font-size:13px;margin-top:6px">Caixa inicial <b class="dinheiro">${reais(e.caixa)}</b> · custo por etapa <b>${reais(e.custoEtapa)}</b></div>
-        </button>`).join('')}
-      </div>
-      <div class="barra-acao linha"><span class="fraco">${escolhida ? `Equipe: <b>${esc(C.equipeBase(escolhida).nome)}</b>` : 'Escolha uma equipe para começar.'}</span><span class="espaco"></span>
-        <button class="principal" data-acao="novo-jogo" ${escolhida ? '' : 'disabled'}>Começar carreira</button></div>`;
+        <p>Um garoto de 12 anos, um capacete e um sonho. Você é o piloto e também o cabeça da carreira:
+        escolhe a equipe, cuida do dinheiro, acerta o kart e decide quais propostas aceitar.</p>
+        <div class="campo"><label for="nome-piloto">Nome do piloto</label>
+          <input type="text" id="nome-piloto" value="${esc(tela.nomePiloto || '')}" placeholder="Como vão te chamar no paddock?" maxlength="30" autocomplete="off"></div>
+        <div class="linha" style="margin-top:14px">
+          <button class="principal" data-acao="entrar">Entrar no paddock</button>
+          ${save ? `<span class="espaco"></span><button data-acao="continuar">Continuar a carreira de ${esc(save.piloto.nome)} (${save.ano})</button>` : ''}
+        </div>
+      </div>`;
+    const campo = document.getElementById('nome-piloto');
+    if (!save) campo.focus();
+  }
+
+  const RESUMO_PORTE = {
+    ponta: 'Kart rápido desde o primeiro dia, mas o dinheiro aperta: patrocínio vai ser essencial.',
+    media: 'Equilíbrio entre material e custo. Dá para brigar no meio do pelotão e crescer.',
+    pequena: 'Barata, sobra dinheiro para pneus e motor. O kart é lento: o acerto vai fazer a diferença.',
+  };
+
+  // Cores claras (como amarelo) pedem texto escuro por cima.
+  function corClara(hex) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    return 0.299 * r + 0.587 * g + 0.114 * b > 160;
+  }
+
+  function telaEquipe() {
+    app.innerHTML = `
+      <div class="linha" style="margin-bottom:6px"><button data-acao="trocar-nome">← Trocar nome</button></div>
+      <h1>${esc(tela.nomePiloto)}, escolha sua equipe</h1>
+      <p class="fraco" style="max-width:720px">Três equipes de kart abriram as portas para você. As outras estão de olho:
+      com bons resultados, elas podem fazer propostas durante a temporada.</p>
+      <div class="equipes-iniciais">
+        ${tela.opcoes.map((id) => {
+          const e = C.equipeBase(id);
+          const porte = C.porteDe(id);
+          const temporada = e.custoEtapa * C.ETAPAS;
+          const sobra = e.caixa - temporada;
+          return `<article class="equipe-card ${corClara(e.cor) ? 'topo-claro' : ''}" style="--cor-equipe:${e.cor}">
+            <header class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><h2>${esc(e.nome)}</h2></header>
+            <div class="equipe-corpo">
+              <p>${esc(e.descricao)}</p>
+              <div>${barra('Kart e motor', e.material)}${barra('Mecânico', e.mecanico)}</div>
+              <dl class="equipe-numeros">
+                <dt>Caixa inicial</dt><dd class="dinheiro">${reais(e.caixa)}</dd>
+                <dt>Custo por etapa</dt><dd>${reais(e.custoEtapa)}</dd>
+                <dt>Temporada (${C.ETAPAS} etapas)</dt><dd>${reais(temporada)}</dd>
+                <dt>Sobra para pneus e motor</dt><dd class="${sobra < 15000 ? 'aviso' : 'dinheiro'}"><b>${reais(sobra)}</b></dd>
+              </dl>
+              <p class="fraco equipe-resumo">${RESUMO_PORTE[porte]}</p>
+              <button class="principal" data-acao="escolher-equipe" data-id="${id}">Correr pela ${esc(e.nome)}</button>
+            </div>
+          </article>`;
+        }).join('')}
+      </div>`;
   }
 
   // ---------- paddock (entre etapas) ----------
@@ -547,18 +583,21 @@
     }
 
     switch (acao) {
-      case 'escolher-equipe':
-        tela.nomePiloto = document.getElementById('nome-piloto').value;
-        tela.equipe = id;
-        render();
+      case 'entrar': {
+        const nome = document.getElementById('nome-piloto').value.trim();
+        if (!nome) { aviso('Escreva o nome do piloto.'); break; }
+        const seed = Date.now() % 1e9;
+        ir({ nome: 'equipe', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
         break;
-      case 'novo-jogo': {
-        const nome = document.getElementById('nome-piloto').value.trim() || 'Piloto';
-        estado = C.novoJogo({ nome, equipeId: tela.equipe });
+      }
+      case 'trocar-nome':
+        ir({ nome: 'inicio', nomePiloto: tela.nomePiloto });
+        break;
+      case 'escolher-equipe':
+        estado = C.novoJogo({ nome: tela.nomePiloto, equipeId: id, seed: tela.seed });
         salvar();
         ir(telaDaFase());
         break;
-      }
       case 'continuar':
         estado = C.migrar(carregar());
         if (estado.fds && estado.fds.sessao === 'corrida') estado.fds.sessao = 'grid';
@@ -674,6 +713,11 @@
         if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1]))) { salvar(); ir(telaDaFase()); }
         break;
     }
+  });
+
+  // Enter no campo do nome entra no paddock.
+  app.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.id === 'nome-piloto') app.querySelector('[data-acao="entrar"]').click();
   });
 
   app.addEventListener('change', (ev) => {

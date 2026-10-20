@@ -41,6 +41,18 @@
   }
 
   // ---------- criação ----------
+  // No começo, só três equipes abrem as portas para um garoto de 12 anos: uma de cada porte.
+  const PORTES = {
+    ponta: { nome: 'Equipe de ponta', equipes: ['fulmine', 'orbital', 'velox', 'rapido'] },
+    media: { nome: 'Intermediária', equipes: ['tempesta', 'faisca', 'piccolo', 'ninja'] },
+    pequena: { nome: 'Equipe pequena', equipes: ['formiga', 'garagem'] },
+  };
+  const porteDe = (id) => Object.keys(PORTES).find((k) => PORTES[k].equipes.includes(id));
+
+  function equipesIniciais(seed) {
+    const rnd = Engine.criarRng(seed * 13 + 7);
+    return Object.values(PORTES).map((p) => sortear(rnd, p.equipes));
+  }
   function gerarRival(estado, rnd, nivel, regiao) {
     const pais = sortear(rnd, Dados.PAISES[regiao]);
     const n = Dados.NOMES[pais];
@@ -734,7 +746,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

@@ -185,4 +185,13 @@ test('save antigo ganha moral e confiança', () => {
   assert.strictEqual(e.piloto.confianca, 50);
 });
 
+test('no começo só 3 equipes: uma de ponta, uma intermediária e uma pequena', () => {
+  for (const seed of [1, 2, 3, 4, 5]) {
+    const ops = Carreira.equipesIniciais(seed);
+    assert.strictEqual(ops.length, 3);
+    assert.deepStrictEqual(ops.map(Carreira.porteDe), ['ponta', 'media', 'pequena']);
+    assert.deepStrictEqual(Carreira.equipesIniciais(seed), ops);
+  }
+});
+
 module.exports = { jogarFimDeSemana };
