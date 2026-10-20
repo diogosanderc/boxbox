@@ -826,3 +826,10 @@ body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
 button, .chip, .tag, img { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 /* Telas sem o cabeçalho (abertura, nome, equipe) também fogem do notch e da ilha. */
 body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
+
+/* Sol sempre amarelo (também o sol atrás da nuvem); a nuvem e a chuva ficam com a cor do ícone. */
+.ico .ico-sol { stroke: var(--ouro); }
+/* Valores em tiles: vermelho para gasto, verde para ganho (vencem a cor padrão do tile). */
+.tile b.negativo { color: var(--perigo); }
+.tile b.dinheiro { color: var(--ok); }
+.tile b.aviso { color: var(--alerta); }
