@@ -1,4 +1,4 @@
-# Box Box: do kart à Fórmula 1
+# Superlicença: do kart à Fórmula 1
 
 Você é um piloto de 12 anos começando no kart e também o cabeça da própria carreira: escolhe a equipe,
 cuida do dinheiro, busca patrocínio, acerta o kart para cada pista e clima, e decide quais propostas aceitar.

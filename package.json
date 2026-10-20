@@ -1,7 +1,7 @@
 {
-  "name": "boxbox",
+  "name": "superlicenca",
   "version": "0.1.0",
-  "description": "Box Box: jogo de gestão de academia de pilotos, do kart à Fórmula 1",
+  "description": "Superlicença: a carreira de um piloto, do kart à Fórmula 1",
   "private": true,
   "scripts": {
     "test": "node --test"
