@@ -19,6 +19,8 @@ Abra `index.html` no navegador (não precisa de servidor nem instalação). A ca
      depois de cada saída e pode acertar o kart por você uma vez.
    - **Classificação (tarde):** escolha o acerto e o pneu; eles valem para a corrida. A tarde costuma ser mais quente. Ninguém mexe no kart por você: o acerto é seu.
    - **Corrida:** sem pit stop. No grid só cabem ajustes finos. Pode começar a chover no meio da bateria.
+   - **Diagnóstico:** depois da bandeirada o piloto conta o que sentiu e para que lado cada ajuste deveria ter ido
+     naquelas condições. O botão **Anotar** guarda isso (e uma anotação sua) no caderno da pista.
 4. **Fim de temporada:** evolução do piloto, prêmios e metas de patrocínio. Top 3 ou popularidade alta liberam o campeonato
    seguinte: Copa Regional → Brasileiro → Europeu. Brilhar no Brasileiro ou no Europeu traz proposta de F4.
 

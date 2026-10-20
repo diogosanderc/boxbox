@@ -83,6 +83,7 @@
     bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.'],
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode travar.'],
+    diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
@@ -489,6 +490,15 @@
   }
 
   // Anotações agrupadas por fim de semana (mais recente primeiro), em ordem: treinos, classificação, corrida.
+  function notaCaderno(n) {
+    const pedia = [n.pneu, ...n.ajustes].filter(Boolean);
+    return `<div class="nota">
+      ${n.sentiu.map((f) => `<p>🧑 ${esc(f)}</p>`).join('')}
+      ${pedia.length ? `<span class="subtitulo">O kart pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${n.texto ? `<p class="nota-texto">📝 ${esc(n.texto)}</p>` : ''}
+    </div>`;
+  }
+
   function blocosCaderno(lista) {
     const grupos = new Map();
     for (const l of lista) {
@@ -506,6 +516,7 @@
           <div class="item-topo"><span class="chips">${chip(nome, l.sessao === 'corrida' ? 'chip-grande' : '')}${chip(l.molhado ? '🌧' : '☀️')}${chip(`${l.tempPista}°`)}</span>
             <b>${l.tempo ? tempoVolta(l.tempo) : '—'} <span class="pos-mini ${!l.fora && l.posicao <= 3 ? 'top' : ''}">${pos}</span></b></div>
           <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
+          ${l.nota ? notaCaderno(l.nota) : ''}
         </div>`;
       }).join('');
       return `<div class="anotacoes"><span class="subtitulo">${l0.ano}${l0.etapa ? ` · etapa ${l0.etapa}` : ''}${l0.campeonato ? ` · ${esc(C.campeonato(l0.campeonato).curto)}` : ''}</span>${linhas}</div>`;
@@ -782,6 +793,7 @@
           ${r.olheiros.length ? `<div class="chips">${r.olheiros.map((o) => chip(`👀 ${esc(o)}`)).join('')}</div>` : ''}
           <button class="principal grande" data-acao="voltar-paddock">Voltar ao paddock</button>
         </section>
+        ${r.diagnostico ? cartaoDiagnostico(r) : ''}
       </div>
       ${cartao('Resultado', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="num">Pts</th></tr>
         ${fds.classificacao.map((x) => `<tr class="${x.id === 'jogador' ? 'jogador' : ''} ${x.fora ? 'fora' : ''}">
@@ -789,6 +801,23 @@
           <td class="num">${x.fora ? 'Fora' : x.pos === 1 ? '🏁' : '+' + x.dif.toFixed(1)}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
         </table></div>`)}
     </div>`;
+  }
+
+  // Conversa depois da corrida: o que o piloto sentiu, o que mudar nessas condições e o botão de anotar.
+  function cartaoDiagnostico(r) {
+    const d = r.diagnostico;
+    const ajustes = d.ajustes.length || d.pneu
+      ? `<ul class="diagnostico">${d.pneu ? `<li>${esc(d.pneu)}</li>` : ''}${d.ajustes.map((a) => `<li>${esc(a.texto)}</li>`).join('')}</ul>`
+      : '<p class="fraco">Nada a mudar: o acerto estava no ponto.</p>';
+    const anotar = r.anotado
+      ? '<button class="grande" disabled>✓ Anotado no caderno</button>'
+      : `<textarea id="nota-corrida" rows="2" maxlength="300" placeholder="Sua anotação (opcional)"></textarea>
+         <button class="principal grande" data-acao="anotar">📝 Anotar no caderno</button>`;
+    return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? '🌧 Molhado' : '☀️ Seco', d.molhado ? 'chip-azul' : '')}${chip(`🌡 Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
+      ${d.sentiu.map((f) => `<div class="bolha piloto"><span aria-hidden="true">🧑</span><p>${esc(f)}</p></div>`).join('')}
+      <span class="subtitulo">Nessas condições, o kart pedia</span>
+      ${ajustes}
+      ${anotar}`, { ajuda: 'diagnostico' });
   }
 
   // ---------- fim de temporada ----------
@@ -1026,6 +1055,11 @@
       case 'pular':
         finalizarCorrida();
         break;
+      case 'anotar': {
+        const campo = document.getElementById('nota-corrida');
+        if (erro(C.anotarCorrida(estado, campo ? campo.value : ''))) { salvar(); render(); aviso('Anotado no caderno.'); }
+        break;
+      }
       case 'voltar-paddock':
         C.concluirEtapa(estado);
         salvar();

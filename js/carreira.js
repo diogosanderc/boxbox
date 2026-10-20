@@ -686,13 +686,34 @@
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora });
     const clima = climaAtual(estado);
-    registrarCaderno(estado, Kart.condicao(clima, 'corrida', !!corrida.molhado), {
-      sessao: 'corrida', setup: { ...fds.setupCorrida }, pneu: carro.tipoPneu || (pneu ? pneu.tipo : 'slick'),
+    const condFinal = Kart.condicao(clima, 'corrida', !!corrida.molhado);
+    const tipoPneu = carro.tipoPneu || (pneu ? pneu.tipo : 'slick');
+    fds.resultado.diagnostico = {
+      ...Kart.diagnostico(fds.setupCorrida, pistaAtual(estado), condFinal, tipoPneu),
+      tempAr: condFinal.tempAr, tempPista: condFinal.tempPista, molhado: condFinal.molhado,
+      choveuNaCorrida: !!corrida.molhado && clima.tarde.inicioChuva === 'corrida',
+    };
+    registrarCaderno(estado, condFinal, {
+      sessao: 'corrida', setup: { ...fds.setupCorrida }, pneu: tipoPneu,
       tempo: carro.melhorVolta, posicao: meu.pos, fora: meu.fora,
     });
     fds.sessao = 'fim';
     fds.classificacao = res.map((r) => ({ id: r.id, pos: r.pos, fora: r.fora, motivo: r.motivoFora, pontos: r.pontos, dif: r.diferenca, equipe: r.equipe }));
     return fds.resultado;
+  }
+
+  // Guarda o diagnóstico da corrida (e uma anotação livre do jogador) no caderno da pista.
+  function anotarCorrida(estado, texto) {
+    const fds = estado.fds;
+    const r = fds && fds.resultado;
+    if (!r || !r.diagnostico) return { ok: false, erro: 'Nada para anotar.' };
+    const lista = estado.caderno[pistaAtual(estado).id] || [];
+    const entrada = lista.slice().reverse().find((l) => l.sessao === 'corrida' && l.ano === estado.ano && l.etapa === estado.etapa + 1);
+    if (!entrada) return { ok: false, erro: 'Nada para anotar.' };
+    const d = r.diagnostico;
+    entrada.nota = { sentiu: d.sentiu, ajustes: d.ajustes.map((a) => a.texto), pneu: d.pneu, texto: String(texto || '').trim().slice(0, 300) };
+    r.anotado = true;
+    return { ok: true };
   }
 
   function nomeDe(estado, id) {
@@ -821,7 +842,7 @@
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
-    irParaClassificacao, classificar, criarCorrida, concluirCorrida, concluirEtapa, nomeDe,
+    irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
     classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;

@@ -293,3 +293,32 @@ test('pendências antes da etapa: slick novo, chuva prevista e motor', () => {
 });
 
 module.exports = { jogarFimDeSemana };
+
+test('diagnóstico depois da corrida e anotação no caderno', () => {
+  const pista = Dados.KARTODROMOS.br.find((p) => p.tipo === 'travada');
+  const clima = { manha: { tempAr: 20, chove: false }, tarde: { tempAr: 26, chove: false, inicioChuva: null } };
+  const cond = Kart.condicao(clima, 'corrida', false);
+  const ideal = Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, 'slick'));
+  assert.strictEqual(Kart.diagnostico(ideal, pista, cond, 'slick').ajustes.length, 0);
+  // eixo mole demais e carburação rica demais: o diagnóstico aponta a direção certa
+  const ruim = { ...ideal, eixo: 0, carburacao: 3 };
+  const d = Kart.diagnostico(ruim, pista, cond, 'slick');
+  const textos = d.ajustes.map((a) => a.texto).join(' | ');
+  assert.match(textos, /Eixo mais duro/);
+  assert.match(textos, /Carburação mais pobre/);
+  assert.ok(d.sentiu.length > 0);
+  assert.match(Kart.diagnostico(ideal, pista, Kart.condicao(clima, 'corrida', true), 'slick').pneu, /chuva/);
+
+  const e = Carreira.novoJogo({ seed: 12 });
+  Carreira.iniciarFimDeSemana(e);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  Carreira.concluirCorrida(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  const r = e.fds.resultado;
+  assert.ok(r.diagnostico && Array.isArray(r.diagnostico.ajustes));
+  assert.ok(Carreira.anotarCorrida(e, 'Começar com eixo duro aqui').ok);
+  const entrada = e.caderno[Carreira.pistaAtual(e).id].filter((l) => l.sessao === 'corrida').pop();
+  assert.strictEqual(entrada.nota.texto, 'Começar com eixo duro aqui');
+  assert.deepStrictEqual(entrada.nota.ajustes, r.diagnostico.ajustes.map((a) => a.texto));
+  assert.ok(r.anotado);
+});

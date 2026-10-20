@@ -155,6 +155,30 @@
     return `Mecânico: eu mexeria ${onde[pior.k]}. Tentaria ${verbo}${forte}.`;
   }
 
+  // Conversa depois da corrida: o que o piloto sentiu de verdade (sem confusão de piloto inexperiente)
+  // e para que lado cada ajuste deveria ter ido naquelas condições. Não revela o número exato.
+  const DIRECAO = {
+    pressao: ['Pressão mais alta', 'Pressão mais baixa'],
+    eixo: ['Eixo mais duro', 'Eixo mais mole'],
+    bitola: ['Bitola mais larga', 'Bitola mais estreita'],
+    coroa: ['Mais dentes na coroa', 'Menos dentes na coroa'],
+    carburacao: ['Carburação mais rica', 'Carburação mais pobre'],
+  };
+  function diagnostico(setup, pista, cond, pneu) {
+    const e = erros(setup, acertoIdeal(pista, cond, pneu));
+    const ordenados = ORDEM_AJUSTES
+      .map((k) => ({ k, peso: PESO[k] * e[k] * e[k], sinal: e[k] > 0 ? 1 : 0, erro: e[k] }))
+      .sort((a, b) => b.peso - a.peso);
+    const sentiu = ordenados.filter((x) => x.peso >= 0.06).slice(0, 2).map((x) => SINTOMAS[x.k][x.sinal]);
+    const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6)
+      .map((x) => ({ k: x.k, texto: `${DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
+    let pneuDica = null;
+    if (cond.molhado && pneu === 'slick') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
+    else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
+    if (!sentiu.length && !pneuDica) sentiu.push('O kart estava muito bom! Equilibrado, dava pra acelerar tudo.');
+    return { sentiu, ajustes, pneu: pneuDica };
+  }
+
   function arredondarSetup(s) {
     const r = {};
     for (const k of ORDEM_AJUSTES) {
@@ -191,7 +215,7 @@
   const Kart = {
     AJUSTES, ORDEM_AJUSTES, PNEUS_KART,
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, desequilibrio, efeito,
-    feedbackPiloto, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
+    feedbackPiloto, diagnostico, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
   else root.BoxKart = Kart;
