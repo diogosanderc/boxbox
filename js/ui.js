@@ -73,7 +73,7 @@
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode travar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu e o mecânico dá um palpite. Pilotos experientes e motivados descrevem melhor o problema.'],
     quali: ['Classificação', 'A volta lançada define o grid. O acerto e o pneu daqui continuam na corrida, mas ainda dá para mexer no grid.'],
-    grid: ['Antes da largada', 'Última chance de mexer no kart e trocar o pneu. Na corrida o asfalto tem mais borracha que na classificação.'],
+    grid: ['Antes da largada', 'No grid o mecânico não mexe no kart: só cabem ajustes finos em relação à classificação (pressão ±1 psi, relação ±1 dente, carburação ±1). Eixo e bitola ficam travados. Dá para trocar o jogo de pneus. Na corrida o asfalto tem mais borracha que na classificação.'],
     pilotagem: ['Pilotagem', 'Atacar ganha tempo, mas gasta pneu e aumenta o risco de rodar. Poupar segura o pneu para o fim.'],
     temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
@@ -418,17 +418,21 @@
   // ---------- fim de semana ----------
   function editorSetup() {
     const s = estado.fds.setup;
+    // No grid, cada ajuste só anda dentro da faixa de ajuste fino; eixo e bitola ficam travados.
+    const lim = estado.fds.sessao === 'grid' ? C.limitesGrid(estado) : null;
     return `<div class="setup">${Kart.ORDEM_AJUSTES.map((k) => {
       const a = Kart.AJUSTES[k];
+      const travado = lim && C.AJUSTE_FINO_GRID[k] === 0;
       let controle;
       if (a.tipo === 'opcoes') {
-        controle = `<div class="segmentos">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
+        controle = `<div class="segmentos">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}" ${travado && s[k] !== i ? 'disabled' : ''}>${o}</button>`).join('')}</div>`;
       } else {
+        const [mn, mx] = lim ? lim[k] : [a.min, a.max];
         const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`) : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
-        controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
-          <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
+        controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= Math.max(mn, a.min) ? 'disabled' : ''}>−</button>
+          <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= Math.min(mx, a.max) ? 'disabled' : ''}>+</button></div>`;
       }
-      return `<div class="ajuste"><span>${a.nome}</span>${controle}</div>`;
+      return `<div class="ajuste"><span>${a.nome}${travado ? ' <span class="fraco mini">🔒 travado</span>' : lim ? ' <span class="fraco mini">ajuste fino</span>' : ''}</span>${controle}</div>`;
     }).join('')}</div>`;
   }
 
@@ -496,9 +500,9 @@
           <div class="largada-info">${condicaoChips('quali')}${mudou ? chip('✎ Acerto alterado', 'chip-amarelo') : ''}</div>
           <button class="principal grande" data-acao="largar">Largar!</button>
         </section>
-        ${cartao('Acerto para a corrida', editorSetup(), { ajuda: 'grid' })}
+        ${cartao('Ajustes finos', editorSetup(), { ajuda: 'grid' })}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}`)}
-        <div class="botoes-2">${mudou ? '<button data-acao="desfazer-grid">↺ Acerto da classificação</button>' : ''}${botaoMecanico()}</div>
+        ${mudou ? '<div class="botoes-2"><button data-acao="desfazer-grid">↺ Acerto da classificação</button></div>' : ''}
       </div>
       ${cartao('Grid', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
         ${fds.quali.map((q, i) => {
@@ -786,7 +790,7 @@
         if (erro(C.classificar(estado))) { salvar(); render(); }
         break;
       case 'desfazer-grid':
-        estado.fds.setup = { ...estado.fds.setupCorrida };
+        estado.fds.setup = { ...(estado.fds.setupQuali || estado.fds.setupCorrida) };
         estado.fds.pneuId = estado.fds.pneuCorrida;
         salvar();
         render();

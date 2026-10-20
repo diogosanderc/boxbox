@@ -123,19 +123,25 @@ test('sem dinheiro, a etapa é pulada e os rivais pontuam', () => {
   assert.strictEqual(Object.values(e.pontos).reduce((s, x) => s + x, 0), 101);
 });
 
-test('no grid dá para mudar o acerto e o pneu da corrida', () => {
+test('no grid só cabem ajustes finos e o mecânico não mexe', () => {
   const e = Carreira.novoJogo({ seed: 8 });
   Carreira.iniciarFimDeSemana(e);
   Carreira.irParaClassificacao(e);
   Carreira.classificar(e);
-  const antes = { ...e.fds.setupCorrida };
-  Carreira.definirSetup(e, { pressao: antes.pressao + 1, eixo: antes.eixo === 2 ? 0 : 2 });
+  const q = { ...e.fds.setupCorrida };
+  Carreira.definirSetup(e, { pressao: q.pressao + 3, eixo: q.eixo === 2 ? 0 : 2, bitola: q.bitola === 0 ? 2 : 0, coroa: q.coroa - 4, carburacao: q.carburacao + 2 });
+  assert.strictEqual(e.fds.setup.pressao, Math.min(16, q.pressao + 1));
+  assert.strictEqual(e.fds.setup.eixo, q.eixo);
+  assert.strictEqual(e.fds.setup.bitola, q.bitola);
+  assert.strictEqual(e.fds.setup.coroa, Math.max(76, q.coroa - 1));
+  assert.strictEqual(e.fds.setup.carburacao, Math.min(3, q.carburacao + 1));
+  assert.strictEqual(Carreira.pedirSugestao(e, 'grid').ok, false);
+  // trocar o jogo de pneus continua permitido
   Carreira.comprarPneu(e, 'chuva');
-  const novo = e.pneus[e.pneus.length - 1];
+  const novo = e.pneus.filter((p) => p.tipo === 'chuva').sort((a, b) => a.uso - b.uso)[0];
   Carreira.escolherPneu(e, novo.id);
   const corrida = Carreira.criarCorrida(e);
-  assert.strictEqual(e.fds.setupCorrida.pressao, antes.pressao + 1);
-  assert.strictEqual(e.fds.pneuCorrida, novo.id);
+  assert.strictEqual(e.fds.setupCorrida.pressao, Math.min(16, q.pressao + 1));
   assert.strictEqual(corrida.carros.find((c) => c.jogador).tipoPneu, 'chuva');
 });
 

@@ -430,8 +430,21 @@
     return { id: r.id, piloto: r, carro: carroDe(estado, e.id, false), equipe: { id: e.id, nome: e.nome, cor: e.cor }, jogador: false };
   }
 
+  // No grid só cabem ajustes finos em relação ao acerto da classificação; eixo e bitola ficam travados.
+  const AJUSTE_FINO_GRID = { pressao: 1, eixo: 0, bitola: 0, coroa: 1, carburacao: 1 };
+
+  function limitesGrid(estado) {
+    const base = estado.fds.setupQuali || estado.fds.setupCorrida;
+    return Object.fromEntries(Kart.ORDEM_AJUSTES.map((k) => [k, [base[k] - AJUSTE_FINO_GRID[k], base[k] + AJUSTE_FINO_GRID[k]]]));
+  }
+
   function definirSetup(estado, setup) {
-    estado.fds.setup = Kart.arredondarSetup({ ...estado.fds.setup, ...setup });
+    const novo = Kart.arredondarSetup({ ...estado.fds.setup, ...setup });
+    if (estado.fds.sessao === 'grid') {
+      const lim = limitesGrid(estado);
+      for (const k of Kart.ORDEM_AJUSTES) novo[k] = limitar(novo[k], lim[k][0], lim[k][1]);
+    }
+    estado.fds.setup = novo;
   }
 
   function escolherPneu(estado, id) {
@@ -486,6 +499,7 @@
   // O mecânico propõe um acerto para a próxima sessão (uma vez por fim de semana).
   function pedirSugestao(estado, sessao) {
     const fds = estado.fds;
+    if (fds.sessao === 'grid') return { ok: false, erro: 'No grid só dá para fazer ajustes finos: o mecânico não mexe no kart agora.' };
     if (fds.sugestaoUsada) return { ok: false, erro: 'O mecânico já deu a sugestão dele neste fim de semana.' };
     const clima = climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
@@ -519,6 +533,7 @@
     tempos.sort((a, b) => a.tempo - b.tempo);
     fds.quali = tempos;
     fds.setupCorrida = { ...fds.setup };
+    fds.setupQuali = { ...fds.setup };
     fds.pneuCorrida = fds.pneuId;
     registrarCaderno(estado, cond, { setup: fds.setup, pneu: pneu.tipo, tempo: tempos.find((t) => t.id === 'jogador').tempo, posicao: tempos.findIndex((t) => t.id === 'jogador') + 1 });
     fds.sessao = 'grid';
@@ -756,7 +771,7 @@
   }
 
   const Carreira = {
-    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, AJUSTE_FINO_GRID, limitesGrid, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
