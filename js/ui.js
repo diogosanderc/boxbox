@@ -186,22 +186,37 @@
   };
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
-  // Traçado do kartódromo: retas entre os vértices e cantos arredondados, como num mapa de pista.
-  function caminhoPista(P, raio) {
+  // ---------- traçado da pista ----------
+  // Os vértices de data.js viram retas ligadas por arcos de círculo (filetes): cada canto recebe
+  // o maior raio que cabe (até raioMax) sem passar da metade das retas vizinhas.
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+
+  function caminhoComFiletes(P, raioMax) {
     const n = P.length;
-    const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
-    const rumo = (a, b, d) => { const l = dist(a, b) || 1; return [a[0] + (b[0] - a[0]) * d / l, a[1] + (b[1] - a[1]) * d / l]; };
     const cantos = P.map((v, i) => {
-      const ant = P[(i - 1 + n) % n];
-      const prox = P[(i + 1) % n];
-      const r = Math.min(raio, dist(ant, v) / 2, dist(v, prox) / 2);
-      return { entra: rumo(v, ant, r), v, sai: rumo(v, prox, r) };
+      const a = P[(i - 1 + n) % n];
+      const b = P[(i + 1) % n];
+      const L1 = dist(v, a);
+      const L2 = dist(v, b);
+      const e1 = [(a[0] - v[0]) / L1, (a[1] - v[1]) / L1];
+      const e2 = [(b[0] - v[0]) / L2, (b[1] - v[1]) / L2];
+      const angulo = Math.acos(Math.max(-1, Math.min(1, e1[0] * e2[0] + e1[1] * e2[1])));
+      const tanMeio = Math.tan(angulo / 2);
+      const r = Math.min(raioMax, Math.min(L1, L2) * 0.5 * tanMeio);
+      const t = r / tanMeio;
+      return {
+        entra: [v[0] + e1[0] * t, v[1] + e1[1] * t],
+        sai: [v[0] + e2[0] * t, v[1] + e2[1] * t],
+        r,
+        sentido: e1[0] * e2[1] - e1[1] * e2[0] < 0 ? 1 : 0,
+      };
     });
     const f = (q) => `${q[0].toFixed(1)},${q[1].toFixed(1)}`;
     let d = `M${f(cantos[0].sai)}`;
     for (let i = 1; i <= n; i++) {
       const c = cantos[i % n];
-      d += ` L${f(c.entra)} Q${f(c.v)} ${f(c.sai)}`;
+      d += ` L${f(c.entra)} A${c.r.toFixed(1)},${c.r.toFixed(1)} 0 0 ${c.sentido} ${f(c.sai)}`;
     }
     return `${d} Z`;
   }
@@ -211,20 +226,35 @@
     const xs = pontos.map((q) => q[0]);
     const ys = pontos.map((q) => q[1]);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    const k = Math.min(264 / (x1 - x0), 144 / (y1 - y0));
+    const k = Math.min(256 / (x1 - x0), 136 / (y1 - y0));
     const dx = (300 - (x1 - x0) * k) / 2;
     const dy = (180 - (y1 - y0) * k) / 2;
     return pontos.map(([x, y]) => [dx + (x - x0) * k, dy + (y - y0) * k]);
   }
 
   function tracado(pista, classe = '') {
-    const P = enquadrar(pista.tracado);
-    const largada = [(P[0][0] + P[1][0]) / 2, (P[0][1] + P[1][1]) / 2];
+    const V = enquadrar(pista.tracado);
+    const mini = classe === 'mini';
+    // Traçados decalcados com muitos vértices (como Lonato) pedem raio menor.
+    const d = caminhoComFiletes(V, V.length > 24 ? 7 : 34);
+    // Largada no meio da reta mais longa, com uma seta indicando o sentido.
+    let iLonga = 0;
+    V.forEach((a, i) => { if (dist(a, V[(i + 1) % V.length]) > dist(V[iLonga], V[(iLonga + 1) % V.length])) iLonga = i; });
+    const a = V[iLonga];
+    const b = V[(iLonga + 1) % V.length];
+    const m = lerp(a, b, 0.5);
+    const L = dist(a, b);
+    const [ux, uy] = [(b[0] - a[0]) / L, (b[1] - a[1]) / L];
+    const [nx, ny] = [-uy, ux];
+    const f = (x) => x.toFixed(1);
+    const seta = lerp(a, b, 0.5 + Math.min(0.22, 22 / L));
     const id = `brilho-${pista.id}-${classe || 'x'}`;
     return `<svg class="tracado ${classe}" viewBox="0 0 300 180" role="img" aria-label="Traçado de ${esc(pista.nome)}">
-      <defs><filter id="${id}" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-      <path d="${caminhoPista(P, 9)}" fill="none" stroke="var(--destaque-vivo)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" filter="url(#${id})"/>
-      <circle cx="${largada[0].toFixed(1)}" cy="${largada[1].toFixed(1)}" r="4.5" fill="#fff"/>
+      <defs><filter id="${id}" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="${mini ? 2 : 3.5}"/></filter></defs>
+      <path d="${d}" fill="none" stroke="var(--destaque-vivo)" stroke-width="${mini ? 6 : 7}" stroke-linejoin="round" filter="url(#${id})" opacity="0.55"/>
+      <path d="${d}" fill="none" stroke="var(--destaque-vivo)" stroke-width="${mini ? 5 : 4.5}" stroke-linejoin="round"/>
+      ${mini ? '' : `<line x1="${f(m[0] + nx * 7)}" y1="${f(m[1] + ny * 7)}" x2="${f(m[0] - nx * 7)}" y2="${f(m[1] - ny * 7)}" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M${f(seta[0] - ux * 4 + nx * 3.5)},${f(seta[1] - uy * 4 + ny * 3.5)} L${f(seta[0])},${f(seta[1])} L${f(seta[0] - ux * 4 - nx * 3.5)},${f(seta[1] - uy * 4 - ny * 3.5)}" fill="none" stroke="rgba(255, 255, 255, 0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(${f(nx * 11)},${f(ny * 11)})"/>`}
     </svg>`;
   }
 
