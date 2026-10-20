@@ -11,6 +11,22 @@
 
   const app = document.getElementById('app');
   const statusEl = document.getElementById('status');
+  // Cabeçalho compacto: o cabeçalho grande some ao rolar; esta barra fina volta quando o jogador rola para cima.
+  const barraMini = document.createElement('div');
+  barraMini.className = 'topo-mini';
+  barraMini.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(barraMini);
+  let ultimoScroll = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const altura = document.querySelector('.topo').offsetHeight;
+    const subindo = y < ultimoScroll - 4;
+    const descendo = y > ultimoScroll + 4;
+    if (y <= altura || !estado || document.body.classList.contains('sem-topo')) barraMini.classList.remove('visivel');
+    else if (subindo) barraMini.classList.add('visivel');
+    else if (descendo) barraMini.classList.remove('visivel');
+    if (subindo || descendo) ultimoScroll = y;
+  }, { passive: true });
 
   let estado = null;
   let tela = { nome: 'abertura' };
@@ -208,7 +224,7 @@
 
   // ---------- topo ----------
   function atualizarStatus() {
-    if (!estado) { statusEl.innerHTML = ''; return; }
+    if (!estado) { statusEl.innerHTML = ''; barraMini.innerHTML = ''; return; }
     const eq = C.equipeBase(estado.equipeId);
     const camp = C.campeonato(estado.campeonato);
     const p = estado.piloto;
@@ -217,6 +233,9 @@
     const apertado = estado.dinheiro < custo;
     const kpi = (icone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo"><span aria-hidden="true">${icone}</span>${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
+    barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
+      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">💰 ${reais(estado.dinheiro)}</span>
+      <span class="${nivelClasse(p.moral)}">😊 ${p.moral}</span><span class="${nivelClasse(p.confianca)}">🔥 ${p.confianca}</span>`;
     statusEl.innerHTML = `<div class="perfil">
         <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
         <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
