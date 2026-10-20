@@ -264,6 +264,29 @@
     document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe'].includes(tela.nome));
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
     telas[tela.nome]();
+    deslizarSegmentos();
+  }
+
+  // A tela é redesenhada a cada toque; a pílula vermelha parte da posição anterior e desliza até a opção nova.
+  const posSegmento = {};
+  function deslizarSegmentos() {
+    document.querySelectorAll('.segmentos[data-seg]').forEach((seg) => {
+      const ativo = seg.querySelector('button.ativo');
+      if (!ativo) return;
+      const pilula = document.createElement('i');
+      pilula.className = 'seg-pilula';
+      seg.prepend(pilula);
+      const alvo = { x: ativo.offsetLeft, w: ativo.offsetWidth };
+      const antes = posSegmento[seg.dataset.seg];
+      const aplicar = (p) => { pilula.style.transform = `translateX(${p.x}px)`; pilula.style.width = `${p.w}px`; };
+      aplicar(antes || alvo);
+      posSegmento[seg.dataset.seg] = alvo;
+      if (antes && (antes.x !== alvo.x || antes.w !== alvo.w)) {
+        pilula.getBoundingClientRect();
+        pilula.classList.add('anima');
+        aplicar(alvo);
+      }
+    });
   }
 
   function abas(lista, atual) {
@@ -898,7 +921,7 @@
       const a = Kart.AJUSTES[k];
       let controle;
       if (a.tipo === 'opcoes') {
-        controle = `<div class="segmentos">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
+        controle = `<div class="segmentos" data-seg="${k}">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
       } else {
         const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`) : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
         controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>

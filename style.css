@@ -793,3 +793,10 @@ button.redondo .ico { width: 20px; height: 20px; }
 .passos b { color: #fff; font-weight: 700; }
 .passos button:not(:disabled):active { background: var(--destaque); color: #fff; }
 .segmentos button:not(.ativo), .segmentos button:not(.ativo):hover { border-color: transparent; }
+
+/* Pílula que desliza entre as opções, com um leve passar do ponto (efeito de flutuar). */
+.segmentos { position: relative; }
+.segmentos button { position: relative; z-index: 1; transition: color 0.25s ease; }
+.segmentos button.ativo { background: transparent; }
+.seg-pilula { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 9px; background: var(--destaque); box-shadow: 0 6px 14px rgba(225, 6, 0, 0.35); pointer-events: none; }
+.seg-pilula.anima { transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), width 0.42s cubic-bezier(0.34, 1.45, 0.64, 1); }
