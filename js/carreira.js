@@ -55,10 +55,14 @@
     const rnd = Engine.criarRng(seed * 13 + 7);
     return Object.values(PORTES).map((p) => sortear(rnd, p.equipes));
   }
-  function gerarRival(estado, rnd, nivel, regiao) {
+  // usados: sobrenomes já no grid (inclui o do jogador), para ninguém repetir sobrenome.
+  function gerarRival(estado, rnd, nivel, regiao, usados = new Set()) {
     const pais = sortear(rnd, Dados.PAISES[regiao]);
     const n = Dados.NOMES[pais];
-    const p = { id: `r${estado.proxId++}`, nome: `${sortear(rnd, n.p)} ${sortear(rnd, n.s)}`, pais, idade: 11 + Math.floor(rnd() * 5) };
+    let sobrenome = sortear(rnd, n.s);
+    for (let i = 0; i < 30 && usados.has(sobrenome); i++) sobrenome = sortear(rnd, n.s);
+    usados.add(sobrenome);
+    const p = { id: `r${estado.proxId++}`, nome: `${sortear(rnd, n.p)} ${sobrenome}`, pais, idade: 11 + Math.floor(rnd() * 5) };
     for (const a of ATRIBUTOS) p[a] = Math.round(limitar(nivel + rnd.gauss() * 5, 35, 95));
     return p;
   }
@@ -67,7 +71,8 @@
   function montarGrid(estado) {
     const rnd = rngDe(estado);
     const camp = campeonato(estado.campeonato);
-    const rivais = Array.from({ length: 19 }, () => gerarRival(estado, rnd, camp.nivel, camp.regiao))
+    const usados = new Set([estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ') : '']);
+    const rivais = Array.from({ length: 19 }, () => gerarRival(estado, rnd, camp.nivel, camp.regiao, usados))
       .sort((a, b) => nota(b) - nota(a));
     const vagas = [];
     for (const e of Dados.EQUIPES) {

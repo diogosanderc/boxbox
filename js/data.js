@@ -112,16 +112,40 @@
     { id: 'rossa-academia', nome: 'Programa Jovens Rossa (equipe de F1)', tipo: 'academia', nivelMin: 2 },
   ];
 
+  // Nomes e sobrenomes comuns de cada país (sem sobrenomes de pilotos reais de F1).
   const NOMES = {
-    BRA: { p: ['Pedro', 'Gabriel', 'Lucas', 'Enzo', 'Caio', 'Rafael', 'Felipe', 'Bruno', 'Thiago', 'Gustavo', 'Matheus', 'Rodrigo', 'Vitor', 'Davi', 'Arthur', 'Miguel'],
-      s: ['Silva', 'Ferraz', 'Monteiro', 'Albuquerque', 'Saraiva', 'Barbosa', 'Moraes', 'Teixeira', 'Rocha', 'Prado', 'Castro', 'Rangel', 'Lacerda', 'Pacheco'] },
-    ITA: { p: ['Enzo', 'Marco', 'Luca', 'Matteo', 'Andrea', 'Lorenzo', 'Alessio'], s: ['Moretti', 'Bianchi', 'Conti', 'Ferri', 'Galli', 'Romano', 'Lombardi'] },
-    ING: { p: ['Oliver', 'Harry', 'Jack', 'George', 'Aiden', 'Thomas'], s: ['Clarke', 'Whitfield', 'Hughes', 'Bennett', 'Walsh', 'Harper'] },
-    FRA: { p: ['Jules', 'Théo', 'Hugo', 'Louis', 'Victor'], s: ['Fontaine', 'Marchand', 'Leroy', 'Girard', 'Dubois'] },
-    ALE: { p: ['Lukas', 'Felix', 'Jonas', 'Leon', 'Paul'], s: ['Brandt', 'Weber', 'Krüger', 'Vogel', 'Schäfer'] },
-    HOL: { p: ['Daan', 'Sem', 'Lars', 'Thijs'], s: ['de Vries', 'Bakker', 'Visser', 'Smit'] },
-    ESP: { p: ['Pablo', 'Álvaro', 'Diego', 'Iker'], s: ['García', 'Navarro', 'Ruiz', 'Ortega'] },
-    ARG: { p: ['Mateo', 'Franco', 'Santiago'], s: ['Ríos', 'Pereyra', 'Acosta'] },
+    BRA: {
+      p: ['Pedro', 'Gabriel', 'Lucas', 'Enzo', 'Caio', 'Rafael', 'Felipe', 'Bruno', 'Thiago', 'Gustavo', 'Matheus', 'Rodrigo', 'Vitor', 'Davi', 'Arthur', 'Miguel', 'Heitor', 'Bernardo', 'Théo', 'Lorenzo', 'Benício', 'Joaquim', 'Samuel', 'Henrique', 'Murilo', 'Eduardo', 'Leonardo', 'Guilherme', 'Daniel', 'Vinícius', 'Igor', 'Otávio', 'Nicolas', 'Ryan', 'Yuri', 'Kauã', 'Luan', 'Cauã', 'Emanuel', 'Diogo', 'Renan', 'Fábio', 'Marcelo', 'André', 'Ricardo', 'Fernando', 'Paulo', 'Sérgio', 'Rogério', 'Alexandre', 'Leandro', 'Márcio', 'Wagner', 'Gilberto', 'Hugo', 'Raul', 'Álvaro', 'Antônio', 'Benjamin', 'Breno', 'Danilo', 'Elias', 'Erick', 'Fabrício', 'Francisco', 'Giovanni', 'Ian', 'Isaac', 'Ítalo', 'Jonas', 'Juliano', 'Kevin', 'Leon', 'Levi', 'Lucca', 'Mariano', 'Mateus', 'Natan', 'Noah', 'Pietro', 'Ravi', 'Ruan', 'Rian', 'Saulo', 'Tales', 'Tiago', 'Tomás', 'Valentim', 'Wesley', 'Yago', 'Zeca', 'Augusto', 'Bento', 'Cristiano', 'Douglas', 'Everton', 'Fausto', 'Gael', 'Hélio', 'Ivan', 'Josué', 'Kaique', 'Lauro', 'Moisés', 'Nelson', 'Orlando', 'Patrick', 'Renato', 'Silas', 'Túlio', 'Ulisses', 'Wallace'],
+      s: ['Silva', 'Ferraz', 'Monteiro', 'Albuquerque', 'Saraiva', 'Barbosa', 'Moraes', 'Teixeira', 'Rocha', 'Prado', 'Castro', 'Rangel', 'Lacerda', 'Pacheco', 'Almeida', 'Andrade', 'Araújo', 'Azevedo', 'Bastos', 'Batista', 'Bezerra', 'Borges', 'Braga', 'Brandão', 'Brito', 'Cabral', 'Caldeira', 'Campos', 'Cardoso', 'Carneiro', 'Carvalho', 'Cavalcanti', 'Coelho', 'Correia', 'Costa', 'Cunha', 'Dantas', 'Duarte', 'Esteves', 'Falcão', 'Farias', 'Fernandes', 'Figueiredo', 'Fonseca', 'Freitas', 'Frota', 'Furtado', 'Galvão', 'Gomes', 'Gouveia', 'Guerra', 'Guimarães', 'Leal', 'Leite', 'Lima', 'Lopes', 'Macedo', 'Machado', 'Magalhães', 'Maia', 'Marinho', 'Martins', 'Matos', 'Medeiros', 'Meireles', 'Melo', 'Mendes', 'Menezes', 'Miranda', 'Moura', 'Nascimento', 'Neves', 'Nogueira', 'Nunes', 'Oliveira', 'Paiva', 'Peixoto', 'Pereira', 'Pimentel', 'Pinheiro', 'Pinto', 'Queiroz', 'Ramos', 'Reis', 'Resende', 'Ribeiro', 'Sampaio', 'Santana', 'Santos', 'Siqueira', 'Soares', 'Sousa', 'Tavares', 'Toledo', 'Torres', 'Valente', 'Vasconcelos', 'Veloso', 'Viana', 'Vieira', 'Xavier', 'Zanetti', 'Amaral', 'Bittencourt', 'Camargo', 'Diniz', 'Fontes', 'Godoy', 'Holanda', 'Junqueira', 'Kowalski', 'Lobato', 'Mascarenhas', 'Nóbrega', 'Ornelas', 'Penteado', 'Quintela', 'Rezende', 'Sardinha', 'Tavora', 'Uchoa', 'Vilela', 'Werneck', 'Moreno', 'Gurgel', 'Accioly', 'Bragança', 'Coutinho', 'Dornelles', 'Escobar', 'Fagundes', 'Garcia', 'Hoffmann', 'Ishikawa', 'Jardim', 'Klein', 'Lemos', 'Nakamura', 'Ortiz', 'Pires', 'Rossi', 'Scheffer', 'Tanaka', 'Ueda', 'Valadares', 'Weiss', 'Yamada', 'Zimmermann'],
+    },
+    ITA: {
+      p: ['Enzo', 'Marco', 'Luca', 'Matteo', 'Andrea', 'Lorenzo', 'Alessio', 'Leonardo', 'Francesco', 'Alessandro', 'Riccardo', 'Tommaso', 'Gabriele', 'Edoardo', 'Federico', 'Giuseppe', 'Antonio', 'Pietro', 'Diego', 'Samuele', 'Nicolò', 'Emanuele', 'Davide', 'Simone', 'Filippo', 'Giacomo', 'Michele', 'Stefano', 'Mattia', 'Christian', 'Elia', 'Cristian', 'Daniele', 'Paolo', 'Raffaele', 'Fabio', 'Vincenzo', 'Giorgio', 'Massimo', 'Salvatore', 'Dario', 'Bruno', 'Carlo', 'Luigi', 'Valerio', 'Ivan', 'Ettore', 'Achille', 'Ruben'],
+      s: ['Moretti', 'Bianchi', 'Conti', 'Ferri', 'Galli', 'Romano', 'Lombardi', 'Rossi', 'Russo', 'Ferrari', 'Esposito', 'Ricci', 'Marino', 'Greco', 'Bruno', 'Gallo', 'Costa', 'Fontana', 'Caruso', 'Mancini', 'Rizzo', 'Longo', 'Leone', 'Martinelli', 'Vitale', 'Serra', 'Santoro', 'Mariani', 'Rinaldi', 'Cattaneo', 'Morelli', 'Ferraro', 'Pellegrini', 'Palumbo', 'Sanna', 'Fabbri', 'Carbone', 'Gentile', 'Testa', 'Villa', 'Parisi', 'Monti', 'Barbieri', 'Grasso', 'De', 'Luca', 'Marchetti', 'Fiore', 'Bellini', 'Orlando', 'Silvestri', 'Donati', 'Benedetti', 'Vaccaro', 'Cirillo', 'Giordano', 'Sartori', 'Guerra', 'Neri', 'Riva'],
+    },
+    ING: {
+      p: ['Oliver', 'Harry', 'Jack', 'George', 'Aiden', 'Thomas', 'Noah', 'Charlie', 'Jacob', 'Alfie', 'Freddie', 'Oscar', 'Leo', 'Archie', 'Henry', 'Joshua', 'James', 'William', 'Ethan', 'Isaac', 'Max', 'Lucas', 'Logan', 'Alexander', 'Daniel', 'Samuel', 'Joseph', 'Edward', 'Benjamin', 'Dylan', 'Arthur', 'Sebastian', 'Theo', 'Finley', 'Reuben', 'Toby', 'Harrison', 'Lewis', 'Callum', 'Connor', 'Rory', 'Ollie', 'Zak', 'Ewan', 'Kieran'],
+      s: ['Clarke', 'Whitfield', 'Hughes', 'Bennett', 'Walsh', 'Harper', 'Smith', 'Jones', 'Taylor', 'Brown', 'Williams', 'Wilson', 'Johnson', 'Davies', 'Robinson', 'Wright', 'Thompson', 'Evans', 'Walker', 'White', 'Roberts', 'Green', 'Hall', 'Wood', 'Jackson', 'Hill', 'Martin', 'Cooper', 'Ward', 'Morris', 'Moore', 'King', 'Watson', 'Baker', 'Turner', 'Collins', 'Parker', 'Edwards', 'Stewart', 'Morgan', 'Bell', 'Murphy', 'Webb', 'Fletcher', 'Barnes', 'Lawson', 'Palmer', 'Carter', 'Shaw'],
+    },
+    FRA: {
+      p: ['Jules', 'Théo', 'Hugo', 'Louis', 'Victor', 'Gabriel', 'Raphaël', 'Arthur', 'Léo', 'Lucas', 'Adam', 'Nathan', 'Tom', 'Noah', 'Ethan', 'Maël', 'Sacha', 'Paul', 'Mathis', 'Timéo', 'Nolan', 'Axel', 'Baptiste', 'Clément', 'Antoine', 'Maxime', 'Romain', 'Esteban', 'Pierre', 'Alexandre', 'Charles', 'Valentin', 'Bastien', 'Florian', 'Kylian', 'Enzo', 'Mathéo', 'Côme', 'Eliott'],
+      s: ['Fontaine', 'Marchand', 'Leroy', 'Girard', 'Dubois', 'Martin', 'Bernard', 'Thomas', 'Petit', 'Robert', 'Richard', 'Durand', 'Moreau', 'Laurent', 'Simon', 'Michel', 'Lefebvre', 'Garnier', 'Faure', 'Rousseau', 'Blanc', 'Guérin', 'Muller', 'Henry', 'Roussel', 'Nicolas', 'Perrin', 'Morin', 'Mathieu', 'Clément', 'Gauthier', 'Dumont', 'Lopez', 'Fournier', 'Bonnet', 'Lambert', 'Mercier'],
+    },
+    ALE: {
+      p: ['Lukas', 'Felix', 'Jonas', 'Leon', 'Paul', 'Maximilian', 'Ben', 'Elias', 'Noah', 'Luis', 'Finn', 'Emil', 'Anton', 'Theo', 'Moritz', 'Jakob', 'Julian', 'Tim', 'Niklas', 'Jannik', 'Tobias', 'Fabian', 'Sebastian', 'Philipp', 'Florian', 'Mats', 'Ole', 'Henrik', 'Lennard', 'Nico', 'Timo', 'Ralf', 'Kai', 'Bernd'],
+      s: ['Brandt', 'Weber', 'Krüger', 'Vogel', 'Schäfer', 'Müller', 'Schmidt', 'Schneider', 'Fischer', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Hoffmann', 'Koch', 'Bauer', 'Richter', 'Klein', 'Wolf', 'Schröder', 'Neumann', 'Schwarz', 'Zimmermann', 'Braun', 'Hofmann', 'Hartmann', 'Lange', 'Werner', 'Krause', 'Lehmann', 'Köhler', 'Herrmann', 'König', 'Walter', 'Mayer', 'Huber', 'Kaiser', 'Fuchs', 'Peters', 'Lang', 'Scholz', 'Möller', 'Weiß', 'Jung', 'Hahn'],
+    },
+    HOL: {
+      p: ['Daan', 'Sem', 'Lars', 'Thijs', 'Bram', 'Finn', 'Jesse', 'Milan', 'Ruben', 'Luuk', 'Thomas', 'Tim', 'Max', 'Jens', 'Stijn', 'Niels', 'Joost', 'Koen', 'Tijmen', 'Sven', 'Gijs', 'Wout', 'Rik', 'Robin', 'Mats'],
+      s: ['Bakker', 'Visser', 'Smit', 'de Jong', 'Jansen', 'de Boer', 'Mulder', 'de Groot', 'Bos', 'Vos', 'Peters', 'Hendriks', 'van Leeuwen', 'Dekker', 'Brouwer', 'de Wit', 'Dijkstra', 'Smits', 'de Graaf', 'van der Meer', 'Kok', 'Jacobs', 'de Haan', 'Vermeulen', 'van den Berg', 'van Dijk', 'Boers', 'Huisman', 'Kuipers', 'Veenstra'],
+    },
+    ESP: {
+      p: ['Pablo', 'Álvaro', 'Diego', 'Iker', 'Hugo', 'Martín', 'Lucas', 'Mateo', 'Leo', 'Daniel', 'Alejandro', 'Manuel', 'Adrián', 'Marcos', 'Javier', 'David', 'Sergio', 'Carlos', 'Jorge', 'Raúl', 'Rubén', 'Gonzalo', 'Íñigo', 'Unai', 'Aitor', 'Asier', 'Marc', 'Pol', 'Arnau', 'Oriol', 'Fernando', 'Jaime', 'Nacho', 'Roberto', 'Andrés'],
+      s: ['García', 'Navarro', 'Ruiz', 'Ortega', 'Fernández', 'González', 'Rodríguez', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín', 'Jiménez', 'Hernández', 'Díaz', 'Moreno', 'Muñoz', 'Álvarez', 'Romero', 'Alonso', 'Gutiérrez', 'Torres', 'Domínguez', 'Vázquez', 'Ramos', 'Gil', 'Ramírez', 'Serrano', 'Blanco', 'Molina', 'Morales', 'Suárez', 'Delgado', 'Castro', 'Ortiz', 'Rubio', 'Marín', 'Sanz', 'Iglesias', 'Medina', 'Garrido', 'Cortés', 'Castillo'],
+    },
+    ARG: {
+      p: ['Mateo', 'Franco', 'Santiago', 'Thiago', 'Benjamín', 'Joaquín', 'Valentino', 'Bautista', 'Lautaro', 'Felipe', 'Tomás', 'Agustín', 'Facundo', 'Nicolás', 'Ignacio', 'Lucas', 'Gonzalo', 'Juan', 'Emiliano', 'Maximiliano', 'Bruno', 'Ramiro', 'Juan Pablo', 'Esteban'],
+      s: ['Ríos', 'Pereyra', 'Acosta', 'Fernández', 'Rodríguez', 'González', 'Gómez', 'Sosa', 'Díaz', 'Romero', 'Benítez', 'Medina', 'Herrera', 'Suárez', 'Aguirre', 'Giménez', 'Molina', 'Castro', 'Ortiz', 'Silva', 'Rojas', 'Luna', 'Ledesma', 'Cabrera', 'Ponce', 'Vera', 'Paz'],
+    },
   };
   const PAISES = { br: ['BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'BRA', 'ARG'], eu: ['ITA', 'ITA', 'ING', 'ING', 'FRA', 'ALE', 'HOL', 'ESP', 'BRA'] };
 

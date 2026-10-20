@@ -458,3 +458,18 @@ test('pneu amaciado rende mais que zerado na classificação', () => {
   }
   assert.ok(somaAmaciado < somaZerado);
 });
+
+test('nomes variados: mais de 500 nomes e sobrenomes e ninguém repete sobrenome no grid', () => {
+  const unicos = new Set();
+  for (const n of Object.values(Dados.NOMES)) { n.p.forEach((x) => unicos.add(x)); n.s.forEach((x) => unicos.add(x)); }
+  assert.ok(unicos.size > 500, `só ${unicos.size}`);
+  const nomes = new Set();
+  for (let seed = 1; seed <= 30; seed++) {
+    const e = Carreira.novoJogo({ seed, nome: 'Diogo Sander' });
+    const sobrenomes = e.rivais.map((r) => r.nome.split(' ').slice(1).join(' '));
+    assert.strictEqual(new Set(sobrenomes).size, sobrenomes.length);
+    assert.ok(!sobrenomes.includes('Sander'));
+    e.rivais.forEach((r) => nomes.add(r.nome));
+  }
+  assert.ok(nomes.size > 450); // 30 grids x 19 rivais quase sem repetição
+});
