@@ -29,7 +29,8 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
 Cada pista e condição tem um **acerto ideal escondido**. Ele muda com o tipo de pista (travada, mista ou veloz), a altitude,
 a temperatura do ar e do asfalto, a borracha acumulada ao longo do dia e a chuva. O jogo nunca mostra esse número:
 você descobre pelo cronômetro, pelo que o piloto sente e pelas dicas do mecânico. Um kart desequilibrado é mais lento,
-mais irregular, gasta mais pneu e erra mais. Carburação pobre demais pode travar o motor.
+mais irregular, gasta mais pneu e erra mais. Carburação pobre demais ou dentes demais na coroa forçam o motor e podem estourá-lo na corrida.
+A retífica é cara: a expressa deixa correr a etapa seguinte; a normal, mais barata, faz o piloto perder uma etapa.
 O **caderno de acertos** guarda tudo o que você testou em cada pista.
 
 ### Acompanhando a temporada

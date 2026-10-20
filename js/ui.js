@@ -70,10 +70,10 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `O motor perde força depois de ${C.HORAS_REVISAO} etapas sem revisão. Pneu de kart dura pouco: um jogo novo aguenta mais ou menos uma bateria e meia. Treine com pneu velho e guarde o novo para a classificação.`],
+    oficina: ['Oficina', `O motor perde força depois de ${C.HORAS_REVISAO} etapas sem revisão e fica mais frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode estourá-lo na corrida, e a retífica é cara: a expressa deixa correr a etapa seguinte, a normal faz o piloto perder uma etapa. Pneu de kart dura pouco: um jogo novo aguenta mais ou menos uma bateria e meia.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
-    setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode travar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
+    setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo: aderência da traseira. Bitola: como o kart entra na curva. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode estourar o motor). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. O kart não tem mecânico: o acerto é seu, e o caderno guarda o que você testou. Se quiser ajuda, contrate o mecânico durante o treino: ele dá um palpite depois de cada saída e pode acertar o kart por você uma vez. Custa caro e vale só para esta etapa.'],
     quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid ainda dá para mexer em todo o acerto e trocar o jogo de pneus. Só o motor não: revisão é no paddock. Na corrida o asfalto tem ainda mais borracha que na classificação.'],
@@ -81,8 +81,8 @@
     pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal.'],
     eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.'],
     bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.'],
-    coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força.'],
-    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode travar.'],
+    coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
+    carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode estourar.'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     temporada: ['Próximo ano', 'Terminar no top 3 ou ter muita popularidade abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
@@ -216,7 +216,7 @@
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
       </div>
       <div class="kpis">
-        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${apertado ? 'negativo' : ''}`, `<small class="kpi-sub">${apertado ? 'Não paga a etapa' : `Etapa ${kmil(custo)}`}</small>`)}
+        ${kpi('💰', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${apertado ? 'negativo' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('😊', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('🔥', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
@@ -290,12 +290,14 @@
 
   // ---------- paddock ----------
   function botaoResolver(id) {
+    if (id === 'retifica') return '';
     if (id === 'motor') return `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`;
     return `<button class="principal" data-acao="comprar-pneu" data-tipo="${id}">+ ${id === 'slick' ? 'Slick' : 'Chuva'} · ${reais(C.precoPneu(estado, id))}</button>`;
   }
 
   function checklist() {
-    const pend = C.pendenciasEtapa(estado);
+    // O motor estourado tem o seu próprio bloco logo abaixo.
+    const pend = C.pendenciasEtapa(estado).filter((x) => x.id !== 'retifica');
     if (!pend.length) return `<div class="checklist ok">✓ Tudo pronto: pneus e motor em dia.</div>`;
     return `<div class="checklist"><b>⚠ Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
   }
@@ -340,13 +342,28 @@
         <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
           ${checklist()}
-          ${tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : reais(custo), semDinheiro ? 'negativo' : '')}
-          ${semDinheiro
+          ${tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : `−${reais(custo)}`, estado.contrato && estado.contrato.custoEtapa === 0 ? '' : 'negativo')}
+          ${estado.motorQuebrado ? blocoRetifica(custo) : semDinheiro
             ? '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'
             : '<button class="principal grande" data-acao="ir-fds">Ir para a pista</button>'}
         </div>
       </div>
     </section>`;
+  }
+
+  // Motor estourado: retífica expressa (corre esta etapa) ou normal (mais barata, perde a etapa).
+  function blocoRetifica(custo) {
+    const expressa = C.precoRetifica(estado, 'expressa');
+    const normal = C.precoRetifica(estado, 'normal');
+    const podeExpressa = estado.dinheiro >= expressa + custo;
+    const podeNormal = estado.dinheiro >= normal;
+    return `<div class="retifica">
+      <b>💥 Motor estourado</b>
+      <p class="fraco">Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa.</p>
+      <button class="compra principal" data-acao="retificar" data-tipo="expressa" data-confirmar="Confirmar: −${reais(expressa)}" ${podeExpressa ? '' : 'disabled'}><b>Retífica expressa</b><span>−${reais(expressa)} · corre esta etapa</span></button>
+      <button class="compra" data-acao="retificar" data-tipo="normal" data-confirmar="Confirmar: −${reais(normal)}" ${podeNormal ? '' : 'disabled'}><b>Retífica normal</b><span>−${reais(normal)} · fica fora desta etapa</span></button>
+      ${podeNormal ? '' : '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'}
+    </div>`;
   }
 
   function cartaoCabeca() {
@@ -358,11 +375,11 @@
   }
 
   function cartaoOficina() {
-    const saude = Math.max(0, C.HORAS_REVISAO + 1 - estado.motorHoras);
+    const saude = estado.motorQuebrado ? 0 : Math.max(0, C.HORAS_REVISAO + 1 - estado.motorHoras);
     const segs = Array.from({ length: C.HORAS_REVISAO + 1 }, (_, i) => `<i class="${i < saude ? (saude <= 1 ? 'aviso-fundo' : 'dinheiro-fundo') : ''}"></i>`).join('');
     return cartao('Oficina', `
       <div class="motor"><span>Motor</span><span class="segmentos-motor" role="img" aria-label="Saúde do motor ${saude} de ${C.HORAS_REVISAO + 1}">${segs}</span>
-        <button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button></div>
+        ${estado.motorQuebrado ? '<span class="negativo"><b>Estourado</b></span>' : `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`}</div>
       ${pneusVisuais(false)}
       <div class="botoes-2">
         <button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button>
@@ -508,7 +525,7 @@
 
   // Anotações agrupadas por fim de semana (mais recente primeiro), em ordem: treinos, classificação, corrida.
   function notaCaderno(n) {
-    const pedia = [n.pneu, ...n.ajustes].filter(Boolean);
+    const pedia = [n.motor, n.pneu, ...n.ajustes].filter(Boolean);
     return `<div class="nota">
       ${n.sentiu.map((f) => `<p>🧑 ${esc(f)}</p>`).join('')}
       ${pedia.length ? `<span class="subtitulo">O kart pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
@@ -823,8 +840,8 @@
   // Conversa depois da corrida: o que o piloto sentiu, o que mudar nessas condições e o botão de anotar.
   function cartaoDiagnostico(r) {
     const d = r.diagnostico;
-    const ajustes = d.ajustes.length || d.pneu
-      ? `<ul class="diagnostico">${d.pneu ? `<li>${esc(d.pneu)}</li>` : ''}${d.ajustes.map((a) => `<li>${esc(a.texto)}</li>`).join('')}</ul>`
+    const ajustes = d.ajustes.length || d.pneu || d.motor
+      ? `<ul class="diagnostico">${d.motor ? `<li class="negativo">${esc(d.motor)}</li>` : ''}${d.pneu ? `<li>${esc(d.pneu)}</li>` : ''}${d.ajustes.map((a) => `<li>${esc(a.texto)}</li>`).join('')}</ul>`
       : '<p class="fraco">Nada a mudar: o acerto estava no ponto.</p>';
     const anotar = r.anotado
       ? '<button class="grande" disabled>✓ Anotado no caderno</button>'
@@ -965,6 +982,11 @@
       case 'psicologo':
         if (erro(C.sessaoPsicologo(estado))) { salvar(); render(); aviso('Boa conversa. O piloto saiu mais leve.'); }
         break;
+      case 'retificar': {
+        const tipo = alvo.dataset.tipo;
+        if (erro(C.retificarMotor(estado, tipo))) { salvar(); render(); aviso(tipo === 'normal' ? 'Motor na retífica: o piloto fica fora desta etapa.' : 'Motor retificado. Pronto para correr!'); }
+        break;
+      }
       case 'revisar':
         if (erro(C.revisarMotor(estado))) { salvar(); render(); aviso('Motor revisado.'); }
         break;

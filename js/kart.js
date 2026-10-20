@@ -80,6 +80,11 @@
     return Object.fromEntries(ORDEM_AJUSTES.map((k) => [k, (setup[k] - ideal[k]) / TOLERANCIA[k]]));
   }
 
+  // Quanto o acerto força o motor (0 = nada): carburação pobre e relação curta demais.
+  function forcaMotor(e) {
+    return Math.max(0, -e.carburacao - 0.8) + Math.max(0, e.coroa - 0.8);
+  }
+
   function desequilibrio(e) {
     return ORDEM_AJUSTES.reduce((s, k) => s + PESO[k] * e[k] * e[k], 0);
   }
@@ -96,9 +101,11 @@
       quebra: 0,
       motivoQuebra: 'Quebra',
     };
-    if (e.carburacao < -1.5) {
-      r.quebra = 0.004 * (-e.carburacao - 1.5 + 0.5);
-      r.motivoQuebra = 'Motor travou (carburação pobre)';
+    // Forçar o motor: mistura pobre demais ou dentes demais na coroa (passa do giro) podem estourá-lo.
+    const forca = forcaMotor(e);
+    if (forca > 0) {
+      r.quebra = 0.0065 * Math.pow(forca, 1.5);
+      r.motivoQuebra = 'Motor estourou';
     }
     if (cond.molhado && pneu === 'slick') {
       r.tempo += 5;
@@ -117,7 +124,7 @@
     eixo: ['O kart está amarrado, pulando no meio das curvas.', 'A traseira está solta, o kart escapa na saída das curvas.'],
     bitola: ['O kart sai de frente, não quer virar na entrada.', 'A frente morde demais, o kart fica nervoso na entrada de curva.'],
     coroa: ['Falta força na saída das curvas, o kart demora a embalar.', 'O motor estoura o giro antes do fim da reta.'],
-    carburacao: ['O motor está quente e gritando demais... dá medo de travar.', 'O motor está afogando, engasga nas retomadas.'],
+    carburacao: ['O motor está quente e gritando demais... dá medo de estourar.', 'O motor está afogando, engasga nas retomadas.'],
   };
   const VAGOS = ['Não sei explicar, o kart não está legal.', 'Está faltando alguma coisa, mas não sei o quê.', 'Hoje o kart está estranho.'];
 
@@ -206,11 +213,12 @@
     const sentiu = ordenados.filter((x) => x.peso >= 0.06).slice(0, 2).map((x) => SINTOMAS[x.k][x.sinal]);
     const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6)
       .map((x) => ({ k: x.k, texto: `${DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
+    const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem estourá-lo.' : null;
     let pneuDica = null;
     if (cond.molhado && pneu === 'slick') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
     else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
-    if (!sentiu.length && !pneuDica) sentiu.push('O kart estava muito bom! Equilibrado, dava pra acelerar tudo.');
-    return { sentiu, ajustes, pneu: pneuDica };
+    if (!sentiu.length && !pneuDica && !motor) sentiu.push('O kart estava muito bom! Equilibrado, dava pra acelerar tudo.');
+    return { sentiu, ajustes, pneu: pneuDica, motor };
   }
 
   function arredondarSetup(s) {
@@ -248,7 +256,7 @@
 
   const Kart = {
     AJUSTES, ORDEM_AJUSTES, PNEUS_KART,
-    setupPadrao, gerarClima, condicao, acertoIdeal, erros, desequilibrio, efeito,
+    setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito,
     feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, setupIA, arredondarSetup, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;

@@ -11,6 +11,7 @@ function jogarFimDeSemana(estado, estrategia = 'padrao') {
   for (const o of estado.ofertasPatrocinio.slice()) Carreira.aceitarPatrocinio(estado, o.id);
   if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
   if (estado.motorHoras >= Carreira.HORAS_REVISAO) Carreira.revisarMotor(estado);
+  if (estado.motorQuebrado && !Carreira.retificarMotor(estado, 'expressa').ok) { Carreira.retificarMotor(estado, 'normal'); return null; }
   const r = Carreira.iniciarFimDeSemana(estado);
   if (!r.ok) { Carreira.pularEtapa(estado); return null; }
   const pista = Carreira.pistaAtual(estado);
@@ -338,4 +339,34 @@ test('o piloto comenta o que mudou na pista entre as sessões', () => {
   const e = Carreira.novoJogo({ seed: 2 });
   Carreira.iniciarFimDeSemana(e);
   for (const s of ['treino', 'quali', 'grid']) assert.ok(Carreira.leituraPista(e, s).length > 0);
+});
+
+test('forçar o motor pode estourá-lo; a retífica é cara e a normal custa a etapa', () => {
+  const pista = Dados.KARTODROMOS.br.find((p) => p.altitude < 100);
+  const clima = { manha: { tempAr: 10, chove: false }, tarde: { tempAr: 12, chove: false, inicioChuva: null } };
+  const cond = Kart.condicao(clima, 'corrida', false);
+  const ideal = Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, 'slick'));
+  assert.strictEqual(Kart.efeito(ideal, pista, cond, 'slick').quebra, 0);
+  const forcado = Kart.efeito({ ...ideal, carburacao: -3, coroa: 90 }, pista, cond, 'slick');
+  assert.ok(forcado.quebra > 0.02);
+  assert.strictEqual(forcado.motivoQuebra, 'Motor estourou');
+  assert.ok(Kart.diagnostico({ ...ideal, carburacao: -3 }, pista, cond, 'slick').motor);
+
+  const e = Carreira.novoJogo({ seed: 3 });
+  e.motorQuebrado = true;
+  assert.strictEqual(Carreira.iniciarFimDeSemana(e).ok, false);
+  assert.strictEqual(Carreira.revisarMotor(e).ok, false);
+  assert.ok(Carreira.pendenciasEtapa(e).some((x) => x.id === 'retifica'));
+  const antes = e.dinheiro;
+  assert.ok(Carreira.retificarMotor(e, 'expressa').ok);
+  assert.strictEqual(e.dinheiro, antes - Carreira.precoRetifica(e, 'expressa'));
+  assert.strictEqual(e.etapa, 0);
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+
+  const f = Carreira.novoJogo({ seed: 3 });
+  f.motorQuebrado = true;
+  assert.ok(Carreira.precoRetifica(f, 'normal') < Carreira.precoRetifica(f, 'expressa'));
+  assert.ok(Carreira.retificarMotor(f, 'normal').ok);
+  assert.strictEqual(f.motorQuebrado, false);
+  assert.strictEqual(f.etapa, 1); // perdeu a etapa
 });

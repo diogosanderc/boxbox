@@ -17,6 +17,8 @@
   const VOLTAS_POR_SAIDA = 6;
   const HORAS_REVISAO = 3; // depois disso o motor perde força
   const CUSTO_REVISAO = 2500;
+  // Motor estourado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
+  const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
   const PREMIO_ETAPA = [1500, 800, 400]; // por pódio, multiplicado pelo custo do campeonato
   const MAX_PATROCINIOS = 3;
   const APOIO_FAMILIA = 25000; // por temporada, multiplicado pelo custo do campeonato
@@ -223,6 +225,7 @@
   // O motor só é revisado no paddock: no fim de semana não dá para mexer nele.
   function revisarMotor(estado) {
     if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
+    if (estado.motorQuebrado) return { ok: false, erro: 'O motor estourou: precisa de retífica, não de revisão.' };
     const custo = Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para a revisão.' };
     estado.dinheiro -= custo;
@@ -251,6 +254,7 @@
   // O que falta antes de ir para a pista: slick novo, pneu de chuva (se a previsão pede) e revisão do motor.
   function pendenciasEtapa(estado) {
     const lista = [];
+    if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor estourado: sem retífica, não dá para correr.' });
     if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
       lista.push({ id: 'slick', texto: 'Nenhum slick novo para a classificação e a corrida.' });
     }
@@ -258,13 +262,28 @@
     if (clima && clima.tarde.chance >= 40 && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
       lista.push({ id: 'chuva', texto: `Previsão de ${clima.tarde.chance}% de chuva à tarde e nenhum pneu de chuva em bom estado.` });
     }
-    if (estado.motorHoras >= HORAS_REVISAO) {
+    if (!estado.motorQuebrado && estado.motorHoras >= HORAS_REVISAO) {
       lista.push({ id: 'motor', texto: estado.motorHoras > HORAS_REVISAO ? 'Motor cansado, perdendo força.' : 'Motor na hora da revisão.' });
     }
     return lista;
   }
 
   const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
+  const precoRetifica = (estado, tipo) => Math.round(CUSTO_RETIFICA[tipo] * campeonato(estado.campeonato).custo);
+
+  // Conserta o motor estourado. Expressa: fica pronto para esta etapa. Normal: o motor fica na oficina e o piloto perde a etapa.
+  function retificarMotor(estado, tipo) {
+    if (!estado.motorQuebrado) return { ok: false, erro: 'O motor está inteiro.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
+    const preco = precoRetifica(estado, tipo);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para a retífica.' };
+    estado.dinheiro -= preco;
+    estado.motorQuebrado = false;
+    estado.motorHoras = 0;
+    if (tipo === 'normal') pularEtapa(estado, 'motor');
+    return { ok: true };
+  }
+
   const precoRevisao = (estado) => Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
 
   // ---------- patrocínio ----------
@@ -391,6 +410,7 @@
 
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
+    if (estado.motorQuebrado) return { ok: false, erro: 'O motor estourou: faça a retífica antes de ir para a pista.' };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
     const rnd = rngDe(estado);
@@ -421,9 +441,9 @@
   }
 
   // Sem dinheiro para a etapa: os rivais correm sem você (resultado sorteado pela força de cada um).
-  function pularEtapa(estado) {
+  function pularEtapa(estado, motivo) {
     const rnd = rngDe(estado);
-    noticia(estado, `${estado.piloto.nome} fica fora da etapa de ${pistaAtual(estado).nome} por falta de dinheiro.`);
+    noticia(estado, `${estado.piloto.nome} fica fora da etapa de ${pistaAtual(estado).nome} ${motivo === 'motor' ? 'com o motor na retífica' : 'por falta de dinheiro'}.`);
     mexerCabeca(estado, { moral: -8, confianca: -4 });
     const ordem = estado.rivais
       .map((r) => ({ r, score: nota(r) + equipeBase(r.equipe).material * 0.5 + rnd.gauss() * 4 }))
@@ -610,6 +630,8 @@
       const setup = c.jogador ? fds.setupCorrida : fds.ia[c.id].tarde;
       const pneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
       const ef = Kart.efeito(setup, pista, cond, pneu);
+      // Motor passado da revisão aguenta menos quando é forçado.
+      if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 1);
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
@@ -668,6 +690,10 @@
     const carro = corrida.carros.find((c) => c.jogador);
     if (pneu) pneu.uso = Math.round(carro.uso);
     estado.motorHoras += 1;
+    if (meu.fora && meu.motivoFora === 'Motor estourou') {
+      estado.motorQuebrado = true;
+      noticia(estado, `O motor de ${p.nome} estourou! A equipe vai precisar de uma retífica.`);
+    }
 
     // Cabeça do piloto: o resultado em relação à largada pesa na confiança.
     const largada = fds.quali.findIndex((q) => q.id === 'jogador') + 1;
@@ -713,7 +739,7 @@
     const entrada = lista.slice().reverse().find((l) => l.sessao === 'corrida' && l.ano === estado.ano && l.etapa === estado.etapa + 1);
     if (!entrada) return { ok: false, erro: 'Nada para anotar.' };
     const d = r.diagnostico;
-    entrada.nota = { sentiu: d.sentiu, ajustes: d.ajustes.map((a) => a.texto), pneu: d.pneu, texto: String(texto || '').trim().slice(0, 300) };
+    entrada.nota = { sentiu: d.sentiu, ajustes: d.ajustes.map((a) => a.texto), pneu: d.pneu, motor: d.motor || null, texto: String(texto || '').trim().slice(0, 300) };
     r.anotado = true;
     return { ok: true };
   }
@@ -841,7 +867,7 @@
 
   const Carreira = {
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
+    campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
