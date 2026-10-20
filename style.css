@@ -67,7 +67,7 @@ input[type="text"], textarea {
 .marca { font-weight: 900; font-size: 22px; letter-spacing: 1px; font-style: italic; }
 .marca { display: inline-flex; align-items: center; gap: 8px; }
 .marca .marca-super { color: var(--destaque); }
-.marca-icone { height: 22px; width: auto; }
+.marca-logo { height: 28px; width: auto; display: block; }
 .marca small { font-size: 12px; font-weight: 500; color: var(--fraco); font-style: normal; letter-spacing: 0; }
 .status { display: grid; gap: 12px; min-width: 0; width: 100%; }
 .status:empty { display: none; }

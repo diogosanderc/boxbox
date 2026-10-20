@@ -88,7 +88,8 @@ grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasiv
 
 - `img/logo.png`: logotipo (sem fundo) usado na abertura e no carregamento; `img/logo-original.png` é o arquivo original.
 - `img/icone.png` e `img/icone-180.png`: ícone (a bandeira quadriculada) para a aba do navegador e a tela inicial do celular.
-- `img/bandeira.png`: a bandeira sozinha, sem fundo, no topo do jogo.
+- `img/logo-barra.png`: logotipo horizontal, sem fundo, no topo do jogo (`img/logo-barra-original.png` é o original).
+- `img/bandeira.png`: a bandeira sozinha, sem fundo.
 
 ## Código
 
