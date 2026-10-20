@@ -365,7 +365,9 @@ button.redondo { width: 44px; height: 44px; padding: 0; border-radius: 50%; disp
 .na-pista-passo { font-size: 22px; font-variant-numeric: tabular-nums; }
 .na-pista-trilho { position: relative; height: 10px; margin: 14px 12px 6px; background: var(--painel-2); border-radius: 999px; }
 .na-pista-trilho i { display: block; height: 100%; width: 0; background: var(--destaque); border-radius: 999px; }
-.na-pista-kart { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; border: 5px solid var(--destaque); box-shadow: 0 0 12px rgba(225, 6, 0, 0.8); }
+.na-pista-trilho { margin-top: 36px; }
+/* O emoji do carro olha para a esquerda: espelhado para andar para a direita, apoiado em cima da barra. */
+.na-pista-kart { position: absolute; bottom: 2px; left: 0; font-size: 40px; line-height: 1; transform: translateX(-50%) scaleX(-1); filter: drop-shadow(0 2px 6px rgba(225, 6, 0, 0.6)); }
 
 /* ---------- classificação do campeonato ---------- */
 .classificacao, .calendario, .ao-vivo { display: grid; gap: 6px; }

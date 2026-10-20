@@ -110,7 +110,7 @@
   naPista.innerHTML = `<div class="na-pista" role="status" aria-live="polite">
     <span class="subtitulo" data-titulo></span>
     <b class="na-pista-passo" data-passo></b>
-    <div class="na-pista-trilho"><i data-barra></i><span class="na-pista-kart" data-kart aria-hidden="true"></span></div>
+    <div class="na-pista-trilho"><i data-barra></i><span class="na-pista-kart" data-kart aria-hidden="true">🏎️</span></div>
     <span class="fraco mini" data-dica></span>
   </div>`;
   document.body.appendChild(naPista);
