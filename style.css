@@ -278,7 +278,6 @@ tr.fora td { opacity: 0.45; }
 .controles-corrida { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .volta { font-size: 15px; color: var(--fraco); }
 .volta b { color: var(--texto); font-size: 20px; }
-.velocidades { flex: none; }
 .eventos { max-height: 360px; overflow-y: auto; font-size: 13px; display: grid; gap: 0; }
 .eventos div { padding: 6px 0; border-top: 1px solid var(--borda); }
 .eventos div:first-child { border-top: 0; }

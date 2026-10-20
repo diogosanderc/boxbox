@@ -7,7 +7,7 @@
   const Kart = window.BoxKart;
   const C = window.BoxCarreira;
   const CHAVE_SAVE = 'boxbox-piloto-v1';
-  const VELOCIDADES = [{ nome: '1×', ms: 900 }, { nome: '2×', ms: 400 }, { nome: '5×', ms: 140 }];
+  const MS_POR_VOLTA = 1000; // ritmo único do ao vivo: uma volta por segundo
 
   const app = document.getElementById('app');
   const statusEl = document.getElementById('status');
@@ -698,8 +698,6 @@
         <div class="controles-corrida">
           <span id="volta" class="volta-grande"></span><span id="clima-corrida"></span><span class="espaco"></span>
           <button data-acao="play" id="btn-play"></button>
-          <div class="segmentos velocidades">${VELOCIDADES.map((v, i) => `<button data-acao="velocidade" data-i="${i}" class="${tela.vel === i ? 'ativo' : ''}">${v.nome}</button>`).join('')}</div>
-          <button data-acao="pular">⏭ Fim</button>
         </div>
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
@@ -763,7 +761,7 @@
       Engine.passo(corrida);
       atualizarCorrida();
       if (corrida.terminou) { clearInterval(timer); timer = null; }
-    }, VELOCIDADES[tela.vel].ms);
+    }, MS_POR_VOLTA);
   }
 
   function finalizarCorrida() {
@@ -1039,21 +1037,13 @@
       case 'largar':
         corrida = C.criarCorrida(estado);
         estado.fds.sessao = 'corrida';
-        ir({ nome: 'fds', vel: 1, pausado: false });
+        ir({ nome: 'fds', pausado: false });
         break;
       case 'play':
         if (corrida.terminou) return finalizarCorrida();
         tela.pausado = !tela.pausado;
         if (tela.pausado) { clearInterval(timer); timer = null; } else iniciarTimer();
         atualizarCorrida();
-        break;
-      case 'velocidade':
-        tela.vel = +alvo.dataset.i;
-        app.querySelectorAll('[data-acao="velocidade"]').forEach((b) => b.classList.toggle('ativo', b === alvo));
-        if (timer) iniciarTimer();
-        break;
-      case 'pular':
-        finalizarCorrida();
         break;
       case 'anotar': {
         const campo = document.getElementById('nota-corrida');
