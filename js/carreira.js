@@ -26,7 +26,27 @@
   const limitar = (x, min, max) => Math.max(min, Math.min(max, x));
   const sortear = (rnd, lista) => lista[Math.floor(rnd() * lista.length)];
   const campeonato = (id) => Dados.CAMPEONATOS.find((c) => c.id === id);
-  const equipeBase = (id) => Dados.EQUIPES.find((e) => e.id === id);
+  // Nomes das equipes desta carreira (sorteados no novo jogo); sem sorteio, valem os nomes de Dados.EQUIPES.
+  let nomesEquipes = {};
+  const equipeBase = (id) => {
+    const e = Dados.EQUIPES.find((x) => x.id === id);
+    return e && nomesEquipes[id] ? { ...e, nome: nomesEquipes[id] } : e;
+  };
+
+  // Sorteia um nome diferente para cada equipe, sempre o mesmo para a mesma semente.
+  function sortearNomesEquipes(seed) {
+    const rnd = Engine.criarRng((seed ^ 0x5bd1e995) >>> 0);
+    const pool = Dados.NOMES_EQUIPES.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return Object.fromEntries(Dados.EQUIPES.map((e, i) => [e.id, pool[i]]));
+  }
+
+  function usarNomesEquipes(nomes) {
+    nomesEquipes = nomes || {};
+  }
 
   function rngDe(estado) {
     estado.contador += 1;
@@ -90,7 +110,10 @@
   }
 
   function novoJogo({ nome = 'Você', equipeId = 'faisca', seed = Date.now() % 1e9 } = {}) {
+    const nomesSorteados = sortearNomesEquipes(seed);
+    usarNomesEquipes(nomesSorteados);
     const estado = {
+      nomesEquipes: nomesSorteados,
       versao: 2, seed, contador: 0, proxId: 1, ano: 2027, idadeInicial: 12,
       campeonato: 'regional', etapa: 0, fase: 'paddock',
       equipeId, contrato: null, dinheiro: equipeBase(equipeId).caixa,
@@ -183,6 +206,8 @@
 
   // Saves antigos não tinham moral e confiança.
   function migrar(estado) {
+    // Carreiras antigas, sem sorteio, continuam com os nomes originais.
+    usarNomesEquipes(estado && estado.nomesEquipes);
     if (estado && estado.piloto && estado.piloto.moral == null) {
       estado.piloto.moral = 60;
       estado.piloto.confianca = 50;
@@ -960,6 +985,7 @@
   }
 
   const Carreira = {
+    sortearNomesEquipes, usarNomesEquipes,
     ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, custoEtapa, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao, precoMecanico, contratarMecanico,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,

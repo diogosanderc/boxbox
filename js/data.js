@@ -18,7 +18,7 @@
     { id: 'tempesta', nome: 'Tempesta KR', cor: '#7a5cff', material: 83, mecanico: 75, caixa: 80000, custoEtapa: 8500, organizacao: 75,
       descricao: 'Boa no molhado. Estrutura média e honesta.' },
     { id: 'faisca', nome: 'Faísca Kart', cor: '#f2c200', material: 81, mecanico: 70, caixa: 72000, custoEtapa: 7500, organizacao: 70,
-      descricao: 'Equipe familiar de Cotia, conhece todo kartódromo do Brasil.' },
+      descricao: 'Equipe familiar, que conhece todo kartódromo do Brasil.' },
     { id: 'piccolo', nome: 'Piccolo Team', cor: '#2fbf71', material: 79, mecanico: 78, caixa: 64000, custoEtapa: 6500, organizacao: 82,
       descricao: 'Kart simples, mas o mecânico ensina muito sobre acerto.' },
     { id: 'ninja', nome: 'Ninja Kart', cor: '#9aa0a6', material: 80, mecanico: 52, caixa: 56000, custoEtapa: 5500, organizacao: 50,
@@ -26,11 +26,30 @@
     { id: 'formiga', nome: 'Formiga Racing', cor: '#b5651d', material: 76, mecanico: 60, caixa: 55000, custoEtapa: 4500, organizacao: 72,
       descricao: 'Garagem pequena, motores usados. Para quem tem garra.' },
     { id: 'garagem', nome: 'Garagem do Zé', cor: '#5b8c5a', material: 73, mecanico: 66, caixa: 45000, custoEtapa: 3500, organizacao: 78,
-      descricao: 'O Zé monta tudo sozinho. Barato, honesto e lento.' },
+      descricao: 'O dono monta tudo sozinho. Barato, honesto e lento.' },
   ];
 
   // tipo: travada (curvas lentas), mista ou veloz. altitude em metros. clima: temperatura média do ar.
   // tracado: vértices da linha central da pista (caixa de 300×180), ligados por retas com cantos arredondados.
+  // Nomes de equipe sorteados a cada carreira (o perfil de cada equipe continua o mesmo). Todos fictícios.
+  const NOMES_EQUIPES = [
+    'Fulmine Kart', 'Orbital Karting', 'Velox Junior', 'Rapido Corse', 'Tempesta Racing', 'Faísca Kart',
+    'Piccolo Team', 'Ninja Kart', 'Formiga Racing', 'Garagem do Zé', 'Squadra Leone', 'Scuderia Aquila',
+    'Trovão Competições', 'Raio Motorsport', 'Redline Karting', 'Northstar Racing', 'Blackfox Kart',
+    'Falco Corse', 'Turbo Kids', 'Oficina Paulista', 'Equipe Serra Azul', 'Vento Sul Racing', 'Pampa Kart',
+    'Cerrado Motorsport', 'Litoral Racing', 'Mantiqueira Kart', 'Ipê Competições', 'Jaguar do Vale', 'Cometa Kart Team',
+    'Astro Racing', 'Nebula Karting', 'Zenith Junior', 'Vortice Corse', 'Saetta Racing', 'Fiamma Kart',
+    'Montagna Team', 'Lupo Motorsport', 'Orso Bianco Racing', 'Stella Polare Kart', 'Ironbridge Karting', 'Kestrel Racing',
+    'Silverline Junior', 'Thunderbolt Kart', 'Harbor Motorsport', 'Riverside Racing', 'Hawkridge Kart', 'Bluefin Racing',
+    'Crimson Arrow', 'Étoile Racing', 'Mistral Karting', 'Bleu Horizon', 'Le Faucon Kart',
+    'Rhône Motorsport', 'Blitz Junior', 'Adler Kartsport', 'Nordwind Racing', 'Falke Motorsport', 'Schwarzwald Kart',
+    'Oranje Kart Team', 'Tulp Racing', 'Molen Motorsport', 'Sol de Castilla', 'Relámpago Racing', 'Pampero Kart',
+    'Cóndor Motorsport', 'Gaúcho Racing', 'Capivara Kart', 'Tucano Competições', 'Arara Racing', 'Onça Pintada Kart',
+    'Boto Rosa Racing', 'Sabiá Junior', 'Carcará Motorsport', 'Família Andrade Kart', 'Garagem 77', 'Box 13 Racing',
+    'Pit Lane Kids', 'Curva do S Kart', 'Zebra Alta Racing', 'Vácuo Competições', 'Pole Junior', 'Bandeira Quadriculada',
+    'Escudería Austral', 'Atlântico Kart', 'Kartódromo Clube', 'Pé de Chumbo Racing', 'Escapamento Kart',
+  ];
+
   const KARTODROMOS = {
     br: [
       { id: 'granja', tracado: [[40, 150], [250, 150], [275, 135], [265, 115], [150, 105], [130, 90], [150, 75], [255, 60], [270, 40], [250, 25], [90, 25], [55, 40], [70, 70], [45, 95], [30, 125]], nome: 'Granja Viana', local: 'Cotia (SP)', tipo: 'mista', altitude: 790, clima: 24, tempoBase: 46.5 },
@@ -156,7 +175,7 @@
     ['Banco Atlântico', 'Petroluz', 'TecnoNet', 'Vela Energia', 'Aurora Seguros', 'Brisa Bebidas', 'Halcyon Air'],
   ];
 
-  const Dados = { EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
+  const Dados = { EQUIPES, NOMES_EQUIPES, KARTODROMOS, CAMPEONATOS, OLHEIROS, NOMES, PAISES, PATROCINADORES };
   if (typeof module === 'object' && module.exports) module.exports = Dados;
   else root.BoxDados = Dados;
 })(this);

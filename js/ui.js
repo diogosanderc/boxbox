@@ -1132,6 +1132,7 @@
         const nome = document.getElementById('nome-piloto').value.trim();
         if (!nome) { aviso('Escreva o nome do piloto.'); break; }
         const seed = Date.now() % 1e9;
+        C.usarNomesEquipes(C.sortearNomesEquipes(seed));
         ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
         break;
       }

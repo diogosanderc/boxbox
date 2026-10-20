@@ -473,3 +473,23 @@ test('nomes variados: mais de 500 nomes e sobrenomes e ninguém repete sobrenome
   }
   assert.ok(nomes.size > 450); // 30 grids x 19 rivais quase sem repetição
 });
+
+test('nomes das equipes sorteados a cada carreira, sem repetir', () => {
+  const a = Carreira.sortearNomesEquipes(1);
+  const b = Carreira.sortearNomesEquipes(2);
+  assert.strictEqual(new Set(Object.values(a)).size, Dados.EQUIPES.length);
+  assert.notDeepStrictEqual(a, b);
+  assert.deepStrictEqual(Carreira.sortearNomesEquipes(1), a);
+  const e = Carreira.novoJogo({ seed: 1, equipeId: 'garagem' });
+  assert.strictEqual(Carreira.equipeBase('garagem').nome, a.garagem);
+  assert.strictEqual(Carreira.equipeBase('garagem').custoEtapa, Dados.EQUIPES.find((x) => x.id === 'garagem').custoEtapa);
+  // carreira antiga, sem sorteio, mantém os nomes originais
+  Carreira.migrar({ ...e, nomesEquipes: undefined });
+  assert.strictEqual(Carreira.equipeBase('garagem').nome, 'Garagem do Zé');
+  Carreira.migrar(e);
+  assert.strictEqual(Carreira.equipeBase('garagem').nome, a.garagem);
+  // em 30 carreiras aparecem muitos nomes diferentes
+  const vistos = new Set();
+  for (let s = 1; s <= 30; s++) Object.values(Carreira.sortearNomesEquipes(s)).forEach((n) => vistos.add(n));
+  assert.ok(vistos.size > 60);
+});

@@ -12,6 +12,7 @@ Abra `index.html` no navegador do celular (não precisa de servidor nem instala�
    depois do carregamento, **escolha a equipe**: só três abrem as portas no começo (uma de ponta, uma intermediária e
    uma pequena, sorteadas a cada jogo). Cada uma mostra kart, mecânico, estrutura, pontos fortes e fracos e quanto
    dinheiro sobra no ano. As outras podem fazer propostas durante a temporada.
+   Os nomes das equipes são sorteados a cada carreira (87 nomes fictícios); o perfil de cada uma continua o mesmo.
 2. **Paddock:** antes de cada etapa veja a pista e a previsão do tempo, compre pneus, revise o motor, aceite patrocínios
    e avalie propostas de outras equipes (algumas são furada).
 3. **Fim de semana:**
