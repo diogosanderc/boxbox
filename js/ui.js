@@ -13,7 +13,7 @@
   const statusEl = document.getElementById('status');
 
   let estado = null;
-  let tela = { nome: 'inicio' };
+  let tela = { nome: 'abertura' };
   let timer = null;
   let corrida = null; // a bateria em andamento não é salva
 
@@ -59,7 +59,7 @@
   }
 
   function telaDaFase() {
-    if (!estado) return { nome: 'inicio' };
+    if (!estado) return { nome: 'abertura' };
     return { nome: estado.fase, aba: 'resumo' };
   }
 
@@ -225,7 +225,9 @@
 
   function render() {
     atualizarStatus();
-    const telas = { inicio: telaInicio, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
+    // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
+    document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe'].includes(tela.nome));
+    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, f4: telaF4, falencia: telaFalencia };
     telas[tela.nome]();
   }
 
@@ -246,21 +248,65 @@
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
 
   // ---------- início ----------
-  function telaInicio() {
+  // Abertura: logotipo e "Iniciar jogo" (e "Continuar" quando há carreira salva).
+  function telaAbertura() {
     const save = carregar();
     app.innerHTML = `
-      <div class="painel tela-nome">
-        <div class="linha"><span class="capacete" aria-hidden="true">🏎️</span><span class="espaco"></span>${botaoAjuda('jogo')}</div>
-        <h1>Do kart à Fórmula 1</h1>
-        <div class="campo"><label for="nome-piloto">Nome do piloto</label>
-          <input type="text" id="nome-piloto" value="${esc(tela.nomePiloto || '')}" placeholder="Seu nome" maxlength="30" autocomplete="off"></div>
-        <button class="principal grande" data-acao="entrar">Entrar no paddock</button>
-        ${save ? `<button class="grande" data-acao="continuar">Continuar: ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
+      <div class="abertura">
+        <div class="abertura-marca">
+          <span class="abertura-kart" aria-hidden="true">🏎️</span>
+          <h1 class="logo">BOX<span>BOX</span></h1>
+          <p>Do kart à Fórmula 1</p>
+        </div>
+        <div class="abertura-acoes">
+          <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
+          ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
+        </div>
       </div>`;
-    if (!save) document.getElementById('nome-piloto').focus();
   }
 
-  // Cores claras (como amarelo) pedem texto escuro por cima.
+  // Nome do piloto.
+  function telaInicio() {
+    app.innerHTML = `
+      <div class="tela-cheia">
+        <button class="redondo" data-acao="voltar-abertura" aria-label="Voltar">${icone('voltar')}</button>
+        <div class="tela-nome">
+          <span class="passo-inicio">Passo 1 de 2</span>
+          <h1>Como o piloto se chama?</h1>
+          <p class="fraco">Você tem 12 anos e vai começar a carreira no kart. A meta é chegar à Fórmula 1.</p>
+          <input type="text" id="nome-piloto" value="${esc(tela.nomePiloto || '')}" placeholder="Nome do piloto" maxlength="30" autocomplete="off" aria-label="Nome do piloto">
+          <button class="principal grande" data-acao="entrar">Continuar</button>
+        </div>
+      </div>`;
+    document.getElementById('nome-piloto').focus();
+  }
+
+  // Barra de carregamento entre o nome e a escolha da equipe.
+  const PASSOS_CARREGANDO = ['Abrindo o paddock…', 'Chamando as equipes…', 'Conferindo os karts…', 'Tudo pronto!'];
+  function telaCarregando() {
+    app.innerHTML = `
+      <div class="abertura carregando">
+        <div class="abertura-marca"><h1 class="logo">BOX<span>BOX</span></h1></div>
+        <div class="carregando-bloco" role="status" aria-live="polite">
+          <div class="carregando-trilho"><i data-barra></i></div>
+          <span class="fraco" data-passo>${PASSOS_CARREGANDO[0]}</span>
+        </div>
+      </div>`;
+    const duracao = menosMovimento() ? 500 : 2200;
+    const inicio = performance.now();
+    const minha = tela;
+    const quadro = (agora) => {
+      if (tela !== minha) return;
+      const t = Math.min(1, (agora - inicio) / duracao);
+      app.querySelector('[data-barra]').style.width = `${t * 100}%`;
+      app.querySelector('[data-passo]').textContent = PASSOS_CARREGANDO[Math.min(PASSOS_CARREGANDO.length - 1, Math.floor(t * PASSOS_CARREGANDO.length))];
+      if (t < 1) requestAnimationFrame(quadro);
+      else setTimeout(() => { if (tela === minha) ir({ ...minha, nome: 'equipe', escolhida: null }); }, 250);
+    };
+    requestAnimationFrame(quadro);
+  }
+
+  // A cor da equipe é clara? (para escolher texto escuro por cima)
   function corClara(hex) {
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     return 0.299 * r + 0.587 * g + 0.114 * b > 160;
@@ -268,24 +314,49 @@
 
   const kmil = (x) => `${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
 
+  // Pontos fortes e fracos de uma equipe, em etiquetas.
+  function etiquetasEquipe(e, sobra) {
+    const t = [];
+    if (e.material >= 86) t.push(['⚡ Kart muito rápido', 'bom']); else if (e.material <= 76) t.push(['🐢 Kart mais lento', 'ruim']);
+    if (e.mecanico >= 85) t.push(['🔧 Mecânico craque', 'bom']); else if (e.mecanico <= 60) t.push(['🔧 Mecânico fraco', 'ruim']);
+    if (e.organizacao >= 85) t.push(['🛡 Kart confiável', 'bom']); else if (e.organizacao <= 55) t.push(['⚠ Quebra mais', 'ruim']);
+    if (sobra >= 25000) t.push(['💰 Sobra dinheiro', 'bom']); else if (sobra < 12000) t.push(['💸 Orçamento apertado', 'ruim']);
+    if (!t.length) t.push(['⚖️ Equilibrada', 'neutro']);
+    return t.map(([texto, tipo]) => `<span class="tag tag-${tipo}">${texto}</span>`).join('');
+  }
+
+  // Escolha da equipe: cartões selecionáveis e confirmação embaixo.
   function telaEquipe() {
+    const escolhida = tela.escolhida && C.equipeBase(tela.escolhida);
     app.innerHTML = `
-      <div class="linha cabecalho-tela"><button data-acao="trocar-nome" aria-label="Trocar nome">←</button><h1>Escolha sua equipe</h1><span class="espaco"></span>${botaoAjuda('equipe')}</div>
-      <div class="equipes-iniciais">
-        ${tela.opcoes.map((id) => {
-          const e = C.equipeBase(id);
-          const porte = C.porteDe(id);
-          const sobra = e.caixa - e.custoEtapa * C.ETAPAS;
-          return `<article class="equipe-card ${corClara(e.cor) ? 'topo-claro' : ''}" style="--cor-equipe:${e.cor}">
-            <header class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><h2>${esc(e.nome)}</h2></header>
-            <div class="equipe-corpo">
-              <p class="fraco">${esc(e.descricao)}</p>
-              <div>${barra('Kart', e.material)}${barra('Mecânico', e.mecanico)}</div>
-              <div class="tiles">${tile('Caixa R$', kmil(e.caixa))}${tile('Etapa R$', kmil(e.custoEtapa))}${tile('Sobra R$', kmil(sobra), sobra < 10000 ? 'aviso' : 'dinheiro')}</div>
-              <button class="principal grande" data-acao="escolher-equipe" data-id="${id}">Correr aqui</button>
-            </div>
-          </article>`;
-        }).join('')}
+      <div class="tela-equipe">
+        <div class="linha"><button class="redondo" data-acao="trocar-nome" aria-label="Voltar">${icone('voltar')}</button><span class="espaco"></span>${botaoAjuda('equipe')}</div>
+        <div><span class="passo-inicio">Passo 2 de 2</span><h1>Escolha sua equipe</h1>
+          <p class="fraco">Três equipes abriram as portas para ${esc(tela.nomePiloto)}. Toque em uma para escolher.</p></div>
+        <div class="equipes-iniciais">
+          ${tela.opcoes.map((id) => {
+            const e = C.equipeBase(id);
+            const porte = C.porteDe(id);
+            const sobra = e.caixa - e.custoEtapa * C.ETAPAS;
+            const sel = tela.escolhida === id;
+            return `<button class="equipe-card ${sel ? 'selecionada' : ''} ${corClara(e.cor) ? 'topo-claro' : ''}" style="--cor-equipe:${e.cor}" data-acao="selecionar-equipe" data-id="${id}" aria-pressed="${sel}">
+              <span class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><span class="equipe-check" aria-hidden="true">${sel ? '✓' : ''}</span><b class="equipe-nome">${esc(e.nome)}</b></span>
+              <span class="equipe-corpo">
+                <span class="fraco equipe-desc">${esc(e.descricao)}</span>
+                <span class="tags">${etiquetasEquipe(e, sobra)}</span>
+                <span class="equipe-barras">${barra('Kart', e.material)}${barra('Mecânico', e.mecanico)}${barra('Estrutura', e.organizacao)}</span>
+                <span class="equipe-dinheiro">
+                  <span><small>Caixa</small><b>R$ ${kmil(e.caixa)}</b></span>
+                  <span><small>Por etapa</small><b class="negativo">−R$ ${kmil(e.custoEtapa)}</b></span>
+                  <span><small>Sobra no ano</small><b class="${sobra < 12000 ? 'aviso' : 'dinheiro'}">R$ ${kmil(sobra)}</b></span>
+                </span>
+              </span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="barra-confirmar">
+        <button class="principal grande" data-acao="escolher-equipe" data-id="${escolhida ? tela.escolhida : ''}" ${escolhida ? '' : 'disabled'}>${escolhida ? `Correr pela ${esc(escolhida.nome)}` : 'Escolha uma equipe'}</button>
       </div>`;
   }
 
@@ -1009,13 +1080,24 @@
         const nome = document.getElementById('nome-piloto').value.trim();
         if (!nome) { aviso('Escreva o nome do piloto.'); break; }
         const seed = Date.now() % 1e9;
-        ir({ nome: 'equipe', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
+        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
         break;
       }
+      case 'iniciar':
+        ir({ nome: 'inicio' });
+        break;
+      case 'voltar-abertura':
+        ir({ nome: 'abertura' });
+        break;
+      case 'selecionar-equipe':
+        tela.escolhida = id;
+        render();
+        break;
       case 'trocar-nome':
         ir({ nome: 'inicio', nomePiloto: tela.nomePiloto });
         break;
       case 'escolher-equipe':
+        if (!id) break;
         estado = C.novoJogo({ nome: tela.nomePiloto, equipeId: id, seed: tela.seed });
         salvar();
         ir(telaDaFase());
@@ -1029,7 +1111,7 @@
         apagarSave();
         estado = null;
         corrida = null;
-        ir({ nome: 'inicio' });
+        ir({ nome: 'abertura' });
         break;
       case 'aba':
         tela.aba = alvo.dataset.aba;

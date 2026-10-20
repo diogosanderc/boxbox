@@ -8,8 +8,10 @@ A meta desta primeira fase é sair do kart com uma vaga na Fórmula 4.
 
 Abra `index.html` no navegador do celular (não precisa de servidor nem instalação). O jogo é feito só para celular: no computador ele aparece numa coluna com largura de telefone. A carreira é salva sozinha no navegador.
 
-1. **Nome do piloto** na primeira tela. Depois, **escolha a equipe**: só três abrem as portas no começo (uma de ponta,
-   uma intermediária e uma pequena, sorteadas a cada jogo). As outras podem fazer propostas durante a temporada.
+1. **Abertura:** toque em **Iniciar jogo** (ou em Continuar, se já tem carreira salva), escreva o **nome do piloto** e,
+   depois do carregamento, **escolha a equipe**: só três abrem as portas no começo (uma de ponta, uma intermediária e
+   uma pequena, sorteadas a cada jogo). Cada uma mostra kart, mecânico, estrutura, pontos fortes e fracos e quanto
+   dinheiro sobra no ano. As outras podem fazer propostas durante a temporada.
 2. **Paddock:** antes de cada etapa veja a pista e a previsão do tempo, compre pneus, revise o motor, aceite patrocínios
    e avalie propostas de outras equipes (algumas são furada).
 3. **Fim de semana:**
