@@ -365,6 +365,20 @@
   const ic = (nome, classe = '') => icone(nome, `ico-i ${classe}`);
 
   // ---------- início ----------
+  // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.
+  const CHAVE_DEV = 'superlicenca-dev';
+  const modoDev = () => { try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
+  let toquesLogo = [];
+  function tocarLogo() {
+    const agora = Date.now();
+    toquesLogo = toquesLogo.filter((t) => agora - t < 3000).concat(agora);
+    if (toquesLogo.length < 5) return;
+    toquesLogo = [];
+    const ligar = !modoDev();
+    try { if (ligar) localStorage.setItem(CHAVE_DEV, '1'); else localStorage.removeItem(CHAVE_DEV); } catch (e) { /* sem armazenamento */ }
+    render();
+    aviso(ligar ? 'Modo desenvolvedor ligado' : 'Modo desenvolvedor desligado');
+  }
   // Abertura: logotipo e "Iniciar jogo" (e "Continuar" quando há carreira salva).
   function telaAbertura() {
     const save = carregar();
@@ -376,7 +390,7 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
-          <button class="link-f4" data-acao="iniciar-f4">Começar direto na F4 · 15 anos</button>
+          ${modoDev() ? '<button class="link-f4" data-acao="iniciar-f4">Dev: começar direto na F4 · 15 anos</button>' : ''}
         </div>
       </div>`;
   }
@@ -1610,6 +1624,7 @@
   });
 
   app.addEventListener('click', (ev) => {
+    if (tela.nome === 'abertura' && ev.target.closest('.abertura-marca')) tocarLogo();
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-pneu') { tela.pneuOpcoes = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-mudancas') { tela.mudancas = null; render(); }
