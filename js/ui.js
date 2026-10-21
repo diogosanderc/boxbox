@@ -327,7 +327,9 @@
     encherCaixa();
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
-    document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
+    // Na corrida também: a tela fica só com a corrida.
+    const naCorrida = tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao === 'corrida';
+    document.body.classList.toggle('sem-topo', naCorrida || ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
@@ -1377,7 +1379,7 @@
     const cabecalho = `<div class="linha cabecalho-tela"><h1>${tituloForte(pista.nome)}</h1>${chipTipo(pista.tipo)}<span class="espaco"></span><button class="ver-pista-mini" data-acao="ficha-pista">Ver pista ›</button></div>${passosFds(fds.sessao)}`;
     if (fds.sessao === 'treino' || fds.sessao === 'quali') app.innerHTML = cabecalho + telaAcerto();
     else if (fds.sessao === 'grid') app.innerHTML = cabecalho + telaGrid();
-    else if (fds.sessao === 'corrida') { app.innerHTML = cabecalho + htmlCorrida(); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
+    else if (fds.sessao === 'corrida') { app.innerHTML = htmlCorrida(pista); atualizarCorrida(); if (!corrida.terminou && !tela.pausado) iniciarTimer(); }
     else app.innerHTML = cabecalho + telaResultadoCorrida();
     if (tela.largada && fds.sessao === 'grid') app.insertAdjacentHTML('beforeend', folhaLargada());
     else if (tela.mudancas === fds.sessao) app.insertAdjacentHTML('beforeend', folhaMudancas(fds.sessao));
@@ -1634,9 +1636,10 @@
     </div>`;
   }
 
-  function htmlCorrida() {
+  function htmlCorrida(pista) {
     return `<div class="corrida">
       <section class="painel">
+        ${pista ? `<div class="corrida-titulo"><b>${esc(pista.nome)}</b><span class="fraco">${corrida && corrida.sprint ? 'Sprint' : 'Corrida'}</span></div>` : ''}
         <div class="controles-corrida">
           <span id="volta" class="volta-grande"></span><span id="clima-corrida"></span><span class="espaco"></span>
           <button data-acao="play" id="btn-play"></button>
@@ -1657,6 +1660,7 @@
   function atualizarCorrida() {
     const ordem = corrida.carros.slice().sort((a, b) => a.pos - b.pos);
     const lider = ordem[0];
+    const melhorDaCorrida = Math.min(...corrida.carros.map((c) => c.melhorVolta || Infinity));
     document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
     document.getElementById('clima-corrida').innerHTML = (corrida.safetyCar > 0 ? chip(`${ic('alerta')}Safety car`, 'chip-sc') : '') + (corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '');
     document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
@@ -1671,6 +1675,7 @@
         <b class="vivo-pos">${c.pos}</b><i class="camp-cor" style="background:${c.equipe.cor}"></i>
         <b class="vivo-sigla">${sigla(c.piloto.nome)}</b>
         <span class="vivo-nome">${esc(c.piloto.nome)}</span>
+        <span class="vivo-tempo ${c.ultimaVolta && c.ultimaVolta === melhorDaCorrida ? 'roxo' : ''}">${c.fora || !c.ultimaVolta ? '' : tempoVolta(c.ultimaVolta)}</span>
         <span class="vivo-ganho ${ganho > 0 ? 'dinheiro' : 'negativo'}">${ganho > 0 ? '▲' + ganho : ganho < 0 ? '▼' + -ganho : ''}</span>
         <span class="vivo-dif">${dir}</span>
       </div>`;

@@ -564,7 +564,7 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .volta-grande b span { font-size: 15px; opacity: 0.8; }
 .ao-vivo { gap: 4px; }
 .vivo-linha {
-  display: grid; grid-template-columns: 26px 4px 44px minmax(0, 1fr) 30px auto; gap: 8px; align-items: center;
+  display: grid; grid-template-columns: 26px 4px 44px minmax(0, 1fr) 62px 30px auto; gap: 8px; align-items: center;
   background: var(--painel-2); border-radius: 10px; padding: 7px 10px; font-size: 14px;
 }
 .vivo-linha.jogador { background: var(--jogador); box-shadow: 0 0 0 1px rgba(225, 6, 0, 0.5) inset; }
@@ -582,7 +582,7 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .tiles-4 .tile b { font-size: 18px; }
 @media (max-width: 400px) {
   .vivo-nome { display: none; }
-  .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 28px auto; }
+  .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 60px 26px auto; gap: 6px; }
 }
 
 /* ---------- checklist de pneus e motor ---------- */
@@ -1072,3 +1072,10 @@ button.prazo.principal .prazo-valor { color: inherit; }
 .m-ouro { background: #ffd24a; }
 .m-prata { background: #c9ced6; }
 .m-bronze { background: #c98a4b; }
+
+/* Corrida: tempo da última volta de cada piloto (roxo = melhor volta da corrida) e tela sem o topo do jogo */
+.vivo-tempo { font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; color: var(--texto); }
+.vivo-tempo.roxo { color: #c58bff; font-weight: 700; }
+body.sem-topo .topo-mini { display: none; }
+.corrida-titulo { display: flex; align-items: baseline; gap: 8px; font-size: 15px; margin-bottom: 4px; }
+.corrida-titulo b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 18px; }
