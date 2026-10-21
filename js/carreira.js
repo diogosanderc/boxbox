@@ -29,6 +29,7 @@
   // Motor engripado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
   const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
   // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
+  const PONTOS_SPRINT = [8, 7, 6, 5, 4, 3, 2, 1];
   const PONTO_POLE = 1;
   const PONTO_VOLTA_RAPIDA = 1;
   const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
@@ -883,6 +884,42 @@
     estado.fds.sessao = 'quali';
   }
 
+  // ---------- sprint ----------
+  // Corrida curta antes da principal. Na F2 o top 10 da classificação larga invertido.
+  function temSprint(estado) {
+    const s = campeonato(estado.campeonato).sprint;
+    return s === true || (Array.isArray(s) && s.includes(estado.calendario[estado.etapa].pista));
+  }
+  const sprintPendente = (estado) => !!(estado.fds && estado.fds.sprint && !estado.fds.sprint.feito);
+  // Ordem de largada da próxima corrida (sprint ou principal).
+  function ordemLargada(estado) {
+    const q = estado.fds.quali;
+    if (!sprintPendente(estado) || estado.campeonato !== 'f2') return q;
+    return [...q.slice(0, 10).reverse(), ...q.slice(10)];
+  }
+  const voltasSprint = (camp) => Math.ceil(camp.voltas * 0.45);
+
+  function concluirSprint(estado, corrida) {
+    const fds = estado.fds;
+    const res = Engine.resultado(corrida);
+    for (const r of res) {
+      r.pontos = !r.fora && r.pos <= PONTOS_SPRINT.length ? PONTOS_SPRINT[r.pos - 1] : 0;
+      estado.pontos[r.id] = (estado.pontos[r.id] || 0) + r.pontos;
+    }
+    const meu = res.find((r) => r.id === 'jogador');
+    const pneu = pneuPorId(estado, fds.pneuCorrida);
+    const carro = corrida.carros.find((c) => c.jogador);
+    if (pneu) pneu.uso = Math.round(carro.uso);
+    if (!meu.fora && meu.pos <= 3) mexerCabeca(estado, { confianca: 3 }, `Pódio na sprint (P${meu.pos})`);
+    fds.sprint = {
+      feito: true, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos,
+      classificacao: res.slice(0, 8).map((r) => ({ id: r.id, pos: r.pos, pontos: r.pontos, fora: r.fora, equipe: r.equipe })),
+    };
+    (estado.sprints || (estado.sprints = [])).push({ ano: estado.ano, campeonato: estado.campeonato, etapa: estado.etapa + 1, pos: meu.pos, fora: meu.fora });
+    fds.sessao = 'grid';
+    return fds.sprint;
+  }
+
   function classificar(estado) {
     const fds = estado.fds;
     const pneu = pneuPorId(estado, fds.pneuId);
@@ -903,6 +940,7 @@
     fds.setupCorrida = { ...fds.setup };
     fds.setupQuali = { ...fds.setup };
     fds.pneuCorrida = fds.pneuId;
+    fds.sprint = temSprint(estado) ? { feito: false } : null;
     registrarCaderno(estado, cond, { setup: fds.setup, pneu: pneu.tipo, tempo: tempos.find((t) => t.id === 'jogador').tempo, posicao: tempos.findIndex((t) => t.id === 'jogador') + 1 });
     fds.sessao = 'grid';
     return { ok: true };
@@ -920,7 +958,8 @@
     const clima = climaAtual(estado);
     const pneuJogador = pneuPorId(estado, fds.pneuCorrida) || { tipo: 'slick', uso: 0 };
     const entradas = Object.fromEntries([entradaJogador(estado), ...estado.rivais.map((r) => entradaRival(estado, r))].map((e) => [e.id, e]));
-    const grid = fds.quali.map((q) => entradas[q.id]);
+    const sprint = sprintPendente(estado);
+    const grid = ordemLargada(estado).map((q) => entradas[q.id]);
     const chuvaDesde = clima.tarde.inicioChuva === 'quali' ? 1 : clima.tarde.voltaChuva;
     const monoposto = categoriaDe(estado) !== 'kart';
     const ajusteVolta = (c, v, corrida) => {
@@ -950,9 +989,11 @@
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
-    const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31, {
+    if (sprint) pista.voltas = voltasSprint(campeonato(estado.campeonato));
+    const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31 + (sprint ? 17 : 0), {
       regraCompostos: false, pneuPadrao: 'Md', semBox: true, semSafetyCar: true, semModos: true, ajusteVolta,
     });
+    corrida.sprint = sprint;
     for (const c of corrida.carros) {
       c.uso = c.jogador ? pneuJogador.uso : 1;
       c.tipoPneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
@@ -962,6 +1003,7 @@
 
   // Aplica a corrida terminada: ordens de equipe, pontos, dinheiro, popularidade, olheiros.
   function concluirCorrida(estado, corrida) {
+    if (corrida.sprint) return concluirSprint(estado, corrida);
     const fds = estado.fds;
     const res = Engine.resultado(corrida);
     const camp = campeonato(estado.campeonato);
@@ -1260,7 +1302,7 @@
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

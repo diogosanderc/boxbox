@@ -736,3 +736,29 @@ test('pole e volta mais rápida valem 1 ponto cada', () => {
   const h = e.historico[e.historico.length - 1];
   assert.ok('pole' in h && 'voltaRapida' in h && 'largada' in h);
 });
+
+test('F2: sprint antes da corrida principal, com top 10 invertido e pontos 8-7-...-1', () => {
+  const e = Carreira.novoJogo({ seed: 13 });
+  Carreira.comecarNaF4(e);
+  e.propostas = [{ id: 'x', tipo: 'subida', campeonato: 'f2', pago: true, equipe: 'f2-prima', nome: 'Prima' }];
+  Carreira.aceitarProposta(e, 'x');
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  assert.ok(Carreira.sprintPendente(e));
+  const q = e.fds.quali.map((x) => x.id);
+  const ordem = Carreira.ordemLargada(e).map((x) => x.id);
+  assert.deepStrictEqual(ordem.slice(0, 10), q.slice(0, 10).reverse());
+  const sprint = Carreira.criarCorrida(e);
+  assert.ok(sprint.sprint && sprint.totalVoltas < 18);
+  Engine.simularCompleta(sprint);
+  const antes = Object.values(e.pontos).reduce((a, b) => a + b, 0);
+  Carreira.concluirSprint(e, sprint);
+  const depois = Object.values(e.pontos).reduce((a, b) => a + b, 0);
+  assert.strictEqual(depois - antes, 36);
+  assert.ok(!Carreira.sprintPendente(e) && e.fds.sessao === 'grid');
+  const principal = Carreira.criarCorrida(e);
+  assert.ok(!principal.sprint);
+  assert.deepStrictEqual(principal.carros.map((c) => c.id), q); // principal larga na ordem da classificação
+  Carreira.migrar({ campeonato: 'regional' });
+});

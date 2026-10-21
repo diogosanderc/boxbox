@@ -1046,8 +1046,10 @@
   }
 
   function passosFds(atual) {
-    const passos = [['treino', 'Treino'], ['quali', 'Classificação'], ['grid', 'Corrida'], ['fim', 'Resultado']];
-    const idx = passos.findIndex(([id]) => id === atual || (atual === 'corrida' && id === 'grid'));
+    const sprint = estado.fds && estado.fds.sprint;
+    const passos = [['treino', 'Treino'], ['quali', 'Classificação'], ...(sprint ? [['sprint', 'Sprint']] : []), ['grid', 'Corrida'], ['fim', 'Resultado']];
+    const naSprint = sprint && !sprint.feito && (atual === 'grid' || atual === 'corrida');
+    const idx = passos.findIndex(([id]) => (naSprint ? id === 'sprint' : id === atual || (atual === 'corrida' && id === 'grid')));
     return `<div class="passos-fds">${passos.map(([, nome], i) => `<span class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}">${i < idx ? ic('check') : ''}${nome}</span>`).join('')}</div>`;
   }
 
@@ -1064,17 +1066,23 @@
   }
 
   // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
+  // Resultado da sprint, mostrado no grid da corrida principal.
+  function cartaoSprint(sp) {
+    return cartao('Sprint', `<div class="item-topo"><b class="sprint-pos">${sp.fora ? 'Abandono' : `P${sp.pos}`}</b>${sp.pontos ? chip(`+${sp.pontos} ${sp.pontos === 1 ? 'ponto' : 'pontos'}`, 'chip-dinheiro') : chip('Sem pontos')}</div>
+      <div class="sprint-top">${sp.classificacao.map((x) => `<span class="${x.id === 'jogador' ? 'eu' : ''}"><b>${x.pos}</b>${esc(sigla(C.nomeDe(estado, x.id)))}<small>${x.pontos ? `+${x.pontos}` : ''}</small></span>`).join('')}</div>`);
+  }
   function folhaLargada() {
     const q = estado.fds.quali;
     const i = q.findIndex((x) => x.id === 'jogador');
-    const pos = i + 1;
+    const ordemSprint = C.sprintPendente(estado) ? C.ordemLargada(estado) : null;
+    const pos = ordemSprint ? ordemSprint.findIndex((x) => x.id === 'jogador') + 1 : i + 1;
     const dif = q[i].tempo - q[0].tempo;
-    const titulo = pos === 1 ? 'Pole position!' : pos === 2 ? 'Primeira fila!' : pos <= 5 ? 'Ótima posição.' : pos <= 10 ? 'Bom lugar no grid.' : 'Vai ter que escalar o pelotão.';
+    const titulo = i === 0 ? 'Pole position!' : pos === 1 ? 'Primeiro no grid!' : pos === 2 ? 'Primeira fila!' : pos <= 5 ? 'Ótima posição.' : pos <= 10 ? 'Bom lugar no grid.' : 'Vai ter que escalar o pelotão.';
     return `<div class="folha-fundo" data-acao-fundo="fechar-largada"><div class="folha folha-largada" role="dialog" aria-modal="true" aria-labelledby="folha-largada-titulo">
       <span class="passo-inicio">Classificação</span>
-      <h3 id="folha-largada-titulo">Você vai largar em</h3>
+      <h3 id="folha-largada-titulo">${ordemSprint ? 'Na sprint você larga em' : 'Você vai largar em'}</h3>
       <div class="largada-grande ${pos <= 3 ? 'top' : ''}">P${pos}</div>
-      <p class="fraco">${titulo} ${pos === 1 ? `Sua volta: ${tempoVolta(q[0].tempo)}.` : `Sua volta: ${tempoVolta(q[i].tempo)} (${dif.toFixed(3).replace('.', ',')} s atrás da pole).`}</p>
+      <p class="fraco">${ordemSprint && estado.campeonato === 'f2' ? `Você classificou em P${i + 1}: na F2 o top 10 larga invertido na sprint. ` : ''}${titulo} ${i === 0 ? `Sua volta: ${tempoVolta(q[0].tempo)}.` : `Sua volta: ${tempoVolta(q[i].tempo)} (${dif.toFixed(3).replace('.', ',')} s atrás da pole).`}${ordemSprint ? ' Na corrida principal você larga da posição da classificação.' : ''}</p>
       ${estado.fds.recordeQuali ? chip(`${ic('trofeu')}Novo recorde da pista!`, 'chip-recorde') : ''}
       <button class="principal grande" data-acao="fechar-largada">Continuar</button>
     </div></div>`;
@@ -1217,27 +1225,31 @@
   function telaGrid() {
     const fds = estado.fds;
     const pole = fds.quali[0].tempo;
-    const meu = fds.quali.findIndex((q) => q.id === 'jogador') + 1;
+    const ordem = C.ordemLargada(estado);
+    const meu = ordem.findIndex((q) => q.id === 'jogador') + 1;
+    const sprint = C.sprintPendente(estado);
+    const camp = C.campeonato(estado.campeonato);
     const mudou = fds.pneuId !== fds.pneuCorrida || Kart.ORDEM_AJUSTES.some((k) => fds.setup[k] !== fds.setupCorrida[k]);
     return `<div class="corrida">
       <div class="coluna">
         <section class="painel largada">
-          <div class="pos-grande"><span>Largada</span><b>P${meu}</b></div>
-          <div class="largada-info">${condicaoChips('grid')}${mudou ? chip(`${ic('lapis')}Acerto alterado`, 'chip-amarelo') : ''}</div>
+          <div class="pos-grande"><span>${sprint ? 'Largada da sprint' : fds.sprint ? 'Largada da corrida principal' : 'Largada'}</span><b>P${meu}</b></div>
+          <div class="largada-info">${sprint ? `<div class="chips">${chip(`${ic('raio')}Sprint · ${C.voltasSprint(camp)} voltas`, 'chip-amarelo')}${estado.campeonato === 'f2' ? chip(`${ic('repetir')}Top 10 invertido`) : ''}</div>` : ''}${condicaoChips('grid')}${mudou ? chip(`${ic('lapis')}Acerto alterado`, 'chip-amarelo') : ''}</div>
           ${leitura('grid')}
-          <button class="principal grande" data-acao="largar">Largar!</button>
+          <button class="principal grande" data-acao="largar">${sprint ? 'Largar a sprint!' : 'Largar!'}</button>
         </section>
+        ${fds.sprint && fds.sprint.feito ? cartaoSprint(fds.sprint) : ''}
         ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         ${mudou ? `<div class="botoes-2"><button data-acao="desfazer-grid">${ic('repetir')}Acerto da classificação</button></div>` : ''}
       </div>
       ${cartao('Grid', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
-        ${fds.quali.map((q, i) => {
+        ${ordem.map((q, i) => {
           const eqId = q.id === 'jogador' ? estado.equipeId : estado.rivais.find((r) => r.id === q.id).equipe;
           const eq = C.equipeBase(eqId);
           return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}</td>
-            <td class="num opc">${tempoVolta(q.tempo)}</td><td class="num">${i ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
+            <td class="num opc">${tempoVolta(q.tempo)}</td><td class="num">${q.tempo > pole ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
         }).join('')}</table></div>`)}
     </div>`;
   }
@@ -1325,6 +1337,14 @@
 
   function finalizarCorrida() {
     if (!corrida.terminou) Engine.simularCompleta(corrida);
+    if (corrida.sprint) {
+      const sp = C.concluirSprint(estado, corrida);
+      corrida = null;
+      salvar();
+      ir({ nome: 'fds' });
+      aviso(sp.fora ? 'Abandono na sprint.' : `Sprint: P${sp.pos}${sp.pontos ? ` · +${sp.pontos} pontos` : ''}. Agora a corrida principal!`, 'bandeira');
+      return;
+    }
     C.concluirCorrida(estado, corrida);
     corrida = null;
     salvar();

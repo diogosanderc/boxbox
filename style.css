@@ -904,3 +904,9 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .etapas-barra i { display: block; height: 100%; background: var(--destaque); border-radius: inherit; }
 .marca-pv { display: inline-block; padding: 0 5px; border-radius: 5px; font-size: 10px; font-weight: 800; line-height: 16px; background: rgba(47, 191, 113, 0.18); color: var(--ok); vertical-align: 1px; }
 .marca-pv.vr { background: rgba(176, 108, 255, 0.2); color: #c58bff; }
+.sprint-pos { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 26px; }
+.sprint-top { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+.sprint-top span { display: grid; justify-items: center; padding: 6px 2px; border-radius: 10px; background: var(--painel-2); font-size: 12px; font-weight: 700; }
+.sprint-top span b { font-size: 15px; }
+.sprint-top span small { color: var(--ok); font-size: 11px; min-height: 13px; }
+.sprint-top span.eu { outline: 1px solid var(--azul); background: rgba(61, 155, 255, 0.14); }
