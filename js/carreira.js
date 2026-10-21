@@ -446,6 +446,16 @@
   const pneuNoFim = (estado, p) => p.uso >= vidaDoPneu(estado, p.tipo) * GASTO_PARA_SAIR;
   const ERRO_MEIA_VIDA = 'Só dá para vender ou doar pneu no fim da vida (80% gasto ou mais). Para abrir vaga antes disso, só jogando fora.';
 
+  // Depois da etapa: jogo que chegou ao fim vira notícia (uma vez por jogo), para conferir a oficina.
+  function avisarPneusNoFim(estado) {
+    const novos = estado.pneus.filter((p) => pneuNoFim(estado, p) && !p.avisadoFim);
+    if (!novos.length) return;
+    for (const p of novos) p.avisadoFim = true;
+    const numero = (p) => estado.pneus.filter((x) => x.tipo === p.tipo).indexOf(p) + 1;
+    const nomes = novos.map((p) => `${nomePneu(estado, p.tipo).toLowerCase()} #${numero(p)}`).join(', ');
+    noticia(estado, `${novos.length > 1 ? 'Pneus' : 'Pneu'} no fim da vida (${nomes}): verifique os pneus na oficina antes da próxima corrida. Dá para vender ou doar e abrir vaga para um jogo novo.`);
+  }
+
   function venderPneu(estado, id) {
     const p = pneuPorId(estado, id);
     if (!p) return { ok: false, erro: 'Pneu não encontrado.' };
@@ -1395,6 +1405,7 @@
     estado.etapa += 1;
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.expira >= estado.etapa);
     vencerPatrocinios(estado, rnd);
+    avisarPneusNoFim(estado);
     estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia' || o.tipo === 'subida');
     if (rnd() < 0.3 + estado.piloto.popularidade / 100) gerarOfertasPatrocinio(estado, rnd, 1);
     // A confiança volta aos poucos para o normal; aperto de dinheiro pesa na moral.

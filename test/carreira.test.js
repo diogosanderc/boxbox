@@ -1056,3 +1056,14 @@ test('estoque cheio sem Premium oferece o Premium; com Premium, só avisa', () =
   assert.ok(!r2.ok && !r2.premium);
   Carreira.definirPremium(false);
 });
+
+test('pneu no fim da vida vira notícia uma vez, para conferir a oficina', () => {
+  const e = Carreira.novoJogo({ seed: 33 });
+  e.pneus[1].uso = 22; // 85% de 26 voltas
+  Carreira.pularEtapa(e);
+  const avisos = () => e.noticias.filter((n) => n.texto.includes('verifique os pneus na oficina'));
+  assert.strictEqual(avisos().length, 1);
+  assert.match(avisos()[0].texto, /slick #2/);
+  Carreira.pularEtapa(e);
+  assert.strictEqual(avisos().length, 1, 'não repete o aviso do mesmo jogo');
+});
