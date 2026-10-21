@@ -879,3 +879,36 @@ test('Premium: sem ele, 2 patrocinadores, sem espaço extra e sem anotar no cade
     assert.ok(Carreira.comprarEspaco(e).ok);
   } finally { Carreira.definirPremium(false); }
 });
+
+test('equipe de box: nível 2 e 3 só com Premium, e o pit fica mais rápido', () => {
+  const e = Carreira.novoJogo({ seed: 81 });
+  Carreira.comecarEm(e, 'f2');
+  e.fase = 'paddock';
+  e.dinheiro = 1e7;
+  assert.strictEqual(Carreira.nivelBox(e), 1);
+  const r = Carreira.melhorarBox(e);
+  assert.ok(!r.ok && r.premium);
+  Carreira.definirPremium(true);
+  try {
+    assert.ok(Carreira.melhorarBox(e).ok);
+    assert.ok(Carreira.melhorarBox(e).ok);
+    assert.strictEqual(Carreira.nivelBox(e), 3);
+    assert.ok(!Carreira.melhorarBox(e).ok);
+    assert.ok(Carreira.carroDe(e, e.equipeId, true).box.ganho > 0);
+  } finally { Carreira.definirPremium(false); }
+  // No motor da corrida: mesma corrida, só muda a equipe de box do jogador.
+  const tempoDeBox = (box) => {
+    let soma = 0;
+    for (let seed = 1; seed <= 200; seed++) {
+      const pista = { tempoBase: 80, voltas: 3, desgaste: 1, perdaBox: 0, ultrapassagem: 0.5, peso: { motor: 1, aero: 1, chassi: 1 } };
+      const piloto = { ritmo: 80, consistencia: 80, largada: 80, ultrapassagem: 80, defesa: 80, pneus: 80 };
+      const c = Engine.criarCorrida(pista, [{ id: 'jogador', jogador: true, piloto, carro: { motor: 80, aero: 80, chassi: 80, confiabilidade: 100, box }, equipe: { id: 'x', cor: '#fff' } }], seed, { semSafetyCar: true });
+      c.carros[0].boxPedido = 'Md';
+      Engine.passo(c);
+      soma += c.carros[0].ultimaVolta;
+    }
+    return soma / 200;
+  };
+  assert.ok(tempoDeBox(Carreira.EQUIPE_BOX[3]) < tempoDeBox(Carreira.EQUIPE_BOX[1]));
+  Carreira.migrar({ campeonato: 'regional' });
+});

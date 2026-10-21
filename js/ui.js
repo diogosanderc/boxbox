@@ -123,6 +123,7 @@
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
+    box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium.'],
     compostos: ['Pneus macio, médio e duro', 'Na F2 e na F1, no seco, cada piloto escolhe o composto. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada.'],
     setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio e diferencial; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
@@ -418,6 +419,7 @@
     ['carteira', `Até ${5} patrocinadores no macacão`, `Sem o Premium: ${2}.`],
     ['pneu', 'Mais espaço no estoque de pneus', 'Até 8 no kart e mais a cada categoria, até 16 na F1.'],
     ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
+    ['chave', 'Equipe de box 3/3', 'Nos monopostos, pit stops mais rápidos e com menos erro.'],
     ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
   ];
   const folhaPremium = document.createElement('div');
@@ -797,6 +799,21 @@
     </div></div>`;
   }
 
+  // Equipe de box (monopostos): nível 1/3 a 3/3.
+  function cartaoBox() {
+    const nivel = C.nivelBox(estado);
+    const info = C.EQUIPE_BOX[nivel];
+    const prox = C.EQUIPE_BOX[nivel + 1];
+    const barras = Array.from({ length: C.NIVEL_BOX_MAX }, (_, i) => `<i class="${i < nivel ? 'cheia' : ''}"></i>`).join('');
+    let botao;
+    if (!prox) botao = `<p class="fraco mini">${ic('check')}Equipe de box no nível máximo.</p>`;
+    else if (!BoxPremium.ativo) botao = `<button class="compra premium-trancado" data-acao="premium" data-motivo="Melhorar a equipe de box é do Premium."><b>${ic('cadeado')}Melhorar para ${nivel + 1}/${C.NIVEL_BOX_MAX}</b><span>Premium · ${prox.nome.toLowerCase()}</span></button>`;
+    else botao = `<button class="compra" data-acao="melhorar-box" data-confirmar="Confirmar: −${reais(C.precoBox(estado))}" ${estado.dinheiro < C.precoBox(estado) ? 'disabled' : ''}><b>${ic('subir')}Melhorar para ${nivel + 1}/${C.NIVEL_BOX_MAX} · ${prox.nome.toLowerCase()}</b><span>${reais(C.precoBox(estado))}</span></button>`;
+    return cartao('Equipe de box', `<div class="linha"><b>${info.nome}</b><span class="espaco"></span><span class="nivel-box" aria-label="Nível ${nivel} de ${C.NIVEL_BOX_MAX}">${barras}<b>${nivel}/${C.NIVEL_BOX_MAX}</b></span></div>
+      <p class="fraco mini">Uma equipe mais treinada faz a parada mais rápida (alguns centésimos), mais regular e com menos chance de dar problema.</p>
+      ${botao}`, { ajuda: 'box' });
+  }
+
   function cartaoOficina() {
     // Horas de uso do motor desde a última revisão (a barra enche até a hora da revisão).
     const horas = estado.motorHoras;
@@ -1070,7 +1087,7 @@
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}${cartaoPatrocinio()}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
@@ -1891,6 +1908,11 @@
         BoxPremium.alternarDev();
         render();
         break;
+      case 'melhorar-box': {
+        const r = C.melhorarBox(estado);
+        if (erro(r)) { salvar(); render(); aviso(`Equipe de box: ${C.nivelBox(estado)}/${C.NIVEL_BOX_MAX}!`, 'chave'); }
+        break;
+      }
       case 'comprar-espaco': {
         const r = C.comprarEspaco(estado);
         if (erro(r)) { salvar(); render(); aviso(`Estoque ampliado: ${C.espacoPneus(estado)} vagas.`); }

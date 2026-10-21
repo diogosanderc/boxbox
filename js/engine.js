@@ -192,8 +192,10 @@
       if (sc) volta = Math.max(volta, pista.tempoBase * 1.4) + rnd() * 0.2;
 
       if (parar) {
-        let servico = 2.1 + Math.abs(rnd.gauss()) * 0.4;
-        if (rnd() < 0.04) {
+        // Equipe de box melhor: parada mais rápida, mais regular e com menos chance de dar problema.
+        const box = c.carro.box || { ganho: 0, regularidade: 1, falha: 0.04 };
+        let servico = 2.1 - box.ganho + Math.abs(rnd.gauss()) * 0.4 * box.regularidade;
+        if (rnd() < box.falha) {
           servico += 2 + rnd() * 6;
           registrar(corrida, `Problema no pit stop de ${c.piloto.nome}!`, 'alerta', c.id);
         }

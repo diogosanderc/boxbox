@@ -319,7 +319,31 @@
     return {
       motor: Math.round(e.material - cansaco), aero: e.material, chassi: e.material,
       confiabilidade: Math.round(82 + e.organizacao / 7 - cansaco),
+      ...(jogador ? { box: EQUIPE_BOX[nivelBox(estado)] } : {}),
     };
+  }
+
+  // ---------- equipe de box (monopostos) ----------
+  // Treinar e equipar os mecânicos do box: parada mais rápida (alguns centésimos), mais regular e
+  // com menos chance de problema. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium e custam dinheiro.
+  const EQUIPE_BOX = {
+    1: { ganho: 0, regularidade: 1, falha: 0.04, nome: 'Equipe padrão' },
+    2: { ganho: 0.12, regularidade: 0.8, falha: 0.03, nome: 'Equipe treinada' },
+    3: { ganho: 0.25, regularidade: 0.6, falha: 0.015, nome: 'Equipe de elite' },
+  };
+  const NIVEL_BOX_MAX = 3;
+  const nivelBox = (estado) => Math.min(NIVEL_BOX_MAX, Math.max(1, estado.nivelBox || 1));
+  const precoBox = (estado) => Math.round(30000 * Math.max(1, campeonato(estado.campeonato).custo) * nivelBox(estado) / 1000) * 1000;
+  function melhorarBox(estado) {
+    if (categoriaDe(estado) === 'kart') return { ok: false, erro: 'No kart não tem pit stop.' };
+    if (nivelBox(estado) >= NIVEL_BOX_MAX) return { ok: false, erro: 'A equipe de box já está no nível máximo.' };
+    if (!premium) return pedePremium('Melhorar a equipe de box é do Premium.');
+    const preco = precoBox(estado);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente.' };
+    estado.dinheiro -= preco;
+    estado.nivelBox = nivelBox(estado) + 1;
+    noticia(estado, `A equipe de box de ${estado.piloto.nome} agora é nível ${estado.nivelBox}/${NIVEL_BOX_MAX}: ${EQUIPE_BOX[estado.nivelBox].nome.toLowerCase()}.`);
+    return { ok: true, preco };
   }
 
   // Estoque de pneus: começa com MAX_PNEUS jogos; dá para comprar mais espaço, até o limite da categoria.
@@ -1050,7 +1074,7 @@
         c.tipoPneu = 'chuva';
         c.uso = 0;
         if (c.usados && c.usados.length < 2) c.usados.push('chuva'); // pneu de chuva dispensa a regra dos dois compostos
-        pit = PIT_F4;
+        pit = PIT_F4 - (c.jogador ? EQUIPE_BOX[nivelBox(estado)].ganho : 0);
         corrida.boxJogador = c.jogador ? false : corrida.boxJogador;
         Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva.`, 'box', c.id);
       }
@@ -1471,7 +1495,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS,
+    definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
