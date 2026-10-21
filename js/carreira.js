@@ -1425,8 +1425,9 @@
       const setup = c.jogador ? fds.setupCorrida : fds.ia[c.id].tarde;
       // Na F4 dá para parar no box e trocar para pneu de chuva (o jogador pede; a IA para uma ou duas voltas depois da chuva).
       let pit = 0;
-      const jogoChuva = c.jogador && quatro && corrida.boxJogador ? jogoLivre('chuva') : null;
-      if (c.jogador && quatro && corrida.boxJogador && !jogoChuva) {
+      // Nos monopostos (F4 em diante) o pneu de chuva do box sai do estoque, com o desgaste dele.
+      const jogoChuva = c.jogador && monoposto && corrida.boxJogador ? jogoLivre('chuva') : null;
+      if (c.jogador && monoposto && corrida.boxJogador && !jogoChuva) {
         corrida.boxJogador = false;
         Engine.registrar(corrida, 'Sem pneu de chuva no estoque: o carro segue com pneu de seco.', 'alerta', c.id);
       }
@@ -1461,9 +1462,9 @@
     corrida.sprint = sprint;
     corrida.compostos = compostos;
     corrida.jogosJogador = jogos;
+    if (monoposto) corrida.temJogo = (tipo) => !!jogoLivre(tipo);
     if (quatro) {
       // Na parada, o jogador recebe um jogo do estoque: o composto pedido ou, se não houver, outro seco que tenha.
-      corrida.temJogo = (tipo) => !!jogoLivre(tipo);
       corrida.trocaPneu = (c, desejado) => {
         if (!c.jogador) return undefined;
         // Para cada composto seco com jogo livre: o jogo com mais vida e quantas voltas ele ainda aguenta.
@@ -1493,8 +1494,9 @@
       };
     }
     for (const c of corrida.carros) {
-      // Rivais da F2 e da F1 largam com jogo novo; o jogador usa o jogo do estoque, com o desgaste que ele tiver.
-      c.uso = c.jogador ? pneuJogador.uso : campeonato(estado.campeonato).compostos ? 0 : 1;
+      // O jogador usa o jogo do estoque, com o desgaste que ele tiver. Os rivais largam com o jogo da
+      // classificação (3 voltas de uso), como faria quem tem o estoque em dia.
+      c.uso = c.jogador ? pneuJogador.uso : campeonato(estado.campeonato).compostos ? 3 : 1;
       c.tipoPneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
     }
     return corrida;

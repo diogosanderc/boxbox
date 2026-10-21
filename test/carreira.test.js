@@ -1195,3 +1195,35 @@ test('desafio da semana: grátis na primeira semana, depois só com o Premium', 
   assert.ok(Carreira.tentarDesafio(e, s2).ok);
   Carreira.definirPremium(false);
 });
+
+test('F4: o box para chuva usa o pneu de chuva do estoque, e cada jogo volta com o próprio desgaste', () => {
+  const e = Carreira.novoJogo({ seed: 18 });
+  Carreira.comecarEm(e, 'f4');
+  e.fase = 'paddock';
+  const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = 'corrida'; cl.tarde.voltaChuva = 4; cl.tarde.chove = true; cl.tarde.chance = 80; cl.manha.chove = false;
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  const slick = e.pneus.find((p) => p.id === e.fds.pneuCorrida);
+  const chuva = e.pneus.find((p) => p.tipo === 'chuva');
+  const usoSlick = slick.uso;
+  const c = Carreira.criarCorrida(e);
+  while (!c.terminou) { if (c.molhado && !c.pediu) { c.boxJogador = true; c.pediu = true; } Engine.passo(c); }
+  assert.deepStrictEqual(c.jogosJogador.map((j) => j.id), [slick.id, chuva.id]);
+  Carreira.concluirCorrida(e, c);
+  assert.ok(chuva.uso > 0, 'o pneu de chuva volta gasto');
+  assert.ok(slick.uso > usoSlick && slick.uso < usoSlick + 10, 'o slick só gasta as voltas antes da chuva');
+  // Sem pneu de chuva no estoque, não troca.
+  const f = Carreira.novoJogo({ seed: 19 });
+  Carreira.comecarEm(f, 'f4');
+  f.fase = 'paddock';
+  const cf = Carreira.climaAtual(f); cf.tarde.inicioChuva = 'corrida'; cf.tarde.voltaChuva = 3; cf.tarde.chove = true; cf.manha.chove = false;
+  Carreira.iniciarFimDeSemana(f);
+  Carreira.irParaClassificacao(f);
+  Carreira.classificar(f);
+  f.pneus = f.pneus.filter((p) => p.tipo !== 'chuva');
+  const c2 = Carreira.criarCorrida(f);
+  while (!c2.terminou) { if (c2.molhado) c2.boxJogador = true; Engine.passo(c2); }
+  assert.strictEqual(c2.carros.find((x) => x.jogador).tipoPneu, 'slick');
+  assert.ok(c2.eventos.some((ev) => /Sem pneu de chuva/.test(ev.texto)));
+});

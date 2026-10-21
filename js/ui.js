@@ -209,7 +209,7 @@
     equipe: () => [
       { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos e a meta é chegar à Fórmula 1 e ser campeão.' },
       { sel: '.equipe-card', titulo: 'Escolha a equipe', texto: 'Cada equipe cobra por etapa: equipe cara anda mais, mas sobra menos dinheiro para pneus e motor.' },
-      { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ícone de "?".', texto: 'Quase todo cartão tem um "?" com a explicação do que ele faz. É a chave para você acertar o seu carro.' },
+      { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ícone de "?".', texto: `Quase todo cartão tem um "?" com a explicação do que ele faz. É a chave para você acertar o seu ${veic()}.` },
     ],
     paddock: () => [
       { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
@@ -666,16 +666,22 @@
     else if (r.status === 'erro') aviso('Não deu para falar com a App Store agora. Tente de novo.');
   });
 
+  // Ferramentas de teste (modo desenvolvedor e código de dinheiro): só no navegador. No app da App Store
+  // ficam desligadas. Para uma build de teste no iPhone (TestFlight), troque para true.
+  const FERRAMENTAS_TESTE = !BoxSave.nativo;
+
   // ---------- código secreto ----------
   // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
   // cabeçalho abrem o campo do código; no computador, basta digitar o código em qualquer tela.
   const CODIGO_DINHEIRO = 'moneyisgood';
   const CAIXA_INFINITO = 999999999;
   function encherCaixa() {
+    // Save de teste levado para o app: o código não vale lá.
+    if (estado && estado.dinheiroInfinito && !FERRAMENTAS_TESTE) { estado.dinheiroInfinito = false; estado.dinheiro = estado.dinheiroAntesCodigo || 0; }
     if (estado && estado.dinheiroInfinito) estado.dinheiro = CAIXA_INFINITO;
   }
   function usarCodigo(texto) {
-    if (!estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
+    if (!FERRAMENTAS_TESTE || !estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
     estado.dinheiroInfinito = !estado.dinheiroInfinito;
     // Ao desligar, o caixa volta ao que era antes do código.
     if (estado.dinheiroInfinito) estado.dinheiroAntesCodigo = estado.dinheiro;
@@ -704,7 +710,7 @@
   folhaCodigo.addEventListener('click', (ev) => { if (ev.target === folhaCodigo || ev.target.closest('[data-fechar]')) fecharCodigo(); });
   let toquesMarca = [];
   document.querySelector('.topo .marca').addEventListener('click', () => {
-    if (!estado) return;
+    if (!FERRAMENTAS_TESTE || !estado) return;
     const agora = Date.now();
     toquesMarca = toquesMarca.filter((t) => agora - t < 3000).concat(agora);
     if (toquesMarca.length < 5) return;
@@ -714,7 +720,7 @@
   });
   let digitado = '';
   document.addEventListener('keydown', (ev) => {
-    if (ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
+    if (!FERRAMENTAS_TESTE || ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
     digitado = (digitado + ev.key.toLowerCase()).slice(-CODIGO_DINHEIRO.length);
     if (digitado === CODIGO_DINHEIRO) { digitado = ''; usarCodigo(CODIGO_DINHEIRO); }
   });
@@ -722,9 +728,10 @@
   // ---------- início ----------
   // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.
   const CHAVE_DEV = 'superlicenca-dev';
-  const modoDev = () => { try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
+  const modoDev = () => { if (!FERRAMENTAS_TESTE) return false; try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
   let toquesLogo = [];
   function tocarLogo() {
+    if (!FERRAMENTAS_TESTE) return;
     const agora = Date.now();
     toquesLogo = toquesLogo.filter((t) => agora - t < 3000).concat(agora);
     if (toquesLogo.length < 5) return;
@@ -2295,6 +2302,7 @@
         ir({ nome: 'inicio' });
         break;
       case 'iniciar-dev':
+        if (!modoDev()) break;
         ir({ nome: 'inicio', dev: id });
         break;
       case 'voltar-abertura':
