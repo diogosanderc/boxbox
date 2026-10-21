@@ -202,6 +202,7 @@
   }
 
   // Parada no box na F4 (para trocar para pneu de chuva), em segundos.
+  const LUVAS_F1 = 5; // etapas de salário pagas ao assinar com uma equipe de F1
   const PIT_F4 = 24;
 
   function iniciarTemporada(estado) {
@@ -631,7 +632,7 @@
       const e = lista[Math.min(i, lista.length - 1)];
       const pago = pos <= 2;
       const texto = destino === 'f1'
-        ? `Vaga de piloto titular na ${prox.curto}. Salário de R$ ${e.salario.toLocaleString('pt-BR')} por etapa.`
+        ? `Vaga de piloto titular na ${prox.curto}. Salário de R$ ${e.salario.toLocaleString('pt-BR')} por etapa e luvas de R$ ${(e.salario * LUVAS_F1).toLocaleString('pt-BR')} ao assinar.`
         : pago ? `Vaga na ${prox.curto} pelo programa de jovens pilotos: a equipe paga a temporada.`
           : `Vaga na ${prox.curto} para o próximo ano. Você paga 60% do orçamento da equipe.`;
       return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
@@ -702,7 +703,11 @@
     iniciarTemporada(estado);
     noticia(estado, `${estado.piloto.nome} estreia na ${camp.nome} em ${estado.ano}.`);
     // Chegar à F1 é o fim da escada: primeiro a festa da Superlicença, depois o paddock.
+    // Ao assinar, a equipe paga luvas: cinco etapas de salário de uma vez.
     if (campId === 'f1') {
+      const luvas = base.salario * LUVAS_F1;
+      estado.dinheiro += luvas;
+      noticia(estado, `${estado.piloto.nome} recebe R$ ${luvas.toLocaleString('pt-BR')} de luvas da ${base.nome}.`);
       estado.fase = 'superlicenca';
       estado.final = { equipe: base.nome, ano: estado.ano, idade: estado.piloto.idade };
     }

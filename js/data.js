@@ -102,25 +102,25 @@
         descricao: 'A caçula do grid, com orçamento curto.' },
   ];
   const EQUIPES_F1 = [
-      { id: 'f1-rossa', nome: 'Scuderia Rossa', cor: '#dc0000', material: 96, mecanico: 94, caixa: 0, custoEtapa: 9500, organizacao: 88, porte: 'ponta', salario: 220000,
+      { id: 'f1-rossa', nome: 'Scuderia Rossa', cor: '#dc0000', material: 96, mecanico: 94, caixa: 0, custoEtapa: 9500, organizacao: 88, porte: 'ponta', salario: 900000,
         descricao: 'A equipe mais tradicional do mundo. Pressão enorme e torcida apaixonada.' },
-      { id: 'f1-argento', nome: 'Argento Grand Prix', cor: '#00d2be', material: 96, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 92, porte: 'ponta', salario: 200000,
+      { id: 'f1-argento', nome: 'Argento Grand Prix', cor: '#00d2be', material: 96, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 92, porte: 'ponta', salario: 850000,
         descricao: 'Flechas de prata: estrutura gigante e engenharia impecável.' },
-      { id: 'f1-toro', nome: 'Taurus Energy Racing', cor: '#1e41ff', material: 97, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 90, porte: 'ponta', salario: 200000,
+      { id: 'f1-toro', nome: 'Taurus Energy Racing', cor: '#1e41ff', material: 97, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 90, porte: 'ponta', salario: 850000,
         descricao: 'Bebida energética, carro agressivo e um time obcecado por vencer.' },
-      { id: 'f1-papaya', nome: 'Papaya Racing', cor: '#ff8000', material: 97, mecanico: 93, caixa: 0, custoEtapa: 9300, organizacao: 90, porte: 'ponta', salario: 180000,
+      { id: 'f1-papaya', nome: 'Papaya Racing', cor: '#ff8000', material: 97, mecanico: 93, caixa: 0, custoEtapa: 9300, organizacao: 90, porte: 'ponta', salario: 750000,
         descricao: 'Laranja de Woking, de volta ao topo com um carro rapidíssimo.' },
-      { id: 'f1-verde', nome: 'Verde Britannia', cor: '#006f62', material: 90, mecanico: 88, caixa: 0, custoEtapa: 8600, organizacao: 84, porte: 'media', salario: 140000,
+      { id: 'f1-verde', nome: 'Verde Britannia', cor: '#006f62', material: 90, mecanico: 88, caixa: 0, custoEtapa: 8600, organizacao: 84, porte: 'media', salario: 500000,
         descricao: 'Verde inglês, muito dinheiro e vontade de virar equipe grande.' },
-      { id: 'f1-grove', nome: 'Grove Racing', cor: '#005aff', material: 89, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 82, porte: 'media', salario: 120000,
+      { id: 'f1-grove', nome: 'Grove Racing', cor: '#005aff', material: 89, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 82, porte: 'media', salario: 400000,
         descricao: 'Equipe histórica de Grove, reconstruindo para voltar a vencer.' },
-      { id: 'f1-alpes', nome: 'Alpes Bleu', cor: '#0090ff', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 80, porte: 'media', salario: 110000,
+      { id: 'f1-alpes', nome: 'Alpes Bleu', cor: '#0090ff', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 80, porte: 'media', salario: 350000,
         descricao: 'Azul francês com motor próprio, ora brilha, ora some.' },
-      { id: 'f1-faenza', nome: 'Faenza Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 100000,
+      { id: 'f1-faenza', nome: 'Faenza Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 300000,
         descricao: 'Equipe irmã de uma grande: trampolim para pilotos jovens.' },
-      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 90000,
+      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 250000,
         descricao: 'Americana e enxuta. Compra peças de quem pode.' },
-      { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 80000,
+      { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 250000,
         descricao: 'Suíça, em transição para virar equipe de fábrica.' },
   ];
   const EQUIPES_MONO = { f4: EQUIPES_F4, f3: EQUIPES_F3, f2: EQUIPES_F2, f1: EQUIPES_F1 };
@@ -359,8 +359,8 @@
       chuva: 0.25, premioCampeao: 150000, popularidade: 6, categoria: 'f4' },
     { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 83, custo: 9, premios: 3, regiao: 'f2', voltas: 18, sprint: true, compostos: true, safetyCar: true,
       chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f2' },
-    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 12, premios: 6, regiao: 'f1', voltas: 20, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
-      chuva: 0.2, premioCampeao: 1000000, popularidade: 12, categoria: 'f1' },
+    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 12, premios: 40, regiao: 'f1', voltas: 20, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
+      chuva: 0.2, premioCampeao: 5000000, popularidade: 12, categoria: 'f1' },
   ];
 
   // Quem pode aparecer no paddock observando. nivelMin: a partir de qual campeonato aparece.
