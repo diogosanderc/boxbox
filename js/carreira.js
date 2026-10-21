@@ -367,8 +367,8 @@
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
   // Da F3 em diante o estoque tem quatro tipos: macio (o slick), médio, duro e chuva.
-  // Cada um seco vira um composto na corrida. Dá para ir à pista sem algum, mas o fim de semana
-  // é só com o que estiver no estoque (sem compra na pista), e os rivais têm todos.
+  // Cada um seco vira um composto na corrida. Para correr é obrigatório ter dois compostos de seco e o de
+  // chuva; sem o terceiro dá para ir, mas o fim de semana é só com o estoque (sem compra na pista).
   const TIPOS_KART = ['slick', 'chuva'];
   const TIPOS_F3 = ['slick', 'medio', 'duro', 'chuva'];
   const COMPOSTO_DO_TIPO = { slick: 'M', medio: 'Md', duro: 'D' };
@@ -378,6 +378,16 @@
   const nomePneu = (estado, tipo) => (quatroPneus(estado) && tipo === 'slick' ? 'Macio' : Kart.PNEUS_KART[tipo].nome);
   // Voltas até o pneu cair: da F3 em diante depende do composto.
   const vidaDoPneu = (estado, tipo) => (quatroPneus(estado) && COMPOSTO_DO_TIPO[tipo] ? Engine.PNEUS[COMPOSTO_DO_TIPO[tipo]].vida : VIDA_PNEU);
+  // Mínimo para correr da F3 em diante: dois compostos de seco diferentes e o pneu de chuva.
+  // O terceiro composto é opcional (sem ele, os rivais têm uma opção a mais).
+  function estoqueImpede(estado) {
+    if (!quatroPneus(estado)) return null;
+    const secos = ['slick', 'medio', 'duro'].filter((t) => estado.pneus.some((p) => p.tipo === t)).length;
+    const chuva = estado.pneus.some((p) => p.tipo === 'chuva');
+    if (secos >= 2 && chuva) return null;
+    const falta = [secos < 2 ? `${secos ? 'mais um composto de seco' : 'dois compostos de seco'}` : '', chuva ? '' : 'o pneu de chuva'].filter(Boolean).join(' e ');
+    return `Sem pneu para correr: falta ${falta}. Da F3 em diante é obrigatório ter dois compostos de seco (macio, médio ou duro) e o de chuva.`;
+  }
   const faltaNoEstoque = (estado) => (quatroPneus(estado) ? TIPOS_F3.filter((t) => !estado.pneus.some((p) => p.tipo === t)) : []);
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
@@ -527,7 +537,11 @@
     const lista = [];
     if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor engripado: sem retífica, não dá para correr.' });
     const falta = faltaNoEstoque(estado);
-    for (const t of falta) lista.push({ id: t, texto: `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque. No fim de semana só dá para usar o que estiver nele, e os rivais vão ter os quatro tipos.` });
+    const impede = estoqueImpede(estado);
+    // Abaixo do mínimo, a pendência bloqueia; acima dele, é só um aviso.
+    for (const t of falta) {
+      lista.push({ id: t, bloqueia: !!impede, texto: impede ? `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque.` : `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque. No fim de semana só dá para usar o que estiver nele, e os rivais vão ter os quatro tipos.` });
+    }
     if (!falta.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
       lista.push({ id: 'slick', texto: `Nenhum ${quatroPneus(estado) ? 'macio' : 'slick'} novo para a classificação e a corrida.` });
     }
@@ -826,6 +840,8 @@
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
+    const impede = estoqueImpede(estado);
+    if (impede) return { ok: false, erro: impede };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
     estado.dinheiro += salarioEtapa(estado);
@@ -1610,7 +1626,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
