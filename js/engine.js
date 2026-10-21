@@ -139,7 +139,7 @@
     return {
       pista, seed, volta: 0, totalVoltas: pista.voltas, carros,
       regraCompostos: opcoes.regraCompostos !== false,
-      semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, semModos: !!opcoes.semModos, ajusteVolta: opcoes.ajusteVolta || null,
+      semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, chanceSafetyCar: opcoes.chanceSafetyCar != null ? opcoes.chanceSafetyCar : 0.004, semModos: !!opcoes.semModos, ajusteVolta: opcoes.ajusteVolta || null,
       safetyCar: 0, eventos: [], terminou: false, _rnd: rnd,
     };
   }
@@ -273,7 +273,7 @@
     if (sc) {
       corrida.safetyCar -= 1;
       if (corrida.safetyCar === 0) registrar(corrida, 'Safety car recolhido. Relargada!', 'sc');
-    } else if (!corrida.semSafetyCar && v < corrida.totalVoltas - 3 && (abandonosNaVolta > 0 ? rnd() < 0.5 : rnd() < 0.004)) {
+    } else if (!corrida.semSafetyCar && v < corrida.totalVoltas - 3 && (abandonosNaVolta > 0 ? rnd() < 0.5 : rnd() < corrida.chanceSafetyCar)) {
       corrida.safetyCar = 3 + Math.floor(rnd() * 3);
       registrar(corrida, 'SAFETY CAR na pista!', 'sc');
     }

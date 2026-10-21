@@ -957,3 +957,5 @@ button.link-oficina { background: transparent; border-color: transparent; color:
 .noticia.nova { opacity: 1; border-left: 3px solid var(--destaque); padding-left: 10px; }
 .noticia-ponto { position: absolute; top: 8px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--destaque); }
 .noticia.nova { padding-right: 20px; }
+.chip-sc { background: var(--alerta); color: #1a1200; border-color: var(--alerta); font-weight: 800; }
+.vivo-linha.sc { opacity: 0.9; }

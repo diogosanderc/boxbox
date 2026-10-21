@@ -755,7 +755,9 @@
     return cartao('Oficina', `
       <div class="motor"><span>Motor</span><span class="motor-horas" role="img" aria-label="Motor com ${fmt(horas)} horas de uso, revisão a cada ${fmt(C.HORAS_REVISAO)} horas">
           <span class="pneu-trilho"><i class="${classe}-fundo" style="width:${Math.max(4, pct)}%"></i></span><small class="${classe}">${fmt(horas)} h de ${fmt(C.HORAS_REVISAO)} h</small></span>
-        ${estado.motorQuebrado ? '<span class="negativo"><b>Engripado</b></span>' : `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`}</div>
+        ${estado.motorQuebrado ? '<span class="negativo"><b>Engripado</b></span>'
+          : horas > 0 ? `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`
+            : `<button disabled>${ic('check')}Motor 100%</button>`}</div>
       <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.espacoPneus(estado) ? 'aviso' : ''}">${estado.pneus.length}/${C.espacoPneus(estado)}</b></div>
       ${pneusVisuais(false)}
       <div class="botoes-2">
@@ -1365,7 +1367,7 @@
     const ordem = corrida.carros.slice().sort((a, b) => a.pos - b.pos);
     const lider = ordem[0];
     document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
-    document.getElementById('clima-corrida').innerHTML = corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '';
+    document.getElementById('clima-corrida').innerHTML = (corrida.safetyCar > 0 ? chip(`${ic('alerta')}Safety car`, 'chip-sc') : '') + (corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '');
     document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
     document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
@@ -1399,7 +1401,7 @@
     if (boxComp) {
       boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
         : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+          : `<span class="subtitulo">${corrida.safetyCar > 0 ? 'Safety car: box pela metade do tempo!' : 'Chamar para o box'}</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
     const comp = corrida.compostos;
@@ -1412,14 +1414,18 @@
 
   // Avisos rápidos durante a bateria: mudança de posição, chuva e o rival seguido.
   function avisosDaCorrida(eu) {
-    const memo = tela.memoCorrida || (tela.memoCorrida = { pos: eu.largada, molhado: false, rivalFora: false });
+    const memo = tela.memoCorrida || (tela.memoCorrida = { pos: eu.largada, molhado: false, rivalFora: false, sc: false });
     if (corrida.volta === 0) return;
-    if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
+    const sc = corrida.safetyCar > 0;
+    if (sc && !memo.sc) aviso(corrida.regraCompostos && !eu.fora && eu.usados.length < 2 ? 'Safety car! Parar agora custa metade do tempo no box.' : 'Safety car na pista!', 'alerta');
+    else if (!sc && memo.sc) aviso('Relargada!', 'bandeira');
+    else if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
     else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
     const rival = estado.seguindo && corrida.carros.find((c) => c.id === estado.seguindo);
     if (rival && rival.fora && !memo.rivalFora) aviso(`${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`, 'estrela');
     memo.pos = eu.pos;
     memo.molhado = !!corrida.molhado;
+    memo.sc = sc;
     memo.rivalFora = !!(rival && rival.fora);
   }
 

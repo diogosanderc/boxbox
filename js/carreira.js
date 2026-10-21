@@ -398,6 +398,7 @@
   function revisarMotor(estado) {
     if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: precisa de retífica, não de revisão.' };
+    if (!(estado.motorHoras > 0)) return { ok: false, erro: 'O motor acabou de ser revisado: está 100%.' };
     const custo = Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para a revisão.' };
     estado.dinheiro -= custo;
@@ -1042,7 +1043,8 @@
     };
     if (sprint) pista.voltas = voltasSprint(campeonato(estado.campeonato));
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31 + (sprint ? 17 : 0), {
-      regraCompostos: regra, semBox: !regra, semSafetyCar: true, semModos: true, ajusteVolta,
+      // Safety car só na F2 e na F1 (no kart e nas categorias de base a corrida segue em bandeira verde).
+      regraCompostos: regra, semBox: !regra, semSafetyCar: !campeonato(estado.campeonato).safetyCar, chanceSafetyCar: 0.02, semModos: true, ajusteVolta,
       ...(compostos ? { pneusIniciais: { jogador: estado.fds.composto || 'Md' } } : { pneuPadrao: 'Md' }),
     });
     corrida.sprint = sprint;

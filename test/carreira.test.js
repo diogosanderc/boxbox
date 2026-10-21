@@ -827,3 +827,29 @@ test('estoque de pneus: compra de espaço até 8 no kart, cada vaga mais cara', 
   assert.ok(Carreira.comprarEspaco(e).ok);
   Carreira.migrar({ campeonato: 'regional' });
 });
+
+test('safety car só na F2 e na F1', () => {
+  const contar = (campId, equipe) => {
+    let total = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const e = Carreira.novoJogo({ seed });
+      if (campId !== 'regional') {
+        Carreira.comecarNaF4(e);
+        e.propostas = [{ id: 'x', tipo: 'subida', campeonato: campId, pago: true, equipe, nome: 'x' }];
+        Carreira.aceitarProposta(e, 'x');
+        e.fase = 'paddock';
+      }
+      e.dinheiro = 1e7;
+      Carreira.iniciarFimDeSemana(e);
+      Carreira.irParaClassificacao(e);
+      Carreira.classificar(e);
+      if (Carreira.sprintPendente(e)) Carreira.concluirSprint(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+      const c = Engine.simularCompleta(Carreira.criarCorrida(e));
+      total += c.eventos.filter((ev) => /SAFETY CAR/.test(ev.texto)).length;
+    }
+    Carreira.migrar({ campeonato: 'regional' });
+    return total;
+  };
+  assert.strictEqual(contar('regional'), 0);
+  assert.ok(contar('f1', 'f1-grove') > 0);
+});
