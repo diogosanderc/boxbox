@@ -261,7 +261,11 @@
     const camada = document.createElement('div');
     camada.className = 'tut';
     camada.hidden = true;
-    camada.innerHTML = '<div class="tut-furo" data-furo></div><div class="tut-balao" role="dialog" aria-modal="true" aria-labelledby="tut-titulo-balao"><span class="tut-passo" data-passo></span><h3 id="tut-titulo-balao" data-titulo></h3><p data-texto></p><div class="tut-botoes"><button class="discreto" data-tut="pular">Pular tutorial</button><span class="espaco"></span><button class="principal" data-tut="proximo"></button></div></div>';
+    camada.innerHTML = `<div class="tut-furo" data-furo></div><div class="tut-balao" role="dialog" aria-modal="true" aria-labelledby="tut-titulo-balao">
+      <i class="tut-seta" data-seta aria-hidden="true"></i>
+      <div class="tut-quem"><span class="tut-avatar" data-avatar></span><span>Engenheiro de pista</span><span class="espaco"></span><span class="tut-pontos" data-pontos aria-hidden="true"></span></div>
+      <h3 id="tut-titulo-balao" data-titulo></h3><p data-texto></p>
+      <div class="tut-botoes"><button class="tut-pular" data-tut="pular">Pular tutorial</button><span class="espaco"></span><button class="tut-voltar" data-tut="voltar" aria-label="Passo anterior"></button><button class="tut-proximo" data-tut="proximo"></button></div></div>`;
     document.body.appendChild(camada);
     const q = (s) => camada.querySelector(s);
     function posicionar() {
@@ -272,7 +276,9 @@
       const balao = q('.tut-balao');
       const larg = window.innerWidth;
       const alt = window.innerHeight;
+      const seta = q('[data-seta]');
       if (!alvo || !alvo.isConnected) {
+        seta.hidden = true;
         furo.hidden = true;
         camada.classList.add('sem-alvo');
         balao.style.left = `${Math.max(16, (larg - balao.offsetWidth) / 2)}px`;
@@ -290,12 +296,20 @@
       const embaixo = base + 12 + bh <= alt - 12;
       const top = embaixo ? base + 12 : topo - 12 - bh >= 12 ? topo - 12 - bh : Math.max(12, alt - bh - 12);
       balao.style.top = `${top}px`;
-      balao.style.left = `${Math.max(12, Math.min(larg - balao.offsetWidth - 12, r.left + r.width / 2 - balao.offsetWidth / 2))}px`;
+      const esquerda = Math.max(12, Math.min(larg - balao.offsetWidth - 12, r.left + r.width / 2 - balao.offsetWidth / 2));
+      balao.style.left = `${esquerda}px`;
+      // Setinha apontando para o elemento (some quando o balão precisou ficar por cima dele).
+      const sobre = !embaixo && !(topo - 12 - bh >= 12);
+      seta.hidden = sobre;
+      seta.className = `tut-seta ${embaixo ? 'em-cima' : 'em-baixo'}`;
+      seta.style.left = `${Math.max(18, Math.min(balao.offsetWidth - 18, r.left + r.width / 2 - esquerda))}px`;
     }
     function mostrar() {
       const passo = ativo.passos[ativo.i];
       passo.alvo = passo.sel ? [...document.querySelectorAll(passo.sel)].find((el) => el.offsetParent !== null) : null;
-      q('[data-passo]').textContent = `${ativo.i + 1} de ${ativo.passos.length}`;
+      if (!q('[data-avatar]').innerHTML) { q('[data-avatar]').innerHTML = icone('radio'); q('[data-tut="voltar"]').innerHTML = icone('voltar'); }
+      q('[data-pontos]').innerHTML = ativo.passos.map((_, i) => `<i class="${i === ativo.i ? 'atual' : i < ativo.i ? 'feito' : ''}"></i>`).join('');
+      q('[data-tut="voltar"]').hidden = ativo.i === 0;
       q('[data-titulo]').textContent = passo.titulo;
       q('[data-texto]').textContent = passo.texto;
       q('[data-tut="proximo"]').textContent = ativo.i === ativo.passos.length - 1 ? 'Entendi' : 'Próximo';
@@ -326,6 +340,7 @@
         fechar();
         return;
       }
+      if (b.dataset.tut === 'voltar') { if (ativo.i > 0) { ativo.i -= 1; mostrar(); } return; }
       if (ativo.i < ativo.passos.length - 1) { ativo.i += 1; mostrar(); } else fechar();
     });
     window.addEventListener('resize', () => requestAnimationFrame(posicionar));
