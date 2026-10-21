@@ -1707,7 +1707,11 @@
       // sem pendências: segue direto
       // falls through
       case 'ir-fds-confirmado':
-        if (erro(C.iniciarFimDeSemana(estado))) { salvar(); ir({ nome: 'fds' }); }
+        if (erro(C.iniciarFimDeSemana(estado))) {
+          salvar();
+          ir({ nome: 'fds' });
+          rolarPara('.corrida .coluna > .painel'); // direto para o card do treino livre
+        }
         break;
       case 'fechar-checagem':
         tela.checagem = false;
