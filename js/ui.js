@@ -233,6 +233,22 @@
 
   // Condições da sessão. À tarde mostra quanto o ar e o asfalto mudaram desde o treino,
   // e em todas mostra a borracha na pista (que o jogador não teria como saber).
+  // Condições em quatro números lado a lado (céu, ar, asfalto, chuva ou borracha), com a mudança desde a manhã.
+  function painelCondicoes(sessao) {
+    const clima = C.climaAtual(estado);
+    const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
+    const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : 'quali', molhado);
+    const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
+    const delta = (agora, antes) => (t && agora !== antes ? `<small class="${agora > antes ? 'sobe' : 'desce'}">${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}°</small>` : '<small>&nbsp;</small>');
+    const item = (icone0, rotulo, valor, extra = '<small>&nbsp;</small>', classe = '') => `<div class="cond ${classe}">${icone(icone0)}<span>${rotulo}</span><b>${valor}</b>${extra}</div>`;
+    return `<div class="condicoes">
+      ${item(molhado ? 'chuva' : 'sol', 'Pista', molhado ? 'Molhada' : 'Seca', molhado ? '<small>&nbsp;</small>' : `<small>borracha ${sessao === 'treino' ? 'baixa' : sessao === 'grid' ? 'alta' : 'média'}</small>`, molhado ? 'cond-chuva' : 'cond-sol')}
+      ${item('termometro', 'Ar', `${c.tempAr}°`, delta(c.tempAr, t && t.tempAr))}
+      ${item('asfalto', 'Asfalto', `${c.tempPista}°`, delta(c.tempPista, t && t.tempPista))}
+      ${item('gota', 'Chuva', molhado ? 'Agora' : `${clima.tarde.chance}%`, `<small>${molhado ? 'chovendo' : 'na corrida'}</small>`, molhado || clima.tarde.chance >= 30 ? 'cond-chuva' : '')}
+    </div>`;
+  }
+
   function condicaoChips(sessao) {
     const clima = C.climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
@@ -1212,7 +1228,8 @@
 
   function passosFds(atual) {
     const sprint = estado.fds && estado.fds.sprint;
-    const passos = [['treino', 'Treino'], ['quali', 'Classificação'], ...(sprint ? [['sprint', 'Sprint']] : []), ['grid', 'Corrida'], ['fim', 'Resultado']];
+    // Com sprint são 5 passos: "Quali" no lugar de "Classificação" para caber numa linha.
+    const passos = [['treino', 'Treino'], ['quali', sprint ? 'Quali' : 'Classificação'], ...(sprint ? [['sprint', 'Sprint']] : []), ['grid', 'Corrida'], ['fim', 'Resultado']];
     const naSprint = sprint && !sprint.feito && (atual === 'grid' || atual === 'corrida');
     const idx = passos.findIndex(([id]) => (naSprint ? id === 'sprint' : id === atual || (atual === 'corrida' && id === 'grid')));
     return `<div class="passos-fds">${passos.map(([, nome], i) => `<span class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}">${i < idx ? ic('check') : ''}${nome}</span>`).join('')}</div>`;
@@ -1232,6 +1249,7 @@
 
   // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
   // F2 e F1: composto de largada. Macio é mais rápido e dura menos; duro, o contrário.
+  const SIGLA_COMPOSTO = { M: 'M', Md: 'Mé', D: 'D' };
   function cartaoEstrategia(sprint) {
     const camp = C.campeonato(estado.campeonato);
     const voltas = sprint ? C.voltasSprint(camp) : camp.voltas;
@@ -1241,7 +1259,7 @@
       const vida = C.vidaComposto(estado, k);
       const aguenta = vida >= voltas;
       return `<button class="composto ${atual === k ? 'ativo' : ''}" data-acao="composto" data-id="${k}" aria-pressed="${atual === k}">
-        <span class="composto-bola" style="--cor:${p.cor}">${p.nome[0]}</span><b>${p.nome}</b>
+        <span class="composto-bola" style="--cor:${p.cor}">${SIGLA_COMPOSTO[k]}</span><b>${p.nome}</b>
         <small>${p.ritmo ? `+${p.ritmo.toFixed(2).replace('.', ',')} s/volta` : 'O mais rápido'}</small>
         <small class="${!sprint || aguenta ? '' : 'negativo'}">dura ~${vida} voltas</small></button>`;
     }).join('');
@@ -1417,9 +1435,18 @@
     const mudou = fds.pneuId !== fds.pneuCorrida || Kart.ORDEM_AJUSTES.some((k) => fds.setup[k] !== fds.setupCorrida[k]);
     return `<div class="corrida">
       <div class="coluna">
-        <section class="painel largada">
-          <div class="pos-grande"><span>${sprint ? 'Largada da sprint' : fds.sprint ? 'Largada da corrida principal' : 'Largada'}</span><b>P${meu}</b></div>
-          <div class="largada-info">${sprint ? `<div class="chips">${chip(`${ic('raio')}Sprint · ${C.voltasSprint(camp)} voltas`, 'chip-amarelo')}${estado.campeonato === 'f2' ? chip(`${ic('repetir')}Top 10 invertido`) : ''}</div>` : ''}${condicaoChips('grid')}${mudou ? chip(`${ic('lapis')}Acerto alterado`, 'chip-amarelo') : ''}</div>
+        <section class="painel largada-card">
+          <div class="largada-topo">
+            <div class="largada-pos"><span>${sprint ? 'Largada da sprint' : fds.sprint ? 'Largada da corrida principal' : 'Largada'}</span><b class="${meu <= 3 ? 'top' : ''}">P${meu}</b></div>
+            <div class="largada-meta">
+              ${chip(`${ic('voltas')}${sprint ? C.voltasSprint(camp) : camp.voltas} voltas`)}
+              ${sprint ? chip(`${ic('raio')}Sprint`, 'chip-amarelo') : ''}
+              ${sprint && estado.campeonato === 'f2' ? chip(`${ic('repetir')}Top 10 invertido`) : ''}
+              ${mudou ? chip(`${ic('lapis')}Acerto alterado`, 'chip-amarelo') : ''}
+            </div>
+          </div>
+          ${painelCondicoes('grid')}
+          ${linhaRecorde()}
           ${leitura('grid')}
           <button class="principal grande" data-acao="largar">${sprint ? 'Largar a sprint!' : 'Largar!'}</button>
         </section>
@@ -1498,7 +1525,7 @@
     if (boxComp) {
       boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
         : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${SIGLA_COMPOSTO[k]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
     const comp = corrida.compostos;

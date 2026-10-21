@@ -987,3 +987,29 @@ button.botao-premium.ativo { border-style: dashed; opacity: 0.8; }
 .nivel-box i { width: 18px; height: 8px; border-radius: 3px; background: var(--painel-3); }
 .nivel-box i.cheia { background: var(--ok); }
 .nivel-box b { margin-left: 4px; font-family: var(--fonte-titulo); font-style: italic; }
+
+/* ---------- grid: card da largada ---------- */
+.largada-card { display: grid; gap: 14px; }
+.largada-topo { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: end; }
+.largada-pos span { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fraco); }
+.largada-pos b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 900; font-size: 64px; line-height: 0.95; }
+.largada-pos b.top { color: var(--ouro); }
+.largada-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; padding-bottom: 6px; }
+.condicoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.cond { display: grid; justify-items: center; gap: 1px; padding: 10px 4px 8px; border-radius: 12px; background: var(--painel-2); text-align: center; min-width: 0; }
+.cond .ico { width: 20px; height: 20px; color: var(--azul-claro); margin-bottom: 2px; }
+.cond span { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fraco); }
+.cond b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 20px; line-height: 1.1; white-space: nowrap; }
+.cond small { font-size: 11px; color: var(--fraco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.cond small.sobe { color: var(--alerta); font-weight: 700; }
+.cond small.desce { color: var(--azul-claro); font-weight: 700; }
+.cond-chuva .ico, .cond-chuva b { color: var(--azul); }
+.largada-card .recorde { margin: 0; }
+.largada-card .leitura { margin: 0; }
+
+/* Passos do fim de semana: sempre numa linha só, como uma barra de progresso. */
+.passos-fds { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; flex-wrap: nowrap; }
+.passos-fds span { display: inline-flex; align-items: center; justify-content: center; gap: 2px; padding: 6px 4px; font-size: 11.5px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.passos-fds .ico-i { width: 12px; height: 12px; }
+.cond { padding: 10px 2px 8px; }
+.cond small { font-size: 10.5px; letter-spacing: -0.01em; }
