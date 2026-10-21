@@ -1182,3 +1182,16 @@ test('repor estoque, rival de carreira, telemetria e desafio da semana', () => {
   assert.ok(!Carreira.tentarDesafio(e, agora).ok);
   assert.ok(Carreira.conferirConquistas(e).some((c) => c.id === 'desafio_ouro'));
 });
+
+test('desafio da semana: grátis na primeira semana, depois só com o Premium', () => {
+  Carreira.definirPremium(false);
+  const e = Carreira.novoJogo({ seed: 17 });
+  const s1 = Date.UTC(2026, 9, 21), s2 = s1 + 7 * 86400000;
+  assert.ok(Carreira.tentarDesafio(e, s1).ok);
+  assert.ok(Carreira.tentarDesafio(e, s1).ok, 'a semana grátis vale as 3 voltas');
+  const r = Carreira.tentarDesafio(e, s2);
+  assert.ok(!r.ok && r.premium);
+  Carreira.definirPremium(true);
+  assert.ok(Carreira.tentarDesafio(e, s2).ok);
+  Carreira.definirPremium(false);
+});

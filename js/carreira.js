@@ -1012,6 +1012,15 @@
   const INICIO_DESAFIO = Date.UTC(2026, 0, 5); // uma segunda-feira
   const TENTATIVAS_DESAFIO = 3;
   const MEDALHAS = [['ouro', 0.12], ['prata', 0.4], ['bronze', 0.9]];
+  // Sem o Premium, o desafio é de graça na primeira semana em que o jogador corre; depois, só com o Premium.
+  const SEMANAS_DESAFIO_GRATIS = 1;
+  const semanasJogadas = (estado) => estado.semanasDesafio || [];
+  function desafioLiberado(estado, agora = Date.now()) {
+    if (premium) return true;
+    const semana = Math.floor((agora - INICIO_DESAFIO) / SEMANA_MS);
+    const jogadas = semanasJogadas(estado);
+    return jogadas.includes(semana) || jogadas.length < SEMANAS_DESAFIO_GRATIS;
+  }
   function desafioDaSemana(estado, agora = Date.now()) {
     const semana = Math.floor((agora - INICIO_DESAFIO) / SEMANA_MS);
     const rnd = Engine.criarRng(semana * 7919 + 13);
@@ -1039,8 +1048,10 @@
   }
   function tentarDesafio(estado, agora = Date.now()) {
     if (estado.fase === 'fds') return { ok: false, erro: 'O desafio é no paddock, entre as etapas.' };
+    if (!desafioLiberado(estado, agora)) return pedePremium('O desafio da semana grátis já foi. Com o Premium, tem desafio novo toda semana.');
     const d = desafioDaSemana(estado, agora);
     const st = estadoDesafio(estado, d);
+    if (!semanasJogadas(estado).includes(d.semana)) estado.semanasDesafio = [...semanasJogadas(estado), d.semana];
     if (st.tentativas.length >= TENTATIVAS_DESAFIO) return { ok: false, erro: 'As 3 voltas desta semana já foram. Volte na próxima semana.' };
     const rnd = Engine.criarRng(d.semana * 31 + st.tentativas.length * 7 + 1);
     const tempo = Math.round((d.volta(st.setup) + rnd.gauss() * 0.04) * 1000) / 1000;
@@ -1951,7 +1962,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
