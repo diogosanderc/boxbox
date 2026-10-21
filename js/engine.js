@@ -177,6 +177,14 @@
         parar = true;
         novoPneu = (corrida.regraCompostos ? escolherPneu : escolherPneuLivre)(c, pista, corrida.totalVoltas - v + 1);
       }
+      // Quem tem estoque de pneus (o jogador da F3 em diante) recebe o jogo que houver, com o desgaste dele;
+      // sem jogo para trocar (null), não para.
+      let usoNovo = 0;
+      if (parar && corrida.trocaPneu) {
+        const troca = corrida.trocaPneu(c, novoPneu);
+        if (troca === null) parar = false;
+        else if (troca) { novoPneu = troca.pneu; usoNovo = troca.uso; }
+      }
 
       // Ajuste externo por volta (acerto do carro, clima...): segundos extras e multiplicadores de risco.
       const extra = { ...SEM_AJUSTE, ...(corrida.ajusteVolta ? corrida.ajusteVolta(c, v, corrida) : null) };
@@ -202,7 +210,7 @@
         volta += (sc ? pista.perdaBox * 0.5 : pista.perdaBox) + servico;
         registrar(corrida, `${c.piloto.nome} para nos boxes: ${PNEUS[c.pneu].nome} → ${PNEUS[novoPneu].nome} (${servico.toFixed(1)}s)`, 'box', c.id);
         c.pneu = novoPneu;
-        c.uso = 0;
+        c.uso = usoNovo;
         c.idadePneu = 0;
         if (!c.usados.includes(novoPneu)) c.usados.push(novoPneu);
         c.paradas += 1;

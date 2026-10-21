@@ -1015,3 +1015,20 @@ button.botao-premium.ativo { border-style: dashed; opacity: 0.8; }
 .cond small { font-size: 10.5px; letter-spacing: -0.01em; }
 /* Bolinha do composto só com a cor do pneu (sem letra). */
 .composto-bola { background: radial-gradient(circle, #2a2f3a 0 38%, #111 39%); }
+
+/* Patrocínio: prazo do contrato */
+.prazos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+button.prazo { display: grid; gap: 2px; justify-items: center; align-content: start; padding: 10px 4px; min-width: 0; }
+button.prazo b { font-size: 14px; }
+button.prazo .prazo-valor { font-weight: 700; color: var(--texto); }
+button.prazo span { font-size: 12px; color: var(--fraco); }
+button.prazo.principal span { color: inherit; opacity: .85; }
+button.link-recusar { background: transparent; border-color: transparent; color: var(--fraco); padding: 4px 0; justify-self: start; font-weight: 500; }
+
+/* F3 em diante: cor do composto na borda da roda */
+.pneu-roda.macio { border-color: #e10600; }
+.pneu-roda.medio { border-color: #ffd400; }
+.pneu-roda.duro { border-color: #f2f2f2; box-shadow: 0 0 0 1px #8a8a8a; }
+.botoes-pneus-4 { grid-template-columns: repeat(2, 1fr); }
+.composto:disabled { opacity: .55; }
+button.prazo.principal .prazo-valor { color: inherit; }

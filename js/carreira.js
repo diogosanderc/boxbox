@@ -366,21 +366,36 @@
   const VIDA_PNEU = 26; // voltas até o pneu "cair"
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
+  // Da F3 em diante o estoque tem quatro tipos: macio (o slick), médio, duro e chuva.
+  // Cada um seco vira um composto na corrida; sem os quatro no estoque, não dá para correr.
+  const TIPOS_KART = ['slick', 'chuva'];
+  const TIPOS_F3 = ['slick', 'medio', 'duro', 'chuva'];
+  const COMPOSTO_DO_TIPO = { slick: 'M', medio: 'Md', duro: 'D' };
+  const TIPO_DO_COMPOSTO = { M: 'slick', Md: 'medio', D: 'duro' };
+  const quatroPneus = (estado) => campeonato(estado.campeonato).ordem >= 4;
+  const tiposPneu = (estado) => (quatroPneus(estado) ? TIPOS_F3 : TIPOS_KART);
+  const nomePneu = (estado, tipo) => (quatroPneus(estado) && tipo === 'slick' ? 'Macio' : Kart.PNEUS_KART[tipo].nome);
+  // Voltas até o pneu cair: da F3 em diante depende do composto.
+  const vidaDoPneu = (estado, tipo) => (quatroPneus(estado) && COMPOSTO_DO_TIPO[tipo] ? Engine.PNEUS[COMPOSTO_DO_TIPO[tipo]].vida : VIDA_PNEU);
+  const faltaNoEstoque = (estado) => (quatroPneus(estado) ? TIPOS_F3.filter((t) => !estado.pneus.some((p) => p.tipo === t)) : []);
+
+  // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
+  const custoPneu = (estado) => Math.min(6, campeonato(estado.campeonato).custo);
+
   const pneuNovo = (p) => p.uso < 1;
   const pneuAmaciado = (p) => p.uso >= 1 && p.uso <= 4;
   // Segundos a mais numa volta por causa de pneu ainda zerado (some depois de ~3 voltas).
   const penalidadeZerado = (uso) => Math.max(0, 0.3 * (1 - uso / 2));
 
   function comprarPneu(estado, tipo, gratis = false) {
+    if (!tiposPneu(estado).includes(tipo)) return { ok: false, erro: 'Esse pneu não é usado nesta categoria.' };
     if (estado.pneus.length >= espacoPneus(estado)) return { ok: false, erro: `Estoque cheio (${espacoPneus(estado)} jogos): venda, doe ou descarte um pneu, ou compre mais espaço na oficina.` };
-    const preco = Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
+    const preco = Math.round(Kart.PNEUS_KART[tipo].preco * custoPneu(estado));
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
     if (!gratis) estado.dinheiro -= preco;
-    // Jogo novo entra junto com os do mesmo tipo (slicks com slicks, chuva com chuva).
-    const novo = { id: `pn${estado.proxPneu++}`, tipo, uso: 0 };
-    const ultimo = estado.pneus.map((p) => p.tipo).lastIndexOf(tipo);
-    if (ultimo >= 0) estado.pneus.splice(ultimo + 1, 0, novo);
-    else estado.pneus.splice(tipo === 'slick' ? 0 : estado.pneus.length, 0, novo);
+    // Jogo novo entra junto com os do mesmo tipo (macio, médio, duro e chuva, nessa ordem).
+    estado.pneus.push({ id: `pn${estado.proxPneu++}`, tipo, uso: 0 });
+    estado.pneus.sort((a, b) => TIPOS_F3.indexOf(a.tipo) - TIPOS_F3.indexOf(b.tipo));
     return { ok: true };
   }
 
@@ -390,8 +405,8 @@
 
   // Venda de pneu usado para equipes menores: até metade do preço, menos quanto mais gasto.
   function valorVendaPneu(estado, p) {
-    const preco = Kart.PNEUS_KART[p.tipo].preco * campeonato(estado.campeonato).custo;
-    return Math.round(preco * Math.max(0.05, 0.5 * (1 - p.uso / VIDA_PNEU)) / 10) * 10;
+    const preco = Kart.PNEUS_KART[p.tipo].preco * custoPneu(estado);
+    return Math.round(preco * Math.max(0.05, 0.5 * (1 - p.uso / vidaDoPneu(estado, p.tipo))) / 10) * 10;
   }
 
   function venderPneu(estado, id) {
@@ -508,11 +523,13 @@
   function pendenciasEtapa(estado) {
     const lista = [];
     if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor engripado: sem retífica, não dá para correr.' });
-    if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
-      lista.push({ id: 'slick', texto: 'Nenhum slick novo para a classificação e a corrida.' });
+    const falta = faltaNoEstoque(estado);
+    for (const t of falta) lista.push({ id: t, texto: `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque: sem os quatro tipos não dá para correr.` });
+    if (!falta.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
+      lista.push({ id: 'slick', texto: `Nenhum ${quatroPneus(estado) ? 'macio' : 'slick'} novo para a classificação e a corrida.` });
     }
     const clima = estado.calendario[estado.etapa] && estado.calendario[estado.etapa].clima;
-    if (clima && clima.tarde.chance >= 40 && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
+    if (clima && clima.tarde.chance >= 40 && !falta.includes('chuva') && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
       lista.push({ id: 'chuva', texto: `Previsão de ${clima.tarde.chance}% de chuva à tarde e nenhum pneu de chuva em bom estado.` });
     }
     if (!estado.motorQuebrado && motorPedeRevisao(estado)) {
@@ -522,7 +539,7 @@
     return lista;
   }
 
-  const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
+  const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * custoPneu(estado));
   const precoRetifica = (estado, tipo) => Math.round(CUSTO_RETIFICA[tipo] * campeonato(estado.campeonato).custo);
 
   // Conserta o motor engripado. Expressa: fica pronto para esta etapa. Normal: o motor fica na oficina e o piloto perde a etapa.
@@ -564,17 +581,44 @@
     return meta.alvo === 1 ? 'ser campeão' : `terminar o campeonato no top ${meta.alvo}`;
   }
 
-  function aceitarPatrocinio(estado, id) {
+  // Duração do contrato: 3 ou 6 meses (uma fração do calendário) ou a temporada toda.
+  // Contrato curto paga um pouco mais por etapa, mas só o da temporada tem meta e bônus.
+  const DURACOES_PATROCINIO = {
+    3: { nome: '3 meses', fracao: 1 / 4, extra: 1.15 },
+    6: { nome: '6 meses', fracao: 1 / 2, extra: 1.08 },
+    temporada: { nome: 'Temporada', fracao: null, extra: 1 },
+  };
+  // Opções que cabem no que falta da temporada (um contrato curto mais longo que isso não faz sentido).
+  function duracoesPatrocinio(estado, of) {
+    const faltam = etapasDe(estado) - estado.etapa;
+    return Object.entries(DURACOES_PATROCINIO).map(([id, d]) => {
+      const etapas = d.fracao ? Math.max(1, Math.round(etapasDe(estado) * d.fracao)) : faltam;
+      return { id, nome: d.nome, etapas, porEtapa: Math.round(of.porEtapa * d.extra / 100) * 100, bonus: d.fracao ? 0 : of.bonus };
+    }).filter((o) => o.id === 'temporada' || o.etapas < faltam);
+  }
+
+  // Contrato curto que acabou: a vaga no macacão fica livre e aparece outra empresa interessada.
+  function vencerPatrocinios(estado, rnd) {
+    const vencidos = estado.patrocinios.filter((p) => p.ate != null && p.ate <= estado.etapa);
+    if (!vencidos.length) return;
+    estado.patrocinios = estado.patrocinios.filter((p) => !vencidos.includes(p));
+    for (const p of vencidos) noticia(estado, `Acabou o contrato com a ${p.empresa}. A vaga no macacão está livre.`);
+    if (estado.etapa < etapasDe(estado)) gerarOfertasPatrocinio(estado, rnd, vencidos.length);
+  }
+
+  function aceitarPatrocinio(estado, id, duracao = 'temporada') {
     if (estado.patrocinios.length >= maxPatrocinios()) {
       return premium ? { ok: false, erro: `No máximo ${MAX_PATROCINIOS} patrocinadores no macacão.` }
         : pedePremium(`Sem o Premium cabem ${PATROCINIOS_GRATIS} patrocinadores no macacão.`);
     }
     const of = estado.ofertasPatrocinio.find((o) => o.id === id);
     if (!of) return { ok: false, erro: 'Oferta expirada.' };
+    const d = duracoesPatrocinio(estado, of).find((x) => x.id === String(duracao));
+    if (!d) return { ok: false, erro: 'Esse prazo não cabe no que falta da temporada.' };
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.id !== id);
-    estado.patrocinios.push(of);
+    estado.patrocinios.push({ ...of, porEtapa: d.porEtapa, bonus: d.bonus, duracao: d.id, ate: d.id === 'temporada' ? null : estado.etapa + d.etapas });
     mexerCabeca(estado, { moral: 2 });
-    noticia(estado, `${of.empresa} fecha patrocínio com ${estado.piloto.nome}.`);
+    noticia(estado, `${of.empresa} fecha patrocínio com ${estado.piloto.nome}${d.id === 'temporada' ? ' para a temporada' : ` por ${d.nome}`}.`);
     return { ok: true };
   }
 
@@ -654,6 +698,7 @@
     const daNova = estado.rivais.filter((r) => r.equipe === pr.equipe).sort((a, b) => nota(a) - nota(b));
     if (daNova.length >= 2) daNova[0].equipe = antiga;
     estado.equipeId = pr.equipe;
+    novoDuelo(estado); // companheiro novo, placar novo
     estado.contrato = { equipe: pr.equipe, custoEtapa: pr.custoEtapa, segundoPiloto: pr.segundoPiloto, tipo: pr.tipo };
     mexerCabeca(estado, { moral: 5 });
     estado.propostas = estado.propostas.filter((p) => p.tipo === 'f4' || p.tipo === 'academia');
@@ -704,6 +749,10 @@
     noticia(estado, vinhaDoKart ? `${estado.piloto.nome} assina com a ${base.nome} e deixa o kart rumo aos monopostos!` : `${estado.piloto.nome} assina com a ${base.nome} e sobe para a ${camp.curto}!`);
     iniciarTemporada(estado);
     noticia(estado, `${estado.piloto.nome} estreia na ${camp.nome} em ${estado.ano}.`);
+    // Da F3 em diante são quatro tipos de pneu: na estreia a equipe entrega um jogo de cada um que faltar.
+    const falta = faltaNoEstoque(estado);
+    for (const t of falta) comprarPneu(estado, t, true);
+    if (falta.length) noticia(estado, `A ${base.nome} entrega um jogo de ${falta.map((t) => nomePneu(estado, t).toLowerCase()).join(', ')}: na ${camp.curto} é preciso ter macio, médio, duro e chuva no estoque.`);
     // Chegar à F1 é o fim da escada: primeiro a festa da Superlicença, depois o paddock.
     // Ao assinar, a equipe paga luvas: cinco etapas de salário de uma vez.
     if (campId === 'f1') {
@@ -774,6 +823,8 @@
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
+    const falta = faltaNoEstoque(estado);
+    if (falta.length) return { ok: false, erro: `Falta pneu ${falta.map((t) => nomePneu(estado, t).toLowerCase()).join(', ')} no estoque. Da F3 em diante é preciso ter macio, médio, duro e chuva para correr.` };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
     estado.dinheiro += salarioEtapa(estado);
@@ -838,11 +889,14 @@
     const pista = pistaAtual(estado);
     const ef = Kart.efeito(setup, pista, cond, pneuTipo);
     const cab = entrada.jogador ? efeitoCabeca(entrada.piloto) : { tempo: 0, sigma: 1 };
+    // Da F3 em diante o composto pesa: macio mais rápido e gasta mais; duro, o contrário.
+    const comp = quatroPneus(estado) && COMPOSTO_DO_TIPO[pneuTipo];
+    const pn = comp ? Engine.PNEUS[comp] : Engine.PNEUS.Md;
     let melhor = Infinity;
     for (let i = 0; i < voltas; i++) {
       const t = Engine.ritmoBase(entrada, pista) - 0.6
         + ef.tempo + cab.tempo + chuvaPiloto(entrada.piloto, cond)
-        + Engine.PNEUS.Md.desgaste * (usoPneu + i * ef.desgaste)
+        + pn.ritmo - Engine.PNEUS.Md.ritmo + pn.desgaste * (usoPneu + i * ef.desgaste)
         + penalidadeZerado(usoPneu + i * ef.desgaste)
         + rnd.gauss() * (0.35 - entrada.piloto.consistencia * 0.0025) * ef.sigma * cab.sigma;
       melhor = Math.min(melhor, t);
@@ -987,16 +1041,33 @@
   }
   const voltasSprint = (camp) => Math.ceil(camp.voltas * 0.45);
 
-  // ---------- compostos (F2 e F1) ----------
+  // ---------- compostos (F3, F2 e F1) ----------
   // Só no seco: se a classificação já foi molhada, todo mundo larga de pneu de chuva e não há regra.
-  const usaCompostos = (estado) => !!campeonato(estado.campeonato).compostos && climaAtual(estado).tarde.inicioChuva !== 'quali';
+  // O composto de largada é o do jogo de pneus montado (do estoque). A regra dos dois compostos é só da F2 e da F1.
+  const usaCompostos = (estado) => quatroPneus(estado) && climaAtual(estado).tarde.inicioChuva !== 'quali';
+  const compostoMontado = (estado) => COMPOSTO_DO_TIPO[(pneuPorId(estado, estado.fds && estado.fds.pneuId) || {}).tipo] || null;
+  const melhorJogo = (estado, tipo, fora = []) => estado.pneus.filter((p) => p.tipo === tipo && !fora.includes(p.id)).sort((a, b) => a.uso - b.uso)[0] || null;
   function escolherComposto(estado, composto) {
     if (!Engine.PNEUS[composto]) return { ok: false, erro: 'Composto inválido.' };
+    const jogo = melhorJogo(estado, TIPO_DO_COMPOSTO[composto]);
+    if (!jogo) return { ok: false, erro: `Sem pneu ${Engine.PNEUS[composto].nome.toLowerCase()} no estoque.` };
     estado.fds.composto = composto;
+    estado.fds.pneuId = jogo.id;
     return { ok: true };
   }
-  // Quantas voltas o composto aguenta antes de cair de rendimento, para este piloto nesta pista.
-  const vidaComposto = (estado, composto) => Math.floor(Engine.vidaPneu(composto, estado.piloto, pistaAtual(estado)));
+  // Quantas voltas o composto aguenta antes de cair de rendimento, para este piloto nesta pista (descontando o que o jogo já rodou).
+  const vidaComposto = (estado, composto, uso = 0) => Math.max(0, Math.floor(Engine.vidaPneu(composto, estado.piloto, pistaAtual(estado)) * (1 - uso / Engine.PNEUS[composto].vida)));
+
+  // Os jogos que o jogador usou na corrida voltam para o estoque com o desgaste.
+  function devolverPneus(estado, corrida) {
+    const carro = corrida.carros.find((c) => c.jogador);
+    const jogos = corrida.jogosJogador || [];
+    if (jogos.length) jogos[jogos.length - 1].uso = carro.uso;
+    for (const j of jogos) {
+      const p = pneuPorId(estado, j.id);
+      if (p) p.uso = Math.round(j.uso);
+    }
+  }
 
   function concluirSprint(estado, corrida) {
     const fds = estado.fds;
@@ -1006,9 +1077,7 @@
       estado.pontos[r.id] = (estado.pontos[r.id] || 0) + r.pontos;
     }
     const meu = res.find((r) => r.id === 'jogador');
-    const pneu = pneuPorId(estado, fds.pneuCorrida);
-    const carro = corrida.carros.find((c) => c.jogador);
-    if (pneu && !corrida.compostos) pneu.uso = Math.round(carro.uso);
+    devolverPneus(estado, corrida);
     if (!meu.fora && meu.pos <= 3) mexerCabeca(estado, { confianca: 3 }, `Pódio na sprint (P${meu.pos})`);
     fds.sprint = {
       feito: true, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos,
@@ -1041,7 +1110,8 @@
     fds.pneuCorrida = fds.pneuId;
     fds.sprint = temSprint(estado) ? { feito: false } : null;
     const comp = companheiro(estado);
-    if (comp) fds.dueloQuali = placarDuelo(estado, 'quali', tempos.findIndex((t) => t.id === 'jogador'), tempos.findIndex((t) => t.id === comp.id));
+    const posComp = comp ? tempos.findIndex((t) => t.id === comp.id) : -1;
+    if (posComp >= 0) fds.dueloQuali = placarDuelo(estado, 'quali', tempos.findIndex((t) => t.id === 'jogador'), posComp);
     registrarCaderno(estado, cond, { setup: fds.setup, pneu: pneu.tipo, tempo: tempos.find((t) => t.id === 'jogador').tempo, posicao: tempos.findIndex((t) => t.id === 'jogador') + 1 });
     fds.sessao = 'grid';
     return { ok: true };
@@ -1061,9 +1131,19 @@
     const entradas = Object.fromEntries([entradaJogador(estado), ...estado.rivais.map((r) => entradaRival(estado, r))].map((e) => [e.id, e]));
     const sprint = sprintPendente(estado);
     const grid = ordemLargada(estado).map((q) => entradas[q.id]);
-    // F2 e F1 no seco: cada um escolhe o composto; na corrida principal é obrigatório usar dois (uma parada).
+    // F3 em diante no seco: cada um larga com o composto que escolheu. Na F2 e na F1, na corrida principal
+    // é obrigatório usar dois (uma parada).
     const compostos = usaCompostos(estado);
-    const regra = compostos && !sprint;
+    const quatro = quatroPneus(estado);
+    const regra = compostos && !!campeonato(estado.campeonato).compostos && !sprint;
+    // O jogador só troca para um jogo do estoque que ainda não usou nesta corrida.
+    const jogos = pneuJogador.id ? [{ id: pneuJogador.id, uso: pneuJogador.uso }] : [];
+    const jogoLivre = (tipo) => melhorJogo(estado, tipo, jogos.map((j) => j.id));
+    const trocarJogo = (c, p) => {
+      if (jogos.length) jogos[jogos.length - 1].uso = c.uso;
+      jogos.push({ id: p.id, uso: p.uso });
+      return p.uso;
+    };
     const chuvaDesde = clima.tarde.inicioChuva === 'quali' ? 1 : clima.tarde.voltaChuva;
     const monoposto = categoriaDe(estado) !== 'kart';
     const ajusteVolta = (c, v, corrida) => {
@@ -1077,9 +1157,14 @@
       const setup = c.jogador ? fds.setupCorrida : fds.ia[c.id].tarde;
       // Na F4 dá para parar no box e trocar para pneu de chuva (o jogador pede; a IA para uma ou duas voltas depois da chuva).
       let pit = 0;
-      if (monoposto && molhado && c.tipoPneu === 'slick' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2))) {
+      const jogoChuva = c.jogador && quatro && corrida.boxJogador ? jogoLivre('chuva') : null;
+      if (c.jogador && quatro && corrida.boxJogador && !jogoChuva) {
+        corrida.boxJogador = false;
+        Engine.registrar(corrida, 'Sem pneu de chuva no estoque: o carro segue com pneu de seco.', 'alerta', c.id);
+      }
+      if (monoposto && molhado && c.tipoPneu !== 'chuva' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2))) {
         c.tipoPneu = 'chuva';
-        c.uso = 0;
+        c.uso = jogoChuva ? trocarJogo(c, jogoChuva) : 0;
         if (c.usados && c.usados.length < 2) c.usados.push('chuva'); // pneu de chuva dispensa a regra dos dois compostos
         pit = PIT_F4 - (c.jogador ? EQUIPE_BOX[nivelBox(estado)].ganho : 0);
         corrida.boxJogador = c.jogador ? false : corrida.boxJogador;
@@ -1090,7 +1175,7 @@
       ef.tempo += pit;
       // Motor passado da revisão aguenta menos quando é forçado.
       if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 0.9) / 0.9;
-      if (c.jogador && !compostos) ef.tempo += penalidadeZerado(c.uso);
+      if (c.jogador && !quatro) ef.tempo += penalidadeZerado(c.uso);
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
@@ -1098,13 +1183,31 @@
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31 + (sprint ? 17 : 0), {
       // Safety car só na F2 e na F1 (no kart e nas categorias de base a corrida segue em bandeira verde).
       regraCompostos: regra, semBox: !regra, semSafetyCar: !campeonato(estado.campeonato).safetyCar, chanceSafetyCar: 0.02, semModos: true, ajusteVolta,
-      ...(compostos ? { pneusIniciais: { jogador: estado.fds.composto || 'Md' } } : { pneuPadrao: 'Md' }),
+      ...(compostos ? { pneusIniciais: { jogador: COMPOSTO_DO_TIPO[pneuJogador.tipo] || 'Md' } } : { pneuPadrao: 'Md' }),
     });
     corrida.sprint = sprint;
     corrida.compostos = compostos;
+    corrida.jogosJogador = jogos;
+    if (quatro) {
+      // Na parada, o jogador recebe um jogo do estoque: o composto pedido ou, se não houver, outro seco que tenha.
+      corrida.temJogo = (tipo) => !!jogoLivre(tipo);
+      corrida.trocaPneu = (c, desejado) => {
+        if (!c.jogador) return undefined;
+        const ordem = [desejado, ...Engine.ORDEM_PNEUS.filter((k) => k !== desejado && k !== c.pneu), c.pneu].filter((k, i, a) => a.indexOf(k) === i);
+        for (const k of ordem) {
+          const jogo = jogoLivre(TIPO_DO_COMPOSTO[k]);
+          if (!jogo) continue;
+          if (k !== desejado) Engine.registrar(corrida, `Sem ${Engine.PNEUS[desejado].nome.toLowerCase()} no estoque: vai de ${Engine.PNEUS[k].nome.toLowerCase()}.`, 'box', c.id);
+          return { pneu: k, uso: trocarJogo(c, jogo) };
+        }
+        if (!corrida.semJogoAvisado) Engine.registrar(corrida, 'Sem pneu seco no estoque para trocar: o carro segue na pista.', 'alerta', c.id);
+        corrida.semJogoAvisado = true;
+        return null;
+      };
+    }
     for (const c of corrida.carros) {
-      // Com compostos a equipe dá um jogo novo para a corrida; no kart e na F4/F3 vale o desgaste do jogo escolhido.
-      c.uso = compostos ? 0 : c.jogador ? pneuJogador.uso : 1;
+      // Rivais da F2 e da F1 largam com jogo novo; o jogador usa o jogo do estoque, com o desgaste que ele tiver.
+      c.uso = c.jogador ? pneuJogador.uso : campeonato(estado.campeonato).compostos ? 0 : 1;
       c.tipoPneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
     }
     return corrida;
@@ -1169,10 +1272,8 @@
     }
     p.popularidade = Math.min(100, Math.round(p.popularidade * 10) / 10);
 
-    // Pneu usado na corrida volta para o estoque com o desgaste.
-    const pneu = pneuPorId(estado, fds.pneuCorrida);
+    devolverPneus(estado, corrida);
     const carro = corrida.carros.find((c) => c.jogador);
-    if (pneu && !corrida.compostos) pneu.uso = Math.round(carro.uso);
     somarHoras(estado, HORAS.corrida);
     if (meu.fora && meu.motivoFora === 'Motor engripou') {
       estado.motorQuebrado = true;
@@ -1203,7 +1304,7 @@
       largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos, chuva: !!corrida.molhado, idade: p.idade });
     const clima = climaAtual(estado);
     const condFinal = Kart.condicao(clima, 'corrida', !!corrida.molhado);
-    const tipoPneu = carro.tipoPneu || (pneu ? pneu.tipo : 'slick');
+    const tipoPneu = carro.tipoPneu || 'slick';
     fds.resultado.diagnostico = {
       ...Kart.diagnostico(fds.setupCorrida, pistaAtual(estado), condFinal, tipoPneu),
       tempAr: condFinal.tempAr, tempPista: condFinal.tempPista, molhado: condFinal.molhado,
@@ -1246,6 +1347,7 @@
     estado.fds = null;
     estado.etapa += 1;
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.expira >= estado.etapa);
+    vencerPatrocinios(estado, rnd);
     estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia' || o.tipo === 'subida');
     if (rnd() < 0.3 + estado.piloto.popularidade / 100) gerarOfertasPatrocinio(estado, rnd, 1);
     // A confiança volta aos poucos para o normal; aperto de dinheiro pesa na moral.
@@ -1299,7 +1401,7 @@
       rel.premios.push({ texto: `Prêmio de P${pos} no campeonato`, valor: premio });
       estado.piloto.popularidade += pos === 1 ? 10 * camp.popularidade : 4 * camp.popularidade;
     }
-    for (const pt of estado.patrocinios) {
+    for (const pt of estado.patrocinios.filter((x) => x.ate == null)) {
       const cumpriu = pt.meta.tipo === 'podios' ? (estado.podios.jogador || 0) >= pt.meta.alvo : pos <= pt.meta.alvo;
       if (cumpriu) estado.dinheiro += pt.bonus;
       rel.bonus.push({ empresa: pt.empresa, meta: textoMeta(pt.meta), cumpriu, valor: pt.bonus });
@@ -1504,10 +1606,10 @@
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
-    textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
+    textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

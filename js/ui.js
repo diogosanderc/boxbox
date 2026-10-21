@@ -106,8 +106,8 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
-    patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
+    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter macio, médio, duro e chuva no estoque. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. Quando ele fala em dúvida (\"acho que…\", \"não tenho certeza…\"), desconfie: muitas vezes está sentindo a coisa errada. Com um mecânico contratado, ele também comenta: o iniciante dá palpites; o experiente e o profissional dizem o que mudar e quanto.'],
@@ -124,7 +124,7 @@
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium.'],
-    compostos: ['Pneus macio, médio e duro', 'Na F2 e na F1, no seco, cada piloto escolhe o composto. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada.'],
+    compostos: ['Pneus macio, médio e duro', 'Da F3 em diante o estoque tem quatro tipos de pneu: macio (o slick), médio, duro e chuva. Sem os quatro no estoque não dá para correr, e só se corre com o que estiver nele: cada jogo volta gasto depois da corrida. No seco, cada piloto escolhe o composto de largada. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na F2 e na F1, na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez e recebe outro jogo do estoque. Na F3 não tem parada. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada.'],
     setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio e diferencial; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
     asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
@@ -260,26 +260,30 @@
       ${sessao !== 'treino' && !molhado ? chip(`${ic('gota')}Corrida ${clima.tarde.chance}%`) : ''}</div>`;
   }
 
-  const desgastePct = (uso) => Math.min(100, Math.round((uso / 26) * 100));
+  // Desgaste em % da vida do jogo (da F3 em diante, cada composto tem a sua).
+  const desgastePct = (uso, tipo = 'slick') => Math.min(100, Math.round((uso / C.vidaDoPneu(estado, tipo)) * 100));
+  const nomePneu = (tipo) => C.nomePneu(estado, tipo);
+  // Botões de compra: slick e chuva no kart e na F4; macio, médio, duro e chuva da F3 em diante.
+  const botoesComprarPneu = () => `<div class="botoes-2 ${C.quatroPneus(estado) ? 'botoes-pneus-4' : ''}">${C.tiposPneu(estado).map((t) => `<button class="compra" data-acao="comprar-pneu" data-tipo="${t}"><b>+ ${nomePneu(t)}</b><span>${reais(C.precoPneu(estado, t))}</span></button>`).join('')}</div>`;
 
   // Jogos de pneus como cartões; no fim de semana dá para escolher tocando no cartão.
   function pneusVisuais(selecionavel) {
     if (!estado.pneus.length) return '<p class="aviso">Nenhum jogo de pneus!</p>';
-    const ordem = ['slick', 'chuva'];
+    const ordem = ['slick', 'medio', 'duro', 'chuva'];
     const lista = estado.pneus.slice().sort((a, b) => ordem.indexOf(a.tipo) - ordem.indexOf(b.tipo));
     const numero = (p) => estado.pneus.filter((x) => x.tipo === p.tipo).indexOf(p) + 1;
     return `<div class="pneus">${lista.map((p) => {
       const i = numero(p) - 1;
-      const pct = desgastePct(p.uso);
+      const pct = desgastePct(p.uso, p.tipo);
       const classe = pct >= 100 ? 'negativo' : pct >= 60 ? 'aviso' : 'dinheiro';
       const ativo = selecionavel && estado.fds.pneuId === p.id;
-      const conteudo = `<span class="pneu-roda ${p.tipo}" aria-hidden="true"></span>
-        <span class="pneu-nome">${Kart.PNEUS_KART[p.tipo].nome} <span class="fraco">#${i + 1}</span></span>
+      const conteudo = `<span class="pneu-roda ${p.tipo} ${C.quatroPneus(estado) && p.tipo === 'slick' ? 'macio' : ''}" aria-hidden="true"></span>
+        <span class="pneu-nome">${nomePneu(p.tipo)} <span class="fraco">#${i + 1}</span></span>
         <span class="pneu-trilho"><i class="${classe}-fundo" style="width:${Math.max(4, 100 - pct)}%"></i></span>
         <span class="pneu-estado ${classe}">${C.pneuNovo(p) ? 'novo' : C.pneuAmaciado(p) ? 'amaciado' : pct >= 100 ? 'acabado' : `${100 - pct}%`}</span>`;
       return selecionavel
         ? `<button class="pneu-card ${ativo ? 'ativo' : ''}" data-acao="escolher-pneu" data-id="${p.id}" aria-pressed="${ativo}">${conteudo}</button>`
-        : `<button class="pneu-card" data-acao="pneu-opcoes" data-id="${p.id}" aria-label="Opções do ${Kart.PNEUS_KART[p.tipo].nome} ${i + 1}">${conteudo}<span class="pneu-mais" aria-hidden="true">⋯</span></button>`;
+        : `<button class="pneu-card" data-acao="pneu-opcoes" data-id="${p.id}" aria-label="Opções do ${nomePneu(p.tipo)} ${i + 1}">${conteudo}<span class="pneu-mais" aria-hidden="true">⋯</span></button>`;
     }).join('')}</div>`;
   }
 
@@ -700,7 +704,7 @@
   function botaoResolver(id) {
     if (id === 'retifica') return '';
     if (id === 'motor') return `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`;
-    return `<button class="principal" data-acao="comprar-pneu" data-tipo="${id}">+ ${id === 'slick' ? 'Slick' : 'Chuva'} · ${reais(C.precoPneu(estado, id))}</button>`;
+    return `<button class="principal" data-acao="comprar-pneu" data-tipo="${id}">+ ${nomePneu(id)} · ${reais(C.precoPneu(estado, id))}</button>`;
   }
 
   function checklist() {
@@ -736,8 +740,9 @@
   // Duelo da temporada com o companheiro de equipe.
   function cartaoCompanheiro() {
     const comp = C.companheiro(estado);
-    const d = estado.duelo;
-    if (!comp || !d) return '';
+    if (!comp) return '';
+    // Trocou de equipe e ainda não correu com o novo companheiro: placar zerado.
+    const d = estado.duelo && estado.duelo.id === comp.id ? estado.duelo : { quali: [0, 0], corrida: [0, 0] };
     const linha = (rotulo, [eu, ele]) => `<div class="duelo-linha"><b class="${eu > ele ? 'dinheiro' : ''}">${eu}</b><span>${rotulo}</span><b class="${ele > eu ? 'negativo' : ''}">${ele}</b></div>`;
     return cartao('Companheiro de equipe', `<div class="duelo-topo"><span>Você</span><span class="fraco">×</span><span>${esc(comp.nome)}</span></div>
       ${linha('Classificação', d.quali)}${linha('Corrida', d.corrida)}${linha('Pontos', [estado.pontos.jogador || 0, estado.pontos[comp.id] || 0])}
@@ -804,10 +809,10 @@
     const p = tela.pneuOpcoes && estado.pneus.find((x) => x.id === tela.pneuOpcoes);
     if (!p) return '';
     const n = estado.pneus.filter((x) => x.tipo === p.tipo).indexOf(p) + 1;
-    const pct = desgastePct(p.uso);
+    const pct = desgastePct(p.uso, p.tipo);
     const jaDoou = estado.doacaoEtapa === `${estado.ano}-${estado.etapa}`;
     return `<div class="folha-fundo" data-acao-fundo="fechar-pneu"><div class="folha folha-neutra" role="dialog" aria-modal="true" aria-labelledby="folha-pneu-titulo">
-      <h3 id="folha-pneu-titulo">${Kart.PNEUS_KART[p.tipo].nome} #${n} · ${C.pneuNovo(p) ? 'novo' : `${100 - pct}% de vida`}</h3>
+      <h3 id="folha-pneu-titulo">${nomePneu(p.tipo)} #${n} · ${C.pneuNovo(p) ? 'novo' : `${100 - pct}% de vida`}</h3>
       <button class="compra" data-acao="vender-pneu" data-id="${p.id}"><b>${ic('carteira')}Vender para outra equipe</b><span class="dinheiro">+${reais(C.valorVendaPneu(estado, p))}</span></button>
       <button class="compra" data-acao="doar-pneu" data-id="${p.id}" ${jaDoou ? 'disabled' : ''}><b>${ic('coracao')}Doar para a escolinha</b><span>${jaDoou ? 'Você já doou nesta etapa' : 'Moral e popularidade sobem'}</span></button>
       <button class="compra" data-acao="descartar-pneu" data-id="${p.id}" data-confirmar="Confirmar: jogar fora"><b>${ic('lixo')}Jogar fora</b><span>Sem retorno</span></button>
@@ -844,10 +849,7 @@
             : `<button disabled>${ic('check')}Motor 100%</button>`}</div>
       <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.espacoPneus(estado) ? 'aviso' : ''}">${estado.pneus.length}/${C.espacoPneus(estado)}</b></div>
       ${pneusVisuais(false)}
-      <div class="botoes-2">
-        <button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button>
-        <button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button>
-      </div>
+      ${botoesComprarPneu()}
       ${!BoxPremium.ativo ? `<button class="compra premium-trancado" data-acao="premium" data-motivo="Mais espaço no estoque de pneus é do Premium."><b>${ic('cadeado')}Mais espaço no estoque</b><span>Premium · até ${C.limiteEspaco(estado)} vagas nesta categoria</span></button>`
         : C.espacoPneus(estado) < C.limiteEspaco(estado)
         ? `<button class="compra" data-acao="comprar-espaco" data-confirmar="Confirmar: −${reais(C.precoEspaco(estado))}" ${estado.dinheiro < C.precoEspaco(estado) ? 'disabled' : ''}><b>${ic('subir')}Mais espaço no estoque</b><span>+1 vaga (${C.espacoPneus(estado) + 1}/${C.limiteEspaco(estado)}) · ${reais(C.precoEspaco(estado))}</span></button>`
@@ -855,10 +857,24 @@
   }
 
   function linhaPatrocinio(o, oferta) {
+    const meta = `${chip(`${ic('alvo')}${C.textoMeta(o.meta)}`)}${chip(`${ic('presente')}+${reais(o.bonus)}`)}`;
+    if (!oferta) {
+      const curto = o.ate != null;
+      const faltam = curto ? o.ate - estado.etapa : 0;
+      return `<div class="item">
+        <div class="item-topo"><b>${esc(o.empresa)}</b><b class="dinheiro">${reais(o.porEtapa)}<span class="fraco">/etapa</span></b></div>
+        <div class="chips">${curto ? chip(`${ic('relogio')}${C.DURACOES_PATROCINIO[o.duracao].nome} · ${faltam === 1 ? 'última etapa' : `faltam ${faltam} etapas`}`, faltam === 1 ? 'chip-amarelo' : '') : `${chip(`${ic('relogio')}Temporada`)}${meta}`}</div>
+      </div>`;
+    }
+    // Oferta: o jogador escolhe o prazo. Curto paga mais por etapa; só a temporada tem meta e bônus.
+    const prazos = C.duracoesPatrocinio(estado, o).map((d) => `<button class="${d.id === 'temporada' ? 'principal ' : ''}prazo" data-acao="aceitar-patrocinio" data-id="${o.id}" data-duracao="${d.id}">
+        <b>${d.nome}</b><span>${d.etapas} etapa${d.etapas > 1 ? 's' : ''}</span><span class="prazo-valor">${reais(d.porEtapa)}</span><span>${d.bonus ? '+ bônus' : 'sem meta'}</span></button>`).join('');
     return `<div class="item">
       <div class="item-topo"><b>${esc(o.empresa)}</b><b class="dinheiro">${reais(o.porEtapa)}<span class="fraco">/etapa</span></b></div>
-      <div class="chips">${chip(`${ic('alvo')}${C.textoMeta(o.meta)}`)}${chip(`${ic('presente')}+${reais(o.bonus)}`)}</div>
-      ${oferta ? `<div class="botoes-2"><button class="principal" data-acao="aceitar-patrocinio" data-id="${o.id}">Aceitar</button><button data-acao="recusar-patrocinio" data-id="${o.id}">Recusar</button></div>` : ''}
+      <div class="chips">${meta}</div>
+      <span class="fraco mini">Fechar por quanto tempo? A meta e o bônus valem só no contrato da temporada.</span>
+      <div class="prazos">${prazos}</div>
+      <button class="link-recusar" data-acao="recusar-patrocinio" data-id="${o.id}">Recusar</button>
     </div>`;
   }
 
@@ -872,7 +888,7 @@
       ${!estado.patrocinios.length && !ofertas.length ? '<p class="vazio">Nenhuma empresa por enquanto.</p>' : ''}
       <div class="chips">${chip(`${ic('estrela')}Popularidade ${Math.round(estado.piloto.popularidade)}`)}</div>
       ${!BoxPremium.ativo ? `<button class="link-premium" data-acao="premium">${ic('cadeado')}Até ${C.MAX_PATROCINIOS} patrocinadores com o Premium</button>` : ''}`,
-    { ajuda: 'patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.maxPatrocinios()}">${vagas}</span>` });
+    { ajuda: 'patrocinio', classe: 'cartao-patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.maxPatrocinios()}">${vagas}</span>` });
   }
 
   function cartaoProposta(pr) {
@@ -1082,7 +1098,7 @@
         return `<div class="anotacao ${l.sessao === 'corrida' ? 'anotacao-corrida' : ''}">
           <div class="item-topo"><span class="chips">${chip(nome, l.sessao === 'corrida' ? 'chip-grande' : '')}${chip(ic(l.molhado ? 'chuva' : 'sol'))}${chip(`${l.tempPista}°`)}</span>
             <b>${l.tempo ? tempoVolta(l.tempo) : '—'} <span class="pos-mini ${!l.fora && l.posicao <= 3 ? 'top' : ''}">${pos}</span></b></div>
-          <div class="fraco">${Kart.PNEUS_KART[l.pneu].nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
+          <div class="fraco">${(Kart.PNEUS_KART[l.pneu] || { nome: l.pneu || "—" }).nome} · ${esc(Kart.descreverSetup(l.setup))}</div>
           ${l.nota ? notaCaderno(l.nota) : ''}
         </div>`;
       }).join('');
@@ -1093,8 +1109,9 @@
   function painelCaderno() {
     const pistas = Object.keys(estado.caderno);
     if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino, a classificação e a corrida aparecem aqui.</p>');
-    const todas = [...Dados.KARTODROMOS.br, ...Dados.KARTODROMOS.eu, ...Dados.KARTODROMOS.f4];
-    return `<div class="grade">${pistas.map((id) => cartao(esc(todas.find((x) => x.id === id).nome), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
+    const todas = Object.values(Dados.KARTODROMOS).flat();
+    const nome = (id) => (todas.find((x) => x.id === id) || { nome: id }).nome;
+    return `<div class="grade">${pistas.map((id) => cartao(esc(nome(id)), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
   }
 
   function telaPaddock() {
@@ -1248,23 +1265,31 @@
   }
 
   // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
-  // F2 e F1: composto de largada. Macio é mais rápido e dura menos; duro, o contrário.
+  // F3, F2 e F1: composto de largada, com o jogo do estoque. Macio é mais rápido e dura menos; duro, o contrário.
   function cartaoEstrategia(sprint) {
     const camp = C.campeonato(estado.campeonato);
     const voltas = sprint ? C.voltasSprint(camp) : camp.voltas;
-    const atual = estado.fds.composto || 'Md';
+    const semParada = sprint || !camp.compostos;
+    const atual = C.compostoMontado(estado);
     const opcoes = Engine.ORDEM_PNEUS.map((k) => {
       const p = Engine.PNEUS[k];
-      const vida = C.vidaComposto(estado, k);
+      const tipo = C.TIPO_DO_COMPOSTO[k];
+      // O jogo que vai para o carro: o montado, se for deste composto; senão o menos gasto do estoque.
+      const montado = atual === k ? estado.pneus.find((x) => x.id === estado.fds.pneuId) : null;
+      const jogo = montado || estado.pneus.filter((x) => x.tipo === tipo).sort((a, b) => a.uso - b.uso)[0];
+      if (!jogo) {
+        return `<button class="composto" disabled><span class="composto-bola" style="--cor:${p.cor}"></span><b>${p.nome}</b><small class="negativo">sem no estoque</small></button>`;
+      }
+      const vida = C.vidaComposto(estado, k, jogo.uso);
       const aguenta = vida >= voltas;
       return `<button class="composto ${atual === k ? 'ativo' : ''}" data-acao="composto" data-id="${k}" aria-pressed="${atual === k}">
         <span class="composto-bola" style="--cor:${p.cor}"></span><b>${p.nome}</b>
         <small>${p.ritmo ? `+${p.ritmo.toFixed(2).replace('.', ',')} s/volta` : 'O mais rápido'}</small>
-        <small class="${!sprint || aguenta ? '' : 'negativo'}">dura ~${vida} voltas</small></button>`;
+        <small class="${!semParada || aguenta ? '' : 'negativo'}">${C.pneuNovo(jogo) ? 'novo · ' : ''}dura ~${vida} voltas</small></button>`;
     }).join('');
-    const regra = sprint
-      ? `Sprint de ${voltas} voltas, sem parada: escolha um pneu que aguente até o fim.`
-      : `Corrida de ${voltas} voltas. É obrigatório usar dois compostos: o carro para uma vez no box (cerca de 20 s), e a equipe chama na hora certa. Dá para pedir o box antes durante a corrida.`;
+    const regra = semParada
+      ? `${sprint ? 'Sprint' : 'Corrida'} de ${voltas} voltas, sem parada: escolha um pneu do estoque que aguente até o fim.`
+      : `Corrida de ${voltas} voltas. É obrigatório usar dois compostos: o carro para uma vez no box (cerca de 20 s) e recebe outro jogo do seu estoque. A equipe chama na hora certa; dá para pedir o box antes durante a corrida.`;
     return cartao('Estratégia de pneus', `<p class="fraco mini">${regra}</p><div class="compostos">${opcoes}</div>`, { ajuda: 'compostos' });
   }
 
@@ -1400,7 +1425,7 @@
       <div class="coluna">
         ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali' })}
         ${cartaoMecanico()}
-        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
+        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}${botoesComprarPneu()}`)}
         <div class="acoes">
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
@@ -1453,7 +1478,7 @@
         ${C.usaCompostos(estado) ? cartaoEstrategia(sprint) : ''}
         ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
         ${cartaoMecanico()}
-        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
+        ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}${botoesComprarPneu()}`)}
         ${mudou ? `<div class="botoes-2"><button data-acao="desfazer-grid">${ic('repetir')}Acerto da classificação</button></div>` : ''}
       </div>
       ${cartao('Grid', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num opc">Tempo</th><th class="num">Dif.</th></tr>
@@ -1517,18 +1542,23 @@
       boxF4.innerHTML = eu.fora || corrida.terminou ? ''
         : eu.tipoPneu === 'chuva' ? chip(`${ic('pneu')}Pneu de chuva`, 'chip-azul')
           : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: entra na próxima volta</button>`
-            : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
+            : corrida.temJogo && !corrida.temJogo('chuva') ? `<button class="grande" disabled>${ic('pneu')}Sem pneu de chuva no estoque</button>`
+              : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
     }
     // F2 e F1: pedir o box com o composto escolhido.
     const boxComp = document.getElementById('box-composto');
     if (boxComp) {
       boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
         : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}"></span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => {
+            // Só os compostos com jogo livre no estoque.
+            const tem = !corrida.temJogo || corrida.temJogo(C.TIPO_DO_COMPOSTO[k]);
+            return `<button data-acao="box-composto" data-id="${k}" ${tem ? '' : 'disabled'}><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}"></span>${Engine.PNEUS[k].nome}${tem ? '' : ' <small>sem</small>'}</button>`;
+          }).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
     const comp = corrida.compostos;
-    const pneuTile = comp ? tile(Engine.PNEUS[eu.pneu].nome, `${Math.max(0, 100 - Math.round((eu.uso / Engine.PNEUS[eu.pneu].vida) * 100))}%`) : tile('Pneu', `${100 - desgastePct(eu.uso)}%`);
+    const pneuTile = comp ? tile(Engine.PNEUS[eu.pneu].nome, `${Math.max(0, 100 - Math.round((eu.uso / Engine.PNEUS[eu.pneu].vida) * 100))}%`) : tile('Pneu', `${100 - desgastePct(eu.uso, eu.tipoPneu)}%`);
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
       : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${pneuTile}`;
@@ -1829,6 +1859,14 @@
     if (!alvo || alvo.disabled) return;
     const { acao, id } = alvo.dataset;
     if (alvo.dataset.confirmar && alvo.dataset.armado !== '1') {
+      // Só um botão armado por vez: armar outro devolve o anterior ao normal.
+      app.querySelectorAll('button[data-armado="1"]').forEach((b) => {
+        b.dataset.armado = '';
+        b.innerHTML = b.htmlOriginal;
+        if (!b.eraPrincipal) b.classList.remove('principal');
+      });
+      alvo.htmlOriginal = alvo.innerHTML;
+      alvo.eraPrincipal = alvo.classList.contains('principal');
       alvo.dataset.armado = '1';
       alvo.textContent = alvo.dataset.confirmar;
       alvo.classList.add('principal');
@@ -1973,7 +2011,7 @@
         if (erro(C.amaciarPneu(estado))) { salvar(); render(); rolarPara('.acoes', 'center'); aviso('Pneu amaciado: pronto para render o máximo.'); }
         break;
       case 'aceitar-patrocinio':
-        if (erro(C.aceitarPatrocinio(estado, id))) { salvar(); render(); }
+        if (erro(C.aceitarPatrocinio(estado, id, alvo.dataset.duracao))) { salvar(); render(); rolarPara('.cartao-patrocinio', 'center'); }
         break;
       case 'recusar-patrocinio':
         C.recusarPatrocinio(estado, id);

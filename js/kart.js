@@ -205,6 +205,8 @@
 
   const PNEUS_KART = {
     slick: { nome: 'Slick', preco: 1600 },
+    medio: { nome: 'Médio', preco: 1500 },
+    duro: { nome: 'Duro', preco: 1400 },
     chuva: { nome: 'Chuva', preco: 1400 },
   };
 
@@ -277,7 +279,7 @@
       r.quebra = 0.0065 * Math.pow(forca, 1.5);
       r.motivoQuebra = 'Motor engripou';
     }
-    if (cond.molhado && pneu === 'slick') {
+    if (cond.molhado && pneu !== 'chuva') {
       r.tempo += 5;
       r.erro *= 4;
     } else if (!cond.molhado && pneu === 'chuva') {
@@ -387,7 +389,7 @@
       .map((x) => ({ k: x.k, texto: `${M.DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
     const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.' : null;
     let pneuDica = null;
-    if (cond.molhado && pneu === 'slick') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
+    if (cond.molhado && pneu !== 'chuva') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
     else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
     if (!sentiu.length && !pneuDica && !motor) sentiu.push(`O ${M.veiculo} estava muito bom! Equilibrado, dava pra acelerar tudo.`);
     return { sentiu, ajustes, pneu: pneuDica, motor };

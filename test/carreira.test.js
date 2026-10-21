@@ -10,6 +10,7 @@ function jogarFimDeSemana(estado, estrategia = 'padrao') {
   // Cuidados básicos de paddock: patrocínio, pneu novo e revisão do motor quando der.
   for (const o of estado.ofertasPatrocinio.slice()) Carreira.aceitarPatrocinio(estado, o.id);
   for (const p of estado.pneus.slice()) if (p.uso > 20) Carreira.venderPneu(estado, p.id);
+  for (const t of Carreira.faltaNoEstoque(estado)) Carreira.comprarPneu(estado, t);
   if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
   if (estado.pneus.filter((p) => p.tipo === 'slick').length < 2) Carreira.comprarPneu(estado, 'slick');
   if (Carreira.motorPedeRevisao(estado)) Carreira.revisarMotor(estado);
@@ -797,6 +798,11 @@ test('companheiro de equipe: placar de classificação e corrida ao longo da tem
   assert.strictEqual(e.duelo.id, comp.id);
   assert.strictEqual(e.duelo.quali[0] + e.duelo.quali[1], 3);
   assert.ok(e.duelo.corrida[0] + e.duelo.corrida[1] <= 3);
+  // Até o fim da temporada: uma classificação por etapa corrida, e o relatório guarda o placar.
+  let corridas = 3;
+  while (e.fase !== 'relatorio' && e.fase !== 'falencia') if (jogarFimDeSemana(e, 'ideal')) corridas++;
+  assert.strictEqual(e.relatorio.duelo.quali[0] + e.relatorio.duelo.quali[1], corridas);
+  assert.strictEqual(e.temporadas.at(-1).dueloVenci, e.relatorio.duelo.corrida[0] > e.relatorio.duelo.corrida[1]);
 });
 
 test('recordes da carreira e conquistas com ids estáveis', () => {
@@ -911,4 +917,77 @@ test('equipe de box: nível 2 e 3 só com Premium, e o pit fica mais rápido', (
   };
   assert.ok(tempoDeBox(Carreira.EQUIPE_BOX[3]) < tempoDeBox(Carreira.EQUIPE_BOX[1]));
   Carreira.migrar({ campeonato: 'regional' });
+});
+
+test('patrocínio: 3 meses, 6 meses ou temporada; contrato curto acaba e libera a vaga', () => {
+  const e = Carreira.novoJogo({ seed: 12 });
+  const [a, b] = e.ofertasPatrocinio;
+  const prazos = Carreira.duracoesPatrocinio(e, a);
+  assert.deepStrictEqual(prazos.map((d) => d.id), ['3', '6', 'temporada']);
+  assert.ok(prazos[0].porEtapa > a.porEtapa && prazos[0].bonus === 0);
+  assert.strictEqual(prazos[2].bonus, a.bonus);
+  assert.ok(Carreira.aceitarPatrocinio(e, a.id, '3').ok);
+  assert.ok(Carreira.aceitarPatrocinio(e, b.id, 'temporada').ok);
+  const curto = e.patrocinios.find((p) => p.empresa === a.empresa);
+  assert.strictEqual(curto.ate, prazos[0].etapas);
+  for (let i = 0; i < prazos[0].etapas; i++) {
+    assert.ok(e.patrocinios.some((p) => p.empresa === a.empresa));
+    Carreira.pularEtapa(e);
+  }
+  assert.ok(!e.patrocinios.some((p) => p.empresa === a.empresa), 'contrato de 3 meses acabou');
+  assert.ok(e.patrocinios.some((p) => p.empresa === b.empresa), 'o da temporada continua');
+  assert.ok(e.noticias.some((n) => n.texto.includes(`contrato com a ${a.empresa}`)));
+  assert.ok(e.ofertasPatrocinio.length > 0, 'aparece outra empresa');
+});
+
+test('F3 em diante: macio, médio, duro e chuva no estoque; sem eles não corre, e a parada usa jogo do estoque', () => {
+  const e = Carreira.novoJogo({ seed: 23 });
+  assert.ok(!Carreira.comprarPneu(e, 'medio').ok, 'no kart não existe médio');
+  Carreira.comecarEm(e, 'f2');
+  e.fase = 'paddock';
+  // Na estreia a equipe completa os quatro tipos.
+  for (const t of ['slick', 'medio', 'duro', 'chuva']) assert.ok(e.pneus.some((p) => p.tipo === t), t);
+  assert.strictEqual(Carreira.nomePneu(e, 'slick'), 'Macio');
+  // Sem duro no estoque: pendência e não corre.
+  const duros = e.pneus.filter((p) => p.tipo === 'duro');
+  e.pneus = e.pneus.filter((p) => p.tipo !== 'duro');
+  assert.ok(Carreira.pendenciasEtapa(e).some((x) => x.id === 'duro'));
+  assert.ok(!Carreira.iniciarFimDeSemana(e).ok);
+  e.pneus.push(...duros);
+  const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = null; cl.tarde.chove = false; cl.manha.chove = false;
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  if (Carreira.sprintPendente(e)) Carreira.concluirSprint(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  // Larga de médio, com o jogo do estoque (e o desgaste dele).
+  assert.ok(Carreira.escolherComposto(e, 'Md').ok);
+  const medio = e.pneus.find((p) => p.id === e.fds.pneuId);
+  medio.uso = 4;
+  assert.strictEqual(Carreira.compostoMontado(e), 'Md');
+  const c = Carreira.criarCorrida(e);
+  const eu = c.carros.find((x) => x.jogador);
+  assert.strictEqual(eu.pneu, 'Md');
+  assert.strictEqual(eu.uso, 4);
+  Engine.simularCompleta(c);
+  if (!eu.fora) assert.ok(eu.paradas >= 1);
+  // Cada jogo usado volta ao estoque gasto; o de largada e o da parada são jogos diferentes.
+  const usados = c.jogosJogador.map((j) => j.id);
+  assert.strictEqual(new Set(usados).size, usados.length);
+  Carreira.concluirCorrida(e, c);
+  assert.ok(e.pneus.find((p) => p.id === medio.id).uso > 4);
+  // Sem nenhum jogo seco livre, a parada não acontece.
+  const so = Carreira.novoJogo({ seed: 24 });
+  Carreira.comecarEm(so, 'f2');
+  so.fase = 'paddock';
+  const cl2 = Carreira.climaAtual(so); cl2.tarde.inicioChuva = null; cl2.tarde.chove = false; cl2.manha.chove = false;
+  assert.ok(Carreira.iniciarFimDeSemana(so).ok);
+  Carreira.irParaClassificacao(so);
+  Carreira.classificar(so);
+  if (Carreira.sprintPendente(so)) Carreira.concluirSprint(so, Engine.simularCompleta(Carreira.criarCorrida(so)));
+  Carreira.escolherComposto(so, 'M');
+  const c2 = Carreira.criarCorrida(so);
+  so.pneus = so.pneus.filter((p) => p.id === so.fds.pneuCorrida || p.tipo === 'chuva');
+  Engine.simularCompleta(c2);
+  assert.strictEqual(c2.carros.find((x) => x.jogador).paradas, 0);
+  assert.ok(c2.eventos.some((ev) => ev.texto.includes('Sem pneu seco no estoque')));
 });
