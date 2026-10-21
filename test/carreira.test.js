@@ -1093,3 +1093,29 @@ test('F2: parada escolhe o jogo com vida (não para de novo) e a corrida usa o j
   assert.ok(c.eventos.some((ev) => /médio está gasto/.test(ev.texto)));
   assert.strictEqual(eu.paradas, 1);
 });
+
+test('aposentadoria: a partir dos 21 (ou depois do título), obrigatória aos 38, com galeria da fama', () => {
+  const e = Carreira.novoJogo({ seed: 9 });
+  Carreira.comecarEm(e, 'f1');
+  e.fase = 'paddock';
+  fecharTemporada(e, 1);
+  assert.ok(e.noticias.some((n) => /Próxima meta: o bicampeonato/.test(n.texto)));
+  assert.ok(Carreira.podeEncerrar(e), 'campeão mundial pode parar mesmo jovem');
+  assert.ok(Carreira.encerrarCarreira(e).ok);
+  assert.strictEqual(e.fase, 'aposentado');
+  assert.strictEqual(e.galeria.f1.titulos, 1);
+  assert.ok(Carreira.conferirConquistas(e).some((c) => c.id === 'galeria'));
+  // Aos 38 o relatório não oferece outra temporada.
+  const v = Carreira.novoJogo({ seed: 10 });
+  Carreira.comecarEm(v, 'f2');
+  v.fase = 'paddock';
+  v.piloto.idade = 37;
+  fecharTemporada(v, 8);
+  assert.ok(v.relatorio.aposentadoria);
+  assert.ok(!Carreira.proximaTemporada(v, 'f2').ok);
+  assert.ok(Carreira.encerrarCarreira(v).ok);
+  // Kart aos 13: cedo demais.
+  const k = Carreira.novoJogo({ seed: 11 });
+  fecharTemporada(k, 5);
+  assert.ok(!Carreira.podeEncerrar(k));
+});

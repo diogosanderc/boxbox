@@ -267,6 +267,7 @@
   const nomePneu = (tipo) => C.nomePneu(estado, tipo);
   // Botões de compra: slick e chuva no kart e na F4; macio, médio, duro e chuva da F3 em diante.
   // Da F3 em diante, na pista não se compra: o fim de semana é com o estoque que foi.
+  const botaoRepor = () => (estado.fase === 'fds' ? '' : `<button class="compra repor" data-acao="repor-estoque"><b>${ic('repetir')}Repor estoque</b><span>Compra o que falta para a próxima etapa</span></button>`);
   const botoesComprarPneu = () => (C.quatroPneus(estado) && estado.fase === 'fds'
     ? '<p class="fraco mini">Na pista não dá para comprar pneu: o fim de semana é com o estoque que você trouxe.</p>'
     : `<div class="botoes-2 ${C.quatroPneus(estado) ? 'botoes-pneus-4' : ''}">${C.tiposPneu(estado).map((t) => `<button class="compra" data-acao="comprar-pneu" data-tipo="${t}"><b>+ ${nomePneu(t)}</b><span>${reais(C.precoPneu(estado, t))}</span></button>`).join('')}</div>`);
@@ -325,7 +326,7 @@
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
     document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
-    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia };
+    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado };
     telas[tela.nome]();
     deslizarSegmentos();
   }
@@ -860,6 +861,7 @@
       <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.espacoPneus(estado) ? 'aviso' : ''}">${estado.pneus.length}/${C.espacoPneus(estado)}</b></div>
       ${pneusVisuais(false)}
       ${botoesComprarPneu()}
+      ${botaoRepor()}
       ${!BoxPremium.ativo ? `<button class="compra premium-trancado" data-acao="premium" data-motivo="Mais espaço no estoque de pneus é do Premium."><b>${ic('cadeado')}Mais espaço no estoque</b><span>Premium · até ${C.limiteEspaco(estado)} vagas nesta categoria</span></button>`
         : C.espacoPneus(estado) < C.limiteEspaco(estado)
         ? `<button class="compra" data-acao="comprar-espaco" data-confirmar="Confirmar: −${reais(C.precoEspaco(estado))}" ${estado.dinheiro < C.precoEspaco(estado) ? 'disabled' : ''}><b>${ic('subir')}Mais espaço no estoque</b><span>+1 vaga (${C.espacoPneus(estado) + 1}/${C.limiteEspaco(estado)}) · ${reais(C.precoEspaco(estado))}</span></button>`
@@ -1065,6 +1067,27 @@
       ${faltam.length > 3 ? `<details class="mais-conquistas"><summary>Ver todas (${faltam.length - 3} a mais)</summary><div class="conquistas">${faltam.slice(3).map(item).join('')}</div></details>` : ''}`);
   }
 
+  // Na primeira vez da F3 em diante: como funciona o estoque de quatro tipos de pneu.
+  function folhaTutorialPneus() {
+    if (!C.quatroPneus(estado) || estado.tutorialPneus || tela.checagem) return '';
+    const camp = C.campeonato(estado.campeonato);
+    const tipo = (cls, nome, texto) => `<div class="tut-pneu"><span class="pneu-roda ${cls}" aria-hidden="true"></span><span><b>${nome}</b><small>${texto}</small></span></div>`;
+    return `<div class="folha-fundo"><div class="folha" role="dialog" aria-modal="true" aria-labelledby="tut-titulo">
+      <h3 id="tut-titulo">Pneus da ${esc(camp.curto)} em diante</h3>
+      <p class="fraco">Agora o estoque tem quatro tipos de pneu, e você só corre com o que estiver nele.</p>
+      ${tipo('slick macio', 'Macio', 'O mais rápido. Gasta rápido: bom para classificar.')}
+      ${tipo('medio', 'Médio', 'O meio-termo entre ritmo e duração.')}
+      ${tipo('duro', 'Duro', 'Mais lento, mas aguenta muitas voltas.')}
+      ${tipo('chuva', 'Chuva', 'Obrigatório no estoque. Sem ele, chuva é com pneu de seco.')}
+      <ul class="tut-regras">
+        <li>Para correr: o pneu de chuva e ${camp.compostos ? 'dois compostos de seco diferentes (a corrida tem parada obrigatória)' : 'pelo menos um composto de seco (na F3 não tem parada)'}.</li>
+        <li>Na pista não se compra pneu: o fim de semana é com o estoque que você levou.</li>
+        <li>Cada jogo volta gasto depois da corrida. Use "Repor estoque" na oficina antes de cada etapa.</li>
+      </ul>
+      <button class="principal grande" data-acao="tutorial-pneus">Entendi</button>
+    </div></div>`;
+  }
+
   // Teto do piloto (estimado pelos olheiros) e preparação que sobe esse teto.
   function cartaoPreparacao() {
     const p = estado.piloto;
@@ -1176,7 +1199,7 @@
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
         <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button>
       </div>
-      ${folhaChecagem()}${folhaPneu()}`;
+      ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}`;
   }
 
   const SOBRE_TIPO = {
@@ -1330,10 +1353,13 @@
         <small>${p.ritmo ? `+${p.ritmo.toFixed(2).replace('.', ',')} s/volta` : 'O mais rápido'}</small>
         <small class="${!semParada || aguenta ? '' : 'negativo'}">${C.pneuNovo(jogo) ? 'novo · ' : ''}dura ~${vida} voltas</small></button>`;
     }).join('');
+    const montado = estado.pneus.find((x) => x.id === estado.fds.pneuId);
+    const vidaMontado = montado ? 100 - desgastePct(montado.uso, montado.tipo) : 100;
+    const gasto = montado && vidaMontado < 60 ? `<p class="aviso-caixa">${ic('alerta')}O jogo montado (${nomePneu(montado.tipo).toLowerCase()}) tem ${Math.max(0, vidaMontado)}% de vida.${estado.pneus.some((x) => x.tipo === montado.tipo && x.uso < montado.uso) ? ' Há um jogo mais novo do mesmo tipo no estoque.' : ''}</p>` : '';
     const regra = semParada
       ? `${sprint ? 'Sprint' : 'Corrida'} de ${voltas} voltas, sem parada: escolha um pneu do estoque que aguente até o fim.`
       : `Corrida de ${voltas} voltas. É obrigatório usar dois compostos: o carro para uma vez no box (cerca de 20 s) e recebe outro jogo do seu estoque. A equipe chama na hora certa; dá para pedir o box antes durante a corrida.`;
-    return cartao('Estratégia de pneus', `<p class="fraco mini">${regra}</p><div class="compostos">${opcoes}</div>`, { ajuda: 'compostos' });
+    return cartao('Estratégia de pneus', `<p class="fraco mini">${regra}</p><div class="compostos">${opcoes}</div>${gasto}`, { ajuda: 'compostos' });
   }
 
   // Resultado da sprint, mostrado no grid da corrida principal.
@@ -1411,7 +1437,9 @@
 
   function aviseGasto() {
     const p = estado.pneus.find((x) => x.id === estado.fds.pneuId);
-    return p && p.uso > 15 ? chip(`${ic('alerta')}Pneu gasto para a corrida`, 'chip-amarelo') : '';
+    if (!p) return '';
+    const vida = 100 - desgastePct(p.uso, p.tipo);
+    return vida < 45 ? chip(`${ic('alerta')}Este jogo tem ${Math.max(0, vida)}% de vida`, 'chip-amarelo') : '';
   }
 
   // Sem mecânico por padrão: contrata-se por etapa, e ele só ajuda durante o treino livre.
@@ -1736,6 +1764,21 @@
       ${recusadas ? `<p class="fraco mini">${recusadas} ${recusadas === 1 ? 'equipe não quis' : 'equipes não quiseram'} você este ano. Resultado e popularidade abrem mais portas.</p>` : ''}`;
   }
 
+  // Quando não veio proposta para subir: o que faltou, em uma linha.
+  function semProposta(r) {
+    if (estado.propostas.length || r.f4Espera || r.aposentadoria) return '';
+    const camp = C.campeonato(r.campeonato);
+    const prox = C.PROXIMA_CATEGORIA[camp.id];
+    let texto = '';
+    if (prox) texto = `Para receber proposta da ${C.campeonato(prox).curto}, é preciso terminar no top ${C.VAGAS_SUBIDA} da ${camp.curto}. Você terminou em P${r.pos}.`;
+    else if (camp.id === 'f1') {
+      const ponta = (r.equipes || []).some((id) => C.porteDe(id) === 'ponta');
+      if (!ponta) texto = 'As equipes de ponta da F1 só chamam quem termina no top 6 ou vence o duelo com o companheiro.';
+    } else if (camp.id === 'internacional') texto = `As equipes de F4 olham o top ${C.VAGAS_SUBIDA} do Europeu; as academias de F1, os dois primeiros. Você terminou em P${r.pos}.`;
+    else if (camp.id === 'nacional') texto = 'O campeão brasileiro chama a atenção de uma equipe de F4. O caminho mais comum é subir para o Europeu.';
+    return texto ? `<p class="aviso-caixa sem-proposta">${ic('alerta')}${esc(texto)}</p>` : '';
+  }
+
   function telaRelatorio() {
     const r = estado.relatorio;
     const camp = C.campeonato(r.campeonato);
@@ -1747,6 +1790,7 @@
       ${estado.propostas.length ? cartao(`${estado.propostas.length > 1 ? 'Propostas' : 'Proposta'} para a ${destinoProposta(estado.propostas[0])}`, (r.motivoF4 ? `<p class="motivo-f4">${ic('subir')}${esc(r.motivoF4)}</p>` : '') + estado.propostas.map((p) => `<div class="item">
           <div class="item-topo"><b>${esc(p.nome)}</b></div><p class="fraco">${esc(p.texto)}</p>
           <button class="principal grande" data-acao="aceitar-proposta" data-id="${p.id}">Assinar e subir para a ${destinoProposta(p)}</button></div>`).join(''), { classe: 'destaque' }) : ''}
+      ${semProposta(r)}
       <div class="grade">
         <section class="painel resultado-hero ${r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P${r.pos}</b></div>
@@ -1759,13 +1803,14 @@
           ${r.premios.map((p) => `<div class="item-topo"><span>${ic('trofeu')}${esc(p.texto)}</span><b class="dinheiro">+${reais(p.valor)}</b></div>`).join('')}
           ${r.bonus.map((b) => `<div class="item-topo"><span>${ic(b.cumpriu ? 'certo' : 'errado', b.cumpriu ? 'dinheiro' : 'negativo')}${esc(b.empresa)}</span><b class="${b.cumpriu ? 'dinheiro' : 'fraco'}">${b.cumpriu ? '+' + reais(b.valor) : '—'}</b></div>`).join('')}
           ${tile('Caixa', reais(estado.dinheiro))}`)}
-        ${cartao('Próximo ano', `<div class="escolhas">${r.opcoes.map((id) => {
+        ${cartao(r.aposentadoria ? 'Fim da carreira' : 'Próximo ano', `${r.aposentadoria ? '' : `<div class="escolhas">${r.opcoes.map((id) => {
             const c = C.campeonato(id);
             return `<button class="escolha ${escolha === id ? 'ativo' : ''}" data-acao="escolher-proximo" data-id="${id}" aria-pressed="${escolha === id}">
               <b>${esc(c.curto)}</b><span class="chips">${chip(id === r.campeonato ? `${ic('repetir')}Repetir` : `${ic('subir')}Subir`, id === r.campeonato ? '' : 'chip-dinheiro')}${chip(`${ic('carteira')}×${c.custo}`)}${c.regiao === 'eu' ? chip(`${ic('globo')}Europa`) : ''}</span></button>`;
-          }).join('')}</div>
-          ${escolhaEquipeAno(escolha)}
-          <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`, { ajuda: 'temporada' })}
+          }).join('')}</div>`}
+          ${r.aposentadoria ? `<p class="fraco">Aos ${C.IDADE_APOSENTADORIA} anos é hora de pendurar o capacete.</p>` : `${escolhaEquipeAno(escolha)}
+          <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`}
+          ${C.podeEncerrar(estado) ? `<button class="${r.aposentadoria ? 'principal ' : ''}grande" data-acao="aposentar" data-confirmar="Confirmar: encerrar a carreira">${ic('trofeu')}Encerrar carreira</button>` : ''}`, { ajuda: 'temporada' })}
       </div>`;
   }
 
@@ -1900,6 +1945,35 @@
       <button class="principal grande" data-acao="comecar-f1">Correr na F1</button>`;
   }
 
+  // Galeria da fama: o resumo da carreira inteira, depois da aposentadoria.
+  function telaAposentado() {
+    const g = estado.galeria || C.galeriaDaFama(estado);
+    const titulosF1 = g.f1.titulos;
+    const frase = titulosF1 > 1 ? `${titulosF1} vezes campeão mundial` : titulosF1 === 1 ? 'Campeão mundial de Fórmula 1'
+      : g.f1.corridas ? `Piloto de Fórmula 1${g.f1.vitorias ? `, ${g.f1.vitorias} ${g.f1.vitorias > 1 ? 'vitórias' : 'vitória'}` : ''}` : 'Uma carreira nas pistas';
+    const nomesTitulos = g.titulos.map((t) => `<span class="chip ${t.campeonato === 'f1' ? 'chip-ouro' : ''}">${ic('trofeu')}${esc(C.campeonato(t.campeonato).curto)} ${t.ano}</span>`).join('');
+    app.innerHTML = `<section class="fim-hero ${titulosF1 ? 'campeao' : 'podio'} revelado galeria">
+        ${titulosF1 ? `<div class="confete" aria-hidden="true">${confete(24)}</div>` : ''}
+        <span class="campeao-ano">Galeria da fama</span>
+        <span class="fim-voce">${esc(g.nome)} · ${g.temporadas} temporadas · aposentado aos ${g.idade}</span>
+        <b class="fim-pos">${titulosF1 ? `${titulosF1}×` : g.titulos.length}</b>
+        <span class="fim-frase">${frase}</span>
+      </section>
+      <div class="fim-numeros">
+        <span><b>${g.corridas}</b>corridas</span>
+        <span><b>${g.vitorias}</b>vitórias</span>
+        <span><b>${g.podios}</b>pódios</span>
+        <span><b>${g.poles}</b>poles</span>
+      </div>
+      <div class="grade">
+        ${g.f1.corridas ? cartao('Na Fórmula 1', `<div class="tiles">${tile('GPs', g.f1.corridas)}${tile('Vitórias', g.f1.vitorias, g.f1.vitorias ? 'dinheiro' : '')}${tile('Pódios', g.f1.podios)}${tile('Poles', g.f1.poles)}</div><p class="fraco mini">Melhor campeonato: P${g.f1.melhor}.</p>`) : ''}
+        ${cartao('Títulos', g.titulos.length ? `<div class="chips">${nomesTitulos}</div>` : '<p class="vazio">Nenhum título, mas muita história.</p>')}
+        ${cartao('Do kart ao fim', `<div class="escada">${g.escada.map((t) => `<div class="degrau"><span>${t.ano}</span><b>${esc(C.campeonato(t.campeonato).curto)}</b><span class="${t.pos === 1 ? 'dinheiro' : ''}">P${t.pos}</span></div>`).join('')}</div>`)}
+        ${cartao('Conquistas', `<p><b>${g.conquistas}</b> de ${g.totalConquistas} conquistas.</p>`)}
+      </div>
+      <button class="principal grande" data-acao="abandonar" data-confirmar="Confirmar: começar do zero">Nova carreira</button>`;
+  }
+
   function telaFalencia() {
     app.innerHTML = `<section class="painel tela-nome">
       <span class="capacete">${icone('bateria', 'sem-carga')}</span>
@@ -1996,6 +2070,19 @@
         estado = C.migrar(carregar());
         if (estado.fds && estado.fds.sessao === 'corrida') estado.fds.sessao = 'grid';
         ir(telaDaFase());
+        break;
+      case 'repor-estoque': {
+        const r = C.reporEstoque(estado);
+        if (erro(r)) { salvar(); render(); rolarPara('.repor', 'center'); aviso(`Comprado: ${r.texto} (−${reais(r.gasto)}).`, 'pneu'); }
+        break;
+      }
+      case 'tutorial-pneus':
+        estado.tutorialPneus = true;
+        salvar();
+        render();
+        break;
+      case 'aposentar':
+        if (erro(C.encerrarCarreira(estado))) { salvar(); ir({ nome: 'aposentado' }); }
         break;
       case 'abandonar':
         apagarSave();

@@ -474,6 +474,8 @@
       : `Na ${campeonato(estado.campeonato).curto} é preciso ter pelo menos um composto de seco (macio, médio ou duro) e o de chuva.`;
     return `Sem pneu para correr: falta ${falta}. ${regra}`;
   }
+  // "a, b e c"
+  const listaE = (l) => (l.length > 1 ? `${l.slice(0, -1).join(', ')} e ${l[l.length - 1]}` : l[0] || '');
   const faltaNoEstoque = (estado) => (quatroPneus(estado) ? TIPOS_F3.filter((t) => !estado.pneus.some((p) => p.tipo === t)) : []);
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
@@ -503,6 +505,29 @@
     estado.pneus.push({ id: `pn${estado.proxPneu++}`, tipo, uso: 0 });
     estado.pneus.sort((a, b) => TIPOS_F3.indexOf(a.tipo) - TIPOS_F3.indexOf(b.tipo));
     return { ok: true };
+  }
+
+  // Repor estoque (oficina): compra o que falta para o próximo fim de semana. Da F3 em diante, um jogo de
+  // cada tipo que faltar; em toda categoria, um seco novo para classificar e um de chuva se não houver.
+  function reporEstoque(estado) {
+    if (estado.fase === 'fds') return { ok: false, erro: 'Na pista não dá para comprar pneu.' };
+    const querer = [...faltaNoEstoque(estado)];
+    if (!querer.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) querer.unshift('slick');
+    if (!querer.includes('chuva') && !estado.pneus.some((p) => p.tipo === 'chuva')) querer.push('chuva');
+    if (!querer.length) return { ok: false, erro: 'O estoque já está em dia.' };
+    const comprados = [];
+    let gasto = 0;
+    for (const t of querer) {
+      const antes = estado.dinheiro;
+      const r = comprarPneu(estado, t);
+      if (!r.ok) {
+        if (!comprados.length) return r; // estoque cheio (com a oferta do Premium) ou sem dinheiro
+        break;
+      }
+      comprados.push(nomePneu(estado, t).toLowerCase());
+      gasto += antes - estado.dinheiro;
+    }
+    return { ok: true, comprados, gasto, texto: listaE(comprados) };
   }
 
   function descartarPneu(estado, id) {
@@ -883,7 +908,7 @@
     // Da F3 em diante são quatro tipos de pneu: na estreia a equipe entrega um jogo de cada um que faltar.
     const falta = faltaNoEstoque(estado);
     for (const t of falta) comprarPneu(estado, t, true);
-    if (falta.length) noticia(estado, `A ${base.nome} entrega um jogo de ${falta.map((t) => nomePneu(estado, t).toLowerCase()).join(', ')}: na ${camp.curto} é preciso ter macio, médio, duro e chuva no estoque.`);
+    if (falta.length) noticia(estado, `A ${base.nome} entrega um jogo de ${listaE(falta.map((t) => nomePneu(estado, t).toLowerCase()))}: na ${camp.curto} é preciso ter macio, médio, duro e chuva no estoque.`);
     // Chegar à F1 é o fim da escada: primeiro a festa da Superlicença, depois o paddock.
     // Ao assinar, a equipe paga luvas: cinco etapas de salário de uma vez.
     if (campId === 'f1') {
@@ -1645,6 +1670,13 @@
     estado.ano += 1;
     estado.fase = estado.dinheiro < custoMinimo && !propostasF4.length ? 'falencia' : 'relatorio';
     noticia(estado, `${p.nome} termina ${rel.ano} em P${pos} na ${camp.nome}. Campeão: ${rel.campeao}.`);
+    if (camp.id === 'f1' && pos === 1) {
+      const n = estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length;
+      noticia(estado, `${n === 1 ? 'Campeão mundial!' : `${n}º título mundial!`} Próxima meta: o ${['', 'bi', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa'][n] || `${n + 1}º `}campeonato.`);
+    }
+    // Aos 38 anos a carreira acaba: o relatório só oferece pendurar o capacete.
+    rel.aposentadoria = p.idade >= IDADE_APOSENTADORIA;
+    if (rel.aposentadoria) estado.propostas = [];
   }
 
   // Mercado de fim de ano: quais equipes aceitam o piloto para o próximo ano.
@@ -1665,6 +1697,7 @@
 
   // Começa o ano seguinte no campeonato e na equipe escolhidos.
   function proximaTemporada(estado, campeonatoId, equipeId = estado.equipeId) {
+    if (estado.relatorio && estado.relatorio.aposentadoria) return { ok: false, erro: `Aos ${IDADE_APOSENTADORIA} anos é hora de pendurar o capacete.` };
     if (!estado.relatorio.opcoes.includes(campeonatoId)) return { ok: false, erro: 'Campeonato não disponível.' };
     const equipes = estado.relatorio.equipes || [estado.equipeId];
     if (!equipes.includes(equipeId)) return { ok: false, erro: 'Essa equipe não aceitou você.' };
@@ -1755,7 +1788,42 @@
     { id: 'primeira_vitoria_f1', nome: 'Vencedor de GP', texto: 'Vença um GP de Fórmula 1.', ok: (e) => e.historico.some((h) => h.campeonato === 'f1' && !h.fora && h.pos === 1) },
     { id: 'campeao_mundial', nome: 'Campeão mundial', texto: 'Vença o Mundial de Fórmula 1.', ok: titulo('f1') },
     { id: 'campeao_jovem', nome: 'Prodígio', texto: 'Seja campeão mundial com menos de 21 anos.', ok: (e) => e.temporadas.some((t) => t.campeonato === 'f1' && t.pos === 1 && t.idade < 21) },
+    // Metas de lenda, para depois do primeiro título.
+    { id: 'bicampeao', nome: 'Bicampeão', texto: 'Vença o Mundial de Fórmula 1 duas vezes.', ok: (e) => e.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length >= 2 },
+    { id: 'tricampeao', nome: 'Tricampeão', texto: 'Vença o Mundial de Fórmula 1 três vezes.', ok: (e) => e.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length >= 3 },
+    { id: 'vinte_gps', nome: '20 GPs', texto: 'Vença 20 GPs de Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && !h.fora && h.pos === 1).length >= 20 },
+    { id: 'dez_poles_f1', nome: 'Rei da classificação', texto: 'Faça 10 poles na Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && h.pole).length >= 10 },
+    { id: 'galeria', nome: 'Galeria da fama', texto: 'Encerre a carreira com um título mundial.', ok: (e) => e.fase === 'aposentado' && titulo('f1')(e) },
   ];
+
+  // ---------- fim da carreira ----------
+  // Aposentadoria: a partir dos 21 anos, ou a qualquer momento depois de um título mundial. Aos 38 é obrigatória.
+  const IDADE_APOSENTADORIA = 38;
+  const podeEncerrar = (estado) => estado.fase === 'relatorio' && (estado.piloto.idade >= 21 || titulo('f1')(estado));
+  function galeriaDaFama(estado) {
+    const h = estado.historico;
+    const ok = h.filter((x) => !x.fora);
+    const f1 = h.filter((x) => x.campeonato === 'f1');
+    return {
+      nome: estado.piloto.nome, idade: estado.piloto.idade, anoFim: estado.ano - 1, temporadas: estado.temporadas.length,
+      corridas: h.length, vitorias: ok.filter((x) => x.pos === 1).length, podios: ok.filter((x) => x.pos <= 3).length, poles: h.filter((x) => x.pole).length,
+      titulos: estado.temporadas.filter((t) => t.pos === 1).map((t) => ({ ano: t.ano, campeonato: t.campeonato })),
+      f1: { corridas: f1.length, vitorias: f1.filter((x) => !x.fora && x.pos === 1).length, podios: f1.filter((x) => !x.fora && x.pos <= 3).length, poles: f1.filter((x) => x.pole).length,
+        titulos: estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length,
+        melhor: Math.min(...estado.temporadas.filter((t) => t.campeonato === 'f1').map((t) => t.pos), 99) },
+      conquistas: Object.keys(estado.conquistas || {}).length, totalConquistas: CONQUISTAS.length,
+      escada: estado.temporadas.map((t) => ({ ano: t.ano, campeonato: t.campeonato, pos: t.pos })),
+    };
+  }
+  function encerrarCarreira(estado) {
+    if (!podeEncerrar(estado)) return { ok: false, erro: 'Ainda é cedo para pendurar o capacete.' };
+    estado.fase = 'aposentado';
+    estado.propostas = [];
+    estado.galeria = galeriaDaFama(estado);
+    const t = estado.galeria.f1.titulos;
+    noticia(estado, `${estado.piloto.nome} anuncia a aposentadoria aos ${estado.piloto.idade} anos${t ? `, com ${t} ${t > 1 ? 'títulos mundiais' : 'título mundial'}` : ''}.`);
+    return { ok: true };
+  }
   // Confere as conquistas e devolve as novas (para avisar o jogador).
   function conferirConquistas(estado) {
     if (!estado.conquistas) estado.conquistas = {};
@@ -1772,11 +1840,11 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

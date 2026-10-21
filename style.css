@@ -1043,3 +1043,15 @@ button.prazo.principal .prazo-valor { color: inherit; }
 .dev-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--borda); }
 .dev-linha > span { display: grid; gap: 4px; }
 .dev-linha .compra { min-width: 118px; }
+
+/* Galeria da fama */
+.chip.chip-ouro { color: var(--ouro); border-color: rgba(255, 210, 74, 0.45); }
+.fim-hero.galeria .fim-pos { font-size: clamp(56px, 16vw, 96px); }
+
+/* Passo a passo dos quatro pneus (F3 em diante) */
+.tut-pneu { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+.tut-pneu > span:last-child { display: grid; }
+.tut-pneu small { color: var(--fraco); font-size: 13px; }
+.tut-pneu .pneu-roda { grid-row: auto; flex: none; }
+.tut-regras { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--fraco); }
+.compra.repor { justify-items: start; text-align: left; }
