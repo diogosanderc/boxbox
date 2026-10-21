@@ -48,6 +48,7 @@
   // O save mora no BoxSave (js/armazenamento.js): arquivo no iPhone, localStorage no navegador.
   function salvar() {
     encherCaixa();
+    if (estado) avisarConquistas(C.conferirConquistas(estado));
     BoxSave.gravar(CHAVE_SAVE, JSON.stringify(estado));
   }
   function carregar() {
@@ -395,6 +396,13 @@
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
   // Ícone pequeno no meio do texto (chips, botões, listas).
   const ic = (nome, classe = '') => icone(nome, `ico-i ${classe}`);
+
+  // Conquista nova: aviso na hora (várias de uma vez viram um aviso só).
+  function avisarConquistas(novas) {
+    if (!novas.length) return;
+    // Espera a tela nova aparecer (ir() limpa os avisos) para o aviso não sumir.
+    setTimeout(() => aviso(novas.length === 1 ? `Conquista: ${novas[0].nome}!` : `${novas.length} conquistas novas!`, 'estrela'), 60);
+  }
 
   // ---------- código secreto ----------
   // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
@@ -877,12 +885,48 @@
     return `<span class="onda" aria-hidden="true">${barras.map((v) => `<i style="height:${Math.round(v)}%"></i>`).join('')}</span>`;
   }
 
+  // Recordes do jogador na carreira inteira.
+  function cartaoRecordes() {
+    const r = C.recordesCarreira(estado);
+    const n = (rotulo, valor) => `<span><b>${valor}</b>${rotulo}</span>`;
+    const cats = Object.entries(r.porCategoria).sort((a, b) => C.campeonato(a[0]).ordem - C.campeonato(b[0]).ordem);
+    return cartao('Recordes da carreira', `<div class="fim-numeros recordes-numeros">
+        ${n('corridas', r.corridas)}${n(r.vitorias === 1 ? 'vitória' : 'vitórias', r.vitorias)}${n('pódios', r.podios)}${n(r.titulos === 1 ? 'título' : 'títulos', r.titulos)}
+        ${n('poles', r.poles)}${n('voltas rápidas', r.voltasRapidas)}${n('sprints', r.sprintsVencidas)}${n('pontos', r.pontos)}
+      </div>
+      ${r.primeiraVitoria ? `<p class="fraco mini">Primeira vitória: ${esc(r.primeiraVitoria.pista)} (${C.campeonato(r.primeiraVitoria.campeonato).curto}, ${r.primeiraVitoria.ano}).</p>` : ''}
+      ${cats.length ? `<span class="subtitulo">Por categoria</span><div class="recordes-cat">${cats.map(([id, c]) => `<div class="degrau"><b>${esc(C.campeonato(id).curto)}</b><span>${c.vitorias} vit. · ${c.podios} pód. · melhor P${c.melhor || '—'}</span><span class="${c.titulos ? 'dinheiro' : 'fraco'}">${c.titulos ? `${c.titulos}× campeão` : c.melhorCampeonato && c.melhorCampeonato < 99 ? `P${c.melhorCampeonato} no ano` : ''}</span></div>`).join('')}</div>` : ''}
+      <span class="subtitulo">Recordes de pista que são seus</span>
+      ${r.pistas.length ? `<div class="recordes-cat">${r.pistas.map((x) => `<div class="degrau"><b>${tempoVolta(x.tempo)}</b><span>${esc(x.pista || nomePistaPorChave(x.chave))}</span><span class="fraco">${x.campeonato ? esc(C.campeonato(x.campeonato).curto) : ''} ${x.ano}</span></div>`).join('')}</div>` : '<p class="vazio">Nenhum ainda. Bata o recorde de uma pista no treino, na classificação ou na corrida.</p>'}`);
+  }
+  const nomePistaPorChave = (chave) => {
+    const id = chave.split(':').pop();
+    const p = Object.values(Dados.KARTODROMOS).flat().find((x) => x.id === id);
+    return p ? p.nome : id;
+  };
+
+  function cartaoConquistas() {
+    const feitas = estado.conquistas || {};
+    const total = C.CONQUISTAS.length;
+    const qtd = C.CONQUISTAS.filter((c) => feitas[c.id]).length;
+    const item = (c) => `<div class="conquista ${feitas[c.id] ? 'feita' : ''}">
+        ${icone(feitas[c.id] ? 'trofeu' : 'estrela')}<span><b>${esc(c.nome)}</b><small>${esc(c.texto)}${feitas[c.id] ? ` · ${feitas[c.id].ano}` : ''}</small></span></div>`;
+    // Feitas primeiro, depois as três próximas; o resto fica em "ver todas".
+    const feitasL = C.CONQUISTAS.filter((c) => feitas[c.id]);
+    const faltam = C.CONQUISTAS.filter((c) => !feitas[c.id]);
+    return cartao(`Conquistas · ${qtd}/${total}`, `<div class="barra-conquistas"><i style="width:${(qtd / total) * 100}%"></i></div>
+      <div class="conquistas">${feitasL.map(item).join('')}${faltam.slice(0, 3).map(item).join('')}</div>
+      ${faltam.length > 3 ? `<details class="mais-conquistas"><summary>Ver todas (${faltam.length - 3} a mais)</summary><div class="conquistas">${faltam.slice(3).map(item).join('')}</div></details>` : ''}`);
+  }
+
   function painelPiloto() {
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
       ${cartao(esc(p.nome), `${C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join('')}
         <div class="aneis">${anel('Moral', p.moral)}${anel('Confiança', p.confianca)}</div>`, { ajuda: 'cabeca' })}
+      ${cartaoRecordes()}
+      ${cartaoConquistas()}
       ${cartao(`Campeonato ${estado.ano}`, graficoPosicao(estado.evolucao.filter((e) => e.ano === estado.ano && e.campeonato === estado.campeonato).map((e) => ({ rotulo: `Etapa ${e.etapa}`, curto: `E${e.etapa}`, pos: e.pos }))))}
       ${estado.temporadas.length >= 2 ? cartao('Carreira', graficoPosicao(estado.temporadas.map((t) => ({ rotulo: `${t.ano} ${C.campeonato(t.campeonato).curto}`, curto: String(t.ano), pos: t.pos })))) : ''}
       ${cartao('Últimas corridas', ultimos.length

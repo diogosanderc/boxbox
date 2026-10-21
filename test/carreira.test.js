@@ -795,3 +795,17 @@ test('companheiro de equipe: placar de classificação e corrida ao longo da tem
   assert.strictEqual(e.duelo.quali[0] + e.duelo.quali[1], 3);
   assert.ok(e.duelo.corrida[0] + e.duelo.corrida[1] <= 3);
 });
+
+test('recordes da carreira e conquistas com ids estáveis', () => {
+  const e = Carreira.novoJogo({ seed: 51 });
+  for (let i = 0; i < 4; i++) jogarFimDeSemana(e, 'ideal');
+  const r = Carreira.recordesCarreira(e);
+  assert.strictEqual(r.corridas, 4);
+  assert.ok(r.porCategoria.regional.corridas === 4);
+  const novas = Carreira.conferirConquistas(e);
+  assert.ok(novas.some((c) => c.id === 'primeira_corrida'));
+  assert.strictEqual(Carreira.conferirConquistas(e).length, 0); // não repete
+  const ids = Carreira.CONQUISTAS.map((c) => c.id);
+  assert.strictEqual(new Set(ids).size, ids.length);
+  for (const id of ids) assert.match(id, /^[a-z0-9_]+$/);
+});

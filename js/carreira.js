@@ -675,7 +675,7 @@
     const pista = pistaAtual(estado);
     if (!(tempo < recordePista(estado, pista).tempo)) return false;
     if (!estado.recordes) estado.recordes = {};
-    estado.recordes[chaveRecorde(estado, pista)] = { tempo: Math.round(tempo * 1000) / 1000, nome: nomeDe(estado, id), ano: estado.ano, sessao, jogador: id === 'jogador' };
+    estado.recordes[chaveRecorde(estado, pista)] = { tempo: Math.round(tempo * 1000) / 1000, nome: nomeDe(estado, id), ano: estado.ano, sessao, jogador: id === 'jogador', pista: pista.nome, campeonato: estado.campeonato };
     noticia(estado, `Recorde da pista em ${pista.nome}: ${nomeDe(estado, id)} faz ${tempo.toFixed(3)}!`);
     return id === 'jogador';
   }
@@ -1130,7 +1130,7 @@
     fds.resultado = { companheiro: comp ? { nome: comp.nome, pos: dele.pos, fora: dele.fora, venci: dueloCorrida } : null, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora,
-      largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos });
+      largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos, chuva: !!corrida.molhado, idade: p.idade });
     const clima = climaAtual(estado);
     const condFinal = Kart.condicao(clima, 'corrida', !!corrida.molhado);
     const tipoPneu = carro.tipoPneu || (pneu ? pneu.tipo : 'slick');
@@ -1302,7 +1302,8 @@
     const lista = equipesDaCategoria(estado);
     const custoMinimo = Math.round(lista[lista.length - 1].custoEtapa * camp.custo);
     estado.relatorio = rel;
-    estado.temporadas.push({ ano: rel.ano, campeonato: rel.campeonato, pos: rel.pos, pontos: rel.pontos });
+    estado.temporadas.push({ ano: rel.ano, campeonato: rel.campeonato, pos: rel.pos, pontos: rel.pontos, idade: estado.piloto.idade - 1,
+      dueloVenci: rel.duelo ? rel.duelo.corrida[0] > rel.duelo.corrida[1] : null });
     estado.ano += 1;
     estado.fase = estado.dinheiro < custoMinimo && !propostasF4.length ? 'falencia' : 'relatorio';
     noticia(estado, `${p.nome} termina ${rel.ano} em P${pos} na ${camp.nome}. Campeão: ${rel.campeao}.`);
@@ -1344,6 +1345,89 @@
     return { ok: true };
   }
 
+  // ---------- recordes e conquistas ----------
+  // Números da carreira inteira, do kart à F1.
+  function recordesCarreira(estado) {
+    const h = estado.historico;
+    const ok = h.filter((x) => !x.fora);
+    const sprints = estado.sprints || [];
+    const porCategoria = {};
+    for (const x of h) {
+      const c = porCategoria[x.campeonato] || (porCategoria[x.campeonato] = { corridas: 0, vitorias: 0, podios: 0, melhor: null });
+      c.corridas += 1;
+      if (!x.fora) {
+        if (x.pos === 1) c.vitorias += 1;
+        if (x.pos <= 3) c.podios += 1;
+        c.melhor = c.melhor == null ? x.pos : Math.min(c.melhor, x.pos);
+      }
+    }
+    for (const t of estado.temporadas) {
+      const c = porCategoria[t.campeonato];
+      if (c) { c.titulos = (c.titulos || 0) + (t.pos === 1 ? 1 : 0); c.melhorCampeonato = Math.min(c.melhorCampeonato || 99, t.pos); }
+    }
+    const primeira = ok.find((x) => x.pos === 1);
+    const pistas = Object.entries(estado.recordes || {}).filter(([, r]) => r.jogador).map(([chave, r]) => ({ chave, ...r }));
+    return {
+      corridas: h.length,
+      vitorias: ok.filter((x) => x.pos === 1).length,
+      podios: ok.filter((x) => x.pos <= 3).length,
+      poles: h.filter((x) => x.pole).length,
+      voltasRapidas: h.filter((x) => x.voltaRapida).length,
+      pontos: h.reduce((t, x) => t + (x.pontos || 0), 0),
+      abandonos: h.length - ok.length,
+      titulos: estado.temporadas.filter((t) => t.pos === 1).length,
+      sprintsVencidas: sprints.filter((x) => !x.fora && x.pos === 1).length,
+      primeiraVitoria: primeira ? { ano: primeira.ano, pista: primeira.pista, campeonato: primeira.campeonato } : null,
+      porCategoria,
+      pistas,
+    };
+  }
+
+  // Conquistas: ids estáveis, prontos para virar conquistas do Game Center.
+  const titulo = (camp) => (e) => e.temporadas.some((t) => t.campeonato === camp && t.pos === 1);
+  const correu = (camp) => (e) => e.campeonato === camp || e.historico.some((h) => h.campeonato === camp);
+  const CONQUISTAS = [
+    { id: 'primeira_corrida', nome: 'Bandeirada', texto: 'Termine a primeira corrida.', ok: (e) => e.historico.some((h) => !h.fora) },
+    { id: 'primeiros_pontos', nome: 'Primeiros pontos', texto: 'Termine entre os 10 primeiros.', ok: (e) => e.historico.some((h) => !h.fora && h.pos <= 10) },
+    { id: 'primeiro_podio', nome: 'Pódio', texto: 'Termine entre os 3 primeiros.', ok: (e) => e.historico.some((h) => !h.fora && h.pos <= 3) },
+    { id: 'primeira_vitoria', nome: 'Primeira vitória', texto: 'Vença uma corrida.', ok: (e) => e.historico.some((h) => !h.fora && h.pos === 1) },
+    { id: 'primeira_pole', nome: 'Pole position', texto: 'Faça a pole na classificação.', ok: (e) => e.historico.some((h) => h.pole) },
+    { id: 'volta_rapida', nome: 'Volta mais rápida', texto: 'Faça a volta mais rápida de uma corrida.', ok: (e) => e.historico.some((h) => h.voltaRapida) },
+    { id: 'hat_trick', nome: 'Hat-trick', texto: 'Pole, vitória e volta mais rápida na mesma etapa.', ok: (e) => e.historico.some((h) => h.pole && h.voltaRapida && !h.fora && h.pos === 1) },
+    { id: 'escalada', nome: 'Escalada', texto: 'Vença largando de P10 ou mais atrás.', ok: (e) => e.historico.some((h) => !h.fora && h.pos === 1 && h.largada >= 10) },
+    { id: 'mestre_chuva', nome: 'Mestre da chuva', texto: 'Vença uma corrida com chuva.', ok: (e) => e.historico.some((h) => !h.fora && h.pos === 1 && h.chuva) },
+    { id: 'dono_da_pista', nome: 'Dono da pista', texto: 'Bata um recorde de pista.', ok: (e) => Object.values(e.recordes || {}).some((r) => r.jogador) },
+    { id: 'rei_interlagos', nome: 'Rei de Interlagos', texto: 'Tenha o recorde de Interlagos, no kart ou na F1.', ok: (e) => Object.entries(e.recordes || {}).some(([k, r]) => r.jogador && /(^|:)(interlagos|pace)$/.test(k)) },
+    { id: 'sprint', nome: 'Rei do sábado', texto: 'Vença uma corrida sprint.', ok: (e) => (e.sprints || []).some((x) => !x.fora && x.pos === 1) },
+    { id: 'dez_vitorias', nome: '10 vitórias', texto: 'Some 10 vitórias na carreira.', ok: (e) => e.historico.filter((h) => !h.fora && h.pos === 1).length >= 10 },
+    { id: 'cinquenta_corridas', nome: 'Veterano', texto: 'Dispute 50 corridas.', ok: (e) => e.historico.length >= 50 },
+    { id: 'companheiro', nome: 'Primeiro piloto', texto: 'Termine uma temporada vencendo o duelo com o companheiro.', ok: (e) => e.temporadas.some((t) => t.dueloVenci) },
+    { id: 'campeao_regional', nome: 'Campeão regional', texto: 'Vença a Copa Paulista de Kart.', ok: titulo('regional') },
+    { id: 'campeao_brasileiro', nome: 'Campeão brasileiro', texto: 'Vença o Brasileiro de Kart.', ok: titulo('nacional') },
+    { id: 'campeao_europeu', nome: 'Campeão europeu', texto: 'Vença o Europeu de Kart.', ok: titulo('internacional') },
+    { id: 'chegou_f4', nome: 'Monoposto', texto: 'Chegue à F4.', ok: correu('f4') },
+    { id: 'campeao_f4', nome: 'Campeão da F4', texto: 'Vença a F4.', ok: titulo('f4') },
+    { id: 'chegou_f3', nome: 'Fórmula 3', texto: 'Chegue à F3.', ok: correu('f3') },
+    { id: 'campeao_f3', nome: 'Campeão da F3', texto: 'Vença a F3.', ok: titulo('f3') },
+    { id: 'chegou_f2', nome: 'Fórmula 2', texto: 'Chegue à F2.', ok: correu('f2') },
+    { id: 'campeao_f2', nome: 'Campeão da F2', texto: 'Vença a F2.', ok: titulo('f2') },
+    { id: 'superlicenca', nome: 'Superlicença', texto: 'Chegue à Fórmula 1.', ok: correu('f1') },
+    { id: 'primeira_vitoria_f1', nome: 'Vencedor de GP', texto: 'Vença um GP de Fórmula 1.', ok: (e) => e.historico.some((h) => h.campeonato === 'f1' && !h.fora && h.pos === 1) },
+    { id: 'campeao_mundial', nome: 'Campeão mundial', texto: 'Vença o Mundial de Fórmula 1.', ok: titulo('f1') },
+    { id: 'campeao_jovem', nome: 'Prodígio', texto: 'Seja campeão mundial com menos de 21 anos.', ok: (e) => e.temporadas.some((t) => t.campeonato === 'f1' && t.pos === 1 && t.idade < 21) },
+  ];
+  // Confere as conquistas e devolve as novas (para avisar o jogador).
+  function conferirConquistas(estado) {
+    if (!estado.conquistas) estado.conquistas = {};
+    const novas = [];
+    for (const c of CONQUISTAS) {
+      if (estado.conquistas[c.id] || !c.ok(estado)) continue;
+      estado.conquistas[c.id] = { ano: estado.ano };
+      novas.push(c);
+    }
+    return novas;
+  }
+
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
@@ -1351,7 +1435,7 @@
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

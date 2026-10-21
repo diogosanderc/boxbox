@@ -927,3 +927,21 @@ button.composto small { font-size: 11px; color: var(--fraco); font-weight: 500; 
 .duelo-linha span { text-align: center; color: var(--fraco); font-size: 13px; }
 .duelo-linha b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 22px; }
 .duelo-linha b:last-child { text-align: right; }
+.recordes-numeros { grid-template-columns: repeat(4, 1fr); margin-bottom: 10px; }
+.recordes-numeros b { font-size: 22px; }
+.recordes-numeros span { font-size: 10px; padding: 10px 2px; }
+.recordes-cat { display: grid; gap: 6px; margin-bottom: 10px; }
+.recordes-cat .degrau { grid-template-columns: 64px 1fr auto; font-size: 13px; }
+.conquistas { display: grid; gap: 6px; }
+.conquista { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--painel-2); opacity: 0.5; }
+.conquista .ico { width: 22px; height: 22px; color: var(--fraco); }
+.conquista b { display: block; font-size: 14px; }
+.conquista small { color: var(--fraco); font-size: 12px; }
+.conquista.feita { opacity: 1; border: 1px solid rgba(255, 210, 74, 0.45); }
+.conquista.feita .ico { color: var(--ouro); }
+.barra-conquistas { height: 6px; border-radius: 999px; background: var(--painel-3); overflow: hidden; margin-bottom: 10px; }
+.barra-conquistas i { display: block; height: 100%; background: var(--ouro); border-radius: inherit; }
+.mais-conquistas { margin-top: 8px; }
+.mais-conquistas summary { cursor: pointer; color: var(--azul-claro); font-weight: 600; padding: 8px 0; list-style: none; }
+.mais-conquistas summary::-webkit-details-marker { display: none; }
+.mais-conquistas .conquistas { margin-top: 6px; }

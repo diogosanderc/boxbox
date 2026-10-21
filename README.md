@@ -67,6 +67,14 @@ P1 e P2 entram pelo programa de jovens pilotos (a equipe paga a temporada); P3 e
   Interlagos). Cada categoria tem o seu tempo de volta e o seu recorde na mesma pista.
 - **Equipes e pilotos fictícios** que lembram os reais (ex.: Scuderia Rossa, Argento Grand Prix, Papaya Racing,
   Prima Racing), sem usar nomes ou marcas protegidas. Pilotos de 13 nacionalidades.
+- **Calendário real:** F3 com 10 etapas, F2 com 14 e F1 com 24 (kart e F4 seguem com 8).
+- **Carro mais complexo a cada degrau:** a F2 soma **balanço de freio** e **diferencial**; a F1 também **cambagem
+  dianteira** e **uso do ERS**, cada um com acerto ideal escondido e sintomas próprios.
+- **Sprint:** na F2 em toda etapa (top 10 da classificação larga invertido) e em seis GPs da F1 (Xangai, Miami,
+  Spa, Austin, Interlagos e Lusail). Cerca de 45% das voltas e pontos 8-7-6-5-4-3-2-1.
+- **Pneus macio, médio e duro (F2 e F1, no seco):** o jogador escolhe o composto de largada vendo quantas voltas
+  cada um aguenta; na corrida principal é obrigatório usar dois (uma parada) e dá para chamar o box com o composto
+  que quiser. Na sprint não há parada.
 - **F1:** a equipe paga **salário** por etapa em vez de cobrar. Assinar com a F1 abre a tela da **Superlicença**,
   com a escada da carreira do kart até ali.
 
@@ -82,6 +90,16 @@ classificação e na corrida: quem fizer uma volta mais rápida, em qualquer ses
 
 Cada kartódromo tem uma **ficha** (Ver pista): extensão, largura, sentido, retas, curvas lentas, médias e rápidas,
 grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasivo gasta mais pneu; retas longas facilitam a ultrapassagem.
+
+### Pontos extras, companheiro, recordes e conquistas
+
+- **Pole** e **volta mais rápida** (entre os 10 primeiros) valem 1 ponto cada, em todas as categorias.
+- **Companheiro de equipe:** placar da temporada na classificação, na corrida e nos pontos. Terminar na frente dele
+  anima o piloto; ficar atrás pesa um pouco na moral.
+- **Recordes da carreira** (aba Piloto): corridas, vitórias, pódios, títulos, poles, voltas mais rápidas, sprints,
+  pontos, números por categoria e os recordes de pista que são seus.
+- **Conquistas** (28, da primeira bandeirada ao título mundial) com ids estáveis (`primeira_vitoria`,
+  `campeao_mundial`...), prontos para virar conquistas do Game Center.
 
 ### Acompanhando a temporada
 
