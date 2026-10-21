@@ -455,8 +455,10 @@
   };
   const SESSOES_MECANICO = ['treino', 'quali', 'grid'];
 
-  const precoMecanico = (estado, tipo) => Math.round(MECANICOS[tipo].preco * campeonato(estado.campeonato).custo / 100) * 100;
-  const precoHoraExtra = (estado, tipo) => Math.round(MECANICOS[tipo].extra * campeonato(estado.campeonato).custo / 100) * 100;
+  // Na F2 e na F1 a equipe já tem engenheiros: o mecânico contratado à parte não acompanha o custo da categoria.
+  const custoMecanico = (estado) => Math.min(6, campeonato(estado.campeonato).custo);
+  const precoMecanico = (estado, tipo) => Math.round(MECANICOS[tipo].preco * custoMecanico(estado) / 100) * 100;
+  const precoHoraExtra = (estado, tipo) => Math.round(MECANICOS[tipo].extra * custoMecanico(estado) / 100) * 100;
 
   // O mecânico contratado (ou null). Carreiras antigas guardavam só true.
   function mecanicoDoFds(fds) {
