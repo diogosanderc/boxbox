@@ -809,7 +809,30 @@
 
   const semAcento = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   // Sigla de 3 letras do sobrenome (FER, MON…), como na cronometragem.
-  const sigla = (nome) => semAcento(nome.trim().split(/\s+/).pop()).replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase();
+  // Sigla de três letras pelo sobrenome (ROBERTS → ROB). Se dois pilotos do grid caírem na mesma sigla,
+  // o segundo vira primeira letra + consoantes seguintes (ROBLES → RBL), como na TV.
+  const siglaBase = (nome) => semAcento(nome.trim().split(/\s+/).pop()).replace(/[^A-Za-z]/g, '').toUpperCase();
+  let siglasCache = { chave: '', mapa: {} };
+  function siglasDoGrid() {
+    const nomes = estado ? [estado.piloto.nome, ...estado.rivais.map((r) => r.nome)] : [];
+    const chave = nomes.join('|');
+    if (siglasCache.chave === chave) return siglasCache.mapa;
+    const usadas = new Set();
+    const mapa = {};
+    for (const nome of nomes) {
+      const b = siglaBase(nome);
+      const consoantes = b.slice(1).replace(/[AEIOUY]/g, '');
+      const opcoes = [b.slice(0, 3), b[0] + consoantes.slice(0, 2), b[0] + b.slice(1, 2) + b.slice(-1), b[0] + consoantes.slice(-2), b.slice(0, 2) + b.slice(-1)]
+        .filter((x) => x.length === 3);
+      let s = opcoes.find((x) => !usadas.has(x));
+      for (let i = 2; !s; i++) s = b.slice(0, 2) + i;
+      usadas.add(s);
+      mapa[nome] = s;
+    }
+    siglasCache = { chave, mapa };
+    return mapa;
+  }
+  const sigla = (nome) => siglasDoGrid()[nome] || siglaBase(nome).slice(0, 3);
   // "Lucas FERRAZ": primeiro nome normal, sobrenome em caixa alta e negrito.
   function nomeDestaque(nome) {
     const partes = nome.trim().split(/\s+/);
