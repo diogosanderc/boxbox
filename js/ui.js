@@ -1174,7 +1174,7 @@
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
                <button class="grande" data-acao="ir-quali">Ir para a classificação →</button>`
-            : '<button class="principal grande" data-acao="classificar">Fazer a volta lançada</button>'}
+            : '<button class="principal grande" data-acao="classificar">Classificar</button>'}
         </div>
       </div>
       ${cartao('Rádio', saidas.length ? saidas.map((s, i) => `<div class="saida">
