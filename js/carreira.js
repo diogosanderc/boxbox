@@ -12,7 +12,8 @@
     ritmo: 'Ritmo', consistencia: 'Consistência', chuva: 'Chuva', largada: 'Largada',
     ultrapassagem: 'Ultrapassagem', defesa: 'Defesa', pneus: 'Cuidado com pneus',
   };
-  const ETAPAS = 8;
+  const ETAPAS = 8; // kart e F4; da F3 em diante, o calendário real (campeonato.etapas)
+  const etapasDe = (estado) => campeonato(estado.campeonato).etapas || ETAPAS;
   const SAIDAS_TREINO = 4;
   const VOLTAS_POR_SAIDA = 6;
   // Motor de kart conta horas de uso: cada saída de treino, a classificação e a corrida somam.
@@ -181,7 +182,7 @@
       const j = Math.floor(rnd() * (i + 1));
       [pistas[i], pistas[j]] = [pistas[j], pistas[i]];
     }
-    const escolhidas = pistas.slice(0, ETAPAS);
+    const escolhidas = pistas.slice(0, camp.etapas || ETAPAS);
     // Da F3 à F1 as etapas seguem a ordem do calendário real (Austrália no começo, Abu Dhabi no fim).
     if (camp.ordem >= 4) escolhidas.sort((a, b) => Dados.KARTODROMOS[camp.regiao].indexOf(a) - Dados.KARTODROMOS[camp.regiao].indexOf(b));
     estado.calendario = escolhidas.map((p) => ({ pista: p.id, clima: Kart.gerarClima(p, camp, rnd) }));
@@ -1077,12 +1078,12 @@
     // A confiança volta aos poucos para o normal; aperto de dinheiro pesa na moral.
     const p = estado.piloto;
     p.confianca = Math.round(p.confianca + (50 - p.confianca) * 0.15);
-    if (estado.etapa < ETAPAS && estado.dinheiro < custoEtapa(estado) * 1.5) {
+    if (estado.etapa < etapasDe(estado) && estado.dinheiro < custoEtapa(estado) * 1.5) {
       mexerCabeca(estado, { moral: -4 });
       noticia(estado, `${p.nome} sente o peso das contas apertadas em casa.`);
     }
     if (p.moral < 20) noticia(estado, `${p.nome} anda desmotivado e já falou em largar as corridas.`);
-    if (estado.etapa >= ETAPAS) return fimDeTemporada(estado);
+    if (estado.etapa >= etapasDe(estado)) return fimDeTemporada(estado);
     gerarOlheiros(estado, rnd);
     estado.fase = 'paddock';
   }
@@ -1242,7 +1243,7 @@
 
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
-    VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

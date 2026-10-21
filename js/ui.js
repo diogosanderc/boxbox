@@ -655,9 +655,13 @@
     const clima = C.climaAtual(estado);
     const custo = C.custoEtapa(estado);
     const semDinheiro = estado.dinheiro < custo;
-    const pontos = Array.from({ length: C.ETAPAS }, (_, i) => `<i class="${i < estado.etapa ? 'feita' : i === estado.etapa ? 'atual' : ''}"></i>`).join('');
+    const total = C.etapasDe(estado);
+    // Até 10 etapas, uma bolinha por etapa; calendários longos (F2, F1) viram uma barra de progresso.
+    const pontos = total <= 10
+      ? Array.from({ length: total }, (_, i) => `<i class="${i < estado.etapa ? 'feita' : i === estado.etapa ? 'atual' : ''}"></i>`).join('')
+      : `<span class="etapas-barra"><i style="width:${(estado.etapa / total) * 100}%"></i></span>`;
     return `<section class="painel hero">
-      <header class="cartao-topo"><h3>Etapa ${estado.etapa + 1}/${C.ETAPAS}</h3><span class="etapas" aria-hidden="true">${pontos}</span><span class="espaco"></span>${botaoAjuda('etapa')}</header>
+      <header class="cartao-topo"><h3>Etapa ${estado.etapa + 1}/${total}</h3><span class="etapas" aria-hidden="true">${pontos}</span><span class="espaco"></span>${botaoAjuda('etapa')}</header>
       <div class="hero-corpo">
         <div class="hero-pista">
           <h2>${tituloForte(pista.nome)}</h2>
@@ -848,7 +852,7 @@
   // "nesta etapa", "há 2 etapas", "em 2027"
   function quando(n) {
     if (n.ano !== estado.ano) return `em ${n.ano}`;
-    const atual = estado.fase === 'relatorio' ? C.ETAPAS : estado.etapa + 1;
+    const atual = estado.fase === 'relatorio' ? C.etapasDe(estado) : estado.etapa + 1;
     const d = atual - (n.etapa || atual);
     return d <= 0 ? 'nesta etapa' : d === 1 ? 'na etapa passada' : `há ${d} etapas`;
   }

@@ -652,7 +652,7 @@ function fecharTemporada(e, pos) {
   const ids = e.rivais.map((r) => r.id);
   const ordem = ids.slice(); ordem.splice(pos - 1, 0, 'jogador');
   ordem.forEach((id, i) => { e.pontos[id] = 400 - i * 10; });
-  e.etapa = Carreira.ETAPAS - 1;
+  e.etapa = Carreira.etapasDe(e) - 1;
   Carreira.concluirEtapa(e);
   assert.strictEqual(e.relatorio.pos, pos);
 }
@@ -705,7 +705,8 @@ test('F3 a F1: calendário na ordem real e recorde separado por categoria', () =
   const lista = Dados.KARTODROMOS.f2.map((p) => p.id);
   const ordem = e.calendario.map((c) => lista.indexOf(c.pista));
   assert.deepStrictEqual(ordem, ordem.slice().sort((a, b) => a - b));
-  assert.strictEqual(new Set(e.calendario.map((c) => c.pista)).size, Carreira.ETAPAS);
+  assert.strictEqual(e.calendario.length, 14); // F2: calendário real completo
+  assert.strictEqual(new Set(e.calendario.map((c) => c.pista)).size, 14);
   // a volta recorde da F2 não vale para a F4 na mesma pista
   const pista = Carreira.pistaAtual(e);
   const recF2 = Carreira.recordePista(e, pista).tempo;
