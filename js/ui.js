@@ -66,7 +66,11 @@
     clearTimeout(timerAviso);
     timerAviso = setTimeout(() => { el.hidden = true; }, 3500);
   }
-  const erro = (r) => { if (r && !r.ok) aviso(r.erro); return r && r.ok; };
+  // Ação recusada: se for coisa do Premium, abre a tela do Premium em vez do aviso.
+  const erro = (r) => {
+    if (r && !r.ok) { if (r.premium) abrirPremium(r.erro); else aviso(r.erro); }
+    return r && r.ok;
+  };
 
   // Rola a tela até o que importa depois de uma ação (o resultado dela ou o próximo passo).
   // bloco: 'start' encosta no topo (abaixo da barra fixa), 'center' deixa no meio da tela.
@@ -102,8 +106,8 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (o estoque começa com ${C.MAX_PNEUS} vagas e dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
-    patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
+    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
     radio: ['Rádio', 'Depois de cada saída, o piloto conta o que sentiu. Pilotos experientes e motivados descrevem melhor o problema. Quando ele fala em dúvida (\"acho que…\", \"não tenho certeza…\"), desconfie: muitas vezes está sentindo a coisa errada. Com um mecânico contratado, ele também comenta: o iniciante dá palpites; o experiente e o profissional dizem o que mudar e quanto.'],
@@ -345,6 +349,7 @@
     largura: '<path d="M3 12h18"/><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/>',
     sentido: '<path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/>',
     bandeira: '<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>',
+    cadeado: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
     reta: '<path d="M8 3L5 21"/><path d="M16 3l3 18"/><path d="M12 4v3M12 11v3M12 18v2"/>',
     curva: '<polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/>',
     grampo: '<path d="M7 21V10a5 5 0 0 1 10 0v8"/><polyline points="13 15 17 19 21 15"/>',
@@ -407,6 +412,50 @@
     // Espera a tela nova aparecer (ir() limpa os avisos) para o aviso não sumir.
     setTimeout(() => aviso(novas.length === 1 ? `Conquista: ${novas[0].nome}!` : `${novas.length} conquistas novas!`, 'estrela'), 60);
   }
+
+  // ---------- Premium ----------
+  const BENEFICIOS_PREMIUM = [
+    ['carteira', `Até ${5} patrocinadores no macacão`, `Sem o Premium: ${2}.`],
+    ['pneu', 'Mais espaço no estoque de pneus', 'Até 8 no kart e mais a cada categoria, até 16 na F1.'],
+    ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
+  ];
+  const folhaPremium = document.createElement('div');
+  folhaPremium.className = 'folha-fundo';
+  folhaPremium.hidden = true;
+  document.body.appendChild(folhaPremium);
+  let comprando = false;
+  async function abrirPremium(motivo) {
+    const ativo = BoxPremium.ativo;
+    folhaPremium.innerHTML = `<div class="folha folha-premium" role="dialog" aria-modal="true" aria-labelledby="premium-titulo">
+      <span class="premium-selo">${icone('estrela', 'ico-cheio')}</span>
+      <h3 id="premium-titulo">Superlicença Premium</h3>
+      ${motivo && !ativo ? `<p class="premium-motivo">${esc(motivo)}</p>` : ''}
+      <p class="fraco">${ativo ? 'Obrigado! O Premium está ativo neste aparelho.' : 'A carreira inteira, do kart à F1, é grátis. O Premium é uma compra única, sem assinatura, e libera:'}</p>
+      <ul class="premium-lista">${BENEFICIOS_PREMIUM.map(([i, t, d]) => `<li>${icone(i)}<span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ul>
+      ${ativo ? '<button class="principal grande" data-premium="fechar">Fechar</button>' : `
+        <button class="principal grande" data-premium="comprar" ${comprando ? 'disabled' : ''}>${comprando ? 'Processando…' : 'Desbloquear Premium <span data-preco></span>'}</button>
+        <div class="botoes-2"><button data-premium="restaurar">Restaurar compras</button><button data-premium="fechar">Agora não</button></div>`}
+    </div>`;
+    folhaPremium.hidden = false;
+    const el = folhaPremium.querySelector('[data-preco]');
+    if (el) el.textContent = `· ${await BoxPremium.preco()}`;
+  }
+  folhaPremium.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-premium]');
+    if (!b && ev.target !== folhaPremium) return;
+    const acao = b ? b.dataset.premium : 'fechar';
+    if (acao === 'fechar') { folhaPremium.hidden = true; return; }
+    if (!BoxPremium.nativo) { aviso('A compra funciona no app do iPhone.'); return; }
+    comprando = true;
+    abrirPremium();
+    const r = acao === 'comprar' ? await BoxPremium.comprar() : await BoxPremium.restaurar();
+    comprando = false;
+    if (r.status === 'purchased' || r.status === 'restaurado') { folhaPremium.hidden = true; return; } // o aviso vem do aoMudar
+    abrirPremium();
+    if (r.status === 'pending') aviso('Compra pendente: o Premium libera assim que for aprovada.');
+    else if (r.status === 'nada') aviso('Nenhuma compra do Premium encontrada nesta conta.');
+    else if (r.status === 'erro') aviso('Não deu para falar com a App Store agora. Tente de novo.');
+  });
 
   // ---------- código secreto ----------
   // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
@@ -487,7 +536,8 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
-          ${modoDev() ? '<button class="link-f4" data-acao="iniciar-f4">Dev: começar direto na F4 · 15 anos</button>' : ''}
+          ${modoDev() ? `<button class="link-f4" data-acao="iniciar-f4">Dev: começar direto na F4 · 15 anos</button>
+            ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
         </div>
       </div>`;
   }
@@ -764,7 +814,8 @@
         <button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button>
         <button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button>
       </div>
-      ${C.espacoPneus(estado) < C.limiteEspaco(estado)
+      ${!BoxPremium.ativo ? `<button class="compra premium-trancado" data-acao="premium" data-motivo="Mais espaço no estoque de pneus é do Premium."><b>${ic('cadeado')}Mais espaço no estoque</b><span>Premium · até ${C.limiteEspaco(estado)} vagas nesta categoria</span></button>`
+        : C.espacoPneus(estado) < C.limiteEspaco(estado)
         ? `<button class="compra" data-acao="comprar-espaco" data-confirmar="Confirmar: −${reais(C.precoEspaco(estado))}" ${estado.dinheiro < C.precoEspaco(estado) ? 'disabled' : ''}><b>${ic('subir')}Mais espaço no estoque</b><span>+1 vaga (${C.espacoPneus(estado) + 1}/${C.limiteEspaco(estado)}) · ${reais(C.precoEspaco(estado))}</span></button>`
         : `<p class="fraco mini">Estoque no máximo desta categoria (${C.limiteEspaco(estado)} vagas). Na próxima categoria cabe mais.</p>`}`, { ajuda: 'oficina' });
   }
@@ -778,14 +829,16 @@
   }
 
   function cartaoPatrocinio() {
-    const vagas = Array.from({ length: C.MAX_PATROCINIOS }, (_, i) => `<i class="${i < estado.patrocinios.length ? 'cheia' : ''}"></i>`).join('');
+    // Vagas do macacão: as do Premium aparecem com cadeado para quem não tem.
+    const vagas = Array.from({ length: C.MAX_PATROCINIOS }, (_, i) => `<i class="${i < estado.patrocinios.length ? 'cheia' : i >= C.maxPatrocinios() ? 'trancada' : ''}"></i>`).join('');
     const ofertas = estado.ofertasPatrocinio;
     return cartao('Patrocínio', `
       ${estado.patrocinios.map((o) => linhaPatrocinio(o, false)).join('')}
       ${ofertas.length ? `<span class="subtitulo">Ofertas</span>${ofertas.map((o) => linhaPatrocinio(o, true)).join('')}` : ''}
       ${!estado.patrocinios.length && !ofertas.length ? '<p class="vazio">Nenhuma empresa por enquanto.</p>' : ''}
-      <div class="chips">${chip(`${ic('estrela')}Popularidade ${Math.round(estado.piloto.popularidade)}`)}</div>`,
-    { ajuda: 'patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.MAX_PATROCINIOS}">${vagas}</span>` });
+      <div class="chips">${chip(`${ic('estrela')}Popularidade ${Math.round(estado.piloto.popularidade)}`)}</div>
+      ${!BoxPremium.ativo ? `<button class="link-premium" data-acao="premium">${ic('cadeado')}Até ${C.MAX_PATROCINIOS} patrocinadores com o Premium</button>` : ''}`,
+    { ajuda: 'patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.maxPatrocinios()}">${vagas}</span>` });
   }
 
   function cartaoProposta(pr) {
@@ -1025,7 +1078,10 @@
       <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
       ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', noticias: noticiasNovas() ? 'nova' : '' })}
       ${conteudo}
-      <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>
+      <div class="rodape">
+        <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
+        <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button>
+      </div>
       ${folhaChecagem()}${folhaPneu()}`;
   }
 
@@ -1518,6 +1574,7 @@
       : '<p class="fraco">Nada a mudar: o acerto estava no ponto.</p>';
     const anotar = r.anotado
       ? `<button class="grande" disabled>${ic('check')}Anotado no caderno</button>`
+      : !BoxPremium.ativo ? `<button class="grande premium-trancado" data-acao="premium" data-motivo="Anotar no caderno é do Premium.">${ic('cadeado')}Anotar no caderno · Premium</button>`
       : `<textarea id="nota-corrida" rows="2" maxlength="300" placeholder="Sua anotação (opcional)"></textarea>
          <button class="principal grande" data-acao="anotar">${ic('lapis')}Anotar no caderno</button>`;
     return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
@@ -1826,6 +1883,13 @@
       case 'revisar':
         if (erro(C.revisarMotor(estado))) { salvar(); render(); aviso('Motor revisado.'); }
         break;
+      case 'premium':
+        abrirPremium(alvo.dataset.motivo);
+        break;
+      case 'premium-dev':
+        BoxPremium.alternarDev();
+        render();
+        break;
       case 'comprar-espaco': {
         const r = C.comprarEspaco(estado);
         if (erro(r)) { salvar(); render(); aviso(`Estoque ampliado: ${C.espacoPneus(estado)} vagas.`); }
@@ -2063,5 +2127,12 @@
   });
 
   // Só desenha depois de ler o save do arquivo (no iPhone a leitura é assíncrona).
+  C.definirPremium(BoxPremium.ativo);
+  BoxPremium.aoMudar((v) => {
+    C.definirPremium(v);
+    render();
+    if (v) aviso('Premium ativado! Obrigado.', 'estrela');
+  });
+  BoxPremium.iniciar();
   BoxSave.iniciar(CHAVE_SAVE).catch(() => {}).then(render);
 })();

@@ -1,0 +1,48 @@
+{
+  "appPolicies": {
+    "eula": "",
+    "policies": [
+      {
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": ""
+      }
+    ]
+  },
+  "identifier": "1A39AFE9",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "6C5BEAC7",
+      "localizations": [
+        {
+          "description": "Até 5 patrocinadores, mais espaço no estoque de pneus e anotações no caderno.",
+          "displayName": "Superlicença Premium",
+          "locale": "pt_BR"
+        }
+      ],
+      "productID": "com.diogosander.superlicenca.premium",
+      "referenceName": "Superlicença Premium",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_billingGracePeriodEnabled": false,
+    "_billingIssuesEnabled": false,
+    "_disableDialogs": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_renewalBillingIssuesEnabled": false,
+    "_storefront": "USA",
+    "_storeKitErrors": [],
+    "_timeRate": 0
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 5,
+    "minor": 0
+  }
+}

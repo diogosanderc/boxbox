@@ -140,6 +140,20 @@ grampos, zebras, asfalto, desnível e onde dá para ultrapassar. Asfalto abrasiv
 npm test   # testes com o runner nativo do Node (18+)
 ```
 
+## Premium
+
+A carreira inteira, do kart Regional à F1, é grátis. O **Superlicença Premium** é uma compra única (sem assinatura)
+pela App Store, produto `com.diogosander.superlicenca.premium` (US$ 1,99, como o GOLAÇO), e libera:
+
+- **até 5 patrocinadores** no macacão (sem o Premium: 2);
+- **mais espaço no estoque de pneus** (até 8 no kart e mais a cada categoria, até 16 na F1);
+- **anotações no caderno** depois de cada corrida.
+
+O que é do Premium aparece com cadeado e abre a tela de compra (com **Restaurar compras**, que a Apple exige).
+No app, `js/premium.js` fala com o plugin nativo `ios/App/App/PremiumPlugin.swift` (StoreKit 2, o mesmo esquema
+do GOLAÇO); `ios/App/Produtos.storekit` serve para testar a compra no simulador. No navegador não há compra: o
+Premium liga e desliga pelo modo desenvolvedor (5 toques no logotipo da abertura).
+
 ## App para iPhone
 
 O jogo é só para iOS. Ele roda dentro de um app nativo feito com **Capacitor 6** (o mesmo esquema do

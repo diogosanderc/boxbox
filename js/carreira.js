@@ -35,7 +35,15 @@
   const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
   // Os 4 primeiros do campeonato sobem de degrau (no Europeu, para a F4).
   const VAGAS_SUBIDA = 4;
-  const MAX_PATROCINIOS = 3;
+  // Premium (compra única no app): mais patrocinadores, mais espaço de pneus e anotações no caderno.
+  // A carreira inteira é grátis; o Premium só amplia o que dá para fazer nela.
+  let premium = false;
+  const definirPremium = (v) => { premium = !!v; };
+  const ehPremium = () => premium;
+  const MAX_PATROCINIOS = 5;
+  const PATROCINIOS_GRATIS = 2;
+  const maxPatrocinios = () => (premium ? MAX_PATROCINIOS : PATROCINIOS_GRATIS);
+  const pedePremium = (erro) => ({ ok: false, premium: true, erro });
   const APOIO_FAMILIA = 20000; // por temporada, multiplicado pelo custo do campeonato
 
   const limitar = (x, min, max) => Math.max(min, Math.min(max, x));
@@ -322,6 +330,7 @@
   const limiteEspaco = (estado) => LIMITE_ESPACO[estado.campeonato] || LIMITE_ESPACO.kart;
   const precoEspaco = (estado) => Math.round(PRECO_ESPACO * Math.max(1, campeonato(estado.campeonato).custo) * (1 + 0.25 * (estado.espacoExtra || 0)) / 100) * 100;
   function comprarEspaco(estado) {
+    if (!premium) return pedePremium('Mais espaço no estoque de pneus é do Premium.');
     if (espacoPneus(estado) >= limiteEspaco(estado)) return { ok: false, erro: `O estoque já está no máximo desta categoria (${limiteEspaco(estado)} jogos).` };
     const preco = precoEspaco(estado);
     if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente.' };
@@ -529,7 +538,10 @@
   }
 
   function aceitarPatrocinio(estado, id) {
-    if (estado.patrocinios.length >= MAX_PATROCINIOS) return { ok: false, erro: `No máximo ${MAX_PATROCINIOS} patrocinadores no macacão.` };
+    if (estado.patrocinios.length >= maxPatrocinios()) {
+      return premium ? { ok: false, erro: `No máximo ${MAX_PATROCINIOS} patrocinadores no macacão.` }
+        : pedePremium(`Sem o Premium cabem ${PATROCINIOS_GRATIS} patrocinadores no macacão.`);
+    }
     const of = estado.ofertasPatrocinio.find((o) => o.id === id);
     if (!of) return { ok: false, erro: 'Oferta expirada.' };
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.id !== id);
@@ -1167,6 +1179,7 @@
 
   // Guarda o diagnóstico da corrida (e uma anotação livre do jogador) no caderno da pista.
   function anotarCorrida(estado, texto) {
+    if (!premium) return pedePremium('Anotar no caderno é do Premium.');
     const fds = estado.fds;
     const r = fds && fds.resultado;
     if (!r || !r.diagnostico) return { ok: false, erro: 'Nada para anotar.' };
@@ -1448,6 +1461,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS,
     campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,

@@ -327,6 +327,8 @@ test('pendências antes da etapa: slick novo, chuva prevista e motor', () => {
 module.exports = { jogarFimDeSemana };
 
 test('diagnóstico depois da corrida e anotação no caderno', () => {
+  Carreira.definirPremium(true);
+  try {
   const pista = Dados.KARTODROMOS.br.find((p) => p.tipo === 'travada');
   const clima = { manha: { tempAr: 20, chove: false }, tarde: { tempAr: 26, chove: false, inicioChuva: null } };
   const cond = Kart.condicao(clima, 'corrida', false);
@@ -353,6 +355,7 @@ test('diagnóstico depois da corrida e anotação no caderno', () => {
   assert.strictEqual(entrada.nota.texto, 'Começar com eixo duro aqui');
   assert.deepStrictEqual(entrada.nota.ajustes, r.diagnostico.ajustes.map((a) => a.texto));
   assert.ok(r.anotado);
+  } finally { Carreira.definirPremium(false); }
 });
 
 test('o piloto comenta o que mudou na pista entre as sessões', () => {
@@ -811,6 +814,8 @@ test('recordes da carreira e conquistas com ids estáveis', () => {
 });
 
 test('estoque de pneus: compra de espaço até 8 no kart, cada vaga mais cara', () => {
+  Carreira.definirPremium(true);
+  try {
   const e = Carreira.novoJogo({ seed: 61 });
   e.dinheiro = 1e6;
   assert.strictEqual(Carreira.espacoPneus(e), 6);
@@ -826,6 +831,7 @@ test('estoque de pneus: compra de espaço até 8 no kart, cada vaga mais cara', 
   assert.strictEqual(Carreira.limiteEspaco(e), 16);
   assert.ok(Carreira.comprarEspaco(e).ok);
   Carreira.migrar({ campeonato: 'regional' });
+  } finally { Carreira.definirPremium(false); }
 });
 
 test('safety car só na F2 e na F1', () => {
@@ -852,4 +858,24 @@ test('safety car só na F2 e na F1', () => {
   };
   assert.strictEqual(contar('regional'), 0);
   assert.ok(contar('f1', 'f1-grove') > 0);
+});
+
+test('Premium: sem ele, 2 patrocinadores, sem espaço extra e sem anotar no caderno', () => {
+  const e = Carreira.novoJogo({ seed: 71 });
+  e.dinheiro = 1e6;
+  assert.strictEqual(Carreira.ehPremium(), false);
+  assert.strictEqual(Carreira.maxPatrocinios(), 2);
+  const r = Carreira.comprarEspaco(e);
+  assert.ok(!r.ok && r.premium);
+  e.ofertasPatrocinio = [1, 2, 3].map((i) => ({ id: `o${i}`, empresa: `E${i}`, porEtapa: 100, bonus: 0, meta: { tipo: 'posicao', alvo: 10 } }));
+  assert.ok(Carreira.aceitarPatrocinio(e, 'o1').ok);
+  assert.ok(Carreira.aceitarPatrocinio(e, 'o2').ok);
+  const r3 = Carreira.aceitarPatrocinio(e, 'o3');
+  assert.ok(!r3.ok && r3.premium);
+  Carreira.definirPremium(true);
+  try {
+    assert.strictEqual(Carreira.maxPatrocinios(), 5);
+    assert.ok(Carreira.aceitarPatrocinio(e, 'o3').ok);
+    assert.ok(Carreira.comprarEspaco(e).ok);
+  } finally { Carreira.definirPremium(false); }
 });

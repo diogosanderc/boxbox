@@ -5,6 +5,12 @@ import Capacitor
 // que aparece sobre o fundo azul-marinho. Os plugins (Filesystem para o save) vêm pelo
 // CapApp-SPM, que o `npx cap sync ios` mantém em dia.
 class BridgeViewController: CAPBridgeViewController {
+    // O plugin do Premium é registrado à mão: no projeto com SPM a descoberta automática de
+    // plugins próprios nem sempre funciona (foi o que aconteceu no GOLAÇO).
+    override open func capacitorDidLoad() {
+        bridge?.registerPluginInstance(PremiumPlugin())
+    }
+
     override open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
