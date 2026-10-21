@@ -127,6 +127,16 @@
     temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 → F3 → F2 → F1 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
+  // Nos monopostos (F4 à F1) os textos falam do carro, não do kart; e lá tem box para trocar pneu na chuva.
+  function textoDoVeiculo(t) {
+    if (Kart.categoria() !== 'f4') return t;
+    return t
+      .replace('No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.', 'Se chover na corrida, dá para chamar o carro para o box e pôr pneu de chuva (a parada custa uns 24 segundos).')
+      .replace('O kart não vem com mecânico: o acerto é seu.', 'O acerto é seu.')
+      .replace(/\b(o|no|do|um) kart\b/g, (_, art) => `${art} carro`)
+      .replace(/\bO kart\b/g, 'O carro')
+      .replace('Acerto do kart', 'Acerto do carro');
+  }
   const botaoAjuda = (chave) => `<button class="ajuda" data-acao="ajuda" data-chave="${chave}" aria-label="Ajuda: ${esc(AJUDAS[chave][0])}">?</button>`;
 
   const balao = document.createElement('div');
@@ -135,7 +145,7 @@
   balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><button class="principal" data-fechar>Entendi</button></div>';
   document.body.appendChild(balao);
   function abrirAjuda(chave) {
-    const [titulo, texto] = AJUDAS[chave];
+    const [titulo, texto] = AJUDAS[chave].map(textoDoVeiculo);
     balao.querySelector('h3').textContent = titulo;
     balao.querySelector('p').textContent = texto;
     balao.hidden = false;
@@ -921,7 +931,7 @@
   }
 
   const SOBRE_TIPO = {
-    travada: 'Traçado travado, cheio de curvas lentas e grampos. Premia tração na saída e um kart que vira fácil.',
+    travada: 'Traçado travado, cheio de curvas lentas e grampos. Premia tração na saída e um carro que vira fácil.',
     mista: 'Traçado misto, com retas médias e curvas de todos os tipos. O equilíbrio do acerto faz a diferença.',
     veloz: 'Traçado veloz, de retas longas e curvas rápidas. Pede velocidade final e coragem nas tangências.',
   };
@@ -1097,7 +1107,7 @@
         ${!agora.molhado ? `<div class="mudanca ${clima.tarde.chance >= 30 ? 'mudou' : ''}"><span class="mudanca-rotulo">${ic('gota')}Chance de chuva na corrida</span><span></span><span></span><b>${clima.tarde.chance}%</b></div>` : ''}
       </div>
       ${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
-      <p class="fraco">A pista não é a mesma de ${sessao === 'grid' ? 'agora há pouco' : 'manhã'}. Fique atento a como o kart vai se comportar.</p>
+      <p class="fraco">A pista não é a mesma de ${sessao === 'grid' ? 'agora há pouco' : 'manhã'}. Fique atento a como o ${Kart.veiculo} vai se comportar.</p>
       <button class="principal grande" data-acao="fechar-mudancas">Entendi</button>
     </div></div>`;
   }
@@ -1121,7 +1131,7 @@
     const fds = estado.fds;
     const m = C.mecanicoDoFds(fds);
     if (!m) {
-      return cartao('Mecânico', `<p class="fraco mini">Você está acertando o kart sozinho. Se quiser ajuda, contrate alguém para o fim de semana.</p>
+      return cartao('Mecânico', `<p class="fraco mini">Você está acertando o ${Kart.veiculo} sozinho. Se quiser ajuda, contrate alguém para o fim de semana.</p>
         <div class="mecanicos">${Object.entries(C.MECANICOS).map(([tipo, x]) => {
           const preco = C.precoMecanico(estado, tipo);
           const extra = C.precoHoraExtra(estado, tipo);
@@ -1133,7 +1143,7 @@
     const info = C.MECANICOS[m.tipo];
     const ativo = C.mecanicoAtivo(estado);
     const conselho = m.usos[fds.sessao];
-    const rotulo = { palpite: 'Pedir um palpite', tecnica: 'Pedir a análise técnica', monta: 'Montar o kart' }[info.faz];
+    const rotulo = { palpite: 'Pedir um palpite', tecnica: 'Pedir a análise técnica', monta: `Montar o ${Kart.veiculo}` }[info.faz];
     let corpo;
     if (!ativo) {
       const extra = C.precoHoraExtra(estado, m.tipo);
@@ -1184,7 +1194,7 @@
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
           ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
           ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
-        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o kart e saia para a pista.</p>`, { ajuda: 'radio' })}
+        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio' })}
     </div>`;
   }
 
@@ -1371,7 +1381,7 @@
         const custo = Math.round(e.custoEtapa * custoCamp / 100) * 100;
         return `<button class="equipe-ano ${escolhida === id ? 'ativo' : ''}" data-acao="escolher-equipe-ano" data-id="${id}" aria-pressed="${escolhida === id}" style="--cor-equipe:${e.cor}">
           <i class="camp-cor" style="background:${e.cor}"></i>
-          <span class="equipe-ano-nome"><b>${esc(e.nome)}</b><small>${C.PORTES[C.porteDe(id)].nome} · Kart ${e.material}${id === estado.equipeId ? ' · atual' : ''}</small></span>
+          <span class="equipe-ano-nome"><b>${esc(e.nome)}</b><small>${C.PORTES[C.porteDe(id)].nome} · ${Kart.veiculo === 'kart' ? 'Kart' : 'Carro'} ${e.material}${id === estado.equipeId ? ' · atual' : ''}</small></span>
           <b class="negativo">−${reais(custo)}<small>/etapa</small></b>
         </button>`;
       }).join('')}</div>
@@ -1755,7 +1765,7 @@
         if (!erro(r)) break;
         salvar();
         const voltas = Array.from({ length: C.VOLTAS_POR_SAIDA }, (_, i) => `Volta ${i + 1}/${C.VOLTAS_POR_SAIDA}`);
-        animarPista(`Treino livre · saída ${estado.fds.saidas.length}`, voltas, 'O piloto está sentindo o kart…', () => {
+        animarPista(`Treino livre · saída ${estado.fds.saidas.length}`, voltas, `O piloto está sentindo o ${Kart.veiculo}…`, () => {
           render();
           if (r.saida.recorde) aviso('Novo recorde da pista!', 'trofeu');
           // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
