@@ -1067,3 +1067,28 @@ test('pneu no fim da vida vira notícia uma vez, para conferir a oficina', () =>
   Carreira.pularEtapa(e);
   assert.strictEqual(avisos().length, 1, 'não repete o aviso do mesmo jogo');
 });
+
+test('F2: parada escolhe o jogo com vida (não para de novo) e a corrida usa o jogo menos gasto', () => {
+  const e = Carreira.novoJogo({ seed: 5 });
+  Carreira.comecarEm(e, 'f2');
+  e.fase = 'paddock';
+  const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = null; cl.tarde.chove = false; cl.manha.chove = false; cl.tarde.chance = 0;
+  Carreira.comprarPneu(e, 'slick');
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  Carreira.irParaClassificacao(e);
+  const quali = e.pneus.find((p) => p.id === e.fds.pneuId);
+  Carreira.classificar(e);
+  // Depois da classificação a equipe monta o macio menos gasto, não o da volta rápida.
+  assert.notStrictEqual(e.fds.pneuId, quali.id);
+  if (Carreira.sprintPendente(e)) Carreira.concluirCorrida(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  assert.ok(Carreira.escolherComposto(e, 'M').ok);
+  e.pneus.find((p) => p.tipo === 'medio').uso = 40; // médio no fim
+  const c = Carreira.criarCorrida(e);
+  const eu = c.carros.find((x) => x.jogador);
+  eu.auto = false;
+  eu.boxPedido = 'Md'; // pede médio, que está gasto: vai de duro
+  Engine.simularCompleta(c);
+  assert.deepStrictEqual(eu.usados.slice(0, 2), ['M', 'D']);
+  assert.ok(c.eventos.some((ev) => /médio está gasto/.test(ev.texto)));
+  assert.strictEqual(eu.paradas, 1);
+});

@@ -173,7 +173,8 @@
         parar = true;
         novoPneu = c.boxPedido;
         c.boxPedido = null;
-      } else if (!corrida.semBox && (c.auto || !c.jogador) && decidirParada(c, corrida)) {
+      } else if (!corrida.semBox && (c.auto || !c.jogador) && !(c.paradas > 0 && c.idadePneu < 3) && decidirParada(c, corrida)) {
+        // (depois de uma parada, a estratégia automática espera pelo menos 3 voltas antes de chamar outra)
         parar = true;
         novoPneu = (corrida.regraCompostos ? escolherPneu : escolherPneuLivre)(c, pista, corrida.totalVoltas - v + 1);
       }

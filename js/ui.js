@@ -1552,7 +1552,9 @@
     const boxF4 = document.getElementById('box-f4');
     if (boxF4) {
       boxF4.innerHTML = eu.fora || corrida.terminou ? ''
-        : eu.tipoPneu === 'chuva' ? chip(`${ic('pneu')}Pneu de chuva`, 'chip-azul')
+        : eu.tipoPneu === 'chuva' ? (corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: chuva novo na próxima volta</button>`
+          : corrida.temJogo && corrida.temJogo('chuva') ? `<div class="linha">${chip(`${ic('pneu')}Pneu de chuva · ${Math.max(0, 100 - desgastePct(eu.uso, 'chuva'))}%`, 'chip-azul')}<button data-acao="box-chuva">${ic('pneu')}Box: chuva novo</button></div>`
+          : chip(`${ic('pneu')}Pneu de chuva`, 'chip-azul'))
           : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: entra na próxima volta</button>`
             : corrida.temJogo && !corrida.temJogo('chuva') ? `<button class="grande" disabled>${ic('pneu')}Sem pneu de chuva no estoque</button>`
               : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;

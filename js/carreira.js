@@ -1115,6 +1115,15 @@
   // Quantas voltas o composto aguenta antes de cair de rendimento, para este piloto nesta pista (descontando o que o jogo já rodou).
   const vidaComposto = (estado, composto, uso = 0) => Math.max(0, Math.floor(Engine.vidaPneu(composto, estado.piloto, pistaAtual(estado)) * (1 - uso / Engine.PNEUS[composto].vida)));
 
+  // Depois da classificação e da sprint, a equipe monta o jogo menos gasto do mesmo tipo para a corrida
+  // (da F3 em diante, em que o jogador corre com o estoque). Ele ainda pode trocar no grid.
+  function montarJogoMaisNovo(estado) {
+    const fds = estado.fds;
+    const atual = quatroPneus(estado) && pneuPorId(estado, fds.pneuId);
+    const melhor = atual && melhorJogo(estado, atual.tipo);
+    if (melhor && melhor.uso < atual.uso) { fds.pneuId = melhor.id; fds.pneuCorrida = melhor.id; }
+  }
+
   // Os jogos que o jogador usou na corrida voltam para o estoque com o desgaste.
   function devolverPneus(estado, corrida) {
     const carro = corrida.carros.find((c) => c.jogador);
@@ -1135,6 +1144,7 @@
     }
     const meu = res.find((r) => r.id === 'jogador');
     devolverPneus(estado, corrida);
+    montarJogoMaisNovo(estado);
     if (!meu.fora && meu.pos <= 3) mexerCabeca(estado, { confianca: 3 }, `Pódio na sprint (P${meu.pos})`);
     fds.sprint = {
       feito: true, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos,
@@ -1165,6 +1175,7 @@
     fds.setupCorrida = { ...fds.setup };
     fds.setupQuali = { ...fds.setup };
     fds.pneuCorrida = fds.pneuId;
+    montarJogoMaisNovo(estado);
     fds.sprint = temSprint(estado) ? { feito: false } : null;
     const comp = companheiro(estado);
     const posComp = comp ? tempos.findIndex((t) => t.id === comp.id) : -1;
@@ -1219,17 +1230,22 @@
         corrida.boxJogador = false;
         Engine.registrar(corrida, 'Sem pneu de chuva no estoque: o carro segue com pneu de seco.', 'alerta', c.id);
       }
-      if (monoposto && molhado && c.tipoPneu !== 'chuva' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2))) {
+      // Da F3 em diante, já de chuva, o jogador pode pedir o box para pôr um jogo de chuva mais novo.
+      const chuvaNova = c.jogador && molhado && c.tipoPneu === 'chuva' && jogoChuva;
+      if (chuvaNova || (monoposto && molhado && c.tipoPneu !== 'chuva' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2)))) {
         c.tipoPneu = 'chuva';
         c.uso = jogoChuva ? trocarJogo(c, jogoChuva) : 0;
         if (c.usados && c.usados.length < 2) c.usados.push('chuva'); // pneu de chuva dispensa a regra dos dois compostos
         pit = PIT_F4 - (c.jogador ? EQUIPE_BOX[nivelBox(estado)].ganho : 0);
         corrida.boxJogador = c.jogador ? false : corrida.boxJogador;
-        Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva.`, 'box', c.id);
+        Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva${chuvaNova ? ' novo' : ''}.`, 'box', c.id);
+        if (chuvaNova) c.paradas += 1;
       }
       const pneu = c.tipoPneu;
       const ef = Kart.efeito(setup, pista, cond, pneu);
       ef.tempo += pit;
+      // Na F2 e na F1 o desgaste é acelerado para pedir parada no seco; pneu de chuva na pista molhada gasta bem menos.
+      if (molhado && pneu === 'chuva' && campeonato(estado.campeonato).compostos) ef.desgaste = (ef.desgaste || 1) * 0.55;
       // Motor passado da revisão aguenta menos quando é forçado.
       if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 0.9) / 0.9;
       if (c.jogador && !quatro) ef.tempo += penalidadeZerado(c.uso);
@@ -1250,16 +1266,30 @@
       corrida.temJogo = (tipo) => !!jogoLivre(tipo);
       corrida.trocaPneu = (c, desejado) => {
         if (!c.jogador) return undefined;
-        const ordem = [desejado, ...Engine.ORDEM_PNEUS.filter((k) => k !== desejado && k !== c.pneu), c.pneu].filter((k, i, a) => a.indexOf(k) === i);
-        for (const k of ordem) {
+        // Para cada composto seco com jogo livre: o jogo com mais vida e quantas voltas ele ainda aguenta.
+        const restantes = corrida.totalVoltas - corrida.volta + 1;
+        const precisaOutro = corrida.regraCompostos && c.usados.length === 1 && c.usados[0] !== 'chuva' ? c.usados[0] : null;
+        const opcoes = Engine.ORDEM_PNEUS.map((k) => {
           const jogo = jogoLivre(TIPO_DO_COMPOSTO[k]);
-          if (!jogo) continue;
-          if (k !== desejado) Engine.registrar(corrida, `Sem ${Engine.PNEUS[desejado].nome.toLowerCase()} no estoque: vai de ${Engine.PNEUS[k].nome.toLowerCase()}.`, 'box', c.id);
-          return { pneu: k, uso: trocarJogo(c, jogo) };
+          if (!jogo) return null;
+          const aguenta = Engine.vidaPneu(k, c.piloto, corrida.pista) * Math.max(0, 1 - jogo.uso / Engine.PNEUS[k].vida);
+          return { k, jogo, aguenta, regra: k !== precisaOutro };
+        }).filter(Boolean);
+        if (!opcoes.length) {
+          if (!corrida.semJogoAvisado) Engine.registrar(corrida, 'Sem pneu seco no estoque para trocar: o carro segue na pista.', 'alerta', c.id);
+          corrida.semJogoAvisado = true;
+          return null;
         }
-        if (!corrida.semJogoAvisado) Engine.registrar(corrida, 'Sem pneu seco no estoque para trocar: o carro segue na pista.', 'alerta', c.id);
-        corrida.semJogoAvisado = true;
-        return null;
+        // O pedido vale se o jogo dele cumpre a regra e aguenta pelo menos metade do que falta (ou metade da vida).
+        const pedido = opcoes.find((o) => o.k === desejado);
+        const bom = (o) => o.regra && o.aguenta >= Math.min(restantes, Engine.vidaPneu(o.k, c.piloto, corrida.pista) * 0.5);
+        const escolha = pedido && bom(pedido) ? pedido
+          : opcoes.slice().sort((a, b) => (b.regra - a.regra) || (Math.min(b.aguenta, restantes) - Math.min(a.aguenta, restantes)) || (Engine.ORDEM_PNEUS.indexOf(a.k) - Engine.ORDEM_PNEUS.indexOf(b.k)))[0];
+        if (escolha.k !== desejado) {
+          const motivo = pedido ? `o jogo de ${Engine.PNEUS[desejado].nome.toLowerCase()} está gasto` : `sem ${Engine.PNEUS[desejado].nome.toLowerCase()} no estoque`;
+          Engine.registrar(corrida, `${motivo[0].toUpperCase()}${motivo.slice(1)}: vai de ${Engine.PNEUS[escolha.k].nome.toLowerCase()}.`, 'box', c.id);
+        }
+        return { pneu: escolha.k, uso: trocarJogo(c, escolha.jogo) };
       };
     }
     for (const c of corrida.carros) {
