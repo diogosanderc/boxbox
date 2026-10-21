@@ -3,7 +3,8 @@
 // No navegador não há compra: o Premium só liga pelo modo desenvolvedor, para testar.
 (function (raiz) {
   const CHAVE = 'superlicenca-premium';
-  const PRECO_PADRAO = 'US$ 1,99';
+  // Só aparece se a App Store não responder (ou no navegador); no app vale o preço da loja, na moeda do jogador.
+  const PRECO_PADRAO = 'R$ 9,90';
 
   const cap = raiz.Capacitor;
   const nativo = !!(cap && cap.isNativePlatform && cap.isNativePlatform());

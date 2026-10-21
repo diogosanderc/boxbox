@@ -143,7 +143,7 @@ npm test   # testes com o runner nativo do Node (18+)
 ## Premium
 
 A carreira inteira, do kart Regional à F1, é grátis. O **Superlicença Premium** é uma compra única (sem assinatura)
-pela App Store, produto `com.diogosander.superlicenca.premium` (US$ 1,99, como o GOLAÇO), e libera:
+pela App Store, produto `com.diogosander.superlicenca.premium` (R$ 9,90 no Brasil, como o GOLAÇO; o app mostra o preço da App Store na moeda de cada país), e libera:
 
 - **até 5 patrocinadores** no macacão (sem o Premium: 2);
 - **mais espaço no estoque de pneus** (até 8 no kart e mais a cada categoria, até 16 na F1);
