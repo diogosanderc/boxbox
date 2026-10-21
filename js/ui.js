@@ -322,8 +322,12 @@
     });
   }
 
+  // Notícia nova: mais recente que a última vista pelo jogador (notícias antigas, sem número, contam como lidas).
+  const noticiaNova = (n) => n.n != null && n.n > (estado.noticiaLida || 0);
+  const noticiasNovas = () => estado.noticias.some(noticiaNova);
+
   function abas(lista, atual, alertas = {}) {
-    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span>${alertas[id] ? '<i class="aba-alerta" aria-label="pendência"></i>' : ''}</button>`).join('')}</nav>`;
+    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span>${alertas[id] ? `<i class="aba-alerta ${alertas[id]}" aria-label="${alertas[id] === 'nova' ? 'novidade' : 'pendência'}"></i>` : ''}</button>`).join('')}</nav>`;
   }
 
   // Ícones em traço (estilo Feather), desenhados inline.
@@ -924,6 +928,8 @@
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
+      ${cartaoCabeca()}
+      ${cartaoOlheiros()}
       ${cartao(esc(p.nome), `${C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join('')}
         <div class="aneis">${anel('Moral', p.moral)}${anel('Confiança', p.confianca)}</div>`, { ajuda: 'cabeca' })}
       ${cartaoRecordes()}
@@ -980,17 +986,17 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoCompanheiro()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${cartaoPatrocinio()}</div>`,
       caderno: painelCaderno,
-      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia"><b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
+      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
-      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 })}
+      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', noticias: noticiasNovas() ? 'nova' : '' })}
       ${conteudo}
       <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>
       ${folhaChecagem()}${folhaPneu()}`;
@@ -1773,6 +1779,8 @@
       case 'aba':
         tela.aba = alvo.dataset.aba;
         render();
+        // Abriu as notícias: as novas aparecem destacadas agora e contam como lidas daqui em diante.
+        if (tela.aba === 'noticias' && noticiasNovas()) { estado.noticiaLida = estado.seqNoticia; salvar(); }
         // Se a pessoa já tinha descido, volta para o começo da aba (logo abaixo das abas).
         if (app.querySelector('.abas').getBoundingClientRect().top < 0) rolarPara('.abas');
         break;

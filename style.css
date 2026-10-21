@@ -951,3 +951,9 @@ button.link-oficina { background: transparent; border-color: transparent; color:
 /* Abas do paddock: quantas houver, lado a lado (agora são 6, com a Oficina). */
 .abas { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .abas button span { font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.aba-alerta.nova { background: var(--destaque); }
+.noticia { position: relative; }
+.noticia.lida { opacity: 0.55; }
+.noticia.nova { opacity: 1; border-left: 3px solid var(--destaque); padding-left: 10px; }
+.noticia-ponto { position: absolute; top: 8px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--destaque); }
+.noticia.nova { padding-right: 20px; }

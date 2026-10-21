@@ -73,7 +73,9 @@
   }
 
   function noticia(estado, texto) {
-    estado.noticias.unshift({ ano: estado.ano, etapa: estado.etapa + 1, texto });
+    // n: número sequencial, para saber quais o jogador ainda não leu.
+    estado.seqNoticia = (estado.seqNoticia || 0) + 1;
+    estado.noticias.unshift({ ano: estado.ano, etapa: estado.etapa + 1, texto, n: estado.seqNoticia });
     estado.noticias = estado.noticias.slice(0, 80);
   }
 
