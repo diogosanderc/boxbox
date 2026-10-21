@@ -193,7 +193,7 @@
     const p = { id: 'jogador', nome, pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
     for (const a of ATRIBUTOS) p[a] = Math.round(limitar(55 + rnd.gauss() * 4, 45, 65));
     // Ocultos: potencial (até onde pode chegar) e sensibilidade (quão bem sente o kart).
-    p.potencial = Math.round(limitar(86 + rnd.gauss() * 4, 78, 96));
+    p.potencial = Math.round(limitar(88 + rnd.gauss() * 3, 84, 95));
     p.sensibilidade = Math.round(limitar(55 + rnd.gauss() * 12, 30, 85));
     estado.piloto = p;
     comprarPneu(estado, 'slick', true);
@@ -224,6 +224,7 @@
     estado.etapa = 0;
     estado.fase = 'paddock';
     estado.fds = null;
+    estado.desenvolvimento = {}; // carro novo a cada ano
     if ((estado.ano > 2027 || estado.etapa > 0) && camp.id !== 'f1') {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
       estado.dinheiro += apoio;
@@ -310,6 +311,21 @@
     return Math.round(equipeBase(estado.equipeId).custoEtapa * campeonato(estado.campeonato).custo);
   }
 
+  // Quanto custa o ano seguinte com esta equipe, para a escolha no relatório. O contrato do monoposto
+  // só continua na mesma equipe e na mesma categoria; trocando, vale o preço cheio. Na F1, salário (negativo).
+  function custoTemporada(estado, campId, equipeId) {
+    const camp = campeonato(campId);
+    const base = equipeBase(equipeId);
+    const etapas = camp.etapas || ETAPAS;
+    const contrato = estado.contrato && estado.contrato.equipe === equipeId && campId === estado.campeonato && camp.ordem >= 3;
+    if (campId === 'f1') {
+      const salario = (contrato && estado.contrato.salario) || base.salario || 0;
+      return { etapa: -salario, temporada: -salario * etapas, etapas, contrato };
+    }
+    const etapa = contrato ? estado.contrato.custoEtapa : Math.round(base.custoEtapa * camp.custo / 100) * 100;
+    return { etapa, temporada: etapa * etapas, etapas, contrato };
+  }
+
   // Salário por etapa (só na F1).
   function salarioEtapa(estado) {
     if (estado.campeonato !== 'f1') return 0;
@@ -320,11 +336,70 @@
   function carroDe(estado, equipeId, jogador) {
     const e = equipeBase(equipeId);
     const cansaco = jogador ? Math.max(0, estado.motorHoras - HORAS_REVISAO) * 1.6 : 0;
+    // Na F1 o jogador pode pagar por desenvolvimento do carro (vale a temporada).
+    const dev = jogador && estado.campeonato === 'f1' ? (estado.desenvolvimento || {}) : {};
+    const d = (area) => (dev[area] || 0) * GANHO_DEV;
     return {
-      motor: Math.round(e.material - cansaco), aero: e.material, chassi: e.material,
+      motor: Math.round(e.material - cansaco + d('motor')), aero: e.material + d('aero'), chassi: e.material + d('chassi'),
       confiabilidade: Math.round(82 + e.organizacao / 7 - cansaco),
       ...(jogador ? { box: EQUIPE_BOX[nivelBox(estado)] } : {}),
     };
+  }
+
+  // ---------- desenvolvimento do carro (F1) ----------
+  // Peças novas para o carro do jogador: cada nível soma 2 pontos na área até o fim da temporada
+  // (no ano seguinte o carro é novo). É para onde vai o dinheiro grande da F1.
+  const AREAS_DEV = { aero: 'Aerodinâmica', motor: 'Motor', chassi: 'Chassi' };
+  const NIVEL_DEV_MAX = 3;
+  const GANHO_DEV = 2;
+  const PRECO_DEV = 4000000;
+  const nivelDev = (estado, area) => (estado.desenvolvimento && estado.desenvolvimento[area]) || 0;
+  const precoDev = (estado, area) => PRECO_DEV * (nivelDev(estado, area) + 1);
+  function desenvolverCarro(estado, area) {
+    if (estado.campeonato !== 'f1') return { ok: false, erro: 'O desenvolvimento do carro é da F1.' };
+    if (!AREAS_DEV[area]) return { ok: false, erro: 'Área inválida.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'Peças novas só entram no paddock.' };
+    if (nivelDev(estado, area) >= NIVEL_DEV_MAX) return { ok: false, erro: `${AREAS_DEV[area]} já está no máximo desta temporada.` };
+    const preco = precoDev(estado, area);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente.' };
+    estado.dinheiro -= preco;
+    estado.desenvolvimento = { ...(estado.desenvolvimento || {}), [area]: nivelDev(estado, area) + 1 };
+    noticia(estado, `Peças novas de ${AREAS_DEV[area].toLowerCase()} no carro de ${estado.piloto.nome}.`);
+    return { ok: true };
+  }
+
+  // ---------- preparação do piloto ----------
+  // Preparador físico e simulador: cada nível sobe o teto (potencial) em 1 e já melhora dois atributos.
+  const PREPARACAO = {
+    fisico: { nome: 'Preparador físico', texto: 'Mais resistência e reflexo: consistência e largada.', atributos: ['consistencia', 'largada'] },
+    simulador: { nome: 'Simulador', texto: 'Voltas virtuais em cada pista: ritmo e cuidado com os pneus.', atributos: ['ritmo', 'pneus'] },
+  };
+  const NIVEL_PREP_MAX = 2;
+  const nivelPrep = (estado, tipo) => (estado.preparacao && estado.preparacao[tipo]) || 0;
+  const precoPrep = (estado, tipo) => Math.round(15000 * Math.max(1, campeonato(estado.campeonato).custo) * (nivelPrep(estado, tipo) + 1) / 1000) * 1000;
+  function prepararPiloto(estado, tipo) {
+    const info = PREPARACAO[tipo];
+    if (!info) return { ok: false, erro: 'Preparação inválida.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'A preparação é feita entre as etapas.' };
+    if (nivelPrep(estado, tipo) >= NIVEL_PREP_MAX) return { ok: false, erro: `${info.nome} já está no nível máximo.` };
+    const preco = precoPrep(estado, tipo);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente.' };
+    estado.dinheiro -= preco;
+    estado.preparacao = { ...(estado.preparacao || {}), [tipo]: nivelPrep(estado, tipo) + 1 };
+    const p = estado.piloto;
+    p.potencial = Math.min(99, p.potencial + 1);
+    for (const a of info.atributos) p[a] = Math.min(p.potencial, p[a] + 1);
+    noticia(estado, `${p.nome} começa a trabalhar com ${tipo === 'fisico' ? 'um preparador físico' : 'o simulador'} (nível ${nivelPrep(estado, tipo)}).`);
+    return { ok: true };
+  }
+
+  // O que os olheiros acham do teto do piloto: uma faixa que fica mais estreita com as temporadas.
+  function tetoEstimado(estado) {
+    const p = estado.piloto;
+    const largura = Math.max(2, 6 - 2 * (estado.temporadas || []).length);
+    const desvio = ((estado.seed || 0) % 3) - 1; // os olheiros erram um pouco, sempre para o mesmo lado
+    const centro = p.potencial + desvio;
+    return { min: Math.round(centro - largura / 2), max: Math.round(centro + largura / 2) };
   }
 
   // ---------- equipe de box (monopostos) ----------
@@ -725,8 +800,10 @@
   // P1 e P2 entram pelo programa de jovens (a equipe paga); P3 e P4 pagam 60%. Na F1, salário.
   function propostasDeSubida(estado, destino, pos, rnd) {
     const lista = Dados.EQUIPES_MONO[destino];
-    const faixas = { 1: [0, 2], 2: [1, 3], 3: [3, 5], 4: [5, 7] }[pos];
-    const indices = pos === 1 ? [0, 2 + Math.floor(rnd() * 2)] : [faixas[0] + Math.floor(rnd() * (faixas[1] - faixas[0] + 1))];
+    // Na F1 o estreante começa numa equipe do meio: as de ponta chamam depois, por resultado.
+    const faixas = (destino === 'f1' ? { 1: [4, 6], 2: [5, 7], 3: [6, 8], 4: [7, 9] } : { 1: [0, 2], 2: [1, 3], 3: [3, 5], 4: [5, 7] })[pos];
+    const sorteio = () => faixas[0] + Math.floor(rnd() * (faixas[1] - faixas[0] + 1));
+    const indices = pos === 1 ? [...new Set([faixas[0], sorteio()])] : [sorteio()];
     const prox = campeonato(destino);
     return indices.map((i) => {
       const e = lista[Math.min(i, lista.length - 1)];
@@ -734,8 +811,8 @@
       const texto = destino === 'f1'
         ? `Vaga de piloto titular na ${prox.curto}. Salário de R$ ${e.salario.toLocaleString('pt-BR')} por etapa e luvas de R$ ${(e.salario * LUVAS_F1).toLocaleString('pt-BR')} ao assinar.`
         : pago ? `Vaga na ${prox.curto} pelo programa de jovens pilotos: a equipe paga a temporada.`
-          : `Vaga na ${prox.curto} para o próximo ano. Você paga 60% do orçamento da equipe.`;
-      return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
+          : `Vaga na ${prox.curto} para o próximo ano. Você paga 40% do orçamento da equipe.`;
+      return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, parte: pago ? 0 : 0.4, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
     });
   }
 
@@ -795,7 +872,7 @@
     const base = equipeBase(equipeId);
     estado.contrato = {
       equipe: equipeId, tipo: pr.tipo, segundoPiloto: false,
-      custoEtapa: pr.pago || campId === 'f1' ? 0 : Math.round(base.custoEtapa * camp.custo * 0.6 / 100) * 100,
+      custoEtapa: pr.pago || campId === 'f1' ? 0 : Math.round(base.custoEtapa * camp.custo * (pr.parte || 0.6) / 100) * 100,
       salario: campId === 'f1' ? base.salario : 0,
     };
     estado.propostas = [];
@@ -1580,6 +1657,8 @@
       const porte = porteDe(id);
       if (porte === 'pequena') return true;
       if (porte === 'media') return pos <= 12 || pop >= 15;
+      // Na F1, as equipes de ponta só chamam quem terminou no top 6 ou venceu o duelo com o companheiro.
+      if (estado.campeonato === 'f1') return pos <= 6 || !!(estado.duelo && estado.duelo.corrida[0] > estado.duelo.corrida[1]);
       return pos <= 6 || pop >= 30;
     });
   }
@@ -1693,7 +1772,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

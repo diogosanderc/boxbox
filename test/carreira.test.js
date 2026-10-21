@@ -562,9 +562,10 @@ test('equilíbrio: acerto ideal briga pelo top 4 no Regional; sem mexer no acert
     for (let i = 0; i < Carreira.ETAPAS; i++) jogarFimDeSemana(e, estrategia);
     return e.relatorio.pos;
   };
-  const ideal = [1, 2, 3, 4].map((s) => temporada(s, 'ideal'));
-  const padrao = [1, 2, 3, 4].map((s) => temporada(s, 'padrao'));
-  assert.ok(ideal.filter((p) => p <= Carreira.VAGAS_SUBIDA).length >= 3, `ideal: ${ideal}`);
+  const sementes = [1, 2, 3, 4, 5, 6, 7, 8];
+  const ideal = sementes.map((s) => temporada(s, 'ideal'));
+  const padrao = sementes.map((s) => temporada(s, 'padrao'));
+  assert.ok(ideal.filter((p) => p <= Carreira.VAGAS_SUBIDA).length >= 6, `ideal: ${ideal}`);
   assert.ok(ideal.reduce((a, b) => a + b) < padrao.reduce((a, b) => a + b), `ideal ${ideal} x padrão ${padrao}`);
 });
 

@@ -1035,3 +1035,11 @@ button.prazo.principal .prazo-valor { color: inherit; }
 
 /* Treino: saídas do Premium trancadas (anel vazado no lugar da bolinha) */
 .etapas i.trancada, .acoes .principal .etapas i.trancada { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45); }
+
+/* Relatório: aviso de caixa curto para a temporada */
+.aviso-caixa { display: flex; gap: 8px; align-items: flex-start; color: var(--alerta); background: rgba(255, 176, 32, 0.1); border: 1px solid rgba(255, 176, 32, 0.35); border-radius: var(--raio-p); padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+
+/* Desenvolvimento do carro (F1) */
+.dev-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--borda); }
+.dev-linha > span { display: grid; gap: 4px; }
+.dev-linha .compra { min-width: 118px; }

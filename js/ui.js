@@ -107,6 +107,8 @@
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
     oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e um composto de seco para correr (dois na F2 e na F1); o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
+    desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
@@ -1063,12 +1065,45 @@
       ${faltam.length > 3 ? `<details class="mais-conquistas"><summary>Ver todas (${faltam.length - 3} a mais)</summary><div class="conquistas">${faltam.slice(3).map(item).join('')}</div></details>` : ''}`);
   }
 
+  // Teto do piloto (estimado pelos olheiros) e preparação que sobe esse teto.
+  function cartaoPreparacao() {
+    const p = estado.piloto;
+    const teto = C.tetoEstimado(estado);
+    const proxima = C.campeonato(C.PROXIMA_CATEGORIA[estado.campeonato] || 'f1');
+    const niveis = ['f2', 'f1'].map((id) => `${C.campeonato(id).curto} pede ~${C.campeonato(id).nivel}`).join(' · ');
+    const linhas = Object.entries(C.PREPARACAO).map(([tipo, info]) => {
+      const nivel = C.nivelPrep(estado, tipo);
+      const barras = Array.from({ length: C.NIVEL_PREP_MAX }, (_, i) => `<i class="${i < nivel ? 'cheia' : ''}"></i>`).join('');
+      const preco = C.precoPrep(estado, tipo);
+      const botao = nivel >= C.NIVEL_PREP_MAX ? `<p class="fraco mini">${ic('check')}Nível máximo.</p>`
+        : `<button class="compra" data-acao="preparar" data-id="${tipo}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco || estado.fase === 'fds' ? 'disabled' : ''}><b>${ic('subir')}Nível ${nivel + 1}: teto +1</b><span>${reais(preco)}</span></button>`;
+      return `<div class="item"><div class="linha"><b>${info.nome}</b><span class="espaco"></span><span class="nivel-box">${barras}<b>${nivel}/${C.NIVEL_PREP_MAX}</b></span></div><p class="fraco mini">${info.texto}</p>${botao}</div>`;
+    }).join('');
+    return cartao('Teto e preparação', `<div class="item-topo"><span>Teto estimado pelos olheiros</span><b>${teto.min}–${teto.max}</b></div>
+      <p class="fraco mini">Os atributos param de crescer perto do teto. Para brigar na frente: ${niveis}. Preparação física e simulador sobem o teto.</p>
+      ${linhas}`, { classe: 'cartao-preparacao', ajuda: 'preparacao' });
+  }
+
+  // F1: peças novas para o carro, que valem até o fim da temporada.
+  function cartaoDesenvolvimento() {
+    const linhas = Object.entries(C.AREAS_DEV).map(([area, nome]) => {
+      const nivel = C.nivelDev(estado, area);
+      const barras = Array.from({ length: C.NIVEL_DEV_MAX }, (_, i) => `<i class="${i < nivel ? 'cheia' : ''}"></i>`).join('');
+      const preco = C.precoDev(estado, area);
+      const botao = nivel >= C.NIVEL_DEV_MAX ? `<span class="fraco mini">${ic('check')}Máximo</span>`
+        : `<button class="compra" data-acao="desenvolver" data-id="${area}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}><b>${ic('subir')}+${C.GANHO_DEV}</b><span>${reais(preco)}</span></button>`;
+      return `<div class="dev-linha"><span><b>${nome}</b><span class="nivel-box">${barras}</span></span>${botao}</div>`;
+    }).join('');
+    return cartao('Desenvolvimento do carro', `<p class="fraco mini">Peças novas para o seu carro. Cada nível soma ${C.GANHO_DEV} pontos na área até o fim da temporada; no ano seguinte o carro é novo.</p>${linhas}`, { classe: 'cartao-dev', ajuda: 'desenvolvimento' });
+  }
+
   function painelPiloto() {
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
       ${cartao(esc(p.nome), C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join(''))}
       ${cartaoCabeca()}
+      ${cartaoPreparacao()}
       ${cartaoRecordes()}
       ${cartaoOlheiros()}
       ${cartaoConquistas()}
@@ -1128,7 +1163,7 @@
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
@@ -1678,18 +1713,26 @@
     const r = estado.relatorio;
     const lista = r.equipes || [estado.equipeId];
     const escolhida = tela.proximaEquipe || estado.equipeId;
-    const custoCamp = C.campeonato(campId).custo;
-    const recusadas = Dados.EQUIPES.length - lista.length;
+    const total = (Dados.EQUIPES_MONO[campId] || Dados.EQUIPES).length;
+    const recusadas = Math.max(0, total - lista.length);
+    // Custo da temporada inteira ao lado de cada equipe, com aviso quando o caixa não cobre.
+    const ct = C.custoTemporada(estado, campId, escolhida);
+    const falta = ct.temporada > 0 && estado.dinheiro < ct.temporada;
     return `<span class="subtitulo" id="equipe-ano">Equipe para ${estado.ano}</span>
       <div class="equipes-ano">${lista.map((id) => {
         const e = C.equipeBase(id);
-        const custo = Math.round(e.custoEtapa * custoCamp / 100) * 100;
+        const c = C.custoTemporada(estado, campId, id);
+        const valor = c.etapa < 0 ? `<b class="dinheiro">+${reais(-c.etapa)}<small>/etapa</small></b>`
+          : c.etapa === 0 ? '<b class="dinheiro">Grátis<small>contrato</small></b>'
+            : `<b class="negativo">−${reais(c.etapa)}<small>/etapa</small></b>`;
+        const temporada = c.etapa < 0 ? `salário de ${reais(-c.temporada)} no ano` : c.etapa ? `${reais(c.temporada)} no ano${c.contrato ? ' (contrato)' : ''}` : '';
         return `<button class="equipe-ano ${escolhida === id ? 'ativo' : ''}" data-acao="escolher-equipe-ano" data-id="${id}" aria-pressed="${escolhida === id}" style="--cor-equipe:${e.cor}">
           <i class="camp-cor" style="background:${e.cor}"></i>
-          <span class="equipe-ano-nome"><b>${esc(e.nome)}</b><small>${C.PORTES[C.porteDe(id)].nome} · ${Kart.veiculo === 'kart' ? 'Kart' : 'Carro'} ${e.material}${id === estado.equipeId ? ' · atual' : ''}</small></span>
-          <b class="negativo">−${reais(custo)}<small>/etapa</small></b>
+          <span class="equipe-ano-nome"><b>${esc(e.nome)}</b><small>${C.PORTES[C.porteDe(id)].nome} · ${Kart.veiculo === 'kart' ? 'Kart' : 'Carro'} ${e.material}${id === estado.equipeId ? ' · atual' : ''}${temporada ? ` · ${temporada}` : ''}</small></span>
+          ${valor}
         </button>`;
       }).join('')}</div>
+      ${falta ? `<p class="aviso-caixa">${ic('alerta')}A temporada com a ${esc(C.equipeBase(escolhida).nome)} custa ${reais(ct.temporada)} (${ct.etapas} etapas) e o caixa tem ${reais(estado.dinheiro)}. Sem patrocínio e prêmios, o dinheiro acaba no meio do ano.</p>` : ''}
       ${recusadas ? `<p class="fraco mini">${recusadas} ${recusadas === 1 ? 'equipe não quis' : 'equipes não quiseram'} você este ano. Resultado e popularidade abrem mais portas.</p>` : ''}`;
   }
 
@@ -2039,6 +2082,12 @@
       }
       case 'box-chuva':
         if (corrida && !corrida.terminou) { corrida.boxJogador = true; atualizarCorrida(); }
+        break;
+      case 'preparar':
+        if (erro(C.prepararPiloto(estado, id))) { salvar(); render(); rolarPara('.cartao-preparacao', 'center'); aviso(`${C.PREPARACAO[id].nome}: teto +1.`, 'subir'); }
+        break;
+      case 'desenvolver':
+        if (erro(C.desenvolverCarro(estado, id))) { salvar(); render(); rolarPara('.cartao-dev', 'center'); aviso(`${C.AREAS_DEV[id]}: peças novas no carro.`, 'subir'); }
         break;
       case 'recusar-proposta':
         C.recusarProposta(estado, id);
