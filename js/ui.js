@@ -67,6 +67,16 @@
   }
   const erro = (r) => { if (r && !r.ok) aviso(r.erro); return r && r.ok; };
 
+  // Rola a tela até o que importa depois de uma ação (o resultado dela ou o próximo passo).
+  // bloco: 'start' encosta no topo (abaixo da barra fixa), 'center' deixa no meio da tela.
+  function rolarPara(alvo, bloco = 'start') {
+    requestAnimationFrame(() => {
+      const el = typeof alvo === 'string' ? app.querySelector(alvo) : alvo;
+      if (el) el.scrollIntoView({ behavior: menosMovimento() ? 'auto' : 'smooth', block: bloco });
+    });
+  }
+  const rolarAoTopo = () => requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: menosMovimento() ? 'auto' : 'smooth' }));
+
   function ir(nova) {
     if (timer) { clearInterval(timer); timer = null; }
     // Avisos da tela anterior não seguem para a próxima.
@@ -1118,7 +1128,7 @@
           return `<button class="compra mecanico-opcao mec-${tipo}" data-acao="contratar-mecanico" data-tipo="${tipo}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}>
             <b>${ic(x.icone)}${x.nome}</b><span class="mecanico-desc">${x.descricao}</span>
             <span class="mecanico-preco"><b>${reais(preco)}</b>${extra ? ` · hora extra ${reais(extra)}` : ' · fim de semana todo'}</span></button>`;
-        }).join('')}</div>`, { ajuda: 'mecanico' });
+        }).join('')}</div>`, { ajuda: 'mecanico', classe: 'cartao-mecanico' });
     }
     const info = C.MECANICOS[m.tipo];
     const ativo = C.mecanicoAtivo(estado);
@@ -1138,7 +1148,7 @@
     } else {
       corpo = `<button class="principal" data-acao="sugestao">${ic(info.icone)}${rotulo}</button>`;
     }
-    return cartao('Mecânico', `<div class="linha"><b>${ic(info.icone)}${info.nome}</b><span class="espaco"></span>${chip(ativo ? 'Trabalhando' : 'Fora desta sessão', ativo ? 'chip-dinheiro' : '')}</div>${corpo}`, { ajuda: 'mecanico' });
+    return cartao('Mecânico', `<div class="linha"><b>${ic(info.icone)}${info.nome}</b><span class="espaco"></span>${chip(ativo ? 'Trabalhando' : 'Fora desta sessão', ativo ? 'chip-dinheiro' : '')}</div>${corpo}`, { ajuda: 'mecanico', classe: 'cartao-mecanico' });
   }
 
   // Diferença para a saída anterior: verde se foi mais rápida, vermelho se foi mais lenta.
@@ -1355,7 +1365,7 @@
     const escolhida = tela.proximaEquipe || estado.equipeId;
     const custoCamp = C.campeonato(campId).custo;
     const recusadas = Dados.EQUIPES.length - lista.length;
-    return `<span class="subtitulo">Equipe para ${estado.ano}</span>
+    return `<span class="subtitulo" id="equipe-ano">Equipe para ${estado.ano}</span>
       <div class="equipes-ano">${lista.map((id) => {
         const e = C.equipeBase(id);
         const custo = Math.round(e.custoEtapa * custoCamp / 100) * 100;
@@ -1583,6 +1593,7 @@
       case 'escolher-proximo':
         tela.proximo = id;
         render();
+        rolarPara('#equipe-ano');
         break;
       case 'entrar': {
         const nome = document.getElementById('nome-piloto').value.trim();
@@ -1628,6 +1639,8 @@
       case 'aba':
         tela.aba = alvo.dataset.aba;
         render();
+        // Se a pessoa já tinha descido, volta para o começo da aba (logo abaixo das abas).
+        if (app.querySelector('.abas').getBoundingClientRect().top < 0) rolarPara('.abas');
         break;
       case 'psicologo':
         if (erro(C.sessaoPsicologo(estado))) { salvar(); render(); aviso('Boa conversa. O piloto saiu mais leve.'); }
@@ -1666,7 +1679,7 @@
         if (erro(C.doarPneu(estado, id))) { tela.pneuOpcoes = null; salvar(); render(); aviso('Pneus doados para a escolinha. A moral subiu!'); }
         break;
       case 'amaciar-pneu':
-        if (erro(C.amaciarPneu(estado))) { salvar(); render(); aviso('Pneu amaciado: pronto para render o máximo.'); }
+        if (erro(C.amaciarPneu(estado))) { salvar(); render(); rolarPara('.acoes', 'center'); aviso('Pneu amaciado: pronto para render o máximo.'); }
         break;
       case 'aceitar-patrocinio':
         if (erro(C.aceitarPatrocinio(estado, id))) { salvar(); render(); }
@@ -1716,14 +1729,19 @@
         break;
       }
       case 'contratar-mecanico':
-        if (erro(C.contratarMecanico(estado, alvo.dataset.tipo))) { salvar(); render(); aviso(`${C.MECANICOS[alvo.dataset.tipo].nome} contratado para o fim de semana.`); }
+        if (erro(C.contratarMecanico(estado, alvo.dataset.tipo))) { salvar(); render(); rolarPara('.cartao-mecanico', 'center'); aviso(`${C.MECANICOS[alvo.dataset.tipo].nome} contratado para o fim de semana.`); }
         break;
       case 'hora-extra':
-        if (erro(C.pagarHoraExtra(estado))) { salvar(); render(); aviso('O mecânico fica nesta sessão.'); }
+        if (erro(C.pagarHoraExtra(estado))) { salvar(); render(); rolarPara('.cartao-mecanico', 'center'); aviso('O mecânico fica nesta sessão.'); }
         break;
       case 'sugestao': {
         const r = C.pedirSugestao(estado);
-        if (erro(r)) { salvar(); render(); aviso(r.faz === 'monta' ? 'O técnico montou o kart.' : 'O mecânico deu a opinião dele.'); }
+        if (erro(r)) {
+          salvar(); render();
+          // Kart montado: mostra o acerto novo; palpite ou análise: mostra o que ele disse.
+          if (r.faz === 'monta') rolarPara('.setup'); else rolarPara('.cartao-mecanico', 'center');
+          aviso(r.faz === 'monta' ? `O técnico montou o ${Kart.veiculo}.` : 'O mecânico deu a opinião dele.');
+        }
         break;
       }
       case 'saida': {
@@ -1735,8 +1753,7 @@
           render();
           if (r.saida.recorde) aviso('Novo recorde da pista!', 'trofeu');
           // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
-          const nova = app.querySelector('.saida');
-          if (nova) nova.scrollIntoView({ behavior: menosMovimento() ? 'auto' : 'smooth', block: 'center' });
+          rolarPara('.saida', 'center');
         });
         break;
       }
@@ -1745,6 +1762,7 @@
         salvar();
         tela.mudancas = houveMudanca('quali') ? 'quali' : null;
         render();
+        rolarAoTopo();
         break;
       case 'fechar-mudancas':
         tela.mudancas = null;
@@ -1754,6 +1772,7 @@
         tela.largada = false;
         tela.mudancas = houveMudanca('grid') ? 'grid' : null;
         render();
+        rolarAoTopo();
         break;
       case 'classificar':
         if (!erro(C.classificar(estado))) break;
@@ -1761,6 +1780,7 @@
         animarPista('Classificação', ['Volta de saída', 'Volta lançada', 'Volta lançada', 'Volta de desaceleração'], 'Cronômetro ligado…', () => {
           tela.largada = true;
           render();
+          rolarAoTopo();
           if (estado.fds.recordeQuali) aviso('Novo recorde da pista!', 'trofeu');
         });
         break;
@@ -1783,7 +1803,7 @@
         break;
       case 'anotar': {
         const campo = document.getElementById('nota-corrida');
-        if (erro(C.anotarCorrida(estado, campo ? campo.value : ''))) { salvar(); render(); aviso('Anotado no caderno.'); }
+        if (erro(C.anotarCorrida(estado, campo ? campo.value : ''))) { salvar(); render(); rolarPara('[data-acao="voltar-paddock"]', 'center'); aviso('Anotado no caderno.'); }
         break;
       }
       case 'comecar-f1':
@@ -1806,6 +1826,7 @@
       case 'escolher-equipe-ano':
         tela.proximaEquipe = id;
         render();
+        rolarPara('[data-acao="nova-temporada"]', 'center');
         break;
       case 'nova-temporada':
         if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1], tela.proximaEquipe || estado.equipeId))) { salvar(); ir(telaDaFase()); }
