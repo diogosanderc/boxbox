@@ -1088,7 +1088,7 @@ body.sem-topo .topo-mini { display: none; }
 @keyframes tut-pulso { 50% { box-shadow: 0 0 0 9999px rgba(2, 6, 14, 0.8), 0 0 0 3px rgba(255, 255, 255, 1), 0 0 34px 8px rgba(120, 175, 255, 0.7); } }
 .tut-balao { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--tut-fundo); color: var(--tut-texto); border-radius: 18px; padding: 14px 16px 14px; display: grid; gap: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55); }
 .tut-balao h3 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--tut-texto); }
-.tut-balao p { margin: 0; color: var(--tut-fraco); line-height: 1.45; font-size: 15px; }
+.tut-balao p { margin: 0; color: var(--tut-fraco); line-height: 1.45; font-size: 15px; white-space: pre-line; }
 .tut-quem { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tut-azul); }
 .tut-avatar { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--tut-azul); color: #fff; }
 .tut-avatar svg { width: 15px; height: 15px; }

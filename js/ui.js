@@ -207,15 +207,15 @@
   const veic = () => (Kart.monoposto() ? 'carro' : 'kart');
   const PASSOS_TUTORIAL = {
     equipe: () => [
-      { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos; a meta é chegar à Fórmula 1 e ser campeão.' },
-      { sel: '.equipe-card', titulo: 'Escolha a equipe', texto: 'Kart é a velocidade do material; estrutura, a confiança. Cada equipe cobra por etapa: equipe cara anda mais, mas sobra menos dinheiro para pneus e motor.' },
-      { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ?', texto: 'Quase todo cartão tem um ? com a explicação do que ele faz.' },
+      { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos e a meta é chegar à Fórmula 1 e ser campeão.' },
+      { sel: '.equipe-card', titulo: 'Escolha a equipe', texto: 'Cada equipe cobra por etapa: equipe cara anda mais, mas sobra menos dinheiro para pneus e motor.' },
+      { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ícone de "?".', texto: 'Quase todo cartão tem um "?" com a explicação do que ele faz. É a chave para você acertar o seu carro.' },
     ],
     paddock: () => [
       { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
-      { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais; confiança alta deixa mais rápido e regular.' },
-      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida. Tabela: o campeonato. Piloto: atributos e conquistas. Oficina: pneus, motor e patrocínio. Caderno: o que você anotou de cada pista. Notícias: propostas e novidades.' },
-      { sel: '.hero', titulo: 'A próxima etapa', texto: 'Pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto.' },
+      { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais e a confiança alta deixa mais rápido e regular.' },
+      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos e conquistas.\nOficina: pneus, motor e patrocínio.\nCaderno: o que você anotou de cada pista.\nNotícias: propostas e novidades.' },
+      { sel: '.hero', titulo: 'A próxima etapa', texto: 'Veja as informações da pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto. É importantíssimo para o acerto do carro.' },
       { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
       { sel: '[data-aba="noticias"]', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho mostra quando tem novidade.' },
       { sel: '[data-acao="ir-fds"]', titulo: 'Fim de semana', texto: 'Quando estiver pronto, vá para a pista. Cada etapa tem treino livre de manhã, classificação e corrida à tarde.' },
