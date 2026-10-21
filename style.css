@@ -879,3 +879,21 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .folha-codigo { border-color: var(--borda); }
 .folha-codigo h3 { margin: 0; }
 .folha-codigo input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); }
+
+/* ---------- cabeçalho compacto ----------
+   Logo menor, perfil numa linha e os três números (caixa, moral, confiança) lado a lado. */
+.topo { padding: 8px 16px 10px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); gap: 8px; }
+.marca-logo { height: 20px; }
+.perfil { gap: 10px; }
+.avatar { width: 34px; height: 34px; font-size: 13px; box-shadow: 0 0 0 2px var(--fundo), 0 0 0 3px rgba(255, 255, 255, 0.12); }
+.perfil-texto b { font-size: 15px; }
+.perfil-texto small, .perfil-camp small { font-size: 12px; }
+.perfil-camp { padding: 3px 10px; }
+.perfil-camp b { font-size: 13px; }
+.kpis { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+.kpi, .kpi-caixa { grid-column: auto; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 2px; padding: 7px 10px; border-radius: 12px; }
+.kpi-caixa .kpi-rotulo { grid-column: auto; }
+.kpi-rotulo { font-size: 10px; gap: 4px; letter-spacing: 0.04em; }
+.kpi-valor, .kpi-caixa .kpi-valor { font-size: 19px; line-height: 1.1; }
+.kpi-barra { height: 3px; margin-top: 3px; }
+.kpi-caixa .kpi-sub { text-align: left; padding: 0; font-size: 10px; }

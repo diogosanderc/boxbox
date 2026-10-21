@@ -237,6 +237,8 @@
   }
 
   // ---------- topo ----------
+  // No cabeçalho compacto, milhões viram "R$ 13,9 mi" para caber ao lado da moral e da confiança.
+  const caixaCurto = (x) => (Math.abs(x) >= 1e6 ? `${x < 0 ? '−' : ''}R$ ${(Math.abs(x) / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : reais(x));
   function atualizarStatus() {
     if (!estado) { statusEl.innerHTML = ''; barraMini.innerHTML = ''; return; }
     const eq = C.equipeBase(estado.equipeId);
@@ -256,7 +258,7 @@
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
       </div>
       <div class="kpis">
-        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'R$ ∞' : reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'R$ ∞' : caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('sorriso', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
