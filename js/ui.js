@@ -443,6 +443,7 @@
     ['pneu', 'Mais espaço no estoque de pneus', 'Até 8 no kart e mais a cada categoria, até 16 na F1.'],
     ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
     ['chave', 'Equipe de box 3/3', 'Nos monopostos, pit stops mais rápidos e com menos erro.'],
+    ['relogio', `${4} saídas no treino livre`, `Sem o Premium: ${2}. Mais voltas para achar o acerto.`],
     ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
   ];
   const folhaPremium = document.createElement('div');
@@ -1425,9 +1426,12 @@
   function telaAcerto() {
     const fds = estado.fds;
     const treino = fds.sessao === 'treino';
-    const restantes = C.SAIDAS_TREINO - fds.saidas.length;
+    const restantes = C.saidasTreino() - fds.saidas.length;
     const saidas = fds.saidas.slice().reverse();
-    const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : ''}"></i>`).join('');
+    // As saídas do Premium aparecem trancadas para quem não tem.
+    const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : i >= C.saidasTreino() ? 'trancada' : ''}"></i>`).join('');
+    const maisSaidas = !restantes && !BoxPremium.ativo
+      ? `<button class="grande premium-trancado" data-acao="premium" data-motivo="Sem o Premium são ${C.SAIDAS_GRATIS} saídas no treino livre. Com ele, ${C.SAIDAS_TREINO}.">${ic('cadeado')}Mais ${C.SAIDAS_TREINO - C.SAIDAS_GRATIS} saídas · Premium</button>` : '';
     return `<div class="corrida">
       <div class="coluna">
         ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali' })}
@@ -1436,6 +1440,7 @@
         <div class="acoes">
           ${treino
             ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
+               ${maisSaidas}
                <button class="grande" data-acao="ir-quali">Ir para a classificação →</button>`
             : '<button class="principal grande" data-acao="classificar">Classificar</button>'}
         </div>

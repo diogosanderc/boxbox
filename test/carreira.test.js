@@ -89,6 +89,7 @@ test('treino limitado e feedback do piloto', () => {
   // sem mecânico contratado, só o piloto fala
   assert.strictEqual(Carreira.saidaTreino(e).saida.dica, null);
   assert.ok(Carreira.contratarMecanico(e, 'experiente').ok);
+  Carreira.definirPremium(true);
   for (let i = 1; i < Carreira.SAIDAS_TREINO; i++) {
     const r = Carreira.saidaTreino(e);
     assert.ok(r.ok);
@@ -96,6 +97,22 @@ test('treino limitado e feedback do piloto', () => {
     assert.match(r.saida.dica, /^Mecânico:/);
   }
   assert.strictEqual(Carreira.saidaTreino(e).ok, false);
+  Carreira.definirPremium(false);
+});
+
+test('treino livre: 2 saídas de graça, 4 com o Premium', () => {
+  Carreira.definirPremium(false);
+  const e = Carreira.novoJogo({ seed: 4 });
+  Carreira.iniciarFimDeSemana(e);
+  assert.ok(Carreira.saidaTreino(e).ok);
+  assert.ok(Carreira.saidaTreino(e).ok);
+  const r = Carreira.saidaTreino(e);
+  assert.ok(!r.ok && r.premium);
+  Carreira.definirPremium(true);
+  assert.ok(Carreira.saidaTreino(e).ok);
+  assert.ok(Carreira.saidaTreino(e).ok);
+  assert.ok(!Carreira.saidaTreino(e).premium && !Carreira.saidaTreino(e).ok);
+  Carreira.definirPremium(false);
 });
 
 test('kart não para nos boxes nem muda de modo (os rivais não atacam no fim)', () => {

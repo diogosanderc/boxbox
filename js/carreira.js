@@ -14,7 +14,9 @@
   };
   const ETAPAS = 8; // kart e F4; da F3 em diante, o calendário real (campeonato.etapas)
   const etapasDe = (estado) => campeonato(estado.campeonato).etapas || ETAPAS;
+  // Saídas no treino livre: 2 de graça, 4 com o Premium.
   const SAIDAS_TREINO = 4;
+  const SAIDAS_GRATIS = 2;
   const VOLTAS_POR_SAIDA = 6;
   // Motor de kart conta horas de uso: cada saída de treino, a classificação e a corrida somam.
   // Passou de HORAS_REVISAO sem revisão, perde força e fica mais frágil.
@@ -42,6 +44,7 @@
   const ehPremium = () => premium;
   const MAX_PATROCINIOS = 5;
   const PATROCINIOS_GRATIS = 2;
+  const saidasTreino = () => (premium ? SAIDAS_TREINO : SAIDAS_GRATIS);
   const maxPatrocinios = () => (premium ? MAX_PATROCINIOS : PATROCINIOS_GRATIS);
   const pedePremium = (erro) => ({ ok: false, premium: true, erro });
   const APOIO_FAMILIA = 20000; // por temporada, multiplicado pelo custo do campeonato
@@ -977,7 +980,10 @@
   // Uma saída para a pista no treino livre: tempo, posição na tabela, o que o piloto sente e, se contratado, a dica do mecânico.
   function saidaTreino(estado) {
     const fds = estado.fds;
-    if (fds.saidas.length >= SAIDAS_TREINO) return { ok: false, erro: 'O treino livre acabou.' };
+    if (fds.saidas.length >= saidasTreino()) {
+      return premium ? { ok: false, erro: 'O treino livre acabou.' }
+        : pedePremium(`Sem o Premium são ${SAIDAS_GRATIS} saídas no treino livre. Com ele, ${SAIDAS_TREINO}.`);
+    }
     const pneu = pneuPorId(estado, fds.pneuId);
     if (!pneu) return { ok: false, erro: 'Escolha um jogo de pneus.' };
     const rnd = rngDe(estado);
@@ -1644,7 +1650,7 @@
 
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
-    VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
+    VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
