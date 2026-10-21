@@ -367,7 +367,8 @@
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
   // Da F3 em diante o estoque tem quatro tipos: macio (o slick), médio, duro e chuva.
-  // Cada um seco vira um composto na corrida; sem os quatro no estoque, não dá para correr.
+  // Cada um seco vira um composto na corrida. Dá para ir à pista sem algum, mas o fim de semana
+  // é só com o que estiver no estoque (sem compra na pista), e os rivais têm todos.
   const TIPOS_KART = ['slick', 'chuva'];
   const TIPOS_F3 = ['slick', 'medio', 'duro', 'chuva'];
   const COMPOSTO_DO_TIPO = { slick: 'M', medio: 'Md', duro: 'D' };
@@ -389,6 +390,8 @@
 
   function comprarPneu(estado, tipo, gratis = false) {
     if (!tiposPneu(estado).includes(tipo)) return { ok: false, erro: 'Esse pneu não é usado nesta categoria.' };
+    // Da F3 em diante o fim de semana é com o estoque que foi para a pista: compra só no paddock.
+    if (!gratis && quatroPneus(estado) && estado.fase === 'fds') return { ok: false, erro: 'Na pista não dá para comprar pneu: o fim de semana é com o estoque que você trouxe.' };
     if (estado.pneus.length >= espacoPneus(estado)) return { ok: false, erro: `Estoque cheio (${espacoPneus(estado)} jogos): venda, doe ou descarte um pneu, ou compre mais espaço na oficina.` };
     const preco = Math.round(Kart.PNEUS_KART[tipo].preco * custoPneu(estado));
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
@@ -524,7 +527,7 @@
     const lista = [];
     if (estado.motorQuebrado) lista.push({ id: 'retifica', texto: 'Motor engripado: sem retífica, não dá para correr.' });
     const falta = faltaNoEstoque(estado);
-    for (const t of falta) lista.push({ id: t, texto: `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque: sem os quatro tipos não dá para correr.` });
+    for (const t of falta) lista.push({ id: t, texto: `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque. No fim de semana só dá para usar o que estiver nele, e os rivais vão ter os quatro tipos.` });
     if (!falta.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
       lista.push({ id: 'slick', texto: `Nenhum ${quatroPneus(estado) ? 'macio' : 'slick'} novo para a classificação e a corrida.` });
     }
@@ -823,8 +826,6 @@
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
-    const falta = faltaNoEstoque(estado);
-    if (falta.length) return { ok: false, erro: `Falta pneu ${falta.map((t) => nomePneu(estado, t).toLowerCase()).join(', ')} no estoque. Da F3 em diante é preciso ter macio, médio, duro e chuva para correr.` };
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para pagar a equipe nesta etapa.' };
     estado.dinheiro -= custo;
     estado.dinheiro += salarioEtapa(estado);

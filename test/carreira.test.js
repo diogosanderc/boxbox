@@ -948,14 +948,15 @@ test('F3 em diante: macio, médio, duro e chuva no estoque; sem eles não corre,
   // Na estreia a equipe completa os quatro tipos.
   for (const t of ['slick', 'medio', 'duro', 'chuva']) assert.ok(e.pneus.some((p) => p.tipo === t), t);
   assert.strictEqual(Carreira.nomePneu(e, 'slick'), 'Macio');
-  // Sem duro no estoque: pendência e não corre.
+  // Sem duro no estoque: pendência, mas dá para ir; na pista não se compra e o duro fica bloqueado.
   const duros = e.pneus.filter((p) => p.tipo === 'duro');
   e.pneus = e.pneus.filter((p) => p.tipo !== 'duro');
   assert.ok(Carreira.pendenciasEtapa(e).some((x) => x.id === 'duro'));
-  assert.ok(!Carreira.iniciarFimDeSemana(e).ok);
-  e.pneus.push(...duros);
   const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = null; cl.tarde.chove = false; cl.manha.chove = false;
   assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  assert.ok(!Carreira.comprarPneu(e, 'duro').ok);
+  assert.ok(!Carreira.escolherComposto(e, 'D').ok);
+  e.pneus.push(...duros); // (só para seguir o teste com os quatro)
   Carreira.irParaClassificacao(e);
   Carreira.classificar(e);
   if (Carreira.sprintPendente(e)) Carreira.concluirSprint(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
