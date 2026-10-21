@@ -418,6 +418,7 @@
     ['carteira', `Até ${5} patrocinadores no macacão`, `Sem o Premium: ${2}.`],
     ['pneu', 'Mais espaço no estoque de pneus', 'Até 8 no kart e mais a cada categoria, até 16 na F1.'],
     ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
+    ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
   ];
   const folhaPremium = document.createElement('div');
   folhaPremium.className = 'folha-fundo';
@@ -2075,6 +2076,8 @@
         window.scrollTo(0, 0);
         break;
       case 'voltar-paddock':
+        // Sem o Premium, um anúncio a cada 3 corridas, já fora da tela de resultado.
+        BoxAnuncios.depoisDaCorrida(BoxPremium.ativo);
         C.concluirEtapa(estado);
         salvar();
         ir(telaDaFase());
@@ -2134,5 +2137,6 @@
     if (v) aviso('Premium ativado! Obrigado.', 'estrela');
   });
   BoxPremium.iniciar();
+  BoxAnuncios.iniciar();
   BoxSave.iniciar(CHAVE_SAVE).catch(() => {}).then(render);
 })();
