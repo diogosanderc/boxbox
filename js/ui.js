@@ -1738,8 +1738,10 @@
         const r = C.pedirSugestao(estado);
         if (erro(r)) {
           salvar(); render();
-          // Kart montado: mostra o acerto novo; palpite ou análise: mostra o que ele disse.
-          if (r.faz === 'monta') rolarPara('.setup'); else rolarPara('.cartao-mecanico', 'center');
+          // Kart montado pelo técnico: vai direto para o próximo passo (sair para a pista, volta lançada ou largar).
+          // Palpite ou análise: mostra o que ele disse.
+          if (r.faz === 'monta') rolarPara('[data-acao="largar"], [data-acao="classificar"], [data-acao="saida"]', 'center');
+          else rolarPara('.cartao-mecanico', 'center');
           aviso(r.faz === 'monta' ? `O técnico montou o ${Kart.veiculo}.` : 'O mecânico deu a opinião dele.');
         }
         break;
