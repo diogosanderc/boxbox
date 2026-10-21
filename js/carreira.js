@@ -635,18 +635,28 @@
     return { ok: true };
   }
 
-  // Assina com uma equipe de F4: começa a temporada de monopostos (fim do kart).
-  // Atalho da abertura: a carreira já começa na F4, aos 15 anos, como se tivesse feito três anos de kart.
-  function comecarNaF4(estado) {
+  // Atalho do modo desenvolvedor: a carreira já começa numa categoria de monoposto, com a idade e a
+  // evolução de quem subiu até ali (F4 aos 15, F3 aos 16, F2 aos 17, F1 aos 18), numa equipe do meio.
+  const INICIO_DEV = {
+    f4: { idade: 15, ganho: 18, popularidade: 35, equipe: 'f4-apex' },
+    f3: { idade: 16, ganho: 22, popularidade: 45, equipe: 'f3-campo' },
+    f2: { idade: 17, ganho: 26, popularidade: 55, equipe: 'f2-hitec' },
+    f1: { idade: 18, ganho: 30, popularidade: 65, equipe: 'f1-grove' },
+  };
+  function comecarEm(estado, campId) {
+    const ini = INICIO_DEV[campId] || INICIO_DEV.f4;
     const p = estado.piloto;
-    estado.ano += IDADE_F4 - p.idade;
-    p.idade = IDADE_F4;
-    for (const a of ATRIBUTOS) p[a] = Math.min(p.potencial, p[a] + 18);
-    p.popularidade = 35;
+    estado.ano += ini.idade - p.idade;
+    p.idade = ini.idade;
+    // Quem chega à F1 aos 18 já tem potencial para ela.
+    p.potencial = Math.max(p.potencial, 70 + ini.ganho);
+    for (const a of ATRIBUTOS) p[a] = Math.min(p.potencial, p[a] + ini.ganho);
+    p.popularidade = ini.popularidade;
     estado.dinheiro = 120000;
     estado.noticias = [];
-    return entrarNaCategoria(estado, { tipo: 'f4', campeonato: 'f4', equipe: 'f4-apex' });
+    return entrarNaCategoria(estado, { tipo: 'subida', campeonato: campId, pago: true, equipe: ini.equipe });
   }
+  const comecarNaF4 = (estado) => comecarEm(estado, 'f4');
 
   // Assina com uma equipe de monoposto (F4, F3, F2 ou F1) e começa a temporada lá.
   function entrarNaCategoria(estado, pr) {
@@ -1462,7 +1472,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

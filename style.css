@@ -979,3 +979,5 @@ button.premium-trancado span { color: var(--fraco); }
 button.botao-premium { display: inline-flex; align-items: center; gap: 8px; border-color: rgba(255, 210, 74, 0.55); color: var(--ouro); font-weight: 700; }
 button.botao-premium .ico { width: 18px; height: 18px; }
 button.botao-premium.ativo { border-style: dashed; opacity: 0.8; }
+.dev-inicio { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; font-size: 13px; color: var(--fraco); }
+.dev-inicio span { width: 100%; text-align: center; }

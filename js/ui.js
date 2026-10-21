@@ -537,7 +537,7 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
-          ${modoDev() ? `<button class="link-f4" data-acao="iniciar-f4">Dev: começar direto na F4 · 15 anos</button>
+          ${modoDev() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>
             ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
         </div>
       </div>`;
@@ -615,9 +615,9 @@
       if (t < 1) requestAnimationFrame(quadro);
       else setTimeout(() => {
         if (tela !== minha) return;
-        if (!minha.f4) { ir({ ...minha, nome: 'equipe', escolhida: null }); return; }
+        if (!minha.dev) { ir({ ...minha, nome: 'equipe', escolhida: null }); return; }
         estado = C.novoJogo({ nome: minha.nomePiloto, equipeId: minha.opcoes[0], seed: minha.seed });
-        C.comecarNaF4(estado);
+        C.comecarEm(estado, minha.dev);
         salvar();
         ir(telaDaFase());
       }, 250);
@@ -1829,14 +1829,14 @@
         if (!nome) { aviso('Escreva o nome do piloto.'); break; }
         const seed = Date.now() % 1e9;
         C.usarNomesEquipes(C.sortearNomesEquipes(seed));
-        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed), f4: tela.f4 });
+        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed), dev: tela.dev });
         break;
       }
       case 'iniciar':
         ir({ nome: 'inicio' });
         break;
-      case 'iniciar-f4':
-        ir({ nome: 'inicio', f4: true });
+      case 'iniciar-dev':
+        ir({ nome: 'inicio', dev: id });
         break;
       case 'voltar-abertura':
         ir({ nome: 'abertura' });
