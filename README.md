@@ -150,7 +150,7 @@ pela App Store, produto `com.diogosander.superlicenca.premium` (R$ 9,90 no Brasi
 - **anotações no caderno** depois de cada corrida.
 - **sem anúncios**: sem o Premium, aparece um anúncio de tela cheia (AdMob, não personalizado) a cada 3 corridas,
   sempre ao voltar para o paddock, nunca no meio do fim de semana (`js/anuncios.js` e `AnunciosPlugin.swift`).
-  Os IDs do AdMob no projeto são os de teste do Google: trocar pelos do Superlicença antes de publicar.
+  App ID do AdMob `ca-app-pub-9207064721204036~9459665923` e bloco intersticial `ca-app-pub-9207064721204036/9790838410`.
 
 O que é do Premium aparece com cadeado e abre a tela de compra (com **Restaurar compras**, que a Apple exige).
 No app, `js/premium.js` fala com o plugin nativo `ios/App/App/PremiumPlugin.swift` (StoreKit 2, o mesmo esquema

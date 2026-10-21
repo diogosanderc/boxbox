@@ -50,9 +50,9 @@
 	<!-- Só usa criptografia padrão do sistema (HTTPS): dispensa a pergunta de exportação a cada envio. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- AdMob: ID de TESTE do Google. Trocar pelo App ID real do Superlicença no AdMob antes de publicar. -->
+	<!-- AdMob: App ID do Superlicença (iOS). -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-9207064721204036~9459665923</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

@@ -2,9 +2,9 @@
 // um a cada 3 corridas, sempre depois do resultado (ao voltar para o paddock), nunca no meio do fim de semana.
 // No navegador não há anúncio. O plugin nativo é ios/App/App/AnunciosPlugin.swift.
 (function (raiz) {
-  // IDs de TESTE do Google: trocar pelos do Superlicença no AdMob antes de publicar
-  // (App ID no Info.plist, GADApplicationIdentifier; bloco de anúncio intersticial aqui).
-  const ID_INTERSTICIAL_IOS = 'ca-app-pub-3940256099942544/4411468910';
+  // Bloco intersticial do Superlicença no AdMob (o App ID fica no Info.plist, GADApplicationIdentifier).
+  // Para testar sem gerar impressão real, dá para usar o bloco de teste do Google: ca-app-pub-3940256099942544/4411468910
+  const ID_INTERSTICIAL_IOS = 'ca-app-pub-9207064721204036/9790838410';
   const CORRIDAS_ENTRE_ANUNCIOS = 3;
 
   const cap = raiz.Capacitor;
