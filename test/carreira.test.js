@@ -1119,3 +1119,66 @@ test('aposentadoria: a partir dos 21 (ou depois do título), obrigatória aos 38
   fecharTemporada(k, 5);
   assert.ok(!Carreira.podeEncerrar(k));
 });
+
+test('preparação sobe o teto; desenvolvimento do carro só na F1 e zera no ano seguinte', () => {
+  const e = Carreira.novoJogo({ seed: 14 });
+  e.dinheiro = 1e7;
+  const teto = e.piloto.potencial;
+  assert.ok(Carreira.prepararPiloto(e, 'simulador').ok);
+  assert.ok(Carreira.prepararPiloto(e, 'simulador').ok);
+  assert.ok(!Carreira.prepararPiloto(e, 'simulador').ok, 'máximo de 2 níveis');
+  assert.strictEqual(e.piloto.potencial, teto + 2);
+  const t = Carreira.tetoEstimado(e);
+  assert.ok(t.min <= e.piloto.potencial + 1 && t.max >= e.piloto.potencial - 1);
+  assert.ok(!Carreira.desenvolverCarro(e, 'aero').ok, 'no kart não tem desenvolvimento');
+  Carreira.comecarEm(e, 'f1');
+  e.fase = 'paddock';
+  e.dinheiro = 1e8;
+  const antes = Carreira.carroDe(e, e.equipeId, true).aero;
+  assert.ok(Carreira.desenvolverCarro(e, 'aero').ok);
+  assert.strictEqual(Carreira.carroDe(e, e.equipeId, true).aero, antes + Carreira.GANHO_DEV);
+  fecharTemporada(e, 9);
+  Carreira.proximaTemporada(e, 'f1');
+  assert.strictEqual(Carreira.nivelDev(e, 'aero'), 0, 'carro novo no ano seguinte');
+});
+
+test('F1: P9 sem vencer o companheiro não chama as equipes de ponta', () => {
+  const e = Carreira.novoJogo({ seed: 15 });
+  Carreira.comecarEm(e, 'f1');
+  e.fase = 'paddock';
+  e.piloto.popularidade = 90;
+  e.duelo.corrida = [0, 5];
+  fecharTemporada(e, 9);
+  assert.ok(!e.relatorio.equipes.some((id) => Carreira.porteDe(id) === 'ponta'));
+});
+
+test('repor estoque, rival de carreira, telemetria e desafio da semana', () => {
+  const e = Carreira.novoJogo({ seed: 16 });
+  // Rival de carreira no grid desde o kart, com placar.
+  assert.ok(Carreira.rivalCarreira(e));
+  jogarFimDeSemana(e, 'ideal');
+  assert.strictEqual(e.rivalCarreira.duelo.eu + e.rivalCarreira.duelo.ele, 1);
+  // Repor estoque da F3 em diante: um de cada que faltar.
+  Carreira.comecarEm(e, 'f3');
+  e.fase = 'paddock';
+  e.pneus = e.pneus.filter((p) => p.tipo !== 'duro' && p.tipo !== 'chuva');
+  const r = Carreira.reporEstoque(e);
+  assert.ok(r.ok && /duro/.test(r.texto) && /chuva/.test(r.texto), JSON.stringify(r));
+  assert.ok(Carreira.rivalCarreira(e), 'o rival sobe junto');
+  // Telemetria: soma dos trechos = total.
+  const pista = Carreira.pistaAtual(e);
+  const cond = Kart.condicao(Carreira.climaAtual(e), 'treino', false);
+  const t = Kart.telemetria(Kart.setupPadrao(), pista, cond, 'slick');
+  assert.ok(Math.abs(t.trechos.reduce((s, x) => s + x.perda, 0) - t.total) < 1e-9);
+  // Desafio: 3 voltas por semana; acerto perfeito dá ouro.
+  const agora = Date.UTC(2026, 9, 21);
+  const d = Carreira.desafioDaSemana(e, agora);
+  Carreira.estadoDesafio(e, d);
+  Carreira.ajustarDesafio(e, Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu)));
+  const v = Carreira.tentarDesafio(e, agora);
+  assert.strictEqual(v.medalha, 'ouro');
+  Carreira.tentarDesafio(e, agora);
+  Carreira.tentarDesafio(e, agora);
+  assert.ok(!Carreira.tentarDesafio(e, agora).ok);
+  assert.ok(Carreira.conferirConquistas(e).some((c) => c.id === 'desafio_ouro'));
+});

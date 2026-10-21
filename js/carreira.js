@@ -134,6 +134,34 @@
     return p;
   }
 
+  // ---------- rival de carreira ----------
+  // Um piloto da mesma idade que começa no kart junto com o jogador e sobe as mesmas categorias.
+  // Fica guardado em estado.rivalCarreira (atributos, potencial, placar) e entra em cada grid novo.
+  function criarRivalCarreira(estado) {
+    const rnd = Engine.criarRng((estado.seed || 1) * 7 + 3);
+    const camp = campeonato('regional');
+    const usados = new Set([estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ') : '']);
+    const base = gerarRival({ ...estado, campeonato: 'regional', proxId: 0 }, rnd, camp.nivel + 2, 'br', usados);
+    return { ...base, id: 'rc', idade: estado.piloto ? estado.piloto.idade : 12, potencial: Math.round(limitar(89 + rnd.gauss() * 2, 85, 93)), duelo: { eu: 0, ele: 0 }, temporadas: [] };
+  }
+  function colocarRivalCarreira(estado, rivais, camp) {
+    if (!estado.piloto) return;
+    if (!estado.rivalCarreira) estado.rivalCarreira = criarRivalCarreira(estado);
+    const rc = estado.rivalCarreira;
+    // Subiu de categoria junto: chega pelo menos perto do nível dela.
+    for (const a of ATRIBUTOS) rc[a] = Math.max(rc[a], Math.min(rc.potencial, camp.nivel - 3));
+    const { duelo, temporadas, potencial, ...piloto } = rc;
+    // Ocupa o lugar do rival de nota mais parecida (o grid continua com a mesma força).
+    let i = 0;
+    rivais.forEach((r, j) => { if (Math.abs(nota(r) - nota(rc)) < Math.abs(nota(rivais[i]) - nota(rc))) i = j; });
+    // Sobrenome repetido no grid: ele entra no lugar desse piloto.
+    const sobrenome = (n) => n.split(' ').slice(1).join(' ');
+    const igual = rivais.findIndex((r) => sobrenome(r.nome) === sobrenome(rc.nome));
+    if (igual >= 0) i = igual;
+    rivais[i] = { ...piloto, equipe: rivais[i].equipe };
+  }
+  const rivalCarreira = (estado) => (estado.rivalCarreira && estado.rivais.find((r) => r.id === 'rc')) || null;
+
   // Monta o grid do campeonato: 19 rivais em 10 equipes (2 vagas cada); você ocupa uma vaga na sua equipe.
   function montarGrid(estado) {
     const rnd = rngDe(estado);
@@ -150,6 +178,7 @@
     const lista = equipesDaCategoria(estado);
     vagas.sort((a, b) => lista.findIndex((e) => e.id === a) - lista.findIndex((e) => e.id === b) + rnd.gauss() * 3);
     rivais.forEach((r, i) => { r.equipe = vagas[i]; });
+    colocarRivalCarreira(estado, rivais, camp);
     estado.rivais = rivais;
     estado.pontos = { jogador: 0, ...Object.fromEntries(rivais.map((r) => [r.id, 0])) };
     estado.seguindo = null; // rivais novos a cada temporada
@@ -976,6 +1005,64 @@
 
   const climaAtual = (estado) => estado.calendario[estado.etapa].clima;
 
+  // ---------- desafio da semana ----------
+  // Toda semana: uma pista da categoria do jogador, uma condição fixa e 3 voltas lançadas para acertar o carro.
+  // O tempo-alvo é o do próprio piloto com o acerto perfeito; medalha pela distância até ele.
+  const SEMANA_MS = 7 * 86400000;
+  const INICIO_DESAFIO = Date.UTC(2026, 0, 5); // uma segunda-feira
+  const TENTATIVAS_DESAFIO = 3;
+  const MEDALHAS = [['ouro', 0.12], ['prata', 0.4], ['bronze', 0.9]];
+  function desafioDaSemana(estado, agora = Date.now()) {
+    const semana = Math.floor((agora - INICIO_DESAFIO) / SEMANA_MS);
+    const rnd = Engine.criarRng(semana * 7919 + 13);
+    const camp = campeonato(estado.campeonato);
+    const lista = Dados.KARTODROMOS[camp.regiao];
+    const base = lista[Math.floor(rnd() * lista.length)];
+    const pista = { ...base, peso: { motor: 1, aero: 0.3, chassi: 1.4 } };
+    const clima = Kart.gerarClima(base, camp, rnd);
+    const molhado = rnd() < 0.25;
+    const cond = Kart.condicao(clima, 'quali', molhado);
+    const pneu = molhado ? 'chuva' : 'slick';
+    const entrada = entradaJogador(estado);
+    const volta = (setup) => Engine.ritmoBase(entrada, pista) - 0.6 + Kart.efeito(setup, pista, cond, pneu).tempo + chuvaPiloto(estado.piloto, cond);
+    const alvo = volta(Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, pneu)));
+    const fim = INICIO_DESAFIO + (semana + 1) * SEMANA_MS;
+    return { semana, campeonato: camp.id, pista, cond, pneu, molhado, alvo, volta, medalhas: MEDALHAS.map(([m, d]) => ({ medalha: m, tempo: alvo + d })), fim };
+  }
+  // Estado do desafio desta semana (zera quando a semana vira ou o jogador muda de categoria).
+  function estadoDesafio(estado, d = desafioDaSemana(estado)) {
+    const atual = estado.desafio;
+    if (!atual || atual.semana !== d.semana || atual.campeonato !== d.campeonato) {
+      estado.desafio = { semana: d.semana, campeonato: d.campeonato, setup: Kart.setupPadrao(), tentativas: [], melhor: null, medalha: null, medalhas: (atual && atual.medalhas) || {} };
+    }
+    return estado.desafio;
+  }
+  function tentarDesafio(estado, agora = Date.now()) {
+    if (estado.fase === 'fds') return { ok: false, erro: 'O desafio é no paddock, entre as etapas.' };
+    const d = desafioDaSemana(estado, agora);
+    const st = estadoDesafio(estado, d);
+    if (st.tentativas.length >= TENTATIVAS_DESAFIO) return { ok: false, erro: 'As 3 voltas desta semana já foram. Volte na próxima semana.' };
+    const rnd = Engine.criarRng(d.semana * 31 + st.tentativas.length * 7 + 1);
+    const tempo = Math.round((d.volta(st.setup) + rnd.gauss() * 0.04) * 1000) / 1000;
+    const ideal = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));
+    const frases = Kart.feedbackPiloto(Kart.erros(st.setup, ideal), limitar(estado.piloto.sensibilidade || 50, 10, 95), rnd);
+    st.tentativas.push({ tempo, setup: { ...st.setup }, frases });
+    if (st.melhor == null || tempo < st.melhor) st.melhor = tempo;
+    const m = d.medalhas.find((x) => st.melhor <= x.tempo);
+    const ordem = ['ouro', 'prata', 'bronze'];
+    const nova = m && (!st.medalha || ordem.indexOf(m.medalha) < ordem.indexOf(st.medalha)) ? m.medalha : null;
+    if (nova) {
+      st.medalha = nova;
+      st.medalhas[nova] = (st.medalhas[nova] || 0) + 1;
+      if (nova === 'ouro') estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
+    }
+    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, restantes: TENTATIVAS_DESAFIO - st.tentativas.length };
+  }
+  function ajustarDesafio(estado, mudancas) {
+    const st = estadoDesafio(estado);
+    st.setup = Kart.arredondarSetup({ ...st.setup, ...mudancas });
+  }
+
   function iniciarFimDeSemana(estado) {
     const custo = custoEtapa(estado);
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: faça a retífica antes de ir para a pista.' };
@@ -1443,6 +1530,14 @@
     // Duelo com o companheiro: só conta se pelo menos um dos dois terminou.
     const comp = companheiro(estado);
     const dele = comp && res.find((r) => r.id === comp.id);
+    // Rival de carreira: quem terminou na frente (abandono conta como último).
+    const rc = rivalCarreira(estado);
+    const delePos = rc && res.find((r) => r.id === 'rc');
+    if (delePos && !(meu.fora && delePos.fora)) {
+      const eu = meu.fora ? 99 : meu.pos;
+      const ele = delePos.fora ? 99 : delePos.pos;
+      estado.rivalCarreira.duelo[eu < ele ? 'eu' : 'ele'] += 1;
+    }
     let dueloCorrida = null;
     if (dele && !(meu.fora && dele.fora)) {
       dueloCorrida = placarDuelo(estado, 'corrida', meu.fora ? 99 : meu.pos, dele.fora ? 99 : dele.pos);
@@ -1608,6 +1703,17 @@
     p.idade += 1;
     p.popularidade = Math.round(p.popularidade * 0.8 * 10) / 10;
     rel.evolucao = ATRIBUTOS.map((a) => ({ a, antes: antes[a], depois: p[a] })).filter((x) => x.depois !== x.antes);
+
+    // Rival de carreira: posição no campeonato, evolução e a notícia da disputa particular.
+    if (rivalCarreira(estado)) {
+      const r = estado.rivalCarreira;
+      const rpos = tabela.findIndex((x) => x.id === 'rc') + 1;
+      r.temporadas.push({ ano: rel.ano, campeonato: camp.id, pos: rpos });
+      evoluir(r, rnd, 1);
+      r.idade += 1;
+      rel.rival = { nome: r.nome, pos: rpos };
+      noticia(estado, rpos < pos ? `${r.nome}, seu rival desde o kart, termina à sua frente: P${rpos} contra P${pos}.` : `Na disputa com ${r.nome}, rival desde o kart, você leva a melhor: P${pos} contra P${rpos}.`);
+    }
 
     // Opções para o próximo ano
     // O próximo degrau é sempre da mesma categoria (a F4 só se alcança por proposta).
@@ -1793,6 +1899,7 @@
     { id: 'tricampeao', nome: 'Tricampeão', texto: 'Vença o Mundial de Fórmula 1 três vezes.', ok: (e) => e.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length >= 3 },
     { id: 'vinte_gps', nome: '20 GPs', texto: 'Vença 20 GPs de Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && !h.fora && h.pos === 1).length >= 20 },
     { id: 'dez_poles_f1', nome: 'Rei da classificação', texto: 'Faça 10 poles na Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && h.pole).length >= 10 },
+    { id: 'desafio_ouro', nome: 'Ouro na semana', texto: 'Ganhe a medalha de ouro num desafio da semana.', ok: (e) => !!(e.desafio && e.desafio.medalhas && e.desafio.medalhas.ouro) },
     { id: 'galeria', nome: 'Galeria da fama', texto: 'Encerre a carreira com um título mundial.', ok: (e) => e.fase === 'aposentado' && titulo('f1')(e) },
   ];
 
@@ -1840,11 +1947,11 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

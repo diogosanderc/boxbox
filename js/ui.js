@@ -107,6 +107,8 @@
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
     oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e um composto de seco para correr (dois na F2 e na F1); o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    desafio: ['Desafio da semana', 'Toda semana, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Ouro rende um pouco de popularidade.'],
+    telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
@@ -326,7 +328,7 @@
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
     document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
-    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado };
+    const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
   }
@@ -447,6 +449,7 @@
     ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
     ['chave', 'Equipe de box 3/3', 'Nos monopostos, pit stops mais rápidos e com menos erro.'],
     ['relogio', `${4} saídas no treino livre`, `Sem o Premium: ${2}. Mais voltas para achar o acerto.`],
+    ['regua', 'Telemetria da volta', 'Onde cada saída de treino perde tempo: retas, freada, curvas.'],
     ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
   ];
   const folhaPremium = document.createElement('div');
@@ -756,6 +759,54 @@
     return cartao('Companheiro de equipe', `<div class="duelo-topo"><span>Você</span><span class="fraco">×</span><span>${esc(comp.nome)}</span></div>
       ${linha('Classificação', d.quali)}${linha('Corrida', d.corrida)}${linha('Pontos', [estado.pontos.jogador || 0, estado.pontos[comp.id] || 0])}
       <p class="fraco mini">Terminar na frente dele anima o piloto; ficar atrás pesa um pouco na moral.</p>`, { classe: 'cartao-duelo' });
+  }
+
+  // ---------- desafio da semana ----------
+  const NOME_MEDALHA = { ouro: 'Ouro', prata: 'Prata', bronze: 'Bronze' };
+  const diasAte = (fim) => Math.max(1, Math.ceil((fim - Date.now()) / 86400000));
+  function cartaoDesafio() {
+    const d = C.desafioDaSemana(estado);
+    const st = C.estadoDesafio(estado, d);
+    const restantes = C.TENTATIVAS_DESAFIO - st.tentativas.length;
+    return cartao('Desafio da semana', `<div class="item-topo"><b>${esc(d.pista.nome)}</b>${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}</div>
+      <p class="fraco mini">Três voltas lançadas para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito. Termina em ${diasAte(d.fim)} ${diasAte(d.fim) === 1 ? 'dia' : 'dias'}.</p>
+      <div class="linha">${st.melhor ? chip(`${ic('relogio')}${tempoVolta(st.melhor)}`) : ''}${st.medalha ? chip(`${ic('trofeu')}${NOME_MEDALHA[st.medalha]}`, st.medalha === 'ouro' ? 'chip-ouro' : '') : ''}<span class="espaco"></span>
+      <button class="${restantes ? 'principal' : ''}" data-acao="abrir-desafio">${restantes ? `Correr · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : 'Ver resultado'}</button></div>`, { classe: 'cartao-desafio', ajuda: 'desafio' });
+  }
+  function telaDesafio() {
+    const d = C.desafioDaSemana(estado);
+    const st = C.estadoDesafio(estado, d);
+    const restantes = C.TENTATIVAS_DESAFIO - st.tentativas.length;
+    const medalhas = d.medalhas.map((m) => `<div class="medalha-alvo ${st.medalha === m.medalha ? 'ganha' : ''}"><span class="medalha-cor m-${m.medalha}" aria-hidden="true"></span><b>${NOME_MEDALHA[m.medalha]}</b><span>${tempoVolta(m.tempo)}</span></div>`).join('');
+    const voltas = st.tentativas.slice().reverse().map((t, i) => `<div class="saida"><div class="item-topo"><span class="chip">Volta ${st.tentativas.length - i}</span><b class="tempo">${tempoVolta(t.tempo)}</b></div>
+        ${(t.frases || []).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`).join('');
+    app.innerHTML = `<div class="detalhe">
+        <div class="linha"><button class="voltar" data-acao="voltar-paddock-pista">${icone('voltar')}<span>Paddock</span></button></div>
+        <div class="detalhe-titulo"><h1>${tituloForte(d.pista.nome)}</h1><p>Desafio da semana · ${esc(C.campeonato(d.campeonato).curto)} · termina em ${diasAte(d.fim)} ${diasAte(d.fim) === 1 ? 'dia' : 'dias'}</p></div>
+        <div class="grade">
+          ${cartao('Tempos-alvo', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado · pneu de chuva` : `${ic('sol')}Seco · slick`, d.molhado ? 'chip-azul' : '')}${chip(`Asfalto ${d.cond.tempPista}°`)}</div><div class="medalhas-alvo">${medalhas}</div>
+            ${st.melhor ? `<p>Sua melhor: <b>${tempoVolta(st.melhor)}</b>${st.medalha ? ` · ${NOME_MEDALHA[st.medalha]}` : ''}</p>` : ''}`)}
+          ${cartao('Acerto', editorSetup(st.setup, 'ajuste-desafio'))}
+          <button class="principal grande" data-acao="volta-desafio" ${restantes ? '' : 'disabled'}>${restantes ? `Volta lançada · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : 'Sem voltas esta semana'}</button>
+          ${cartao('Rádio', voltas || `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e faça a volta.</p>`)}
+        </div>
+      </div>`;
+  }
+
+  // Rival de carreira: o mesmo adversário do kart à F1, com o placar de todas as corridas juntos.
+  function cartaoRivalCarreira() {
+    const r = estado.rivalCarreira;
+    const noGrid = C.rivalCarreira(estado);
+    if (!r || !noGrid) return '';
+    const tabela = C.classificacaoCampeonato(estado);
+    const posEle = tabela.findIndex((x) => x.id === 'rc') + 1;
+    const eq = C.equipeBase(noGrid.equipe);
+    const [eu, ele] = [r.duelo.eu, r.duelo.ele];
+    const anos = r.temporadas.slice(-4).map((t) => `${t.ano} ${C.campeonato(t.campeonato).curto} P${t.pos}`).join(' · ');
+    return cartao('Rival de carreira', `<div class="duelo-topo"><span>Você</span><span class="fraco">×</span><span>${esc(r.nome)}</span></div>
+      <div class="duelo-linha"><b class="${eu > ele ? 'dinheiro' : ''}">${eu}</b><span>Corridas à frente</span><b class="${ele > eu ? 'negativo' : ''}">${ele}</b></div>
+      ${estado.etapa > 0 ? `<div class="duelo-linha"><b>P${C.posicaoNoCampeonato(estado)}</b><span>Campeonato</span><b>P${posEle}</b></div>` : ''}
+      <p class="fraco mini">${esc(r.nome)} corre pela ${esc(eq.nome)}. Vocês começaram juntos no kart${anos ? `: ${esc(anos)}` : ''}.</p>`, { classe: 'cartao-duelo' });
   }
 
   function cartaoProximaEtapa() {
@@ -1183,7 +1234,7 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}${cartaoRivalCarreira()}${cartaoDesafio()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
@@ -1290,20 +1341,19 @@
   }
 
   // ---------- fim de semana ----------
-  function editorSetup() {
-    const s = estado.fds.setup;
+  function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
     return `<div class="setup">${Kart.ORDEM_AJUSTES.map((k) => {
       const a = Kart.AJUSTES[k];
       let controle;
       if (a.tipo === 'opcoes') {
-        controle = `<div class="segmentos" data-seg="${k}">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
+        controle = `<div class="segmentos" data-seg="${k}">${a.opcoes.map((o, i) => `<button data-acao="${acao}" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
       } else {
         const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`)
           : k === 'camber' ? `${String(s[k].toFixed(2)).replace('.', ',')}°`
             : k === 'freio' ? `${s[k]}% na frente`
               : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
-        controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
-          <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
+        controle = `<div class="passos"><button data-acao="${acao}" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
+          <b>${rotulo}</b><button data-acao="${acao}" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
       }
       return `<div class="ajuste"><span class="ajuste-nome">${a.nome}${botaoAjuda(k)}</span>${controle}</div>`;
     }).join('')}</div>`;
@@ -1516,7 +1566,22 @@
           ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
           ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
         </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio' })}
+      ${treino ? cartaoTelemetria(saidas[0]) : ''}
     </div>`;
+  }
+
+  // Telemetria (Premium): onde a última saída perdeu tempo por causa do acerto.
+  function cartaoTelemetria(saida) {
+    if (!BoxPremium.ativo) {
+      const exemplo = [['Retas', 70], ['Entrada de curva', 45], ['Saída de curva', 25], ['Freada', 10]];
+      return cartao('Telemetria', `<div class="telemetria trancada" aria-hidden="true">${exemplo.map(([t, w]) => `<div class="tele-linha"><span>${t}</span><span class="tele-trilho"><i style="width:${w}%"></i></span><b>0,0 s</b></div>`).join('')}</div>
+        <button class="compra premium-trancado" data-acao="premium" data-motivo="A telemetria da volta é do Premium."><b>${ic('cadeado')}Ver onde a volta perde tempo</b><span>Premium · telemetria de cada saída</span></button>`, { classe: 'cartao-telemetria' });
+    }
+    if (!saida) return cartao('Telemetria', `<p class="vazio">${ic('regua')}Faça uma saída para ver onde a volta perde tempo.</p>`, { classe: 'cartao-telemetria', ajuda: 'telemetria' });
+    const t = Kart.telemetria(saida.setup, C.pistaAtual(estado), C.condicaoSessao(estado, 'treino'), saida.pneu);
+    const maior = Math.max(0.05, ...t.trechos.map((x) => x.perda));
+    const linhas = t.trechos.map((x) => `<div class="tele-linha"><span>${esc(x.trecho)}</span><span class="tele-trilho"><i style="width:${Math.max(2, (x.perda / maior) * 100)}%"></i></span><b>${x.perda < 0.005 ? '0' : x.perda.toFixed(2).replace('.', ',')} s</b></div>`).join('');
+    return cartao('Telemetria', `<p class="fraco mini">Saída ${estado.fds.saidas.length}: o acerto custa ${t.total.toFixed(2).replace('.', ',')} s por volta. Onde:</p><div class="telemetria">${linhas}</div>`, { classe: 'cartao-telemetria', ajuda: 'telemetria' });
   }
 
   // Falas do piloto sobre a pista antes da sessão: as pistas do que mudou.
@@ -2201,6 +2266,27 @@
         salvar();
         ir(telaDaFase());
         break;
+      case 'abrir-desafio':
+        ir({ nome: 'desafio' });
+        break;
+      case 'ajuste-desafio': {
+        const k = alvo.dataset.k;
+        const a = Kart.AJUSTES[k];
+        const atual = C.estadoDesafio(estado).setup[k];
+        const novo = alvo.dataset.valor != null ? +alvo.dataset.valor : atual + (+alvo.dataset.delta) * a.passo;
+        C.ajustarDesafio(estado, { [k]: novo });
+        salvar();
+        render();
+        break;
+      }
+      case 'volta-desafio': {
+        const r = C.tentarDesafio(estado);
+        if (erro(r)) {
+          salvar(); render();
+          aviso(r.nova ? `Medalha de ${NOME_MEDALHA[r.nova].toLowerCase()}! ${tempoVolta(r.tempo)}` : `Volta: ${tempoVolta(r.tempo)}`, r.nova ? 'trofeu' : 'relogio');
+        }
+        break;
+      }
       case 'ajuste': {
         const k = alvo.dataset.k;
         const a = Kart.AJUSTES[k];

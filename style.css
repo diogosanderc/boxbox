@@ -1055,3 +1055,20 @@ button.prazo.principal .prazo-valor { color: inherit; }
 .tut-pneu .pneu-roda { grid-row: auto; flex: none; }
 .tut-regras { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--fraco); }
 .compra.repor { justify-items: start; text-align: left; }
+
+/* Telemetria (Premium) */
+.telemetria { display: grid; gap: 8px; }
+.tele-linha { display: grid; grid-template-columns: minmax(0, 9.5em) 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
+.tele-linha b { font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: right; }
+.tele-trilho { height: 8px; border-radius: 4px; background: var(--painel-3); overflow: hidden; }
+.tele-trilho i { display: block; height: 100%; background: var(--destaque); border-radius: 4px; }
+.telemetria.trancada { filter: blur(3px); opacity: 0.5; pointer-events: none; user-select: none; }
+
+/* Desafio da semana */
+.medalhas-alvo { display: grid; gap: 6px; }
+.medalha-alvo { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--raio-p); background: var(--painel-2); font-variant-numeric: tabular-nums; }
+.medalha-alvo.ganha { outline: 2px solid var(--ouro); }
+.medalha-cor { width: 14px; height: 14px; border-radius: 50%; }
+.m-ouro { background: #ffd24a; }
+.m-prata { background: #c9ced6; }
+.m-bronze { background: #c98a4b; }

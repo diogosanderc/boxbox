@@ -261,6 +261,26 @@
     return M.ORDEM.reduce((s, k) => s + M.PESO[k] * e[k] * e[k], 0);
   }
 
+  // Telemetria: onde, na volta, o acerto está custando tempo. Divide os segundos perdidos pelo peso de cada
+  // ajuste e agrupa por trecho (não diz para que lado mexer: isso continua com o piloto e o mecânico).
+  const TRECHO_DO_AJUSTE = {
+    pressao: 'Aderência do pneu', eixo: 'Saída de curva', bitolaTraseira: 'Saída de curva', bitola: 'Entrada de curva',
+    alturaBanco: 'Meio de curva', coroa: 'Retas', carburacao: 'Retas', asaDianteira: 'Entrada de curva', asaTraseira: 'Curvas rápidas',
+    suspensao: 'Zebras e ondulações', altura: 'Curvas rápidas', relacao: 'Retas', freio: 'Freada', diferencial: 'Saída de curva',
+    camber: 'Entrada de curva', ers: 'Retas',
+  };
+  function telemetria(setup, pista, cond, pneu) {
+    const e = erros(setup, acertoIdeal(pista, cond, pneu));
+    const d = desequilibrio(e);
+    const total = Math.min(3.5, 1.1 * Math.pow(d, 0.9));
+    const trechos = {};
+    for (const k of M.ORDEM) {
+      const nome = TRECHO_DO_AJUSTE[k] || 'Outros';
+      trechos[nome] = (trechos[nome] || 0) + (d > 0 ? total * (M.PESO[k] * e[k] * e[k]) / d : 0);
+    }
+    return { total, trechos: Object.entries(trechos).map(([trecho, perda]) => ({ trecho, perda })).sort((a, b) => b.perda - a.perda) };
+  }
+
   // Efeito do acerto e do pneu numa volta: segundos a mais, irregularidade, risco de erro, desgaste e quebra.
   function efeito(setup, pista, cond, pneu) {
     const e = erros(setup, acertoIdeal(pista, cond, pneu));
@@ -460,7 +480,7 @@
     get ORDEM_AJUSTES() { return M.ORDEM; },
     get veiculo() { return M.veiculo; },
     PNEUS_KART, usarCategoria, categoria, monoposto: () => M.id !== 'kart',
-    setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito,
+    setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito, telemetria,
     feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
