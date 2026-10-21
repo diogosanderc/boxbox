@@ -118,6 +118,7 @@
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
+    compostos: ['Pneus macio, médio e duro', 'Na F2 e na F1, no seco, cada piloto escolhe o composto. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada.'],
     setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio e diferencial; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
     asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
@@ -1066,6 +1067,26 @@
   }
 
   // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
+  // F2 e F1: composto de largada. Macio é mais rápido e dura menos; duro, o contrário.
+  function cartaoEstrategia(sprint) {
+    const camp = C.campeonato(estado.campeonato);
+    const voltas = sprint ? C.voltasSprint(camp) : camp.voltas;
+    const atual = estado.fds.composto || 'Md';
+    const opcoes = Engine.ORDEM_PNEUS.map((k) => {
+      const p = Engine.PNEUS[k];
+      const vida = C.vidaComposto(estado, k);
+      const aguenta = vida >= voltas;
+      return `<button class="composto ${atual === k ? 'ativo' : ''}" data-acao="composto" data-id="${k}" aria-pressed="${atual === k}">
+        <span class="composto-bola" style="--cor:${p.cor}">${p.nome[0]}</span><b>${p.nome}</b>
+        <small>${p.ritmo ? `+${p.ritmo.toFixed(2).replace('.', ',')} s/volta` : 'O mais rápido'}</small>
+        <small class="${!sprint || aguenta ? '' : 'negativo'}">dura ~${vida} voltas</small></button>`;
+    }).join('');
+    const regra = sprint
+      ? `Sprint de ${voltas} voltas, sem parada: escolha um pneu que aguente até o fim.`
+      : `Corrida de ${voltas} voltas. É obrigatório usar dois compostos: o carro para uma vez no box (cerca de 20 s), e a equipe chama na hora certa. Dá para pedir o box antes durante a corrida.`;
+    return cartao('Estratégia de pneus', `<p class="fraco mini">${regra}</p><div class="compostos">${opcoes}</div>`, { ajuda: 'compostos' });
+  }
+
   // Resultado da sprint, mostrado no grid da corrida principal.
   function cartaoSprint(sp) {
     return cartao('Sprint', `<div class="item-topo"><b class="sprint-pos">${sp.fora ? 'Abandono' : `P${sp.pos}`}</b>${sp.pontos ? chip(`+${sp.pontos} ${sp.pontos === 1 ? 'ponto' : 'pontos'}`, 'chip-dinheiro') : chip('Sem pontos')}</div>
@@ -1239,6 +1260,7 @@
           <button class="principal grande" data-acao="largar">${sprint ? 'Largar a sprint!' : 'Largar!'}</button>
         </section>
         ${fds.sprint && fds.sprint.feito ? cartaoSprint(fds.sprint) : ''}
+        ${C.usaCompostos(estado) ? cartaoEstrategia(sprint) : ''}
         ${cartao('Acerto', editorSetup(), { ajuda: 'grid' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
@@ -1265,7 +1287,7 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}`)}
+        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}${corrida && corrida.regraCompostos ? '<div id="box-composto" class="box-composto"></div>' : ''}`)}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
@@ -1307,9 +1329,19 @@
           : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: entra na próxima volta</button>`
             : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
     }
+    // F2 e F1: pedir o box com o composto escolhido.
+    const boxComp = document.getElementById('box-composto');
+    if (boxComp) {
+      boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
+        : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
+          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+            ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
+    }
+    const comp = corrida.compostos;
+    const pneuTile = comp ? tile(Engine.PNEUS[eu.pneu].nome, `${Math.max(0, 100 - Math.round((eu.uso / Engine.PNEUS[eu.pneu].vida) * 100))}%`) : tile('Pneu', `${100 - desgastePct(eu.uso)}%`);
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
-      : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${tile('Pneu', `${100 - desgastePct(eu.uso)}%`)}`;
+      : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${pneuTile}`;
     avisosDaCorrida(eu);
   }
 
@@ -1833,6 +1865,14 @@
           if (estado.fds.recordeQuali) aviso('Novo recorde da pista!', 'trofeu');
         });
         break;
+      case 'composto':
+        if (erro(C.escolherComposto(estado, id))) { salvar(); render(); }
+        break;
+      case 'box-composto': {
+        const eu = corrida && corrida.carros.find((c) => c.jogador);
+        if (eu && !eu.fora && !corrida.terminou) { eu.boxPedido = id; atualizarCorrida(); }
+        break;
+      }
       case 'desfazer-grid':
         estado.fds.setup = { ...(estado.fds.setupQuali || estado.fds.setupCorrida) };
         estado.fds.pneuId = estado.fds.pneuCorrida;

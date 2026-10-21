@@ -673,9 +673,10 @@
     const camp = campeonato(estado.campeonato);
     const p = Dados.KARTODROMOS[camp.regiao].find((x) => x.id === etapa.pista);
     return {
-      ...p, voltas: camp.voltas, perdaBox: 99,
+      ...p, voltas: camp.voltas, perdaBox: camp.compostos ? 20 : 99,
       // Asfalto abrasivo gasta mais pneu; liso, menos. Retas longas facilitam a ultrapassagem.
-      desgaste: DESGASTE_ASFALTO[p.asfalto] || 0.9,
+      // Com compostos (F2 e F1) o desgaste é escalado para as corridas curtas do jogo pedirem uma parada.
+      desgaste: (DESGASTE_ASFALTO[p.asfalto] || 0.9) * (camp.compostos ? 1.9 : 1),
       ultrapassagem: p.ultrapassagem != null ? p.ultrapassagem : { travada: 0.4, mista: 0.55, veloz: 0.7 }[p.tipo],
       peso: { motor: 1, aero: 0.3, chassi: 1.4 },
     };
@@ -899,6 +900,17 @@
   }
   const voltasSprint = (camp) => Math.ceil(camp.voltas * 0.45);
 
+  // ---------- compostos (F2 e F1) ----------
+  // Só no seco: se a classificação já foi molhada, todo mundo larga de pneu de chuva e não há regra.
+  const usaCompostos = (estado) => !!campeonato(estado.campeonato).compostos && climaAtual(estado).tarde.inicioChuva !== 'quali';
+  function escolherComposto(estado, composto) {
+    if (!Engine.PNEUS[composto]) return { ok: false, erro: 'Composto inválido.' };
+    estado.fds.composto = composto;
+    return { ok: true };
+  }
+  // Quantas voltas o composto aguenta antes de cair de rendimento, para este piloto nesta pista.
+  const vidaComposto = (estado, composto) => Math.floor(Engine.vidaPneu(composto, estado.piloto, pistaAtual(estado)));
+
   function concluirSprint(estado, corrida) {
     const fds = estado.fds;
     const res = Engine.resultado(corrida);
@@ -909,7 +921,7 @@
     const meu = res.find((r) => r.id === 'jogador');
     const pneu = pneuPorId(estado, fds.pneuCorrida);
     const carro = corrida.carros.find((c) => c.jogador);
-    if (pneu) pneu.uso = Math.round(carro.uso);
+    if (pneu && !corrida.compostos) pneu.uso = Math.round(carro.uso);
     if (!meu.fora && meu.pos <= 3) mexerCabeca(estado, { confianca: 3 }, `Pódio na sprint (P${meu.pos})`);
     fds.sprint = {
       feito: true, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos,
@@ -960,6 +972,9 @@
     const entradas = Object.fromEntries([entradaJogador(estado), ...estado.rivais.map((r) => entradaRival(estado, r))].map((e) => [e.id, e]));
     const sprint = sprintPendente(estado);
     const grid = ordemLargada(estado).map((q) => entradas[q.id]);
+    // F2 e F1 no seco: cada um escolhe o composto; na corrida principal é obrigatório usar dois (uma parada).
+    const compostos = usaCompostos(estado);
+    const regra = compostos && !sprint;
     const chuvaDesde = clima.tarde.inicioChuva === 'quali' ? 1 : clima.tarde.voltaChuva;
     const monoposto = categoriaDe(estado) !== 'kart';
     const ajusteVolta = (c, v, corrida) => {
@@ -976,6 +991,7 @@
       if (monoposto && molhado && c.tipoPneu === 'slick' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2))) {
         c.tipoPneu = 'chuva';
         c.uso = 0;
+        if (c.usados && c.usados.length < 2) c.usados.push('chuva'); // pneu de chuva dispensa a regra dos dois compostos
         pit = PIT_F4;
         corrida.boxJogador = c.jogador ? false : corrida.boxJogador;
         Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva.`, 'box', c.id);
@@ -985,17 +1001,20 @@
       ef.tempo += pit;
       // Motor passado da revisão aguenta menos quando é forçado.
       if (c.jogador) ef.quebra *= 1 + 0.5 * Math.max(0, estado.motorHoras - HORAS_REVISAO + 0.9) / 0.9;
-      if (c.jogador) ef.tempo += penalidadeZerado(c.uso);
+      if (c.jogador && !compostos) ef.tempo += penalidadeZerado(c.uso);
       const cab = c.jogador ? efeitoCabeca(c.piloto) : { tempo: 0, sigma: 1, erro: 1 };
       return { ...ef, tempo: ef.tempo + cab.tempo + chuvaPiloto(c.piloto, cond), sigma: ef.sigma * cab.sigma, erro: ef.erro * cab.erro };
     };
     if (sprint) pista.voltas = voltasSprint(campeonato(estado.campeonato));
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31 + (sprint ? 17 : 0), {
-      regraCompostos: false, pneuPadrao: 'Md', semBox: true, semSafetyCar: true, semModos: true, ajusteVolta,
+      regraCompostos: regra, semBox: !regra, semSafetyCar: true, semModos: true, ajusteVolta,
+      ...(compostos ? { pneusIniciais: { jogador: estado.fds.composto || 'Md' } } : { pneuPadrao: 'Md' }),
     });
     corrida.sprint = sprint;
+    corrida.compostos = compostos;
     for (const c of corrida.carros) {
-      c.uso = c.jogador ? pneuJogador.uso : 1;
+      // Com compostos a equipe dá um jogo novo para a corrida; no kart e na F4/F3 vale o desgaste do jogo escolhido.
+      c.uso = compostos ? 0 : c.jogador ? pneuJogador.uso : 1;
       c.tipoPneu = c.jogador ? pneuJogador.tipo : fds.ia[c.id].pneu;
     }
     return corrida;
@@ -1054,7 +1073,7 @@
     // Pneu usado na corrida volta para o estoque com o desgaste.
     const pneu = pneuPorId(estado, fds.pneuCorrida);
     const carro = corrida.carros.find((c) => c.jogador);
-    if (pneu) pneu.uso = Math.round(carro.uso);
+    if (pneu && !corrida.compostos) pneu.uso = Math.round(carro.uso);
     somarHoras(estado, HORAS.corrida);
     if (meu.fora && meu.motivoFora === 'Motor engripou') {
       estado.motorQuebrado = true;
@@ -1302,7 +1321,7 @@
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

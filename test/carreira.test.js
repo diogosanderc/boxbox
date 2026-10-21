@@ -762,3 +762,26 @@ test('F2: sprint antes da corrida principal, com top 10 invertido e pontos 8-7-.
   assert.deepStrictEqual(principal.carros.map((c) => c.id), q); // principal larga na ordem da classificação
   Carreira.migrar({ campeonato: 'regional' });
 });
+
+test('F1 no seco: compostos com parada obrigatória; quem escolhe macio larga com ele', () => {
+  const e = Carreira.novoJogo({ seed: 17 });
+  Carreira.comecarNaF4(e);
+  e.propostas = [{ id: 'x', tipo: 'subida', campeonato: 'f1', pago: true, equipe: 'f1-rossa', nome: 'Rossa' }];
+  Carreira.aceitarProposta(e, 'x');
+  e.fase = 'paddock';
+  const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = null; cl.tarde.chove = false; cl.manha.chove = false;
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  assert.ok(Carreira.usaCompostos(e));
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  if (Carreira.sprintPendente(e)) Carreira.concluirSprint(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  assert.ok(Carreira.escolherComposto(e, 'M').ok);
+  const c = Carreira.criarCorrida(e);
+  const eu = c.carros.find((x) => x.jogador);
+  assert.strictEqual(eu.pneu, 'M');
+  assert.strictEqual(eu.uso, 0);
+  Engine.simularCompleta(c);
+  for (const carro of c.carros.filter((x) => !x.fora)) assert.ok(carro.paradas >= 1 && carro.usados.length >= 2, `${carro.id} ${carro.usados}`);
+  assert.ok(Carreira.vidaComposto(e, 'M') < Carreira.vidaComposto(e, 'D'));
+  Carreira.migrar({ campeonato: 'regional' });
+});
