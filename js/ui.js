@@ -322,8 +322,8 @@
     });
   }
 
-  function abas(lista, atual) {
-    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span></button>`).join('')}</nav>`;
+  function abas(lista, atual, alertas = {}) {
+    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span>${alertas[id] ? '<i class="aba-alerta" aria-label="pendência"></i>' : ''}</button>`).join('')}</nav>`;
   }
 
   // Ícones em traço (estilo Feather), desenhados inline.
@@ -634,7 +634,8 @@
     // O motor engripado tem o seu próprio bloco logo abaixo.
     const pend = C.pendenciasEtapa(estado).filter((x) => x.id !== 'retifica');
     if (!pend.length) return `<div class="checklist ok">${ic('certo')}Tudo pronto: pneus e motor em dia.</div>`;
-    return `<div class="checklist"><b>${ic('alerta')}Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}</div>`;
+    return `<div class="checklist"><b>${ic('alerta')}Antes de ir para a pista</b>${pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('')}
+      <button class="link-oficina" data-acao="aba" data-aba="oficina">${ic('chave')}Abrir a oficina</button></div>`;
   }
 
   // Folha que sobe ao tocar em "Ir para a pista" quando ainda falta algo.
@@ -979,16 +980,17 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoCompanheiro()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoCompanheiro()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
+      oficina: () => `<div class="grade">${cartaoOficina()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia"><b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
-      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba)}
+      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 })}
       ${conteudo}
       <div class="rodape"><button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button></div>
       ${folhaChecagem()}${folhaPneu()}`;

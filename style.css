@@ -945,3 +945,9 @@ button.composto small { font-size: 11px; color: var(--fraco); font-weight: 500; 
 .mais-conquistas summary { cursor: pointer; color: var(--azul-claro); font-weight: 600; padding: 8px 0; list-style: none; }
 .mais-conquistas summary::-webkit-details-marker { display: none; }
 .mais-conquistas .conquistas { margin-top: 6px; }
+.abas button { position: relative; }
+.aba-alerta { position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--alerta); box-shadow: 0 0 0 2px var(--fundo); }
+button.link-oficina { background: transparent; border-color: transparent; color: var(--azul-claro); font-weight: 600; justify-self: start; padding: 4px 0; display: inline-flex; align-items: center; }
+/* Abas do paddock: quantas houver, lado a lado (agora são 6, com a Oficina). */
+.abas { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.abas button span { font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
