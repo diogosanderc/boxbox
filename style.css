@@ -1013,3 +1013,5 @@ button.botao-premium.ativo { border-style: dashed; opacity: 0.8; }
 .passos-fds .ico-i { width: 12px; height: 12px; }
 .cond { padding: 10px 2px 8px; }
 .cond small { font-size: 10.5px; letter-spacing: -0.01em; }
+/* Bolinha do composto só com a cor do pneu (sem letra). */
+.composto-bola { background: radial-gradient(circle, #2a2f3a 0 38%, #111 39%); }

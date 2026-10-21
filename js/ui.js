@@ -1249,7 +1249,6 @@
 
   // Resultado da classificação: a posição de largada vem antes de qualquer outra informação.
   // F2 e F1: composto de largada. Macio é mais rápido e dura menos; duro, o contrário.
-  const SIGLA_COMPOSTO = { M: 'M', Md: 'Mé', D: 'D' };
   function cartaoEstrategia(sprint) {
     const camp = C.campeonato(estado.campeonato);
     const voltas = sprint ? C.voltasSprint(camp) : camp.voltas;
@@ -1259,7 +1258,7 @@
       const vida = C.vidaComposto(estado, k);
       const aguenta = vida >= voltas;
       return `<button class="composto ${atual === k ? 'ativo' : ''}" data-acao="composto" data-id="${k}" aria-pressed="${atual === k}">
-        <span class="composto-bola" style="--cor:${p.cor}">${SIGLA_COMPOSTO[k]}</span><b>${p.nome}</b>
+        <span class="composto-bola" style="--cor:${p.cor}"></span><b>${p.nome}</b>
         <small>${p.ritmo ? `+${p.ritmo.toFixed(2).replace('.', ',')} s/volta` : 'O mais rápido'}</small>
         <small class="${!sprint || aguenta ? '' : 'negativo'}">dura ~${vida} voltas</small></button>`;
     }).join('');
@@ -1525,7 +1524,7 @@
     if (boxComp) {
       boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
         : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${SIGLA_COMPOSTO[k]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}"></span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
     const comp = corrida.compostos;
