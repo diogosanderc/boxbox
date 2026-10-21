@@ -47,6 +47,7 @@
 
   // O save mora no BoxSave (js/armazenamento.js): arquivo no iPhone, localStorage no navegador.
   function salvar() {
+    encherCaixa();
     BoxSave.gravar(CHAVE_SAVE, JSON.stringify(estado));
   }
   function carregar() {
@@ -247,7 +248,7 @@
     const kpi = (nomeIcone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo">${ic(nomeIcone)}${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
     barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
-      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${reais(estado.dinheiro)}</span>
+      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${estado.dinheiroInfinito ? 'R$ ∞' : reais(estado.dinheiro)}</span>
       <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>`;
     statusEl.innerHTML = `<div class="perfil">
         <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
@@ -255,13 +256,14 @@
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
       </div>
       <div class="kpis">
-        ${kpi('carteira', 'Caixa', reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'R$ ∞' : reais(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('sorriso', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
   }
 
   function render() {
+    encherCaixa();
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
     document.body.classList.toggle('sem-topo', ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
@@ -366,6 +368,59 @@
   const icone = (nome, classe = '') => `<svg class="ico ${classe}" viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
   // Ícone pequeno no meio do texto (chips, botões, listas).
   const ic = (nome, classe = '') => icone(nome, `ico-i ${classe}`);
+
+  // ---------- código secreto ----------
+  // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
+  // cabeçalho abrem o campo do código; no computador, basta digitar o código em qualquer tela.
+  const CODIGO_DINHEIRO = 'moneyisgood';
+  const CAIXA_INFINITO = 999999999;
+  function encherCaixa() {
+    if (estado && estado.dinheiroInfinito) estado.dinheiro = CAIXA_INFINITO;
+  }
+  function usarCodigo(texto) {
+    if (!estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
+    estado.dinheiroInfinito = !estado.dinheiroInfinito;
+    // Ao desligar, o caixa volta ao que era antes do código.
+    if (estado.dinheiroInfinito) estado.dinheiroAntesCodigo = estado.dinheiro;
+    else estado.dinheiro = estado.dinheiroAntesCodigo || 0;
+    salvar();
+    render();
+    aviso(estado.dinheiroInfinito ? 'Dinheiro infinito ligado' : 'Dinheiro infinito desligado', 'carteira');
+    return true;
+  }
+  const folhaCodigo = document.createElement('div');
+  folhaCodigo.className = 'folha-fundo';
+  folhaCodigo.hidden = true;
+  folhaCodigo.innerHTML = `<form class="folha folha-codigo" role="dialog" aria-modal="true" aria-label="Código">
+      <h3>Código</h3>
+      <input type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Código">
+      <div class="botoes-2"><button type="button" data-fechar>Fechar</button><button class="principal" type="submit">OK</button></div>
+    </form>`;
+  document.body.appendChild(folhaCodigo);
+  const fecharCodigo = () => { folhaCodigo.hidden = true; folhaCodigo.querySelector('input').value = ''; };
+  folhaCodigo.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const ok = usarCodigo(folhaCodigo.querySelector('input').value);
+    fecharCodigo();
+    if (!ok) aviso('Código inválido');
+  });
+  folhaCodigo.addEventListener('click', (ev) => { if (ev.target === folhaCodigo || ev.target.closest('[data-fechar]')) fecharCodigo(); });
+  let toquesMarca = [];
+  document.querySelector('.topo .marca').addEventListener('click', () => {
+    if (!estado) return;
+    const agora = Date.now();
+    toquesMarca = toquesMarca.filter((t) => agora - t < 3000).concat(agora);
+    if (toquesMarca.length < 5) return;
+    toquesMarca = [];
+    folhaCodigo.hidden = false;
+    folhaCodigo.querySelector('input').focus();
+  });
+  let digitado = '';
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
+    digitado = (digitado + ev.key.toLowerCase()).slice(-CODIGO_DINHEIRO.length);
+    if (digitado === CODIGO_DINHEIRO) { digitado = ''; usarCodigo(CODIGO_DINHEIRO); }
+  });
 
   // ---------- início ----------
   // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.

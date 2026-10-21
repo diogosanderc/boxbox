@@ -876,3 +876,6 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .degrau { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: var(--painel-2); }
 .degrau span:first-child { color: var(--fraco); font-variant-numeric: tabular-nums; }
 .degrau b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; }
+.folha-codigo { border-color: var(--borda); }
+.folha-codigo h3 { margin: 0; }
+.folha-codigo input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); }
