@@ -957,16 +957,24 @@ test('F3 em diante: macio, médio, duro e chuva no estoque; sem eles não corre,
   assert.ok(!Carreira.comprarPneu(e, 'duro').ok);
   assert.ok(!Carreira.escolherComposto(e, 'D').ok);
   e.pneus.push(...duros); // (só para seguir o teste com os quatro)
-  // Abaixo do mínimo (dois compostos de seco e o de chuva) não corre.
+  // Mínimo: na F3 (sem parada) um composto de seco e o de chuva; na F2 e na F1, dois de seco e o de chuva.
   const f = Carreira.novoJogo({ seed: 25 });
   Carreira.comecarEm(f, 'f3');
   f.fase = 'paddock';
   f.pneus = f.pneus.filter((p) => p.tipo === 'slick' || p.tipo === 'chuva');
+  assert.ok(!Carreira.estoqueImpede(f), 'na F3 macio + chuva basta');
+  f.pneus = f.pneus.filter((p) => p.tipo === 'chuva');
   assert.ok(Carreira.estoqueImpede(f));
   assert.ok(Carreira.pendenciasEtapa(f).some((x) => x.bloqueia));
   assert.ok(!Carreira.iniciarFimDeSemana(f).ok);
   Carreira.comprarPneu(f, 'duro');
-  assert.ok(!Carreira.estoqueImpede(f), 'macio + duro + chuva basta');
+  assert.ok(!Carreira.estoqueImpede(f));
+  const f2 = Carreira.novoJogo({ seed: 26 });
+  Carreira.comecarEm(f2, 'f2');
+  f2.pneus = f2.pneus.filter((p) => p.tipo === 'slick' || p.tipo === 'chuva');
+  assert.ok(Carreira.estoqueImpede(f2), 'na F2 só macio não basta');
+  Carreira.comprarPneu(f2, 'duro');
+  assert.ok(!Carreira.estoqueImpede(f2), 'na F2 macio + duro + chuva basta');
   f.pneus = f.pneus.filter((p) => p.tipo !== 'chuva');
   assert.ok(/chuva/.test(Carreira.estoqueImpede(f)));
   Carreira.comprarPneu(f, 'chuva');

@@ -367,8 +367,9 @@
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
   // Da F3 em diante o estoque tem quatro tipos: macio (o slick), médio, duro e chuva.
-  // Cada um seco vira um composto na corrida. Para correr é obrigatório ter dois compostos de seco e o de
-  // chuva; sem o terceiro dá para ir, mas o fim de semana é só com o estoque (sem compra na pista).
+  // Cada um seco vira um composto na corrida. Para correr é obrigatório ter o de chuva e um composto de seco
+  // (dois na F2 e na F1, que têm parada); com menos que os quatro dá para ir, mas o fim de semana é só com o
+  // estoque (sem compra na pista).
   const TIPOS_KART = ['slick', 'chuva'];
   const TIPOS_F3 = ['slick', 'medio', 'duro', 'chuva'];
   const COMPOSTO_DO_TIPO = { slick: 'M', medio: 'Md', duro: 'D' };
@@ -378,15 +379,22 @@
   const nomePneu = (estado, tipo) => (quatroPneus(estado) && tipo === 'slick' ? 'Macio' : Kart.PNEUS_KART[tipo].nome);
   // Voltas até o pneu cair: da F3 em diante depende do composto.
   const vidaDoPneu = (estado, tipo) => (quatroPneus(estado) && COMPOSTO_DO_TIPO[tipo] ? Engine.PNEUS[COMPOSTO_DO_TIPO[tipo]].vida : VIDA_PNEU);
-  // Mínimo para correr da F3 em diante: dois compostos de seco diferentes e o pneu de chuva.
-  // O terceiro composto é opcional (sem ele, os rivais têm uma opção a mais).
+  // Mínimo para correr: o pneu de chuva e os compostos de seco que a corrida pede. Na F3 não há parada,
+  // então basta um; na F2 e na F1 a parada obrigatória pede dois diferentes. O resto é opcional
+  // (sem ele, os rivais têm uma opção a mais).
+  const compostosMinimos = (estado) => (campeonato(estado.campeonato).compostos ? 2 : 1);
   function estoqueImpede(estado) {
     if (!quatroPneus(estado)) return null;
+    const minimo = compostosMinimos(estado);
     const secos = ['slick', 'medio', 'duro'].filter((t) => estado.pneus.some((p) => p.tipo === t)).length;
     const chuva = estado.pneus.some((p) => p.tipo === 'chuva');
-    if (secos >= 2 && chuva) return null;
-    const falta = [secos < 2 ? `${secos ? 'mais um composto de seco' : 'dois compostos de seco'}` : '', chuva ? '' : 'o pneu de chuva'].filter(Boolean).join(' e ');
-    return `Sem pneu para correr: falta ${falta}. Da F3 em diante é obrigatório ter dois compostos de seco (macio, médio ou duro) e o de chuva.`;
+    if (secos >= minimo && chuva) return null;
+    const faltaSeco = secos >= minimo ? '' : secos ? 'mais um composto de seco' : minimo === 2 ? 'dois compostos de seco' : 'um pneu de seco';
+    const falta = [faltaSeco, chuva ? '' : 'o pneu de chuva'].filter(Boolean).join(' e ');
+    const regra = minimo === 2
+      ? `Na ${campeonato(estado.campeonato).curto} a parada é obrigatória: é preciso ter dois compostos de seco (macio, médio ou duro) e o de chuva.`
+      : `Na ${campeonato(estado.campeonato).curto} é preciso ter pelo menos um composto de seco (macio, médio ou duro) e o de chuva.`;
+    return `Sem pneu para correr: falta ${falta}. ${regra}`;
   }
   const faltaNoEstoque = (estado) => (quatroPneus(estado) ? TIPOS_F3.filter((t) => !estado.pneus.some((p) => p.tipo === t)) : []);
 
@@ -1626,7 +1634,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
