@@ -726,3 +726,13 @@ test('todas as pistas e equipes de F3, F2 e F1 têm dados completos', () => {
     if (reg === 'f1') for (const x of eqs) assert.ok(x.salario > 0);
   }
 });
+
+test('pole e volta mais rápida valem 1 ponto cada', () => {
+  const e = Carreira.novoJogo({ seed: 31 });
+  jogarFimDeSemana(e, 'ideal');
+  const soma = Object.values(e.pontos).reduce((a, b) => a + b, 0);
+  // 25+18+15+12+10+8+6+4+2+1 = 101, mais a pole e a volta mais rápida (se alguém do top 10 fez)
+  assert.ok(soma === 102 || soma === 103, `soma ${soma}`);
+  const h = e.historico[e.historico.length - 1];
+  assert.ok('pole' in h && 'voltaRapida' in h && 'largada' in h);
+});

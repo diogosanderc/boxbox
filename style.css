@@ -902,3 +902,5 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .abas, .setup, .painel, .subtitulo, .acoes, [data-acao] { scroll-margin-top: calc(64px + env(safe-area-inset-top, 0px)); scroll-margin-bottom: 24px; }
 .etapas-barra { display: block; width: 110px; height: 6px; border-radius: 999px; background: var(--painel-3); overflow: hidden; }
 .etapas-barra i { display: block; height: 100%; background: var(--destaque); border-radius: inherit; }
+.marca-pv { display: inline-block; padding: 0 5px; border-radius: 5px; font-size: 10px; font-weight: 800; line-height: 16px; background: rgba(47, 191, 113, 0.18); color: var(--ok); vertical-align: 1px; }
+.marca-pv.vr { background: rgba(176, 108, 255, 0.2); color: #c58bff; }

@@ -29,6 +29,8 @@
   // Motor engripado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
   const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
   // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
+  const PONTO_POLE = 1;
+  const PONTO_VOLTA_RAPIDA = 1;
   const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
   // Os 4 primeiros do campeonato sobem de degrau (no Europeu, para a F4).
   const VAGAS_SUBIDA = 4;
@@ -979,6 +981,15 @@
       }
     }
 
+    // Ponto extra para a pole e para a volta mais rápida (só para quem termina entre os 10 primeiros).
+    const poleId = fds.quali[0].id;
+    const naPontuacao = res.filter((r) => !r.fora && r.pos <= 10 && r.melhorVolta);
+    const vrId = naPontuacao.length ? naPontuacao.reduce((m, r) => (r.melhorVolta < m.melhorVolta ? r : m)).id : null;
+    for (const r of res) {
+      if (r.id === poleId) r.pontos += PONTO_POLE;
+      if (r.id === vrId) r.pontos += PONTO_VOLTA_RAPIDA;
+    }
+
     for (const r of res) {
       estado.pontos[r.id] = (estado.pontos[r.id] || 0) + r.pontos;
       if (!r.fora && r.pos === 1) estado.vitorias[r.id] = (estado.vitorias[r.id] || 0) + 1;
@@ -1026,9 +1037,10 @@
     const aprendizado = meu.fora ? 0.12 : meu.pos <= 3 ? 0.3 : meu.pos <= 5 ? 0.22 : 0.15;
     evoluir(p, rnd, aprendizado * fatorMoral(p));
     const recordeCorrida = conferirRecorde(estado, corrida.carros.map((c) => ({ id: c.id, tempo: c.melhorVolta })), 'corrida');
-    fds.resultado = { recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
+    fds.resultado = { pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
-    estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora });
+    estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora,
+      largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos });
     const clima = climaAtual(estado);
     const condFinal = Kart.condicao(clima, 'corrida', !!corrida.molhado);
     const tipoPneu = carro.tipoPneu || (pneu ? pneu.tipo : 'slick');
@@ -1042,7 +1054,7 @@
       tempo: carro.melhorVolta, posicao: meu.pos, fora: meu.fora,
     });
     fds.sessao = 'fim';
-    fds.classificacao = res.map((r) => ({ id: r.id, pos: r.pos, fora: r.fora, motivo: r.motivoFora, pontos: r.pontos, dif: r.diferenca, equipe: r.equipe }));
+    fds.classificacao = res.map((r) => ({ id: r.id, pos: r.pos, fora: r.fora, motivo: r.motivoFora, pontos: r.pontos, dif: r.diferenca, equipe: r.equipe, pole: r.id === poleId, voltaRapida: r.id === vrId }));
     return fds.resultado;
   }
 

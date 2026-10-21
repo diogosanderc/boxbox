@@ -1342,6 +1342,8 @@
         <section class="painel resultado-hero ${r.fora ? 'ruim' : r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>${r.fora ? esc(r.motivo) : 'Chegada'}</span><b>${medalha} ${r.fora ? 'Abandono' : 'P' + r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeonato', 'P' + C.posicaoNoCampeonato(estado))}${tile('Caixa', '+' + reais(r.ganho), 'dinheiro')}</div>
+          ${r.pole ? chip(`${ic('bandeira')}Pole position · +1 ponto`, 'chip-dinheiro') : ''}
+          ${r.voltaRapida ? chip(`${ic('relogio')}Volta mais rápida · +1 ponto`, 'chip-recorde') : ''}
           ${r.recorde ? chip(`${ic('trofeu')}Novo recorde da pista na corrida!`, 'chip-recorde') : ''}
           ${r.eventos.map((e) => chip(`${ic('alerta')}${esc(e)}`, 'chip-amarelo')).join('')}
           ${(r.cabeca || []).length ? `<div class="chips">${r.cabeca.map((x) => [
@@ -1355,7 +1357,7 @@
       </div>
       ${cartao('Resultado', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="num">Pts</th></tr>
         ${fds.classificacao.map((x) => `<tr class="${x.id === 'jogador' ? 'jogador' : ''} ${x.fora ? 'fora' : ''}">
-          <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}</td>
+          <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}${x.pole ? ` <span class="marca-pv" title="Pole">P</span>` : ''}${x.voltaRapida ? ` <span class="marca-pv vr" title="Volta mais rápida">VR</span>` : ''}</td>
           <td class="num">${x.fora ? 'Fora' : x.pos === 1 ? ic('bandeira') : '+' + x.dif.toFixed(1)}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
         </table></div>`)}
     </div>`;
