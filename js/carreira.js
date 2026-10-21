@@ -142,6 +142,24 @@
     estado.seguindo = null; // rivais novos a cada temporada
     estado.vitorias = {};
     estado.podios = {};
+    novoDuelo(estado);
+  }
+
+  // ---------- companheiro de equipe ----------
+  // Placar da temporada contra o colega de equipe (classificação e corrida). Bater o companheiro anima o piloto.
+  function companheiro(estado) {
+    return estado.rivais.find((r) => r.equipe === estado.equipeId) || null;
+  }
+  function novoDuelo(estado) {
+    const c = companheiro(estado);
+    estado.duelo = c ? { id: c.id, quali: [0, 0], corrida: [0, 0] } : null;
+  }
+  function placarDuelo(estado, tipo, eu, ele) {
+    if (!estado.duelo || estado.duelo.id !== (companheiro(estado) || {}).id) novoDuelo(estado);
+    if (!estado.duelo || eu == null || ele == null) return null;
+    const venci = eu < ele;
+    estado.duelo[tipo][venci ? 0 : 1] += 1;
+    return venci;
   }
 
   function novoJogo({ nome = 'Você', equipeId = 'faisca', seed = Date.now() % 1e9 } = {}) {
@@ -953,6 +971,8 @@
     fds.setupQuali = { ...fds.setup };
     fds.pneuCorrida = fds.pneuId;
     fds.sprint = temSprint(estado) ? { feito: false } : null;
+    const comp = companheiro(estado);
+    if (comp) fds.dueloQuali = placarDuelo(estado, 'quali', tempos.findIndex((t) => t.id === 'jogador'), tempos.findIndex((t) => t.id === comp.id));
     registrarCaderno(estado, cond, { setup: fds.setup, pneu: pneu.tipo, tempo: tempos.find((t) => t.id === 'jogador').tempo, posicao: tempos.findIndex((t) => t.id === 'jogador') + 1 });
     fds.sessao = 'grid';
     return { ok: true };
@@ -1058,6 +1078,15 @@
     }
     const meu = res.find((r) => r.id === 'jogador');
     const p = estado.piloto;
+    // Duelo com o companheiro: só conta se pelo menos um dos dois terminou.
+    const comp = companheiro(estado);
+    const dele = comp && res.find((r) => r.id === comp.id);
+    let dueloCorrida = null;
+    if (dele && !(meu.fora && dele.fora)) {
+      dueloCorrida = placarDuelo(estado, 'corrida', meu.fora ? 99 : meu.pos, dele.fora ? 99 : dele.pos);
+      if (dueloCorrida) mexerCabeca(estado, { moral: 2 }, 'Terminou na frente do companheiro de equipe');
+      else mexerCabeca(estado, { moral: -1 }, 'Terminou atrás do companheiro de equipe');
+    }
     let ganho = 0;
     if (!meu.fora && meu.pos <= PREMIO_ETAPA.length) ganho += Math.round(PREMIO_ETAPA[meu.pos - 1] * (camp.premios || camp.custo));
     const patroc = estado.patrocinios.reduce((s, x) => s + x.porEtapa, 0);
@@ -1098,7 +1127,7 @@
     const aprendizado = meu.fora ? 0.12 : meu.pos <= 3 ? 0.3 : meu.pos <= 5 ? 0.22 : 0.15;
     evoluir(p, rnd, aprendizado * fatorMoral(p));
     const recordeCorrida = conferirRecorde(estado, corrida.carros.map((c) => ({ id: c.id, tempo: c.melhorVolta })), 'corrida');
-    fds.resultado = { pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
+    fds.resultado = { companheiro: comp ? { nome: comp.nome, pos: dele.pos, fora: dele.fora, venci: dueloCorrida } : null, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora,
       largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos });
@@ -1190,7 +1219,8 @@
     const tabela = classificacaoCampeonato(estado);
     const pos = posicaoNoCampeonato(estado);
     const rel = { ano: estado.ano, campeonato: camp.id, pos, pontos: estado.pontos.jogador, campeao: tabela[0].nome, premios: [], bonus: [], dinheiroAntes: estado.dinheiro,
-      vitorias: estado.vitorias.jogador || 0, podios: estado.podios.jogador || 0 };
+      vitorias: estado.vitorias.jogador || 0, podios: estado.podios.jogador || 0,
+      duelo: estado.duelo && companheiro(estado) ? { ...estado.duelo, nome: companheiro(estado).nome, pontosEle: estado.pontos[estado.duelo.id] || 0 } : null };
 
     if (pos <= VAGAS_SUBIDA) {
       const premio = Math.round(camp.premioCampeao / 2 ** (pos - 1));
@@ -1321,7 +1351,7 @@
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

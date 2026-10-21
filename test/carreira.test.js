@@ -785,3 +785,13 @@ test('F1 no seco: compostos com parada obrigatória; quem escolhe macio larga co
   assert.ok(Carreira.vidaComposto(e, 'M') < Carreira.vidaComposto(e, 'D'));
   Carreira.migrar({ campeonato: 'regional' });
 });
+
+test('companheiro de equipe: placar de classificação e corrida ao longo da temporada', () => {
+  const e = Carreira.novoJogo({ seed: 41 });
+  const comp = Carreira.companheiro(e);
+  assert.ok(comp && comp.equipe === e.equipeId);
+  for (let i = 0; i < 3; i++) jogarFimDeSemana(e, 'ideal');
+  assert.strictEqual(e.duelo.id, comp.id);
+  assert.strictEqual(e.duelo.quali[0] + e.duelo.quali[1], 3);
+  assert.ok(e.duelo.corrida[0] + e.duelo.corrida[1] <= 3);
+});

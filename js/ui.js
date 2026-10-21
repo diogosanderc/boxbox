@@ -651,6 +651,17 @@
     return chip(`${ic('estrela')}${esc(tabela[i].nome.split(' ')[0])} ${sigla(tabela[i].nome)} · P${i + 1} · ${dif === 0 ? 'empatado' : dif > 0 ? `${dif} pts à frente` : `${-dif} pts atrás`}`, 'chip-amarelo');
   }
 
+  // Duelo da temporada com o companheiro de equipe.
+  function cartaoCompanheiro() {
+    const comp = C.companheiro(estado);
+    const d = estado.duelo;
+    if (!comp || !d) return '';
+    const linha = (rotulo, [eu, ele]) => `<div class="duelo-linha"><b class="${eu > ele ? 'dinheiro' : ''}">${eu}</b><span>${rotulo}</span><b class="${ele > eu ? 'negativo' : ''}">${ele}</b></div>`;
+    return cartao('Companheiro de equipe', `<div class="duelo-topo"><span>Você</span><span class="fraco">×</span><span>${esc(comp.nome)}</span></div>
+      ${linha('Classificação', d.quali)}${linha('Corrida', d.corrida)}${linha('Pontos', [estado.pontos.jogador || 0, estado.pontos[comp.id] || 0])}
+      <p class="fraco mini">Terminar na frente dele anima o piloto; ficar atrás pesa um pouco na moral.</p>`, { classe: 'cartao-duelo' });
+  }
+
   function cartaoProximaEtapa() {
     const pista = C.pistaAtual(estado);
     const clima = C.climaAtual(estado);
@@ -924,7 +935,7 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCabeca()}${cartaoCompanheiro()}${cartaoOficina()}${cartaoPatrocinio()}${cartaoOlheiros()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       caderno: painelCaderno,
@@ -1394,6 +1405,7 @@
         <section class="painel resultado-hero ${r.fora ? 'ruim' : r.pos <= 3 ? 'bom' : ''}">
           <div class="pos-grande"><span>${r.fora ? esc(r.motivo) : 'Chegada'}</span><b>${medalha} ${r.fora ? 'Abandono' : 'P' + r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeonato', 'P' + C.posicaoNoCampeonato(estado))}${tile('Caixa', '+' + reais(r.ganho), 'dinheiro')}</div>
+          ${r.companheiro && r.companheiro.venci != null ? chip(`${ic('piloto')}${r.companheiro.venci ? 'Na frente' : 'Atrás'} do companheiro (${r.companheiro.fora ? 'abandonou' : `P${r.companheiro.pos}`})`, r.companheiro.venci ? 'chip-dinheiro' : 'chip-amarelo') : ''}
           ${r.pole ? chip(`${ic('bandeira')}Pole position · +1 ponto`, 'chip-dinheiro') : ''}
           ${r.voltaRapida ? chip(`${ic('relogio')}Volta mais rápida · +1 ponto`, 'chip-recorde') : ''}
           ${r.recorde ? chip(`${ic('trofeu')}Novo recorde da pista na corrida!`, 'chip-recorde') : ''}
@@ -1563,6 +1575,7 @@
         ${bloco(`<div class="fim-destaques">
           ${melhor ? destaque('bandeira', 'Melhor corrida', `P${melhor.pos}`, esc(nomeCurtoPista(melhor.pista))) : ''}
           ${maiorEvolucao ? destaque('subir', 'Mais evoluiu', `+${maiorEvolucao.depois - maiorEvolucao.antes}`, C.NOMES_ATRIBUTOS[maiorEvolucao.a]) : ''}
+          ${r.duelo ? destaque('piloto', 'Contra o companheiro', `${r.duelo.corrida[0]} × ${r.duelo.corrida[1]}`, r.duelo.corrida[0] > r.duelo.corrida[1] ? `Venceu ${esc(r.duelo.nome.split(' ').pop())}` : r.duelo.corrida[0] < r.duelo.corrida[1] ? `Perdeu para ${esc(r.duelo.nome.split(' ').pop())}` : 'Empate') : ''}
           ${destaque('carteira', 'Ganhos no ano', ganhos ? `+R$ ${kmil(ganhos)}` : '—', ganhos ? '' : 'Sem prêmios este ano')}
           ${destaque('estrela', 'Propostas', estado.propostas.length || r.f4Espera ? 'Chegaram!' : '—', estado.propostas.length ? `${estado.propostas.length} na mesa` : r.f4Espera ? 'F4 guardada' : 'Nenhuma este ano')}
         </div>`)}
