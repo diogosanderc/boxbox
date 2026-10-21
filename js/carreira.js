@@ -410,7 +410,14 @@
     if (!tiposPneu(estado).includes(tipo)) return { ok: false, erro: 'Esse pneu não é usado nesta categoria.' };
     // Da F3 em diante o fim de semana é com o estoque que foi para a pista: compra só no paddock.
     if (!gratis && quatroPneus(estado) && estado.fase === 'fds') return { ok: false, erro: 'Na pista não dá para comprar pneu: o fim de semana é com o estoque que você trouxe.' };
-    if (estado.pneus.length >= espacoPneus(estado)) return { ok: false, erro: `Estoque cheio (${espacoPneus(estado)} jogos): venda, doe ou descarte um pneu, ou compre mais espaço na oficina.` };
+    // Estoque cheio sem o Premium: é a hora de mostrar o espaço extra.
+    if (estado.pneus.length >= espacoPneus(estado) && !premium && !gratis && espacoPneus(estado) < limiteEspaco(estado)) {
+      return pedePremium(`Estoque cheio (${espacoPneus(estado)} jogos). Com o Premium cabem até ${limiteEspaco(estado)} nesta categoria. Sem ele, venda, doe ou descarte um pneu para abrir vaga.`);
+    }
+    if (estado.pneus.length >= espacoPneus(estado)) {
+      const mais = espacoPneus(estado) < limiteEspaco(estado) ? ', ou compre mais espaço na oficina' : ` (o estoque já está no máximo desta categoria)`;
+      return { ok: false, erro: `Estoque cheio (${espacoPneus(estado)} jogos): venda, doe ou descarte um pneu${mais}.` };
+    }
     const preco = Math.round(Kart.PNEUS_KART[tipo].preco * custoPneu(estado));
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
     if (!gratis) estado.dinheiro -= preco;
@@ -430,10 +437,17 @@
     return Math.round(preco * Math.max(0.05, 0.5 * (1 - p.uso / vidaDoPneu(estado, p.tipo))) / 10) * 10;
   }
 
+  // Vender ou doar só pneu no fim (80% gasto ou mais): ninguém quer um jogo pela metade, e o estoque
+  // não vira atalho. Jogar fora pode sempre, mas sem retorno.
+  const GASTO_PARA_SAIR = 0.8;
+  const pneuNoFim = (estado, p) => p.uso >= vidaDoPneu(estado, p.tipo) * GASTO_PARA_SAIR;
+  const ERRO_MEIA_VIDA = 'Só dá para vender ou doar pneu no fim da vida (80% gasto ou mais). Para abrir vaga antes disso, só jogando fora.';
+
   function venderPneu(estado, id) {
     const p = pneuPorId(estado, id);
     if (!p) return { ok: false, erro: 'Pneu não encontrado.' };
     if (estado.fase === 'fds') return { ok: false, erro: 'Pneu só se vende no paddock.' };
+    if (!pneuNoFim(estado, p)) return { ok: false, erro: ERRO_MEIA_VIDA };
     const valor = valorVendaPneu(estado, p);
     estado.dinheiro += valor;
     descartarPneu(estado, id);
@@ -442,8 +456,10 @@
 
   // Doar para a escolinha de kart: sem dinheiro, mas o piloto e o público gostam (uma vez por etapa).
   function doarPneu(estado, id) {
-    if (!pneuPorId(estado, id)) return { ok: false, erro: 'Pneu não encontrado.' };
+    const p = pneuPorId(estado, id);
+    if (!p) return { ok: false, erro: 'Pneu não encontrado.' };
     if (estado.fase === 'fds') return { ok: false, erro: 'A doação é feita no paddock.' };
+    if (!pneuNoFim(estado, p)) return { ok: false, erro: ERRO_MEIA_VIDA };
     if (estado.doacaoEtapa === `${estado.ano}-${estado.etapa}`) return { ok: false, erro: 'Você já doou nesta etapa.' };
     descartarPneu(estado, id);
     estado.doacaoEtapa = `${estado.ano}-${estado.etapa}`;
@@ -1630,7 +1646,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,

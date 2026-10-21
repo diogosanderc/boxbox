@@ -9,7 +9,7 @@ const Carreira = require('../js/carreira.js');
 function jogarFimDeSemana(estado, estrategia = 'padrao') {
   // Cuidados básicos de paddock: patrocínio, pneu novo e revisão do motor quando der.
   for (const o of estado.ofertasPatrocinio.slice()) Carreira.aceitarPatrocinio(estado, o.id);
-  for (const p of estado.pneus.slice()) if (p.uso > 20) Carreira.venderPneu(estado, p.id);
+  for (const p of estado.pneus.slice()) if (Carreira.pneuNoFim(estado, p)) Carreira.venderPneu(estado, p.id);
   for (const t of Carreira.faltaNoEstoque(estado)) Carreira.comprarPneu(estado, t);
   if (!estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) Carreira.comprarPneu(estado, 'slick');
   if (estado.pneus.filter((p) => p.tipo === 'slick').length < 2) Carreira.comprarPneu(estado, 'slick');
@@ -456,18 +456,26 @@ test('pneus usados: vender, doar, estoque cheio e amaciar', () => {
   const v0 = Carreira.valorVendaPneu(e, novo);
   assert.strictEqual(v0, Math.round(Kart.PNEUS_KART.slick.preco * 0.5 / 10) * 10);
   assert.ok(Carreira.valorVendaPneu(e, { ...novo, uso: 20 }) < v0 / 2);
+  // Pneu com vida não sai: vender ou doar só no fim (80% gasto ou mais).
+  assert.strictEqual(Carreira.venderPneu(e, novo.id).ok, false);
+  assert.strictEqual(Carreira.doarPneu(e, chuva.id).ok, false);
+  novo.uso = 21; // 81% de 26 voltas
+  const v1 = Carreira.valorVendaPneu(e, novo);
   const din = e.dinheiro;
   assert.ok(Carreira.venderPneu(e, novo.id).ok);
-  assert.strictEqual(e.dinheiro, din + v0);
+  assert.strictEqual(e.dinheiro, din + v1);
   // doação: moral sobe, só uma vez por etapa
   const moral = e.piloto.moral;
+  chuva.uso = 22;
   assert.ok(Carreira.doarPneu(e, chuva.id).ok);
   assert.ok(e.piloto.moral > moral);
+  e.pneus[0].uso = 25;
   assert.strictEqual(Carreira.doarPneu(e, e.pneus[0].id).ok, false);
   // estoque cheio
   e.dinheiro = 1e6;
   while (e.pneus.length < Carreira.MAX_PNEUS) assert.ok(Carreira.comprarPneu(e, 'slick').ok);
   assert.strictEqual(Carreira.comprarPneu(e, 'slick').ok, false);
+  e.pneus[0].uso = 0;
   // amaciar no treino: pneu novo vira amaciado sem gastar saída
   Carreira.iniciarFimDeSemana(e);
   const zerado = e.pneus.find((p) => p.uso === 0 && p.tipo === 'slick');
@@ -1013,4 +1021,21 @@ test('F3 em diante: macio, médio, duro e chuva no estoque; sem eles não corre,
   Engine.simularCompleta(c2);
   assert.strictEqual(c2.carros.find((x) => x.jogador).paradas, 0);
   assert.ok(c2.eventos.some((ev) => ev.texto.includes('Sem pneu seco no estoque')));
+});
+
+test('estoque cheio sem Premium oferece o Premium; com Premium, só avisa', () => {
+  const e = Carreira.novoJogo({ seed: 31 });
+  e.dinheiro = 1e6;
+  Carreira.definirPremium(false);
+  while (e.pneus.length < Carreira.espacoPneus(e)) assert.ok(Carreira.comprarPneu(e, 'slick').ok);
+  const r = Carreira.comprarPneu(e, 'slick');
+  assert.ok(!r.ok && r.premium && /Premium/.test(r.erro));
+  Carreira.definirPremium(true);
+  assert.ok(Carreira.comprarEspaco(e).ok);
+  assert.ok(Carreira.comprarPneu(e, 'slick').ok);
+  while (Carreira.espacoPneus(e) < Carreira.limiteEspaco(e)) Carreira.comprarEspaco(e);
+  while (e.pneus.length < Carreira.espacoPneus(e)) Carreira.comprarPneu(e, 'slick');
+  const r2 = Carreira.comprarPneu(e, 'slick');
+  assert.ok(!r2.ok && !r2.premium);
+  Carreira.definirPremium(false);
 });
