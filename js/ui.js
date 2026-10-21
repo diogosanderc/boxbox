@@ -1401,7 +1401,7 @@
     if (boxComp) {
       boxComp.innerHTML = eu.fora || corrida.terminou || corrida.molhado ? ''
         : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : `<span class="subtitulo">${corrida.safetyCar > 0 ? 'Safety car: box pela metade do tempo!' : 'Chamar para o box'}</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
+          : `<span class="subtitulo">Chamar para o box</span><div class="botoes-3">${Engine.ORDEM_PNEUS.map((k) => `<button data-acao="box-composto" data-id="${k}"><span class="composto-bola mini" style="--cor:${Engine.PNEUS[k].cor}">${Engine.PNEUS[k].nome[0]}</span>${Engine.PNEUS[k].nome}</button>`).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
     const comp = corrida.compostos;
@@ -1417,7 +1417,7 @@
     const memo = tela.memoCorrida || (tela.memoCorrida = { pos: eu.largada, molhado: false, rivalFora: false, sc: false });
     if (corrida.volta === 0) return;
     const sc = corrida.safetyCar > 0;
-    if (sc && !memo.sc) aviso(corrida.regraCompostos && !eu.fora && eu.usados.length < 2 ? 'Safety car! Parar agora custa metade do tempo no box.' : 'Safety car na pista!', 'alerta');
+    if (sc && !memo.sc) aviso('Safety car na pista!', 'alerta');
     else if (!sc && memo.sc) aviso('Relargada!', 'bandeira');
     else if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
     else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
