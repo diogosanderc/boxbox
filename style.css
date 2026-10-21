@@ -1081,11 +1081,11 @@ body.sem-topo .topo-mini { display: none; }
 .corrida-titulo b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 18px; }
 
 /* Tutorial da primeira vez: escurece a tela, recorta o elemento explicado e mostra um balão.
-   Visual próprio (balão claro e azul) para não se confundir com os cartões e o vermelho do jogo. */
-.tut { position: fixed; inset: 0; z-index: 90; --tut-azul: #2f7cf6; --tut-fundo: #f4f7fc; --tut-texto: #13213a; --tut-fraco: #56657d; }
+   Visual próprio (balão claro) para não se confundir com os cartões e o vermelho do jogo. */
+.tut { position: fixed; inset: 0; z-index: 90; --tut-azul: #e10600; --tut-fundo: #f4f7fc; --tut-texto: #13213a; --tut-fraco: #56657d; }
 .tut.sem-alvo { background: rgba(2, 6, 14, 0.8); }
-.tut-furo { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(2, 6, 14, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.95), 0 0 24px 4px rgba(120, 175, 255, 0.55); pointer-events: none; animation: tut-pulso 1.8s ease-in-out infinite; }
-@keyframes tut-pulso { 50% { box-shadow: 0 0 0 9999px rgba(2, 6, 14, 0.8), 0 0 0 3px rgba(255, 255, 255, 1), 0 0 34px 8px rgba(120, 175, 255, 0.7); } }
+.tut-furo { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(2, 6, 14, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.95), 0 0 24px 4px rgba(255, 255, 255, 0.35); pointer-events: none; animation: tut-pulso 1.8s ease-in-out infinite; }
+@keyframes tut-pulso { 50% { box-shadow: 0 0 0 9999px rgba(2, 6, 14, 0.8), 0 0 0 3px rgba(255, 255, 255, 1), 0 0 34px 8px rgba(255, 255, 255, 0.5); } }
 .tut-balao { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--tut-fundo); color: var(--tut-texto); border-radius: 18px; padding: 14px 16px 14px; display: grid; gap: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55); }
 .tut-balao h3 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--tut-texto); }
 .tut-balao p { margin: 0; color: var(--tut-fraco); line-height: 1.45; font-size: 15px; white-space: pre-line; }
@@ -1094,15 +1094,15 @@ body.sem-topo .topo-mini { display: none; }
 .tut-avatar svg { width: 15px; height: 15px; }
 .tut-pontos { display: flex; gap: 4px; }
 .tut-pontos i { width: 6px; height: 6px; border-radius: 3px; background: #c9d3e3; transition: width 0.2s ease; }
-.tut-pontos i.feito { background: #9db8e6; }
+.tut-pontos i.feito { background: #f0a19e; }
 .tut-pontos i.atual { width: 16px; background: var(--tut-azul); }
 .tut-botoes { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
 .tut-botoes button { min-height: 40px; border-radius: 12px; font-weight: 700; font-size: 15px; }
 .tut-pular { background: transparent; border: 0; color: var(--tut-fraco); padding: 0 4px; font-weight: 600; }
 .tut-voltar { background: transparent; border: 1px solid #c9d3e3; color: var(--tut-texto); width: 40px; padding: 0; display: grid; place-items: center; }
 .tut-voltar svg { width: 18px; height: 18px; }
-.tut-proximo { background: var(--tut-azul); border: 0; color: #fff; min-width: 108px; padding: 0 18px; box-shadow: 0 6px 16px rgba(47, 124, 246, 0.35); }
-.tut-botoes button:focus-visible { outline: 3px solid rgba(47, 124, 246, 0.45); outline-offset: 2px; }
+.tut-proximo { background: var(--tut-azul); border: 0; color: #fff; min-width: 108px; padding: 0 18px; box-shadow: 0 6px 16px rgba(225, 6, 0, 0.3); }
+.tut-botoes button:focus-visible { outline: 3px solid rgba(225, 6, 0, 0.4); outline-offset: 2px; }
 .tut-seta { position: absolute; width: 14px; height: 14px; background: var(--tut-fundo); transform: translateX(-50%) rotate(45deg); }
 .tut-seta.em-cima { top: -6px; }
 .tut-seta.em-baixo { bottom: -6px; }
