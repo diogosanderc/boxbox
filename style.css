@@ -1079,3 +1079,14 @@ button.prazo.principal .prazo-valor { color: inherit; }
 body.sem-topo .topo-mini { display: none; }
 .corrida-titulo { display: flex; align-items: baseline; gap: 8px; font-size: 15px; margin-bottom: 4px; }
 .corrida-titulo b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 18px; }
+
+/* Tutorial da primeira vez: escurece a tela, recorta o elemento explicado e mostra um balão */
+.tut { position: fixed; inset: 0; z-index: 90; }
+.tut.sem-alvo { background: rgba(3, 8, 18, 0.72); }
+.tut-furo { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(3, 8, 18, 0.72), 0 0 0 2px var(--destaque-vivo) inset; pointer-events: none; }
+.tut-balao { position: fixed; width: min(340px, calc(100vw - 24px)); background: var(--painel); border: 1px solid var(--borda); border-radius: var(--raio); padding: 16px; display: grid; gap: 8px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
+.tut-balao h3 { margin: 0; font-size: 18px; }
+.tut-balao p { margin: 0; color: var(--fraco); line-height: 1.45; font-size: 15px; }
+.tut-passo { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--destaque-vivo); font-weight: 700; }
+.tut-botoes { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.tut-botoes .principal { min-width: 110px; }

@@ -201,6 +201,163 @@
     requestAnimationFrame(quadro);
   }
 
+  // ---------- tutorial da primeira vez ----------
+  // Na primeira vez em cada tela, um passo a passo destaca as partes da tela com um balão.
+  // Fica guardado no aparelho (vale para todas as carreiras); "Rever tutorial" no paddock recomeça.
+  const veic = () => (Kart.monoposto() ? 'carro' : 'kart');
+  const PASSOS_TUTORIAL = {
+    equipe: () => [
+      { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos; a meta é chegar à Fórmula 1 e ser campeão.' },
+      { sel: '.equipe-card', titulo: 'Escolha a equipe', texto: 'Kart é a velocidade do material; estrutura, a confiança. Cada equipe cobra por etapa: equipe cara anda mais, mas sobra menos dinheiro para pneus e motor.' },
+      { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ?', texto: 'Quase todo cartão tem um ? com a explicação do que ele faz.' },
+    ],
+    paddock: () => [
+      { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
+      { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais; confiança alta deixa mais rápido e regular.' },
+      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida. Tabela: o campeonato. Piloto: atributos e conquistas. Oficina: pneus, motor e patrocínio. Caderno: o que você anotou de cada pista. Notícias: propostas e novidades.' },
+      { sel: '.hero', titulo: 'A próxima etapa', texto: 'Pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto.' },
+      { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
+      { sel: '[data-aba="noticias"]', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho mostra quando tem novidade.' },
+      { sel: '[data-acao="ir-fds"]', titulo: 'Fim de semana', texto: 'Quando estiver pronto, vá para a pista. Cada etapa tem treino livre de manhã, classificação e corrida à tarde.' },
+    ],
+    treino: () => [
+      { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
+      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Mexa nos ajustes do ${veic()}. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
+      { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
+      { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
+      { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
+      { sel: '.cartao-radio', titulo: 'Rádio', texto: 'Aqui chegam o tempo, a posição no treino e o que o piloto sentiu. Use isso para corrigir o acerto antes da próxima saída.' },
+      { sel: '[data-acao="ir-quali"]', titulo: 'Classificação', texto: 'Quando o acerto estiver bom, siga para a classificação. A tarde costuma ser mais quente: o acerto pode precisar de um ajuste.' },
+    ],
+    quali: () => [
+      { sel: '[data-acao="classificar"]', titulo: 'Classificação', texto: `Uma volta lançada com o acerto e o pneu escolhidos define o grid. Confira os dois antes de tocar em Classificar.` },
+    ],
+    grid: () => [
+      { sel: '.largada-card, .painel', titulo: 'Grid de largada', texto: 'A sua posição de largada e as condições da corrida. Ainda dá para mexer no acerto e trocar o pneu antes da largada.' },
+      { sel: '.compostos', titulo: 'Estratégia de pneus', texto: 'Escolha com que composto largar: macio é mais rápido e dura menos; duro, o contrário.' },
+      { sel: '[data-acao="largar"]', titulo: 'Largar!', texto: 'Quando estiver pronto, é só largar.' },
+    ],
+    corrida: () => [
+      { sel: '#tabela', titulo: 'Corrida ao vivo', texto: 'Posição, tempo da última volta (roxo é a melhor da corrida), posições ganhas ou perdidas e a distância para o líder. Você aparece destacado.' },
+      { sel: '#btn-play', titulo: 'Pausar', texto: 'A corrida anda sozinha. Toque aqui para pausar e continuar quando quiser.' },
+      { sel: '#info-jogador', titulo: `Seu ${veic()}`, texto: 'Posição, de onde largou, quantas posições ganhou e o estado do pneu. Nos monopostos, aqui também ficam os botões de box.' },
+      { sel: '#eventos', titulo: 'Narração', texto: 'Ultrapassagens, paradas, safety car e chuva aparecem aqui, volta a volta.' },
+    ],
+    resultado: () => [
+      { sel: '.resultado-hero', titulo: 'Resultado', texto: 'Posição, pontos, a posição no campeonato e quanto entrou no caixa.' },
+      { sel: '[data-acao="voltar-paddock"]', titulo: 'Depois da bandeirada', texto: `Leia o que o piloto achou do ${veic()} e o que deveria ter mudado: vale para a próxima vez nessa pista. Depois, volte ao paddock.` },
+    ],
+    relatorio: () => [
+      { titulo: 'Fim de temporada', texto: 'Hora de olhar o ano: posição, dinheiro e evolução do piloto. Propostas de equipes e categorias aparecem no topo.' },
+      { sel: '#equipe-ano, .escolhas', titulo: 'Próximo ano', texto: 'Escolha o campeonato e a equipe do ano que vem. Cada equipe mostra quanto custa a temporada inteira.' },
+    ],
+  };
+  const Tutorial = (() => {
+    const CHAVE = 'superlicenca-tutorial';
+    let visto = {};
+    try { visto = JSON.parse(localStorage.getItem(CHAVE) || '{}') || {}; } catch (e) { visto = {}; }
+    const gravar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(visto)); } catch (e) { /* sem armazenamento */ } };
+    let ativo = null; // { chave, passos, i }
+    const camada = document.createElement('div');
+    camada.className = 'tut';
+    camada.hidden = true;
+    camada.innerHTML = '<div class="tut-furo" data-furo></div><div class="tut-balao" role="dialog" aria-modal="true" aria-labelledby="tut-titulo-balao"><span class="tut-passo" data-passo></span><h3 id="tut-titulo-balao" data-titulo></h3><p data-texto></p><div class="tut-botoes"><button class="discreto" data-tut="pular">Pular tutorial</button><span class="espaco"></span><button class="principal" data-tut="proximo"></button></div></div>';
+    document.body.appendChild(camada);
+    const q = (s) => camada.querySelector(s);
+    function posicionar() {
+      if (!ativo) return;
+      const passo = ativo.passos[ativo.i];
+      const alvo = passo.alvo;
+      const furo = q('[data-furo]');
+      const balao = q('.tut-balao');
+      const larg = window.innerWidth;
+      const alt = window.innerHeight;
+      if (!alvo || !alvo.isConnected) {
+        furo.hidden = true;
+        camada.classList.add('sem-alvo');
+        balao.style.left = `${Math.max(16, (larg - balao.offsetWidth) / 2)}px`;
+        balao.style.top = `${Math.max(16, (alt - balao.offsetHeight) / 2)}px`;
+        return;
+      }
+      camada.classList.remove('sem-alvo');
+      furo.hidden = false;
+      const r = alvo.getBoundingClientRect();
+      const m = 6;
+      const topo = Math.max(4, r.top - m);
+      const base = Math.min(alt - 4, r.bottom + m);
+      Object.assign(furo.style, { left: `${Math.max(4, r.left - m)}px`, top: `${topo}px`, width: `${Math.min(larg - 8, r.width + 2 * m)}px`, height: `${Math.max(24, base - topo)}px` });
+      const bh = balao.offsetHeight;
+      const embaixo = base + 12 + bh <= alt - 12;
+      const top = embaixo ? base + 12 : topo - 12 - bh >= 12 ? topo - 12 - bh : Math.max(12, alt - bh - 12);
+      balao.style.top = `${top}px`;
+      balao.style.left = `${Math.max(12, Math.min(larg - balao.offsetWidth - 12, r.left + r.width / 2 - balao.offsetWidth / 2))}px`;
+    }
+    function mostrar() {
+      const passo = ativo.passos[ativo.i];
+      passo.alvo = passo.sel ? [...document.querySelectorAll(passo.sel)].find((el) => el.offsetParent !== null) : null;
+      q('[data-passo]').textContent = `${ativo.i + 1} de ${ativo.passos.length}`;
+      q('[data-titulo]').textContent = passo.titulo;
+      q('[data-texto]').textContent = passo.texto;
+      q('[data-tut="proximo"]').textContent = ativo.i === ativo.passos.length - 1 ? 'Entendi' : 'Próximo';
+      if (passo.alvo) passo.alvo.scrollIntoView({ block: 'center', behavior: 'auto' });
+      requestAnimationFrame(posicionar);
+    }
+    function fechar() {
+      if (ativo) { visto[ativo.chave] = true; gravar(); }
+      ativo = null;
+      camada.hidden = true;
+      document.body.classList.remove('tut-aberto');
+    }
+    function comecar(chave, passos) {
+      // Passos sem alvo na tela (ex.: estratégia de pneus no kart) ficam de fora.
+      const validos = passos.filter((p) => !p.sel || [...document.querySelectorAll(p.sel)].some((el) => el.offsetParent !== null));
+      if (!validos.length) { visto[chave] = true; gravar(); return; }
+      ativo = { chave, passos: validos, i: 0 };
+      camada.hidden = false;
+      document.body.classList.add('tut-aberto');
+      mostrar();
+    }
+    camada.addEventListener('click', (ev) => {
+      const b = ev.target.closest('[data-tut]');
+      if (!b || !ativo) return;
+      if (b.dataset.tut === 'pular') {
+        for (const k of Object.keys(PASSOS_TUTORIAL)) visto[k] = true;
+        gravar();
+        fechar();
+        return;
+      }
+      if (ativo.i < ativo.passos.length - 1) { ativo.i += 1; mostrar(); } else fechar();
+    });
+    window.addEventListener('resize', () => requestAnimationFrame(posicionar));
+    window.addEventListener('scroll', () => { if (ativo) requestAnimationFrame(posicionar); }, { passive: true });
+    return {
+      visto: (k) => !!visto[k],
+      ativo: () => !!ativo,
+      comecar,
+      reiniciar() { visto = {}; gravar(); },
+    };
+  })();
+  // Qual passo a passo vale para a tela atual.
+  function chaveTutorial() {
+    if (tela.nome === 'equipe') return 'equipe';
+    if (tela.nome === 'paddock' && (tela.aba || 'resumo') === 'resumo') return 'paddock';
+    if (tela.nome === 'relatorio') return 'relatorio';
+    if (tela.nome === 'fds' && estado && estado.fds) return { treino: 'treino', quali: 'quali', grid: 'grid', corrida: 'corrida', fim: 'resultado' }[estado.fds.sessao] || null;
+    return null;
+  }
+  function talvezTutorial() {
+    const chave = chaveTutorial();
+    if (!chave || Tutorial.ativo() || Tutorial.visto(chave)) return;
+    const minha = tela;
+    // Espera a tela assentar (animações, folhas de aviso) antes de começar.
+    setTimeout(() => {
+      if (tela !== minha || Tutorial.ativo() || Tutorial.visto(chave) || chaveTutorial() !== chave) return;
+      if (app.querySelector('.folha-fundo') || !naPista.hidden) { talvezTutorial(); return; }
+      if (chave === 'corrida' && !tela.pausado && corrida && !corrida.terminou) { tela.pausado = true; clearInterval(timer); timer = null; atualizarCorrida(); }
+      Tutorial.comecar(chave, PASSOS_TUTORIAL[chave]());
+    }, 450);
+  }
+
   // ---------- peças visuais ----------
   function cartao(titulo, corpo, { ajuda, classe = '', extra = '' } = {}) {
     return `<section class="painel ${classe}">
@@ -333,6 +490,7 @@
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
+    talvezTutorial();
   }
 
   // A tela é redesenhada a cada toque; a pílula vermelha parte da posição anterior e desliza até a opção nova.
@@ -1253,6 +1411,7 @@
       ${conteudo}
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
+        <button class="discreto" data-acao="rever-tutorial">Rever tutorial</button>
         <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}`;
@@ -1552,7 +1711,7 @@
       ? `<button class="grande premium-trancado" data-acao="premium" data-motivo="Sem o Premium são ${C.SAIDAS_GRATIS} saídas no treino livre. Com ele, ${C.SAIDAS_TREINO}.">${ic('cadeado')}Mais ${C.SAIDAS_TREINO - C.SAIDAS_GRATIS} saídas · Premium</button>` : '';
     return `<div class="corrida">
       <div class="coluna">
-        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali' })}
+        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali', classe: 'cartao-acerto' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}${botoesComprarPneu()}`)}
         <div class="acoes">
@@ -1570,7 +1729,7 @@
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
           ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
           ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
-        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio' })}
+        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio', classe: 'cartao-radio' })}
       ${treino ? cartaoTelemetria(saidas[0]) : ''}
     </div>`;
   }
@@ -2152,6 +2311,11 @@
       case 'tutorial-pneus':
         estado.tutorialPneus = true;
         salvar();
+        render();
+        break;
+      case 'rever-tutorial':
+        Tutorial.reiniciar();
+        tela.aba = 'resumo';
         render();
         break;
       case 'aposentar':
