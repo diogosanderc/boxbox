@@ -102,7 +102,7 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (cabem ${C.MAX_PNEUS} no estoque). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora (o estoque começa com ${C.MAX_PNEUS} vagas e dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa e dá um bônus no fim do ano se a meta for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
@@ -756,12 +756,15 @@
       <div class="motor"><span>Motor</span><span class="motor-horas" role="img" aria-label="Motor com ${fmt(horas)} horas de uso, revisão a cada ${fmt(C.HORAS_REVISAO)} horas">
           <span class="pneu-trilho"><i class="${classe}-fundo" style="width:${Math.max(4, pct)}%"></i></span><small class="${classe}">${fmt(horas)} h de ${fmt(C.HORAS_REVISAO)} h</small></span>
         ${estado.motorQuebrado ? '<span class="negativo"><b>Engripado</b></span>' : `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`}</div>
-      <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.MAX_PNEUS ? 'aviso' : ''}">${estado.pneus.length}/${C.MAX_PNEUS}</b></div>
+      <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.espacoPneus(estado) ? 'aviso' : ''}">${estado.pneus.length}/${C.espacoPneus(estado)}</b></div>
       ${pneusVisuais(false)}
       <div class="botoes-2">
         <button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button>
         <button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button>
-      </div>`, { ajuda: 'oficina' });
+      </div>
+      ${C.espacoPneus(estado) < C.limiteEspaco(estado)
+        ? `<button class="compra" data-acao="comprar-espaco" data-confirmar="Confirmar: −${reais(C.precoEspaco(estado))}" ${estado.dinheiro < C.precoEspaco(estado) ? 'disabled' : ''}><b>${ic('subir')}Mais espaço no estoque</b><span>+1 vaga (${C.espacoPneus(estado) + 1}/${C.limiteEspaco(estado)}) · ${reais(C.precoEspaco(estado))}</span></button>`
+        : `<p class="fraco mini">Estoque no máximo desta categoria (${C.limiteEspaco(estado)} vagas). Na próxima categoria cabe mais.</p>`}`, { ajuda: 'oficina' });
   }
 
   function linhaPatrocinio(o, oferta) {
@@ -1794,6 +1797,11 @@
       case 'revisar':
         if (erro(C.revisarMotor(estado))) { salvar(); render(); aviso('Motor revisado.'); }
         break;
+      case 'comprar-espaco': {
+        const r = C.comprarEspaco(estado);
+        if (erro(r)) { salvar(); render(); aviso(`Estoque ampliado: ${C.espacoPneus(estado)} vagas.`); }
+        break;
+      }
       case 'comprar-pneu':
         if (erro(C.comprarPneu(estado, alvo.dataset.tipo))) { salvar(); render(); }
         break;

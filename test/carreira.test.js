@@ -809,3 +809,21 @@ test('recordes da carreira e conquistas com ids estáveis', () => {
   assert.strictEqual(new Set(ids).size, ids.length);
   for (const id of ids) assert.match(id, /^[a-z0-9_]+$/);
 });
+
+test('estoque de pneus: compra de espaço até 8 no kart, cada vaga mais cara', () => {
+  const e = Carreira.novoJogo({ seed: 61 });
+  e.dinheiro = 1e6;
+  assert.strictEqual(Carreira.espacoPneus(e), 6);
+  const p1 = Carreira.precoEspaco(e);
+  assert.ok(Carreira.comprarEspaco(e).ok);
+  assert.ok(Carreira.precoEspaco(e) > p1);
+  assert.ok(Carreira.comprarEspaco(e).ok);
+  assert.strictEqual(Carreira.espacoPneus(e), 8);
+  assert.ok(!Carreira.comprarEspaco(e).ok); // limite do kart
+  while (e.pneus.length < 8) assert.ok(Carreira.comprarPneu(e, 'slick').ok);
+  assert.ok(!Carreira.comprarPneu(e, 'slick').ok);
+  e.campeonato = 'f1';
+  assert.strictEqual(Carreira.limiteEspaco(e), 16);
+  assert.ok(Carreira.comprarEspaco(e).ok);
+  Carreira.migrar({ campeonato: 'regional' });
+});

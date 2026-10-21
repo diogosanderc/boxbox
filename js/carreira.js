@@ -314,8 +314,21 @@
     };
   }
 
-  // Estoque de pneus: no máximo MAX_PNEUS jogos guardados.
+  // Estoque de pneus: começa com MAX_PNEUS jogos; dá para comprar mais espaço, até o limite da categoria.
   const MAX_PNEUS = 6;
+  const LIMITE_ESPACO = { kart: 8, f4: 10, f3: 12, f2: 14, f1: 16 };
+  const PRECO_ESPACO = 2500; // por vaga, multiplicado pelo custo do campeonato e encarecendo a cada vaga
+  const espacoPneus = (estado) => MAX_PNEUS + (estado.espacoExtra || 0);
+  const limiteEspaco = (estado) => LIMITE_ESPACO[estado.campeonato] || LIMITE_ESPACO.kart;
+  const precoEspaco = (estado) => Math.round(PRECO_ESPACO * Math.max(1, campeonato(estado.campeonato).custo) * (1 + 0.25 * (estado.espacoExtra || 0)) / 100) * 100;
+  function comprarEspaco(estado) {
+    if (espacoPneus(estado) >= limiteEspaco(estado)) return { ok: false, erro: `O estoque já está no máximo desta categoria (${limiteEspaco(estado)} jogos).` };
+    const preco = precoEspaco(estado);
+    if (estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente.' };
+    estado.dinheiro -= preco;
+    estado.espacoExtra = (estado.espacoExtra || 0) + 1;
+    return { ok: true, preco };
+  }
   const VIDA_PNEU = 26; // voltas até o pneu "cair"
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
@@ -325,7 +338,7 @@
   const penalidadeZerado = (uso) => Math.max(0, 0.3 * (1 - uso / 2));
 
   function comprarPneu(estado, tipo, gratis = false) {
-    if (estado.pneus.length >= MAX_PNEUS) return { ok: false, erro: `Estoque cheio (${MAX_PNEUS} jogos): venda, doe ou descarte um pneu.` };
+    if (estado.pneus.length >= espacoPneus(estado)) return { ok: false, erro: `Estoque cheio (${espacoPneus(estado)} jogos): venda, doe ou descarte um pneu, ou compre mais espaço na oficina.` };
     const preco = Math.round(Kart.PNEUS_KART[tipo].preco * campeonato(estado.campeonato).custo);
     if (!gratis && estado.dinheiro < preco) return { ok: false, erro: 'Dinheiro insuficiente para os pneus.' };
     if (!gratis) estado.dinheiro -= preco;
@@ -1433,7 +1446,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, HORAS_REVISAO, MAX_PATROCINIOS,
-    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
+    campeonato, equipeBase, nota, novoJogo, comecarNaF4, custoEtapa, salarioEtapa, PROXIMA_CATEGORIA, carroDe, comprarPneu, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
