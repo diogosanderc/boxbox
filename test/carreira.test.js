@@ -671,7 +671,7 @@ test('escada dos monopostos: F4 → F3 → F2 → F1, com Superlicença no fim',
     assert.strictEqual(e.campeonato, para);
     assert.ok(Dados.EQUIPES_MONO[para].some((x) => x.id === e.equipeId));
     assert.ok(Dados.KARTODROMOS[para].some((p) => p.id === Carreira.pistaAtual(e).id));
-    assert.strictEqual(Kart.categoria(), 'f4'); // mesmo modelo de monoposto
+    assert.strictEqual(Kart.categoria(), { f3: 'f4', f2: 'f2', f1: 'f1' }[para]); // F2 e F1 têm carros mais complexos
   }
   assert.strictEqual(e.fase, 'superlicenca');
   assert.ok(e.final && e.final.equipe);

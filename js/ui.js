@@ -118,18 +118,22 @@
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
-    setupF4: ['Acerto do F4', 'Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
+    setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio e diferencial; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
     asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
     suspensao: ['Suspensão', 'É a firmeza das molas e amortecedores. Macia: o carro absorve zebras e ondulações, mas rola nas curvas. Dura: responde rápido, mas pula nas zebras.'],
     altura: ['Altura do carro', 'É a distância do assoalho até o chão. Baixa: o carro gruda mais (efeito solo), mas pode bater no chão. Alta: mais seguro em ondulações e na chuva, com menos aderência.'],
     relacao: ['Relação do câmbio', 'É o escalonamento das marchas. Curta: mais força na saída das curvas, mas a última marcha acaba antes do fim da reta. Longa: mais velocidade final, menos força nas retomadas.'],
+    freio: ['Balanço de freio', 'É quanto da força de freio vai para as rodas da frente (em %). Mais à frente: freada estável, mas a frente pode travar e passar reto. Mais atrás: o carro vira melhor na freada, mas a traseira pode travar e rodar.'],
+    diferencial: ['Diferencial', 'Controla quanto as rodas de trás podem girar diferente uma da outra. Travado: mais tração na saída das curvas lentas, mas o carro empurra de frente no meio da curva. Aberto: vira melhor, mas a roda de dentro patina.'],
+    camber: ['Cambagem dianteira', 'É a inclinação das rodas da frente (em graus negativos). Mais cambagem: mais aderência nas curvas rápidas, mas gasta o pneu por dentro e piora a freada. Menos: freia melhor e poupa pneu.'],
+    ers: ['Uso do ERS', 'É onde a bateria híbrida entrega a potência extra. Retas: mais velocidade final para atacar e defender. Curvas: mais tração na saída das curvas lentas. Equilibrado: um pouco de cada.'],
     temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 → F3 → F2 → F1 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
 
   // Nos monopostos (F4 à F1) os textos falam do carro, não do kart; e lá tem box para trocar pneu na chuva.
   function textoDoVeiculo(t) {
-    if (Kart.categoria() !== 'f4') return t;
+    if (!Kart.monoposto()) return t;
     return t
       .replace('No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.', 'Se chover na corrida, dá para chamar o carro para o box e pôr pneu de chuva (a parada custa uns 24 segundos).')
       .replace('O kart não vem com mecânico: o acerto é seu.', 'O acerto é seu.')
@@ -876,7 +880,7 @@
     const pedia = [n.motor, n.pneu, ...n.ajustes].filter(Boolean);
     return `<div class="nota">
       ${n.sentiu.map((f) => `<p>${ic('piloto')}${esc(f)}</p>`).join('')}
-      ${pedia.length ? `<span class="subtitulo">O ${Kart.categoria() === 'f4' ? 'carro' : 'kart'} pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${pedia.length ? `<span class="subtitulo">O ${Kart.monoposto() ? 'carro' : 'kart'} pedia</span><ul class="diagnostico">${pedia.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
       ${n.texto ? `<p class="nota-texto">${ic('lapis')}${esc(n.texto)}</p>` : ''}
     </div>`;
   }
@@ -1026,7 +1030,10 @@
       if (a.tipo === 'opcoes') {
         controle = `<div class="segmentos" data-seg="${k}">${a.opcoes.map((o, i) => `<button data-acao="ajuste" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
       } else {
-        const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`) : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
+        const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`)
+          : k === 'camber' ? `${String(s[k].toFixed(2)).replace('.', ',')}°`
+            : k === 'freio' ? `${s[k]}% na frente`
+              : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
         controle = `<div class="passos"><button data-acao="ajuste" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
           <b>${rotulo}</b><button data-acao="ajuste" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
       }
@@ -1177,7 +1184,7 @@
     const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : ''}"></i>`).join('');
     return `<div class="corrida">
       <div class="coluna">
-        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.categoria() === 'f4' ? 'setupF4' : 'setup') : 'quali' })}
+        ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}<div class="botoes-2"><button class="compra" data-acao="comprar-pneu" data-tipo="slick"><b>+ Slick</b><span>${reais(C.precoPneu(estado, 'slick'))}</span></button><button class="compra" data-acao="comprar-pneu" data-tipo="chuva"><b>+ Chuva</b><span>${reais(C.precoPneu(estado, 'chuva'))}</span></button></div>`)}
         <div class="acoes">
@@ -1242,7 +1249,7 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao(Kart.categoria() === 'f4' ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.categoria() === 'f4' ? '<div id="box-f4"></div>' : ''}`)}
+        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}`)}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
@@ -1362,7 +1369,7 @@
          <button class="principal grande" data-acao="anotar">${ic('lapis')}Anotar no caderno</button>`;
     return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
       ${d.sentiu.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
-      <span class="subtitulo">Nessas condições, o ${Kart.categoria() === 'f4' ? 'carro' : 'kart'} pedia</span>
+      <span class="subtitulo">Nessas condições, o ${Kart.monoposto() ? 'carro' : 'kart'} pedia</span>
       ${ajustes}
       ${anotar}`, { ajuda: 'diagnostico' });
   }

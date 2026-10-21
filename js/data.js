@@ -350,13 +350,14 @@
     // Monopostos: só se entra por proposta de uma equipe de F4.
     { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 4, premios: 1.5, regiao: 'f4', voltas: 14,
       chuva: 0.3, premioCampeao: 80000, popularidade: 4, categoria: 'f4' },
+    // categoria: modelo do carro ('f4' vale também para a F3; a F2 e a F1 têm carros mais complexos).
     // Depois da F4, sobe-se por proposta: os 4 primeiros de cada categoria são chamados pela seguinte.
     { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, nivel: 79, custo: 6, premios: 2, regiao: 'f3', voltas: 16,
       chuva: 0.25, premioCampeao: 150000, popularidade: 6, categoria: 'f4' },
     { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, nivel: 83, custo: 9, premios: 3, regiao: 'f2', voltas: 18,
-      chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f4' },
+      chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f2' },
     { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, nivel: 87, custo: 12, premios: 6, regiao: 'f1', voltas: 20,
-      chuva: 0.2, premioCampeao: 1000000, popularidade: 12, categoria: 'f4' },
+      chuva: 0.2, premioCampeao: 1000000, popularidade: 12, categoria: 'f1' },
   ];
 
   // Quem pode aparecer no paddock observando. nivelMin: a partir de qual campeonato aparece.

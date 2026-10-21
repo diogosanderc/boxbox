@@ -136,6 +136,69 @@
       },
     },
   };
+  // F2 e F1: o mesmo monoposto da F4 com mais coisas para equilibrar. Quanto mais alto, mais complexo o carro.
+  const AJUSTES_F2 = {
+    ...AJUSTES_F4,
+    freio: { nome: 'Balanço de freio', tipo: 'numero', min: 50, max: 62, passo: 1, unidade: '%', padrao: 56 },
+    diferencial: { nome: 'Diferencial', tipo: 'opcoes', opcoes: ['Aberto', 'Médio', 'Travado'], padrao: 1 },
+  };
+  const AJUSTES_F1 = {
+    ...AJUSTES_F2,
+    camber: { nome: 'Cambagem dianteira', tipo: 'numero', min: -4, max: -2, passo: 0.25, unidade: '°', padrao: -3 },
+    ers: { nome: 'Uso do ERS', tipo: 'opcoes', opcoes: ['Curvas', 'Equilibrado', 'Retas'], padrao: 1 },
+  };
+  const maiorReta = (pista) => Math.max(0, ...(pista.retas || [0]));
+  // Freio: mais freadas fortes (grampos) pedem o freio mais à frente; chuva pede mais atrás.
+  // Diferencial: pista travada pede travado (tração na saída); veloz e chuva pedem mais aberto.
+  const idealF2 = (pista, cond) => ({
+    freio: limitarK(55.5 + Math.min(3, pista.grampos || 0) * 0.8 - (cond.molhado ? 2.5 : 0) + (cond.tempPista - 30) / 20, 50, 62),
+    diferencial: limitarK(1 - 0.6 * tipoNum(pista) - (cond.molhado ? 0.7 : 0), 0, 2),
+  });
+  // Cambagem: curvas rápidas pedem mais cambagem (mais negativa); calor, asfalto abrasivo e chuva pedem menos.
+  // ERS: retas longas pedem a bateria nas retas; pista travada, nas saídas de curva.
+  const idealF1 = (pista, cond) => ({
+    camber: limitarK(-3 - 0.5 * tipoNum(pista) + (pista.asfalto === 'abrasivo' ? 0.4 : 0) + (cond.tempPista - 30) / 40 + (cond.molhado ? 0.6 : 0), -4, -2),
+    ers: limitarK(1 + 0.6 * tipoNum(pista) + (maiorReta(pista) >= 1000 ? 0.4 : 0) - (cond.molhado ? 0.4 : 0), 0, 2),
+  });
+  const F4 = MODELOS.f4;
+  MODELOS.f2 = {
+    ...F4,
+    id: 'f2',
+    AJUSTES: AJUSTES_F2,
+    ORDEM: [...F4.ORDEM, 'freio', 'diferencial'],
+    TOLERANCIA: { ...F4.TOLERANCIA, freio: 1.5, diferencial: 0.7 },
+    PESO: { ...F4.PESO, freio: 0.2, diferencial: 0.2 },
+    ideal(pista, cond, pneu) { return { ...F4.ideal(pista, cond, pneu), ...idealF2(pista, cond) }; },
+    SINTOMAS: {
+      ...F4.SINTOMAS,
+      freio: ['A traseira trava nas freadas fortes e o carro quer rodar.', 'A frente trava nas freadas e o carro passa reto na curva.'],
+      diferencial: ['A roda de dentro patina na saída das curvas lentas.', 'O carro não quer virar no meio da curva, empurra de frente.'],
+    },
+    DIRECAO: { ...F4.DIRECAO, freio: ['Freio mais para a frente', 'Freio mais para trás'], diferencial: ['Diferencial mais travado', 'Diferencial mais aberto'] },
+    ONDE: { ...F4.ONDE, freio: 'no balanço de freio', diferencial: 'no diferencial' },
+    VERBO: { ...F4.VERBO, freio: ['passar o freio para trás', 'passar o freio para a frente'], diferencial: ['abrir o diferencial', 'travar o diferencial'] },
+    descrever(s, AJ) { return `${F4.descrever(s, AJ)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]}`; },
+  };
+  const F2 = MODELOS.f2;
+  MODELOS.f1 = {
+    ...F2,
+    id: 'f1',
+    AJUSTES: AJUSTES_F1,
+    ORDEM: [...F2.ORDEM, 'camber', 'ers'],
+    TOLERANCIA: { ...F2.TOLERANCIA, camber: 0.4, ers: 0.7 },
+    PESO: { ...F2.PESO, camber: 0.2, ers: 0.2 },
+    ideal(pista, cond, pneu) { return { ...F2.ideal(pista, cond, pneu), ...idealF1(pista, cond) }; },
+    SINTOMAS: {
+      ...F2.SINTOMAS,
+      camber: ['Os pneus da frente gastam por dentro e o carro trava na freada em linha reta.', 'A frente perde aderência nas curvas rápidas, o pneu rola.'],
+      ers: ['Falta bateria no fim das retas, os outros me passam no vácuo.', 'Sobra bateria na reta, mas falta tração na saída das curvas.'],
+    },
+    DIRECAO: { ...F2.DIRECAO, camber: ['Menos cambagem', 'Mais cambagem'], ers: ['ERS mais para as retas', 'ERS mais para as curvas'] },
+    ONDE: { ...F2.ONDE, camber: 'na cambagem', ers: 'no ERS' },
+    VERBO: { ...F2.VERBO, camber: ['pôr mais cambagem', 'tirar cambagem'], ers: ['usar mais nas curvas', 'usar mais nas retas'] },
+    descrever(s, AJ) { return `${F2.descrever(s, AJ)} · camb. ${String(s.camber).replace('.', ',')}° · ERS ${AJ.ers.opcoes[s.ers]}`; },
+  };
+
   let M = MODELOS.kart;
   function usarCategoria(cat) { M = MODELOS[cat] || MODELOS.kart; }
   const categoria = () => M.id;
@@ -271,7 +334,7 @@
       else if (cond.tempPista >= 34) f.push('Já está quente de manhã, o pneu vai esquentar rápido.');
       else f.push('Temperatura boa de manhã, nada de muito frio nem muito calor.');
       if (!cond.molhado) f.push('A pista ainda está verde, com pouca borracha. Vai escorregar mais que à tarde.');
-      if (M.id === 'f4') {
+      if (M.id !== 'kart') {
         if (cond.tempAr <= 15) f.push('O ar está frio e denso: as asas trabalham mais.');
         else if (cond.tempAr >= 26) f.push('O ar está quente: as asas seguram menos o carro.');
         if (pista.altitude >= 500) f.push('Aqui é alto, o ar é mais fino: as asas perdem efeito.');
@@ -293,8 +356,8 @@
       else if (cond.borracha > antes.borracha) f.push('Tem ainda mais borracha que na classificação: a traseira vai grudar um pouco mais.');
     }
     const dAr = cond.tempAr - antes.tempAr;
-    if (dAr >= 4) f.push(M.id === 'f4' ? 'O ar esquentou também: as asas não vão segurar igual à manhã.' : 'O ar esquentou também: o motor não vai respirar igual à manhã.');
-    else if (dAr <= -4) f.push(M.id === 'f4' ? 'O ar esfriou: as asas vão segurar mais que de manhã.' : 'O ar esfriou: o motor não vai respirar igual à manhã.');
+    if (dAr >= 4) f.push(M.id !== 'kart' ? 'O ar esquentou também: as asas não vão segurar igual à manhã.' : 'O ar esquentou também: o motor não vai respirar igual à manhã.');
+    else if (dAr <= -4) f.push(M.id !== 'kart' ? 'O ar esfriou: as asas vão segurar mais que de manhã.' : 'O ar esfriou: o motor não vai respirar igual à manhã.');
     if (!cond.molhado && chanceChuva >= 50) f.push('Olha esse céu... tem cara de chuva na corrida.');
     else if (!cond.molhado && chanceChuva >= 30) f.push('Pode ser que chova na corrida, não dá pra saber.');
     if (!f.length) f.push('A pista está parecida com antes.');
@@ -358,6 +421,8 @@
     if (k === 'pressao') return `${d < 0 ? 'baixar' : 'subir'} ${plural('psi', 'psi')}`;
     if (k === 'coroa') return `${d > 0 ? 'pôr' : 'tirar'} ${plural('dente', 'dentes')}`;
     if (k === 'carburacao') return `${plural('volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`;
+    if (k === 'freio') return `passar ${n}% para ${d > 0 ? 'a frente' : 'trás'}`;
+    if (k === 'camber') return `${String(n).replace('.', ',')}° ${d < 0 ? 'a mais' : 'a menos'} de cambagem`;
     return `${d > 0 ? 'pôr' : 'tirar'} ${plural('ponto', 'pontos')}`; // asas
   }
 
@@ -379,12 +444,12 @@
   // Acerto que uma equipe da IA usa (mecânicos melhores chegam mais perto do ideal).
   function setupIA(pista, cond, pneu, mecanico, rnd) {
     // Na F4 as equipes têm engenheiros de verdade: acertam melhor que no kart.
-    return sugestaoMecanico(pista, cond, pneu, Math.max(30, M.id === 'f4' ? mecanico + 2 : mecanico - 10), rnd);
+    return sugestaoMecanico(pista, cond, pneu, Math.max(30, M.id !== 'kart' ? mecanico + 2 : mecanico - 10), rnd);
   }
 
-  // Descreve um acerto de qualquer categoria (o caderno guarda acertos de kart e de F4).
+  // Descreve um acerto de qualquer categoria (o caderno guarda acertos de kart e de monopostos).
   function descreverSetup(s) {
-    const mod = 'asaTraseira' in s ? MODELOS.f4 : MODELOS.kart;
+    const mod = 'ers' in s ? MODELOS.f1 : 'freio' in s ? MODELOS.f2 : 'asaTraseira' in s ? MODELOS.f4 : MODELOS.kart;
     return mod.descrever(s, mod.AJUSTES);
   }
 
@@ -392,7 +457,7 @@
     get AJUSTES() { return M.AJUSTES; },
     get ORDEM_AJUSTES() { return M.ORDEM; },
     get veiculo() { return M.veiculo; },
-    PNEUS_KART, usarCategoria, categoria,
+    PNEUS_KART, usarCategoria, categoria, monoposto: () => M.id !== 'kart',
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito,
     feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, descreverSetup,
   };

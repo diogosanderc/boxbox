@@ -92,7 +92,7 @@
 
   // Categoria do carro no campeonato atual: 'kart' ou 'f4' (monoposto, vale da F4 à F1), e as equipes do campeonato.
   const categoriaDe = (estado) => campeonato(estado.campeonato).categoria || 'kart';
-  const equipesDaCategoria = (estado) => (categoriaDe(estado) === 'f4' ? Dados.EQUIPES_MONO[estado.campeonato] : Dados.EQUIPES);
+  const equipesDaCategoria = (estado) => (categoriaDe(estado) !== 'kart' ? Dados.EQUIPES_MONO[estado.campeonato] : Dados.EQUIPES);
   // Escada dos monopostos: os 4 primeiros de cada um recebem proposta do seguinte.
   const PROXIMA_CATEGORIA = { f4: 'f3', f3: 'f2', f2: 'f1' };
   // O modelo do carro (ajustes, acerto ideal, falas) acompanha a categoria.
@@ -919,7 +919,7 @@
     const entradas = Object.fromEntries([entradaJogador(estado), ...estado.rivais.map((r) => entradaRival(estado, r))].map((e) => [e.id, e]));
     const grid = fds.quali.map((q) => entradas[q.id]);
     const chuvaDesde = clima.tarde.inicioChuva === 'quali' ? 1 : clima.tarde.voltaChuva;
-    const monoposto = categoriaDe(estado) === 'f4';
+    const monoposto = categoriaDe(estado) !== 'kart';
     const ajusteVolta = (c, v, corrida) => {
       const molhado = chuvaDesde != null && v >= chuvaDesde;
       if (molhado && !corrida.chuvaAnunciada) {
@@ -1144,7 +1144,8 @@
 
     // Opções para o próximo ano
     // O próximo degrau é sempre da mesma categoria (a F4 só se alcança por proposta).
-    const proximo = Dados.CAMPEONATOS.find((c) => c.ordem === camp.ordem + 1 && (c.categoria || 'kart') === (camp.categoria || 'kart'));
+    // Subir sem proposta só vale dentro do kart; nos monopostos a categoria seguinte vem por proposta.
+    const proximo = !camp.categoria && Dados.CAMPEONATOS.find((c) => c.ordem === camp.ordem + 1 && !c.categoria);
     rel.opcoes = [camp.id];
     if (proximo && (pos <= VAGAS_SUBIDA || p.popularidade >= 20 * (camp.ordem + 1))) rel.opcoes.push(proximo.id);
 
@@ -1232,7 +1233,7 @@
     }
     estado.campeonato = campeonatoId;
     // Contrato de monoposto (60%, programa de jovens ou salário) continua na mesma equipe; trocar de equipe ou de campeonato zera.
-    if (!(estado.contrato && estado.contrato.equipe === estado.equipeId && categoriaDe(estado) === 'f4')) estado.contrato = null;
+    if (!(estado.contrato && estado.contrato.equipe === estado.equipeId && categoriaDe(estado) !== 'kart')) estado.contrato = null;
     estado.propostas = estado.propostas.filter((p) => p.tipo !== 'f4' && p.tipo !== 'academia' && p.tipo !== 'subida');
     iniciarTemporada(estado);
     noticia(estado, `${estado.piloto.nome} disputa a ${campeonato(campeonatoId).nome} em ${estado.ano}.`);
