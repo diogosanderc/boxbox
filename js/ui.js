@@ -506,6 +506,7 @@
         <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
         <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
+        <button class="perfil-tutorial" data-acao="rever-tutorial" aria-label="Rever tutorial">${icone('sentido')}<small>Tutorial</small></button>
       </div>
       <div class="kpis">
         ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'R$ ∞' : caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
@@ -513,6 +514,15 @@
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
   }
+
+  statusEl.addEventListener('click', (ev) => {
+    if (!ev.target.closest('[data-acao="rever-tutorial"]') || !estado) return;
+    Tutorial.reiniciar();
+    tela.aba = 'resumo';
+    if (tela.nome !== 'paddock' && estado.fase === 'paddock') tela = { nome: 'paddock', aba: 'resumo' };
+    render();
+    window.scrollTo(0, 0);
+  });
 
   function render() {
     encherCaixa();
@@ -1556,9 +1566,10 @@
       ${conteudo}
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
-        <button class="discreto" data-acao="rever-tutorial">Rever tutorial</button>
-        <button class="discreto" data-acao="sair-jogo">${ic('voltar')}Sair do jogo</button>
-        <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
+        <div class="rodape-botoes">
+          <button class="sair-jogo" data-acao="sair-jogo">${ic('voltar')}Sair do jogo</button>
+          <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
+        </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}`;

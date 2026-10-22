@@ -1205,3 +1205,13 @@ button.noticia-link .noticia-ponto { right: 22px; }
 .premium-lista small { display: block; line-height: 1.3; }
 .folha-premium .botoes-2 button { font-size: 14px; white-space: nowrap; padding-inline: 8px; }
 @media (max-height: 760px) { .folha-premium .premium-selo { display: none; } }
+
+/* Cabeçalho: botão de rever o tutorial ao lado do ano e da categoria. */
+.perfil { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.perfil-tutorial { display: grid; justify-items: center; gap: 1px; padding: 4px 8px; border-radius: var(--raio-p); background: var(--painel-2); border: 1px solid var(--borda); color: var(--texto); line-height: 1.1; }
+.perfil-tutorial .ico { width: 18px; height: 18px; }
+.perfil-tutorial small { font-size: 10px; color: var(--fraco); }
+/* Rodapé: Sair do jogo (azul) e Apagar carreira lado a lado. */
+.rodape-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 420px; }
+.rodape-botoes button { width: 100%; justify-content: center; }
+button.sair-jogo { display: inline-flex; align-items: center; gap: 6px; background: rgba(61, 155, 255, 0.14); border-color: var(--azul); color: #cfe4ff; font-weight: 600; }
