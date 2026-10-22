@@ -525,10 +525,39 @@
     // Na corrida também: a tela fica só com a corrida.
     const naCorrida = tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao === 'corrida';
     document.body.classList.toggle('sem-topo', naCorrida || ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
+    document.body.classList.toggle('na-corrida', naCorrida);
+    pensar();
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
     talvezTutorial();
+  }
+
+  // "Jogo pensando": ao trocar de tela (ou de sessão no fim de semana), um carregando rápido por cima,
+  // enquanto a tela nova já se monta embaixo. Não aparece ao abrir o jogo nem no carregamento do início.
+  let telaAnterior = null;
+  let pensando = null;
+  function pensar() {
+    const chave = `${tela.nome}|${(tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao) || ''}`;
+    const antes = telaAnterior;
+    telaAnterior = chave;
+    if (antes === null || antes === chave || tela.nome === 'carregando' || tela.nome === 'abertura') return;
+    let el = document.getElementById('pensando');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'pensando';
+      el.className = 'pensando';
+      el.setAttribute('aria-hidden', 'true');
+      el.innerHTML = '<span class="pensando-roda"></span>';
+      document.body.append(el);
+    }
+    el.classList.remove('saindo');
+    el.hidden = false;
+    clearTimeout(pensando);
+    pensando = setTimeout(() => {
+      el.classList.add('saindo');
+      pensando = setTimeout(() => { el.hidden = true; el.classList.remove('saindo'); }, 160);
+    }, 420);
   }
 
   // A tela é redesenhada a cada toque; a pílula vermelha parte da posição anterior e desliza até a opção nova.

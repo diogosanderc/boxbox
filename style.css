@@ -1124,3 +1124,41 @@ body.sem-topo .topo-mini { display: none; }
 
 /* Cartão do companheiro: resultado da última corrida */
 .duelo-ultima { margin: 4px 0 0; font-size: 14px; color: var(--texto); }
+
+/* Corrida no celular: a tabela inteira cabe numa tela, sem cortar ninguém. O painel ocupa a altura
+   da tela (menos notch/ilha e barra de início) e as linhas dividem o espaço que sobra. */
+body.na-corrida .corrida > .painel { display: flex; flex-direction: column;
+  height: calc(100vh - 2 * var(--espaco) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - 2 * var(--espaco) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: 420px; }
+body.na-corrida .corrida > .painel > :not(#tabela) { flex: none; }
+body.na-corrida #tabela { flex: 1; min-height: 0; }
+body.na-corrida .ao-vivo { height: 100%; grid-auto-rows: minmax(0, 1fr); }
+body.na-corrida .vivo-linha { padding-block: 0; min-height: 0; overflow: hidden; }
+body.na-corrida .corrida-titulo { min-width: 0; }
+body.na-corrida .corrida-titulo b { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.na-corrida .recorde { margin-block: 6px; padding: 6px 10px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+body.na-corrida .recorde small { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+body.na-corrida .vivo-linha.jogador .vivo-sigla { padding-block: 0; line-height: 1.35; }
+/* Telas baixas (iPhone SE, mini): cabeçalho da corrida mais enxuto e linhas um pouco menores. */
+@media (max-height: 760px) {
+  body.na-corrida .corrida > .painel { padding-block: 10px; }
+  body.na-corrida .corrida-titulo b { font-size: 16px; }
+  body.na-corrida .volta-grande b { font-size: 22px; }
+  body.na-corrida #btn-play { padding: 6px 14px; }
+  body.na-corrida .vivo-linha { font-size: 13px; line-height: 1.2; }
+  body.na-corrida .vivo-nome, body.na-corrida .vivo-tempo { font-size: 12px; }
+  body.na-corrida .recorde { margin-block: 4px; font-size: 13px; }
+  body.na-corrida .recorde b { font-size: 13px; }
+}
+
+/* Jogo pensando: carregando rápido ao trocar de tela. */
+.pensando { position: fixed; inset: 0; z-index: 60; pointer-events: none; display: grid; place-items: center;
+  background: rgba(4, 9, 18, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: pensando-entra 0.12s ease-out; }
+.pensando[hidden] { display: none; }
+.pensando.saindo { opacity: 0; transition: opacity 0.16s ease-in; }
+.pensando-roda { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--destaque); border-right-color: var(--destaque); box-shadow: 0 0 22px rgba(225, 6, 0, 0.35);
+  animation: pensando-gira 0.6s linear infinite; }
+@keyframes pensando-gira { to { transform: rotate(360deg); } }
+@keyframes pensando-entra { from { opacity: 0; } }
