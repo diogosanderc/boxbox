@@ -1173,8 +1173,7 @@ test('repor estoque, rival de carreira, telemetria e desafio da semana', () => {
   // Desafio: 3 voltas por semana; acerto perfeito dá ouro.
   const agora = Date.UTC(2026, 9, 21);
   const d = Carreira.desafioDaSemana(e, agora);
-  Carreira.estadoDesafio(e, d);
-  Carreira.ajustarDesafio(e, Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu)));
+  Carreira.estadoDesafio(e, d).setup = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));
   const v = Carreira.tentarDesafio(e, agora);
   assert.strictEqual(v.medalha, 'ouro');
   Carreira.tentarDesafio(e, agora);
@@ -1183,7 +1182,7 @@ test('repor estoque, rival de carreira, telemetria e desafio da semana', () => {
   assert.ok(Carreira.conferirConquistas(e).some((c) => c.id === 'desafio_ouro'));
 });
 
-test('desafio da semana: grátis na primeira semana, depois só com o Premium', () => {
+test('desafio do dia: grátis no primeiro dia, depois só com o Premium', () => {
   Carreira.definirPremium(false);
   const e = Carreira.novoJogo({ seed: 17 });
   const s1 = Date.UTC(2026, 9, 21), s2 = s1 + 7 * 86400000;
@@ -1239,7 +1238,7 @@ test('nome do piloto sempre em maiúsculas, também em carreiras antigas', () =>
   assert.ok(!e.rivais.some((r) => r.nome.split(' ').slice(1).join(' ').toUpperCase() === 'SÂNDER'));
 });
 
-test('desafio da semana paga por medalha, só a diferença quando melhora', () => {
+test('desafio do dia paga por medalha, só a diferença quando melhora', () => {
   Carreira.definirPremium(true);
   const e = Carreira.novoJogo({ seed: 21 });
   const agora = Date.UTC(2026, 9, 22);
@@ -1260,18 +1259,22 @@ test('desafio da semana paga por medalha, só a diferença quando melhora', () =
   Carreira.definirPremium(false);
 });
 
-test('desafio: usadas as 3 voltas, reabre 1 dia depois com mais 3', () => {
+test('desafio do dia: 3 voltas por dia e desafio novo à meia-noite', () => {
   Carreira.definirPremium(true);
   const e = Carreira.novoJogo({ seed: 22 });
-  const t0 = Date.UTC(2026, 9, 19, 12); // segunda-feira
+  const t0 = Date.UTC(2026, 9, 19, 15);
+  const d0 = Carreira.desafioDaSemana(e, t0);
   for (let i = 0; i < 3; i++) assert.ok(Carreira.tentarDesafio(e, t0 + i * 60000).ok);
   const r = Carreira.tentarDesafio(e, t0 + 3 * 60000);
-  assert.ok(!r.ok && /1 dia/.test(r.erro));
+  assert.ok(!r.ok && /Amanhã/.test(r.erro));
   const v = Carreira.voltasDesafio(e, t0 + 3 * 60000);
   assert.strictEqual(v.restantes, 0);
-  assert.strictEqual(v.reabreEm, t0 + 2 * 60000 + 86400000);
-  assert.strictEqual(Carreira.voltasDesafio(e, v.reabreEm - 1000).restantes, 0);
-  assert.strictEqual(Carreira.voltasDesafio(e, v.reabreEm).restantes, 3);
-  assert.ok(Carreira.tentarDesafio(e, v.reabreEm + 1000).ok);
+  assert.strictEqual(v.reabreEm, d0.fim);
+  assert.ok(d0.fim - t0 <= 86400000 && d0.fim > t0, 'termina em menos de 1 dia');
+  // À meia-noite: outro desafio (outro dia), com 3 voltas novas.
+  const d1 = Carreira.desafioDaSemana(e, d0.fim);
+  assert.strictEqual(d1.semana, d0.semana + 1);
+  assert.strictEqual(Carreira.voltasDesafio(e, d0.fim).restantes, 3);
+  assert.ok(Carreira.tentarDesafio(e, d0.fim + 1000).ok);
   Carreira.definirPremium(false);
 });

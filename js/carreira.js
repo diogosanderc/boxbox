@@ -1011,33 +1011,33 @@
 
   const climaAtual = (estado) => estado.calendario[estado.etapa].clima;
 
-  // ---------- desafio da semana ----------
-  // Toda semana: uma pista da categoria do jogador, uma condição fixa e 3 voltas lançadas para acertar o carro.
-  // O tempo-alvo é o do próprio piloto com o acerto perfeito; medalha pela distância até ele.
-  const SEMANA_MS = 7 * 86400000;
-  const INICIO_DESAFIO = Date.UTC(2026, 0, 5); // uma segunda-feira
+  // ---------- desafio do dia ----------
+  // Todo dia (à meia-noite do aparelho): uma pista da categoria do jogador, uma condição fixa e 3 voltas
+  // lançadas para acertar o carro. O tempo-alvo é o do próprio piloto com o acerto perfeito; medalha pela
+  // distância até ele. (O campo "semana" guarda o número do dia; o nome ficou de quando era semanal.)
+  const DIA_MS = 86400000;
   const TENTATIVAS_DESAFIO = 3;
-  // Usadas as 3 voltas, o desafio reabre 1 dia depois com mais 3 (na mesma pista da semana).
-  const ESPERA_DESAFIO_MS = 86400000;
-  // Voltas que ainda dá para fazer agora e quando reabre (timestamp), considerando a espera de 1 dia.
+  const fusoMs = (agora) => new Date(agora).getTimezoneOffset() * 60000;
+  const diaDesafio = (agora) => Math.floor((agora - fusoMs(agora)) / DIA_MS);
+  // Voltas que ainda dá para fazer hoje e quando sai o próximo desafio (meia-noite).
   function voltasDesafio(estado, agora = Date.now()) {
-    const st = estadoDesafio(estado, desafioDaSemana(estado, agora));
-    if (st.usadas == null) st.usadas = st.tentativas.length % (TENTATIVAS_DESAFIO + 1); // saves antigos
-    if (st.reabreEm && agora >= st.reabreEm) { st.usadas = 0; st.reabreEm = null; }
-    return { restantes: Math.max(0, TENTATIVAS_DESAFIO - st.usadas), reabreEm: st.reabreEm || null };
+    const d = desafioDaSemana(estado, agora);
+    const st = estadoDesafio(estado, d);
+    const restantes = Math.max(0, TENTATIVAS_DESAFIO - st.tentativas.length);
+    return { restantes, reabreEm: restantes ? null : d.fim };
   }
   const MEDALHAS = [['ouro', 0.12], ['prata', 0.4], ['bronze', 0.9]];
-  // Sem o Premium, o desafio é de graça na primeira semana em que o jogador corre; depois, só com o Premium.
+  // Sem o Premium, o desafio é de graça no primeiro dia em que o jogador corre; depois, só com o Premium.
   const SEMANAS_DESAFIO_GRATIS = 1;
   const semanasJogadas = (estado) => estado.semanasDesafio || [];
   function desafioLiberado(estado, agora = Date.now()) {
     if (premium) return true;
-    const semana = Math.floor((agora - INICIO_DESAFIO) / SEMANA_MS);
+    const dia = diaDesafio(agora);
     const jogadas = semanasJogadas(estado);
-    return jogadas.includes(semana) || jogadas.length < SEMANAS_DESAFIO_GRATIS;
+    return jogadas.includes(dia) || jogadas.length < SEMANAS_DESAFIO_GRATIS;
   }
   function desafioDaSemana(estado, agora = Date.now()) {
-    const semana = Math.floor((agora - INICIO_DESAFIO) / SEMANA_MS);
+    const semana = diaDesafio(agora);
     const rnd = Engine.criarRng(semana * 7919 + 13);
     const camp = campeonato(estado.campeonato);
     const lista = Dados.KARTODROMOS[camp.regiao];
@@ -1050,10 +1050,10 @@
     const entrada = entradaJogador(estado);
     const volta = (setup) => Engine.ritmoBase(entrada, pista) - 0.6 + Kart.efeito(setup, pista, cond, pneu).tempo + chuvaPiloto(estado.piloto, cond);
     const alvo = volta(Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, pneu)));
-    const fim = INICIO_DESAFIO + (semana + 1) * SEMANA_MS;
+    const fim = (semana + 1) * DIA_MS + fusoMs(agora); // meia-noite no fuso do aparelho
     return { semana, campeonato: camp.id, pista, cond, pneu, molhado, alvo, volta, medalhas: MEDALHAS.map(([m, d]) => ({ medalha: m, tempo: alvo + d })), fim };
   }
-  // Estado do desafio desta semana (zera quando a semana vira ou o jogador muda de categoria).
+  // Estado do desafio de hoje (zera quando o dia vira ou o jogador muda de categoria).
   function estadoDesafio(estado, d = desafioDaSemana(estado)) {
     const atual = estado.desafio;
     if (!atual || atual.semana !== d.semana || atual.campeonato !== d.campeonato) {
@@ -1078,14 +1078,12 @@
     const st = estadoDesafio(estado, d);
     if (!semanasJogadas(estado).includes(d.semana)) estado.semanasDesafio = [...semanasJogadas(estado), d.semana];
     const v = voltasDesafio(estado, agora);
-    if (!v.restantes) return { ok: false, erro: 'As 3 voltas de hoje já foram. O desafio reabre em 1 dia.' };
+    if (!v.restantes) return { ok: false, erro: 'As 3 voltas de hoje já foram. Amanhã tem desafio novo.' };
     const rnd = Engine.criarRng(d.semana * 31 + st.tentativas.length * 7 + 1);
     const tempo = Math.round((d.volta(st.setup) + rnd.gauss() * 0.04) * 1000) / 1000;
     const ideal = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));
     const frases = Kart.feedbackPiloto(Kart.erros(st.setup, ideal), limitar(estado.piloto.sensibilidade || 50, 10, 95), rnd);
     st.tentativas.push({ tempo, setup: { ...st.setup }, frases });
-    st.usadas += 1;
-    if (st.usadas >= TENTATIVAS_DESAFIO) st.reabreEm = agora + ESPERA_DESAFIO_MS;
     if (st.melhor == null || tempo < st.melhor) st.melhor = tempo;
     const m = d.medalhas.find((x) => st.melhor <= x.tempo);
     const ordem = ['ouro', 'prata', 'bronze'];
@@ -1100,8 +1098,9 @@
       st.medalhas[nova] = (st.medalhas[nova] || 0) + 1;
       if (nova === 'ouro') estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
     }
-    if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio da semana${premio ? ` e ganha R$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
-    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: TENTATIVAS_DESAFIO - st.usadas, reabreEm: st.reabreEm || null };
+    if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio do dia${premio ? ` e ganha R$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
+    const depois = voltasDesafio(estado, agora);
+    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: depois.restantes, reabreEm: depois.reabreEm };
   }
   function ajustarDesafio(estado, mudancas) {
     const st = estadoDesafio(estado);
@@ -1948,7 +1947,7 @@
     { id: 'tricampeao', nome: 'Tricampeão', texto: 'Vença o Mundial de Fórmula 1 três vezes.', ok: (e) => e.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length >= 3 },
     { id: 'vinte_gps', nome: '20 GPs', texto: 'Vença 20 GPs de Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && !h.fora && h.pos === 1).length >= 20 },
     { id: 'dez_poles_f1', nome: 'Rei da classificação', texto: 'Faça 10 poles na Fórmula 1.', ok: (e) => e.historico.filter((h) => h.campeonato === 'f1' && h.pole).length >= 10 },
-    { id: 'desafio_ouro', nome: 'Ouro na semana', texto: 'Ganhe a medalha de ouro num desafio da semana.', ok: (e) => !!(e.desafio && e.desafio.medalhas && e.desafio.medalhas.ouro) },
+    { id: 'desafio_ouro', nome: 'Ouro no desafio', texto: 'Ganhe a medalha de ouro num desafio do dia.', ok: (e) => !!(e.desafio && e.desafio.medalhas && e.desafio.medalhas.ouro) },
     { id: 'galeria', nome: 'Galeria da fama', texto: 'Encerre a carreira com um título mundial.', ok: (e) => e.fase === 'aposentado' && titulo('f1')(e) },
   ];
 
