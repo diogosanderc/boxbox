@@ -974,7 +974,13 @@
     const d = C.desafioDaSemana(estado);
     const st = C.estadoDesafio(estado, d);
     const restantes = C.TENTATIVAS_DESAFIO - st.tentativas.length;
-    const medalhas = d.medalhas.map((m) => `<div class="medalha-alvo ${st.medalha === m.medalha ? 'ganha' : ''}"><span class="medalha-cor m-${m.medalha}" aria-hidden="true"></span><b>${NOME_MEDALHA[m.medalha]}</b><span class="dinheiro">+${reais(C.premioMedalha(estado, m.medalha))}</span><span>${tempoVolta(m.tempo)}</span></div>`).join('');
+    // Cada medalha: nome e tempo-alvo à esquerda, prêmio numa etiqueta à direita.
+    const medalhas = d.medalhas.map((m) => {
+      const ganha = st.medalha === m.medalha;
+      return `<div class="medalha-alvo ${ganha ? 'ganha' : ''}"><span class="medalha-cor m-${m.medalha}" aria-hidden="true"></span>
+        <span class="medalha-info"><b>${NOME_MEDALHA[m.medalha]}${ganha ? ` ${ic('check')}` : ''}</b><small>Volta até <b>${tempoVolta(m.tempo)}</b></small></span>
+        <span class="medalha-premio">+${reais(C.premioMedalha(estado, m.medalha))}</span></div>`;
+    }).join('');
     const voltas = st.tentativas.slice().reverse().map((t, i) => `<div class="saida"><div class="item-topo"><span class="chip">Volta ${st.tentativas.length - i}</span><b class="tempo">${tempoVolta(t.tempo)}</b></div>
         ${(t.frases || []).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`).join('');
     app.innerHTML = `<div class="detalhe">
