@@ -1060,14 +1060,15 @@
         <span class="medalha-premio">+${reais(C.premioMedalha(estado, m.medalha))}</span></div>`;
     }).join('');
     const voltas = st.tentativas.slice().reverse().map((t, i) => `<div class="saida"><div class="item-topo"><span class="chip">Volta ${st.tentativas.length - i}</span><b class="tempo">${tempoVolta(t.tempo)}</b></div>
-        ${(t.frases || []).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`).join('');
+        ${(t.frases || []).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
+        ${i === 0 && restantes ? `<button class="radio-ajustar" data-acao="ir-acerto">${ic('chave')}Ajustar o ${Kart.veiculo}</button>` : ''}</div>`).join('');
     app.innerHTML = `<div class="detalhe">
         <div class="linha"><button class="voltar" data-acao="voltar-paddock-pista">${icone('voltar')}<span>Paddock</span></button></div>
         <div class="detalhe-titulo"><h1>${tituloForte(d.pista.nome)}</h1><p>Desafio do dia · ${esc(C.campeonato(d.campeonato).curto)}${d.fim ? ` · termina em <span data-reabre="${d.fim}">${contagem(d.fim)}</span>` : ' · 24 h a partir da primeira volta'}</p></div>
         <div class="grade">
           ${cartao('Tempos-alvo', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado · pneu de chuva` : `${ic('sol')}Seco · slick`, d.molhado ? 'chip-azul' : '')}${chip(`Asfalto ${d.cond.tempPista}°`)}</div><div class="medalhas-alvo">${medalhas}</div>
             ${st.melhor ? `<p>Sua melhor: <b>${tempoVolta(st.melhor)}</b>${st.medalha ? ` · ${NOME_MEDALHA[st.medalha]}` : ''}</p>` : ''}`)}
-          ${cartao('Acerto', editorSetup(st.setup, 'ajuste-desafio'))}
+          ${cartao('Acerto', editorSetup(st.setup, 'ajuste-desafio'), { classe: 'cartao-acerto' })}
           <button class="principal grande" data-acao="volta-desafio" ${restantes ? '' : 'disabled'}>${restantes ? `Volta lançada · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : `${ic('relogio')}Novo desafio em <span data-reabre="${reabreEm}">${contagem(reabreEm)}</span>`}</button>
           ${cartao('Rádio', voltas || `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e faça a volta.</p>`, { classe: 'cartao-radio', extra: painelRadio() })}
         </div>
@@ -1933,6 +1934,7 @@
     const fds = estado.fds;
     const treino = fds.sessao === 'treino';
     const restantes = C.saidasTreino() - fds.saidas.length;
+    const botaoAjustar = `<button class="radio-ajustar" data-acao="ir-acerto">${ic('chave')}Ajustar o ${Kart.veiculo}</button>`;
     const saidas = fds.saidas.slice().reverse();
     // As saídas do Premium aparecem trancadas para quem não tem.
     const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : i >= C.saidasTreino() ? 'trancada' : ''}"></i>`).join('');
@@ -1958,6 +1960,7 @@
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
           ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
           ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
+          ${i === 0 && treino && restantes ? botaoAjustar : ''}
         </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio', classe: 'cartao-radio', extra: painelRadio() })}
       ${treino ? cartaoTelemetria(saidas[0]) : ''}
     </div>`;
@@ -2758,6 +2761,10 @@
         }
         break;
       }
+      case 'ir-acerto':
+        // Do rádio de volta ao acerto (treino livre ou desafio), para mudar antes da próxima volta.
+        rolarPara('.cartao-acerto');
+        break;
       case 'saida': {
         const r = C.saidaTreino(estado);
         if (!erro(r)) break;
