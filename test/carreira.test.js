@@ -1279,3 +1279,12 @@ test('desafio do dia: 3 voltas por dia e desafio novo à meia-noite', () => {
   assert.ok(Carreira.tentarDesafio(e, d0.fim + 1000).ok);
   Carreira.definirPremium(false);
 });
+
+test('rival de carreira nunca é o companheiro de equipe', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const e = Carreira.novoJogo({ seed });
+    const rc = Carreira.rivalCarreira(e);
+    assert.ok(rc && rc.equipe !== e.equipeId, `seed ${seed}`);
+    assert.ok(e.rivais.filter((r) => r.equipe === e.equipeId).length === 1, `seed ${seed}: um companheiro só`);
+  }
+});

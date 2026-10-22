@@ -963,8 +963,9 @@
     const d = estado.duelo && estado.duelo.id === comp.id ? estado.duelo : { quali: [0, 0], corrida: [0, 0] };
     const linha = (rotulo, [eu, ele]) => `<div class="duelo-linha"><b class="${eu > ele ? 'dinheiro' : ''}">${eu}</b><span>${rotulo}</span><b class="${ele > eu ? 'negativo' : ''}">${ele}</b></div>`;
     return cartao('Companheiro de equipe', `<div class="duelo-topo"><span>Você</span><span class="fraco">×</span><span>${esc(comp.nome)}</span></div>
-      ${linha('Classificação', d.quali)}${linha('Corrida', d.corrida)}${linha('Pontos', [estado.pontos.jogador || 0, estado.pontos[comp.id] || 0])}
-      <p class="fraco mini">Terminar na frente dele anima o piloto; ficar atrás pesa um pouco na moral.</p>`, { classe: 'cartao-duelo' });
+      ${linha('Largou na frente', d.quali)}${linha('Chegou na frente', d.corrida)}${linha('Pontos no campeonato', [estado.pontos.jogador || 0, estado.pontos[comp.id] || 0])}
+      ${d.ultima ? `<p class="duelo-ultima">Última corrida: você ${d.ultima.eu ? `P${d.ultima.eu}` : 'abandonou'} · ${esc(comp.nome.split(' ')[0])} ${d.ultima.ele ? `P${d.ultima.ele}` : 'abandonou'}</p>` : ''}
+      <p class="fraco mini">Os placares contam quantas vezes cada um largou e chegou na frente do outro. Terminar na frente dele anima o piloto; ficar atrás pesa um pouco na moral.</p>`, { classe: 'cartao-duelo' });
   }
 
   // ---------- desafio do dia ----------

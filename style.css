@@ -1112,3 +1112,6 @@ body.sem-topo .topo-mini { display: none; }
 .tut-seta.em-cima { top: -6px; }
 .tut-seta.em-baixo { bottom: -6px; }
 @media (prefers-reduced-motion: reduce) { .tut-furo { animation: none; } }
+
+/* Cartão do companheiro: resultado da última corrida */
+.duelo-ultima { margin: 4px 0 0; font-size: 14px; color: var(--texto); }

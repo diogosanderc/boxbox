@@ -158,6 +158,13 @@
     const sobrenome = (n) => n.split(' ').slice(1).join(' ');
     const igual = rivais.findIndex((r) => sobrenome(r.nome) === sobrenome(rc.nome));
     if (igual >= 0) i = igual;
+    // O rival de carreira corre sempre por outra equipe (o companheiro já tem o cartão dele): se a vaga
+    // escolhida é da equipe do jogador, troca de equipe com o rival mais parecido de outra equipe.
+    if (rivais[i].equipe === estado.equipeId) {
+      let j = -1;
+      rivais.forEach((r, k) => { if (k !== i && r.equipe !== estado.equipeId && (j < 0 || Math.abs(nota(r) - nota(rc)) < Math.abs(nota(rivais[j]) - nota(rc)))) j = k; });
+      if (j >= 0) [rivais[i].equipe, rivais[j].equipe] = [rivais[j].equipe, rivais[i].equipe];
+    }
     rivais[i] = { ...piloto, equipe: rivais[i].equipe };
   }
   const rivalCarreira = (estado) => (estado.rivalCarreira && estado.rivais.find((r) => r.id === 'rc')) || null;
@@ -1592,6 +1599,8 @@
     let dueloCorrida = null;
     if (dele && !(meu.fora && dele.fora)) {
       dueloCorrida = placarDuelo(estado, 'corrida', meu.fora ? 99 : meu.pos, dele.fora ? 99 : dele.pos);
+      // Para o cartão do companheiro: onde cada um terminou na última corrida.
+      estado.duelo.ultima = { eu: meu.fora ? null : meu.pos, ele: dele.fora ? null : dele.pos };
       if (dueloCorrida) mexerCabeca(estado, { moral: 2 }, 'Terminou na frente do companheiro de equipe');
       else mexerCabeca(estado, { moral: -1 }, 'Terminou atrás do companheiro de equipe');
     }
