@@ -427,8 +427,9 @@
   function painelCondicoes(sessao) {
     const clima = C.climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
-    const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : 'quali', molhado);
-    const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
+    // No grid valem as condições da corrida, comparadas com as da classificação.
+    const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : sessao === 'grid' ? 'corrida' : 'quali', molhado);
+    const t = sessao === 'treino' ? null : sessao === 'grid' ? Kart.condicao(clima, 'quali', molhado) : Kart.condicao(clima, 'treino', clima.manha.chove);
     const delta = (agora, antes) => (t && agora !== antes ? `<small class="${agora > antes ? 'sobe' : 'desce'}">${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}°</small>` : '<small>&nbsp;</small>');
     const item = (icone0, rotulo, valor, extra = '<small>&nbsp;</small>', classe = '') => `<div class="cond ${classe}">${icone(icone0)}<span>${rotulo}</span><b>${valor}</b>${extra}</div>`;
     return `<div class="condicoes">
@@ -442,8 +443,9 @@
   function condicaoChips(sessao) {
     const clima = C.climaAtual(estado);
     const molhado = sessao === 'treino' ? clima.manha.chove : clima.tarde.inicioChuva === 'quali';
-    const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : 'quali', molhado);
-    const t = sessao === 'treino' ? null : Kart.condicao(clima, 'treino', clima.manha.chove);
+    // No grid valem as condições da corrida, comparadas com as da classificação.
+    const c = Kart.condicao(clima, sessao === 'treino' ? 'treino' : sessao === 'grid' ? 'corrida' : 'quali', molhado);
+    const t = sessao === 'treino' ? null : sessao === 'grid' ? Kart.condicao(clima, 'quali', molhado) : Kart.condicao(clima, 'treino', clima.manha.chove);
     const delta = (agora, antes) => (t && agora !== antes ? ` <small>${agora > antes ? '+' : '−'}${Math.abs(agora - antes)}</small>` : '');
     const borracha = molhado ? '' : chip(sessao === 'treino' ? 'Pouca borracha' : sessao === 'grid' ? 'Muita borracha' : 'Mais borracha');
     return `${linhaRecorde()}<div class="chips">${chip(molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${c.tempAr}°${delta(c.tempAr, t && t.tempAr)}`)}${chip(`Asfalto ${c.tempPista}°${delta(c.tempPista, t && t.tempPista)}`)}${borracha}

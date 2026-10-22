@@ -242,14 +242,22 @@
     // Se chover à tarde, pode já estar chovendo na classificação ou começar no meio da corrida.
     clima.tarde.inicioChuva = tardeChove ? (rnd() < 0.5 ? 'quali' : 'corrida') : null;
     clima.tarde.voltaChuva = tardeChove && clima.tarde.inicioChuva === 'corrida' ? 3 + Math.floor(rnd() * 10) : null;
+    // Da classificação para a corrida o tempo às vezes muda (em cerca de metade das etapas): o ar
+    // esquenta ou esfria uns graus e as nuvens podem abrir ou fechar. Nas outras, fica igual.
+    if (rnd() < 0.5) {
+      const variacao = Math.round(limitar(rnd.gauss() * 3, -6, 6)) || (rnd() < 0.5 ? -2 : 2);
+      const ceu = rnd() < 0.5 ? Math.round(limitar(rnd(), 0, 1) * 100) / 100 : nuvens;
+      clima.corrida = { tempAr: Math.round(limitar(clima.tarde.tempAr + variacao, pista.clima - 14, pista.clima + 14)), nuvens: ceu };
+    }
     return clima;
   }
 
   // Condição da pista numa sessão. borracha: 0 (pista "verde") a 1 (bem emborrachada).
   // O asfalto passa do ar conforme o sol: de manhã de 2 a 9 graus, à tarde de 4 a 18 (céu limpo).
   function condicao(clima, sessao, molhado) {
-    const periodo = sessao === 'treino' ? clima.manha : clima.tarde;
-    const sol = clima.nuvens == null ? null : 1 - clima.nuvens;
+    const periodo = sessao === 'treino' ? clima.manha : sessao === 'corrida' && clima.corrida ? clima.corrida : clima.tarde;
+    const nuvens = sessao === 'corrida' && clima.corrida ? clima.corrida.nuvens : clima.nuvens;
+    const sol = nuvens == null ? null : 1 - nuvens;
     const ganhoSol = sol == null ? (sessao === 'treino' ? 6 : 14) : Math.round(sessao === 'treino' ? 2 + 7 * sol : 4 + 14 * sol);
     return {
       tempAr: periodo.tempAr,
