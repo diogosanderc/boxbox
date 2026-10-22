@@ -1211,7 +1211,9 @@ button.noticia-link .noticia-ponto { right: 22px; }
 .perfil-tutorial { display: grid; justify-items: center; gap: 1px; padding: 4px 8px; border-radius: var(--raio-p); background: var(--painel-2); border: 1px solid var(--borda); color: var(--texto); line-height: 1.1; }
 .perfil-tutorial .ico { width: 18px; height: 18px; }
 .perfil-tutorial small { font-size: 10px; color: var(--fraco); }
-/* Rodapé: Sair do jogo (azul) e Apagar carreira lado a lado. */
+/* Rodapé: Sair do jogo e Apagar carreira lado a lado, iguais. */
 .rodape-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 420px; }
 .rodape-botoes button { width: 100%; justify-content: center; }
-button.sair-jogo { display: inline-flex; align-items: center; gap: 6px; background: rgba(61, 155, 255, 0.14); border-color: var(--azul); color: #cfe4ff; font-weight: 600; }
+
+/* Folha ou balão aberto: o fundo não rola (top é a posição salva, posta pelo JS). */
+body.fundo-travado { position: fixed; left: 0; right: 0; overflow: hidden; }

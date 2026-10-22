@@ -18,6 +18,7 @@
   barraMini.setAttribute('aria-hidden', 'true');
   document.body.appendChild(barraMini);
   window.addEventListener('scroll', () => {
+    if (document.body.classList.contains('fundo-travado')) return;
     const altura = document.querySelector('.topo').offsetHeight;
     const mostrar = window.scrollY > altura && estado && !document.body.classList.contains('sem-topo');
     barraMini.classList.toggle('visivel', !!mostrar);
@@ -167,6 +168,26 @@
   balao.hidden = true;
   balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><button class="principal" data-fechar>Entendi</button></div>';
   document.body.appendChild(balao);
+  // Com qualquer folha ou balão aberto, a tela de trás fica travada (não rola junto com o dedo).
+  // No iPhone, só overflow: hidden não basta: o corpo fica fixo na posição atual e volta ao fechar.
+  let rolagemTravada = null;
+  function travarFundo() {
+    const aberto = !!document.querySelector('.folha-fundo:not([hidden]), .balao-fundo:not([hidden])');
+    const body = document.body;
+    if (aberto && rolagemTravada === null) {
+      rolagemTravada = window.scrollY;
+      body.style.top = `-${rolagemTravada}px`;
+      body.classList.add('fundo-travado');
+    } else if (!aberto && rolagemTravada !== null) {
+      const y = rolagemTravada;
+      rolagemTravada = null;
+      body.classList.remove('fundo-travado');
+      body.style.top = '';
+      window.scrollTo(0, y);
+    }
+  }
+  new MutationObserver(travarFundo).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+
   function abrirAjuda(chave) {
     const [titulo, texto] = AJUDAS[chave].map(textoDoVeiculo);
     balao.querySelector('h3').textContent = titulo;
@@ -1567,7 +1588,7 @@
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
         <div class="rodape-botoes">
-          <button class="sair-jogo" data-acao="sair-jogo">${ic('voltar')}Sair do jogo</button>
+          <button class="discreto" data-acao="sair-jogo">Sair do jogo</button>
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
