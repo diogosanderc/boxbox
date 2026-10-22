@@ -140,7 +140,7 @@
   function criarRivalCarreira(estado) {
     const rnd = Engine.criarRng((estado.seed || 1) * 7 + 3);
     const camp = campeonato('regional');
-    const usados = new Set([estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ') : '']);
+    const usados = new Set([sobrenomeJogador(estado)]);
     const base = gerarRival({ ...estado, campeonato: 'regional', proxId: 0 }, rnd, camp.nivel + 2, 'br', usados);
     return { ...base, id: 'rc', idade: estado.piloto ? estado.piloto.idade : 12, potencial: Math.round(limitar(89 + rnd.gauss() * 2, 85, 93)), duelo: { eu: 0, ele: 0 }, temporadas: [] };
   }
@@ -166,7 +166,7 @@
   function montarGrid(estado) {
     const rnd = rngDe(estado);
     const camp = campeonato(estado.campeonato);
-    const usados = new Set([estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ') : '']);
+    const usados = new Set([sobrenomeJogador(estado)]);
     const rivais = Array.from({ length: 19 }, () => gerarRival(estado, rnd, camp.nivel, camp.regiao, usados))
       .sort((a, b) => nota(b) - nota(a));
     const vagas = [];
@@ -204,6 +204,11 @@
     return venci;
   }
 
+  // O nome do piloto fica sempre em maiúsculas (como na cronometragem e nas transmissões).
+  const nomeDoPiloto = (n) => String(n || '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR');
+  // Sobrenome do jogador no formato dos nomes do grid ("SANDER" -> "Sander"), para não repetir no grid.
+  const sobrenomeJogador = (estado) => (estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ').toLocaleLowerCase('pt-BR').replace(/(^|\s)\S/g, (c) => c.toLocaleUpperCase('pt-BR')) : '');
+
   function novoJogo({ nome = 'Você', equipeId = 'faisca', seed = Date.now() % 1e9 } = {}) {
     const nomesSorteados = sortearNomesEquipes(seed);
     usarNomesEquipes(nomesSorteados);
@@ -219,7 +224,7 @@
       evolucao: [], temporadas: [], seguindo: null,
     };
     const rnd = rngDe(estado);
-    const p = { id: 'jogador', nome, pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
+    const p = { id: 'jogador', nome: nomeDoPiloto(nome), pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
     for (const a of ATRIBUTOS) p[a] = Math.round(limitar(55 + rnd.gauss() * 4, 45, 65));
     // Ocultos: potencial (até onde pode chegar) e sensibilidade (quão bem sente o kart).
     p.potencial = Math.round(limitar(88 + rnd.gauss() * 3, 84, 95));
@@ -313,6 +318,7 @@
     // Carreiras antigas, sem sorteio, continuam com os nomes originais.
     usarNomesEquipes(estado && estado.nomesEquipes);
     if (estado && estado.campeonato) sincronizarCategoria(estado);
+    if (estado && estado.piloto) estado.piloto.nome = nomeDoPiloto(estado.piloto.nome);
     // Carreiras antigas contavam o motor em etapas; agora são horas (cerca de 0,9 h por etapa).
     if (estado && estado.piloto && !estado.motorEmHoras) { estado.motorHoras = Math.round((estado.motorHoras || 0) * 0.9 * 100) / 100; estado.motorEmHoras = true; }
     if (estado && estado.piloto && estado.piloto.moral == null) {

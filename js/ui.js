@@ -773,7 +773,7 @@
         <span class="licenca-foto" data-licenca-iniciais>${vazio ? '?' : esc(iniciaisDe(nome))}</span>
         <div class="licenca-dados">
           <small>Nome</small>
-          <b data-licenca-nome>${vazio ? 'Seu nome aqui' : esc(nome)}</b>
+          <b data-licenca-nome>${vazio ? 'Seu nome aqui' : esc(nome.trim().toLocaleUpperCase('pt-BR'))}</b>
           <div class="licenca-campos">
             <span><small>Idade</small><b>12</b></span>
             <span><small>Categoria</small><b>Kart</b></span>
@@ -800,7 +800,7 @@
         </div>
         ${cartaoLicenca(nome)}
         <label class="campo-nome"><span>Nome na licença</span>
-          <input type="text" id="nome-piloto" value="${esc(nome)}" placeholder="Ex.: Diogo Sander" maxlength="30" autocomplete="off" autocapitalize="words" enterkeyhint="next"></label>
+          <input type="text" id="nome-piloto" value="${esc(nome)}" placeholder="Ex.: DIOGO SANDER" maxlength="30" autocomplete="off" autocapitalize="characters" enterkeyhint="next"></label>
       </div>
       <div class="barra-confirmar">
         <button class="principal grande" data-acao="entrar" ${nome.trim() ? '' : 'disabled'}>Continuar</button>
@@ -1419,7 +1419,7 @@
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoCompanheiro()}${cartaoRivalCarreira()}${cartaoDesafio()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoDesafio()}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
@@ -2630,7 +2630,7 @@
     tela.nomePiloto = nome;
     const vazio = !nome.trim();
     app.querySelector('.licenca').classList.toggle('vazia', vazio);
-    app.querySelector('[data-licenca-nome]').textContent = vazio ? 'Seu nome aqui' : nome.trim();
+    app.querySelector('[data-licenca-nome]').textContent = vazio ? 'Seu nome aqui' : nome.trim().toLocaleUpperCase('pt-BR');
     app.querySelector('[data-licenca-iniciais]').textContent = vazio ? '?' : iniciaisDe(nome);
     app.querySelector('[data-acao="entrar"]').disabled = vazio;
   });

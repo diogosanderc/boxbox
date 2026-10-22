@@ -1227,3 +1227,14 @@ test('F4: o box para chuva usa o pneu de chuva do estoque, e cada jogo volta com
   assert.strictEqual(c2.carros.find((x) => x.jogador).tipoPneu, 'slick');
   assert.ok(c2.eventos.some((ev) => /Sem pneu de chuva/.test(ev.texto)));
 });
+
+test('nome do piloto sempre em maiúsculas, também em carreiras antigas', () => {
+  const e = Carreira.novoJogo({ seed: 20, nome: '  diogo   sânder ' });
+  assert.strictEqual(e.piloto.nome, 'DIOGO SÂNDER');
+  const antigo = JSON.parse(JSON.stringify(e));
+  antigo.piloto.nome = 'Ana Lima';
+  Carreira.migrar(antigo);
+  assert.strictEqual(antigo.piloto.nome, 'ANA LIMA');
+  // O sobrenome do jogador não se repete no grid.
+  assert.ok(!e.rivais.some((r) => r.nome.split(' ').slice(1).join(' ').toUpperCase() === 'SÂNDER'));
+});

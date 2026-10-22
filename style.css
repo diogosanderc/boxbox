@@ -1107,3 +1107,7 @@ body.sem-topo .topo-mini { display: none; }
 .tut-seta.em-cima { top: -6px; }
 .tut-seta.em-baixo { bottom: -6px; }
 @media (prefers-reduced-motion: reduce) { .tut-furo { animation: none; } }
+
+/* Nome do piloto: sempre em maiúsculas, já enquanto digita */
+#nome-piloto { text-transform: uppercase; }
+#nome-piloto::placeholder { text-transform: none; }
