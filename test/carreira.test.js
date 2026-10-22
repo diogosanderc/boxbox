@@ -1259,3 +1259,19 @@ test('desafio da semana paga por medalha, só a diferença quando melhora', () =
   assert.strictEqual(Carreira.premioMedalha(e, 'ouro'), 500000);
   Carreira.definirPremium(false);
 });
+
+test('desafio: usadas as 3 voltas, reabre 1 dia depois com mais 3', () => {
+  Carreira.definirPremium(true);
+  const e = Carreira.novoJogo({ seed: 22 });
+  const t0 = Date.UTC(2026, 9, 19, 12); // segunda-feira
+  for (let i = 0; i < 3; i++) assert.ok(Carreira.tentarDesafio(e, t0 + i * 60000).ok);
+  const r = Carreira.tentarDesafio(e, t0 + 3 * 60000);
+  assert.ok(!r.ok && /1 dia/.test(r.erro));
+  const v = Carreira.voltasDesafio(e, t0 + 3 * 60000);
+  assert.strictEqual(v.restantes, 0);
+  assert.strictEqual(v.reabreEm, t0 + 2 * 60000 + 86400000);
+  assert.strictEqual(Carreira.voltasDesafio(e, v.reabreEm - 1000).restantes, 0);
+  assert.strictEqual(Carreira.voltasDesafio(e, v.reabreEm).restantes, 3);
+  assert.ok(Carreira.tentarDesafio(e, v.reabreEm + 1000).ok);
+  Carreira.definirPremium(false);
+});

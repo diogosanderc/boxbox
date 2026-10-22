@@ -107,7 +107,7 @@
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
     oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e um composto de seco para correr (dois na F2 e na F1); o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
-    desafio: ['Desafio da semana', 'Toda semana, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, R$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha da semana: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
+    desafio: ['Desafio da semana', 'Toda semana, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas por dia para achar o acerto (usadas as 3, reabre em 24 horas), com o seu carro e o seu piloto. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, R$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha da semana: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
@@ -959,23 +959,37 @@
   }
 
   // ---------- desafio da semana ----------
+  // Contagem regressiva até o desafio reabrir (hh:mm:ss), atualizada a cada segundo.
+  const contagem = (ate) => {
+    const s0 = Math.max(0, Math.ceil(((ate || 0) - Date.now()) / 1000));
+    const h = Math.floor(s0 / 3600);
+    const m = Math.floor((s0 % 3600) / 60);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s0 % 60).padStart(2, '0')}`;
+  };
+  setInterval(() => {
+    const els = app.querySelectorAll('[data-reabre]');
+    if (!els.length) return;
+    let acabou = false;
+    els.forEach((el) => { el.textContent = contagem(+el.dataset.reabre); if (+el.dataset.reabre <= Date.now()) acabou = true; });
+    if (acabou && !Tutorial.ativo()) render(); // reabriu: volta a mostrar o botão de correr
+  }, 1000);
   const NOME_MEDALHA = { ouro: 'Ouro', prata: 'Prata', bronze: 'Bronze' };
   const diasAte = (fim) => Math.max(1, Math.ceil((fim - Date.now()) / 86400000));
   function cartaoDesafio() {
     const d = C.desafioDaSemana(estado);
     const st = C.estadoDesafio(estado, d);
-    const restantes = C.TENTATIVAS_DESAFIO - st.tentativas.length;
+    const { restantes, reabreEm } = C.voltasDesafio(estado);
     return cartao('Desafio da semana', `<div class="item-topo"><b>${esc(d.pista.nome)}</b>${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}</div>
-      <p class="fraco mini">Três voltas lançadas para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito e vale ${reais(C.premioMedalha(estado, 'ouro'))}. Termina em ${diasAte(d.fim)} ${diasAte(d.fim) === 1 ? 'dia' : 'dias'}.</p>
+      <p class="fraco mini">Três voltas lançadas por dia para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito e vale ${reais(C.premioMedalha(estado, 'ouro'))}. Termina em ${diasAte(d.fim)} ${diasAte(d.fim) === 1 ? 'dia' : 'dias'}.</p>
       <div class="linha">${st.melhor ? chip(`${ic('relogio')}${tempoVolta(st.melhor)}`) : ''}${st.medalha ? chip(`${ic('trofeu')}${NOME_MEDALHA[st.medalha]}`, st.medalha === 'ouro' ? 'chip-ouro' : '') : ''}<span class="espaco"></span>
-      ${C.desafioLiberado(estado) ? `<button class="${restantes ? 'principal' : ''}" data-acao="abrir-desafio">${restantes ? `Correr · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : 'Ver resultado'}</button>`
+      ${C.desafioLiberado(estado) ? `<button class="${restantes ? 'principal' : ''}" data-acao="abrir-desafio">${restantes ? `Correr · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : `${ic('relogio')}Reabre em <span data-reabre="${reabreEm}">${contagem(reabreEm)}</span>`}</button>`
         : `<button class="premium-trancado" data-acao="premium" data-motivo="O desafio da semana grátis já foi. Com o Premium, tem desafio novo toda semana.">${ic('cadeado')}Premium</button>`}</div>
       ${!BoxPremium.ativo && C.desafioLiberado(estado) ? '<p class="fraco mini">Grátis nesta semana. Nas próximas, o desafio é do Premium.</p>' : ''}`, { classe: 'cartao-desafio', ajuda: 'desafio' });
   }
   function telaDesafio() {
     const d = C.desafioDaSemana(estado);
     const st = C.estadoDesafio(estado, d);
-    const restantes = C.TENTATIVAS_DESAFIO - st.tentativas.length;
+    const { restantes, reabreEm } = C.voltasDesafio(estado);
     // Cada medalha: nome e tempo-alvo à esquerda, prêmio numa etiqueta à direita.
     const medalhas = d.medalhas.map((m) => {
       const ganha = st.medalha === m.medalha;
@@ -992,7 +1006,7 @@
           ${cartao('Tempos-alvo', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado · pneu de chuva` : `${ic('sol')}Seco · slick`, d.molhado ? 'chip-azul' : '')}${chip(`Asfalto ${d.cond.tempPista}°`)}</div><div class="medalhas-alvo">${medalhas}</div>
             ${st.melhor ? `<p>Sua melhor: <b>${tempoVolta(st.melhor)}</b>${st.medalha ? ` · ${NOME_MEDALHA[st.medalha]}` : ''}</p>` : ''}`)}
           ${cartao('Acerto', editorSetup(st.setup, 'ajuste-desafio'))}
-          <button class="principal grande" data-acao="volta-desafio" ${restantes ? '' : 'disabled'}>${restantes ? `Volta lançada · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : 'Sem voltas esta semana'}</button>
+          <button class="principal grande" data-acao="volta-desafio" ${restantes ? '' : 'disabled'}>${restantes ? `Volta lançada · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : `${ic('relogio')}Novas voltas em <span data-reabre="${reabreEm}">${contagem(reabreEm)}</span>`}</button>
           ${cartao('Rádio', voltas || `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e faça a volta.</p>`)}
         </div>
       </div>`;
@@ -2501,7 +2515,7 @@
         const r = C.tentarDesafio(estado);
         if (!erro(r)) break;
         salvar();
-        const n = C.estadoDesafio(estado).tentativas.length;
+        const n = C.TENTATIVAS_DESAFIO - r.restantes;
         animarPista(`Desafio da semana · volta ${n} de ${C.TENTATIVAS_DESAFIO}`, ['Volta de saída', 'Esquentando os pneus', 'Volta lançada', 'Cruzando a linha'], 'O piloto está buscando o tempo…', () => {
           render();
           aviso(r.nova ? `Medalha de ${NOME_MEDALHA[r.nova].toLowerCase()}! ${tempoVolta(r.tempo)}${r.premio ? ` · +${reais(r.premio)}` : ''}` : `Volta: ${tempoVolta(r.tempo)}`, r.nova ? 'trofeu' : 'relogio');

@@ -1017,6 +1017,15 @@
   const SEMANA_MS = 7 * 86400000;
   const INICIO_DESAFIO = Date.UTC(2026, 0, 5); // uma segunda-feira
   const TENTATIVAS_DESAFIO = 3;
+  // Usadas as 3 voltas, o desafio reabre 1 dia depois com mais 3 (na mesma pista da semana).
+  const ESPERA_DESAFIO_MS = 86400000;
+  // Voltas que ainda dá para fazer agora e quando reabre (timestamp), considerando a espera de 1 dia.
+  function voltasDesafio(estado, agora = Date.now()) {
+    const st = estadoDesafio(estado, desafioDaSemana(estado, agora));
+    if (st.usadas == null) st.usadas = st.tentativas.length % (TENTATIVAS_DESAFIO + 1); // saves antigos
+    if (st.reabreEm && agora >= st.reabreEm) { st.usadas = 0; st.reabreEm = null; }
+    return { restantes: Math.max(0, TENTATIVAS_DESAFIO - st.usadas), reabreEm: st.reabreEm || null };
+  }
   const MEDALHAS = [['ouro', 0.12], ['prata', 0.4], ['bronze', 0.9]];
   // Sem o Premium, o desafio é de graça na primeira semana em que o jogador corre; depois, só com o Premium.
   const SEMANAS_DESAFIO_GRATIS = 1;
@@ -1068,12 +1077,15 @@
     const d = desafioDaSemana(estado, agora);
     const st = estadoDesafio(estado, d);
     if (!semanasJogadas(estado).includes(d.semana)) estado.semanasDesafio = [...semanasJogadas(estado), d.semana];
-    if (st.tentativas.length >= TENTATIVAS_DESAFIO) return { ok: false, erro: 'As 3 voltas desta semana já foram. Volte na próxima semana.' };
+    const v = voltasDesafio(estado, agora);
+    if (!v.restantes) return { ok: false, erro: 'As 3 voltas de hoje já foram. O desafio reabre em 1 dia.' };
     const rnd = Engine.criarRng(d.semana * 31 + st.tentativas.length * 7 + 1);
     const tempo = Math.round((d.volta(st.setup) + rnd.gauss() * 0.04) * 1000) / 1000;
     const ideal = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));
     const frases = Kart.feedbackPiloto(Kart.erros(st.setup, ideal), limitar(estado.piloto.sensibilidade || 50, 10, 95), rnd);
     st.tentativas.push({ tempo, setup: { ...st.setup }, frases });
+    st.usadas += 1;
+    if (st.usadas >= TENTATIVAS_DESAFIO) st.reabreEm = agora + ESPERA_DESAFIO_MS;
     if (st.melhor == null || tempo < st.melhor) st.melhor = tempo;
     const m = d.medalhas.find((x) => st.melhor <= x.tempo);
     const ordem = ['ouro', 'prata', 'bronze'];
@@ -1089,7 +1101,7 @@
       if (nova === 'ouro') estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
     }
     if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio da semana${premio ? ` e ganha R$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
-    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: TENTATIVAS_DESAFIO - st.tentativas.length };
+    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: TENTATIVAS_DESAFIO - st.usadas, reabreEm: st.reabreEm || null };
   }
   function ajustarDesafio(estado, mudancas) {
     const st = estadoDesafio(estado);
@@ -1988,7 +2000,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
