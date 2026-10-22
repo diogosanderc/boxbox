@@ -663,15 +663,16 @@
   // ---------- Premium ----------
   const BENEFICIOS_PREMIUM = [
     ['carteira', `Até ${5} patrocinadores no macacão`, `Sem o Premium: ${2}.`],
-    ['pneu', 'Mais espaço no estoque de pneus', 'Até 8 no kart e mais a cada categoria, até 16 na F1.'],
-    ['lapis', 'Anotações no caderno', 'Guarde o que o carro pedia depois de cada corrida, com a sua nota.'],
-    ['chave', 'Equipe de box 3/3', 'Nos monopostos, pit stops mais rápidos e com menos erro.'],
-    ['relogio', `${4} saídas no treino livre`, `Sem o Premium: ${2}. Mais voltas para achar o acerto.`],
-    ['relogio', 'Desafio do dia', 'Uma pista nova todo dia, com medalhas e prêmio. Sem o Premium, só o primeiro.'],
-    ['carteira', 'Banco', 'Empréstimo para investir no carro e na carreira, pago em parcelas a cada etapa.'],
-    ['regua', 'Telemetria da volta', 'Onde cada saída de treino perde tempo: retas, freada, curvas.'],
-    ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
+    ['pneu', 'Mais pneus no estoque', 'Até 8 no kart e até 16 na F1.'],
+    ['lapis', 'Anotações no caderno', 'O que o carro pedia em cada pista.'],
+    ['chave', 'Equipe de box 3/3', 'Pit stops mais rápidos e com menos erro.'],
+    ['relogio', `${4} saídas no treino livre`, `Sem o Premium: ${2}.`],
+    ['relogio', 'Desafio do dia', 'Pista nova a cada 24 h, com prêmio.'],
+    ['carteira', 'Banco', 'Empréstimo para investir na carreira.'],
+    ['regua', 'Telemetria da volta', 'Onde você perde tempo em cada volta.'],
+    ['x', 'Sem anúncios', 'Sem o Premium: um a cada 3 corridas.'],
   ];
+
   const folhaPremium = document.createElement('div');
   folhaPremium.className = 'folha-fundo';
   folhaPremium.hidden = true;
