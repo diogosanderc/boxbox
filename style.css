@@ -1217,3 +1217,28 @@ button.noticia-link .noticia-ponto { right: 22px; }
 
 /* Folha ou balão aberto: o fundo não rola (top é a posição salva, posta pelo JS). */
 body.fundo-travado { position: fixed; left: 0; right: 0; overflow: hidden; }
+
+/* ---------- Rádio ---------- */
+.radio-canal { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--borda); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fraco); }
+.radio-luz { width: 7px; height: 7px; border-radius: 50%; background: #3a4660; }
+.radio-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.radio-eq i { width: 3px; height: 3px; border-radius: 1px; background: currentColor; opacity: 0.6; }
+.cartao-radio.transmitindo .radio-canal { color: #ff6b5e; border-color: rgba(225, 6, 0, 0.5); }
+.cartao-radio.transmitindo .radio-luz { background: #ff2a1f; box-shadow: 0 0 8px #ff2a1f; animation: radio-pisca 0.9s steps(2) infinite; }
+.cartao-radio.transmitindo .radio-eq i { opacity: 1; animation: radio-eq 0.5s ease-in-out infinite alternate; }
+.radio-eq i:nth-child(2) { animation-delay: 0.12s !important; }
+.radio-eq i:nth-child(3) { animation-delay: 0.25s !important; }
+.radio-eq i:nth-child(4) { animation-delay: 0.05s !important; }
+.radio-eq i:nth-child(5) { animation-delay: 0.3s !important; }
+@keyframes radio-eq { from { height: 2px; } to { height: 12px; } }
+@keyframes radio-pisca { 50% { opacity: 0.35; } }
+.saida.chegando { animation: radio-entra 0.35s ease-out; }
+@keyframes radio-entra { from { opacity: 0; transform: translateY(8px); } }
+/* Mensagem chegando: "..." enquanto o piloto aperta o botão, chiado e a onda mexendo. */
+.bolha.digitando p::after { content: ''; display: inline-block; width: 26px; height: 8px; vertical-align: middle;
+  background: radial-gradient(circle, currentColor 2.4px, transparent 3px) 0 50% / 9px 8px repeat-x; animation: radio-pontos 0.9s steps(4) infinite; opacity: 0.8; }
+@keyframes radio-pontos { 0% { width: 0; } 100% { width: 36px; } }
+.bolha.chiado p { animation: radio-chiado 0.32s steps(3) 2; }
+@keyframes radio-chiado { 0% { opacity: 0.4; transform: translateX(-1px); filter: contrast(1.6) brightness(1.3); } 50% { opacity: 1; transform: translateX(1px); } 100% { opacity: 0.85; transform: none; filter: none; } }
+.bolha.chiado .onda i { animation: radio-eq 0.35s ease-in-out infinite alternate; }
+.bolha.chiado .onda i:nth-child(odd) { animation-delay: 0.15s; }

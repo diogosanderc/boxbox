@@ -1069,7 +1069,7 @@
             ${st.melhor ? `<p>Sua melhor: <b>${tempoVolta(st.melhor)}</b>${st.medalha ? ` · ${NOME_MEDALHA[st.medalha]}` : ''}</p>` : ''}`)}
           ${cartao('Acerto', editorSetup(st.setup, 'ajuste-desafio'))}
           <button class="principal grande" data-acao="volta-desafio" ${restantes ? '' : 'disabled'}>${restantes ? `Volta lançada · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : `${ic('relogio')}Novo desafio em <span data-reabre="${reabreEm}">${contagem(reabreEm)}</span>`}</button>
-          ${cartao('Rádio', voltas || `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e faça a volta.</p>`)}
+          ${cartao('Rádio', voltas || `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e faça a volta.</p>`, { classe: 'cartao-radio', extra: painelRadio() })}
         </div>
       </div>`;
   }
@@ -1390,6 +1390,54 @@
   }
 
   // Ondinha de áudio (decorativa) para as falas do rádio; o formato vem do próprio texto.
+  // Rádio "de verdade": luz de canal aberto e equalizador no título; a última saída chega como
+  // transmissão: cada mensagem entra com chiado, "..." enquanto o piloto aperta o botão e o texto
+  // sendo falado. Tocar no cartão pula a transmissão.
+  const painelRadio = () => `<span class="radio-canal" aria-hidden="true"><i class="radio-luz"></i>Canal 1<span class="radio-eq">${'<i></i>'.repeat(5)}</span></span>`;
+  let transmissao = 0;
+  function transmitirRadio() {
+    const cartaoEl = app.querySelector('.cartao-radio');
+    const saida = cartaoEl && cartaoEl.querySelector('.saida');
+    if (!saida || menosMovimento()) return;
+    const id = ++transmissao;
+    const vivo = () => id === transmissao && saida.isConnected;
+    const bolhas = [...saida.querySelectorAll('.bolha')];
+    const textos = bolhas.map((b) => { const t = [...b.querySelector('p').childNodes].filter((n) => n.nodeType === 3); const txt = t.map((n) => n.textContent).join(''); t.forEach((n) => n.remove()); return txt; });
+    const fala = bolhas.map((b) => { const span = document.createElement('span'); span.className = 'radio-fala'; b.querySelector('p').append(span); b.hidden = true; return span; });
+    cartaoEl.classList.add('transmitindo');
+    saida.classList.add('chegando');
+    const terminar = () => {
+      if (id !== transmissao) return;
+      transmissao++;
+      bolhas.forEach((b, i) => { b.hidden = false; b.classList.remove('digitando'); fala[i].textContent = textos[i]; });
+      cartaoEl.classList.remove('transmitindo');
+      cartaoEl.removeEventListener('click', terminar);
+    };
+    cartaoEl.addEventListener('click', terminar);
+    let i = 0;
+    const proxima = () => {
+      if (!vivo()) return;
+      if (i >= bolhas.length) { setTimeout(terminar, 350); return; }
+      const b = bolhas[i], alvo = fala[i], txt = textos[i];
+      b.hidden = false;
+      b.classList.add('digitando', 'chiado');
+      setTimeout(() => {
+        if (!vivo()) return;
+        b.classList.remove('digitando');
+        let n = 0;
+        const passo = () => {
+          if (!vivo()) return;
+          n = Math.min(txt.length, n + 2);
+          alvo.textContent = txt.slice(0, n);
+          if (n < txt.length) setTimeout(passo, 22);
+          else { b.classList.remove('chiado'); i++; setTimeout(proxima, 380); }
+        };
+        passo();
+      }, 650);
+    };
+    setTimeout(proxima, 250);
+  }
+
   function onda(texto) {
     let h = 7;
     for (const ch of texto) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -1910,7 +1958,7 @@
           <div class="fraco mini">${esc(Kart.descreverSetup(s.setup))}</div>
           ${s.frases.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${onda(f)}${esc(f)}</p></div>`).join('')}
           ${s.dica ? `<div class="bolha mecanico">${icone('chave')}<p>${onda(s.dica)}${esc(s.dica.replace(/^Mecânico: /, ''))}</p></div>` : ''}
-        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio', classe: 'cartao-radio' })}
+        </div>`).join('') : `<p class="vazio">${ic('radio')}Ajuste o ${Kart.veiculo} e saia para a pista.</p>`, { ajuda: 'radio', classe: 'cartao-radio', extra: painelRadio() })}
       ${treino ? cartaoTelemetria(saidas[0]) : ''}
     </div>`;
   }
@@ -2678,6 +2726,7 @@
           render();
           aviso(r.nova ? `Medalha de ${NOME_MEDALHA[r.nova].toLowerCase()}! ${tempoVolta(r.tempo)}${r.premio ? ` · +${reais(r.premio)}` : ''}` : `Volta: ${tempoVolta(r.tempo)}`, r.nova ? 'trofeu' : 'relogio');
           rolarPara('.saida', 'center');
+          transmitirRadio();
         });
         break;
       }
@@ -2719,6 +2768,7 @@
           if (r.saida.recorde) aviso('Novo recorde da pista!', 'trofeu');
           // Leva o jogador até o rádio, onde aparecem o tempo e o que o piloto sentiu.
           rolarPara('.saida', 'center');
+          transmitirRadio();
         });
         break;
       }
