@@ -2644,7 +2644,7 @@
         ir({ nome: 'fds', pausado: false });
         break;
       case 'play':
-        if (corrida.terminou) return finalizarCorrida();
+        if (corrida.terminou) { pensar(); return finalizarCorrida(); }
         tela.pausado = !tela.pausado;
         if (tela.pausado) { clearInterval(timer); timer = null; } else iniciarTimer();
         atualizarCorrida();
