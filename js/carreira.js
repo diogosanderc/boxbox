@@ -1478,6 +1478,8 @@
     if (sprint) pista.voltas = voltasSprint(campeonato(estado.campeonato));
     const corrida = Engine.criarCorrida(pista, grid, estado.seed + estado.ano * 1009 + estado.etapa * 31 + (sprint ? 17 : 0), {
       // Safety car só na F2 e na F1 (no kart e nas categorias de base a corrida segue em bandeira verde).
+      // DRS da F3 em diante (como na vida real; F4 e kart não têm).
+      drs: campeonato(estado.campeonato).ordem >= 4,
       regraCompostos: regra, semBox: !regra, semSafetyCar: !campeonato(estado.campeonato).safetyCar, chanceSafetyCar: 0.02, semModos: true, ajusteVolta,
       ...(compostos ? { pneusIniciais: { jogador: COMPOSTO_DO_TIPO[pneuJogador.tipo] || 'Md' } } : { pneuPadrao: 'Md' }),
     });

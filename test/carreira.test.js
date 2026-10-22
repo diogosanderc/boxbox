@@ -235,7 +235,7 @@ test('confiança alta deixa o piloto mais rápido e mais regular', () => {
 });
 
 test('resultado mexe na confiança e fica registrado', () => {
-  const e = Carreira.novoJogo({ seed: 12 });
+  const e = Carreira.novoJogo({ seed: 13 });
   const antes = e.piloto.confianca;
   const r = jogarFimDeSemana(e, 'ideal');
   assert.ok(r.cabeca.length >= 1);

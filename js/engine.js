@@ -139,10 +139,15 @@
     return {
       pista, seed, volta: 0, totalVoltas: pista.voltas, carros,
       regraCompostos: opcoes.regraCompostos !== false,
+      drs: !!opcoes.drs, drsLiberado: 3,
       semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, chanceSafetyCar: opcoes.chanceSafetyCar != null ? opcoes.chanceSafetyCar : 0.004, semModos: !!opcoes.semModos, ajusteVolta: opcoes.ajusteVolta || null,
       safetyCar: 0, eventos: [], terminou: false, _rnd: rnd,
     };
   }
+
+  // Retas da pista: a maior (em metros) e as zonas de DRS (retas de 500 m ou mais, de 1 a 3).
+  const maiorReta = (pista) => Math.max(0, ...(pista.retas || [0]));
+  const zonasDrs = (pista) => pista.zonasDrs || Math.max(1, Math.min(3, (pista.retas || []).filter((m) => m >= 500).length));
 
   function registrar(corrida, texto, tipo = 'info', carroId = null) {
     corrida.eventos.push({ volta: corrida.volta, texto, tipo, carroId });
@@ -162,6 +167,14 @@
     const sc = corrida.safetyCar > 0;
     const ordemAnterior = emPista(corrida).sort((a, b) => a.pos - b.pos);
     let abandonosNaVolta = 0;
+    // Vácuo e DRS: quem vem até 1 s atrás do carro da frente ganha tempo na reta.
+    // O DRS (F3, F2 e F1) abre na volta 3, fica fechado com chuva e com safety car (e até 2 voltas depois).
+    if (sc) corrida.drsLiberado = Math.max(corrida.drsLiberado, v + 2);
+    corrida.drsAtivo = corrida.drs && v >= corrida.drsLiberado && !sc && !corrida.molhado;
+    const reta = maiorReta(pista);
+    const zonas = zonasDrs(pista);
+    const atras = new Map();
+    for (let i = 1; i < ordemAnterior.length; i++) atras.set(ordemAnterior[i], ordemAnterior[i].tempo - ordemAnterior[i - 1].tempo);
 
     for (const c of ordemAnterior) {
       c.paradoNestaVolta = false;
@@ -198,6 +211,12 @@
         + rnd.gauss() * (0.35 - c.piloto.consistencia * 0.0025) * extra.sigma;
 
       if (v === 1) volta += rnd.gauss() * 0.5 - (c.piloto.largada - 80) * 0.02;
+      c.drsNestaVolta = false;
+      const gap = atras.get(c);
+      if (!sc && v > 1 && gap != null && gap <= 1) {
+        volta -= 0.04 + (reta / 1000) * 0.1; // vácuo: mais forte em reta longa
+        if (corrida.drsAtivo) { volta -= 0.1 * zonas + (reta >= 1000 ? 0.08 : 0); c.drsNestaVolta = true; }
+      }
       if (sc) volta = Math.max(volta, pista.tempoBase * 1.4) + rnd() * 0.2;
 
       if (parar) {
@@ -254,16 +273,18 @@
         const livre = sc || frente.paradoNestaVolta || tras.paradoNestaVolta;
         if (!livre) {
           const vantagem = frente.tempo - tras.tempo;
+          // A pista multiplica tudo: em Mônaco quase não se passa; em Monza e Spa, as retas longas e o DRS ajudam muito.
           const chance = limitar(
-            0.15 + vantagem * 0.5 + (tras.piloto.ultrapassagem - frente.piloto.defesa) / 100 + pista.ultrapassagem * 0.4,
-            0.03, 0.9,
+            (0.25 + vantagem * 0.5 + (tras.piloto.ultrapassagem - frente.piloto.defesa) / 100
+              + (reta / 1000) * 0.06 + (tras.drsNestaVolta ? 0.06 + 0.04 * zonas : 0)) * (0.25 + pista.ultrapassagem),
+            0.01, 0.9,
           );
           if (rnd() >= chance) {
             tras.tempo = frente.tempo + 0.15 + rnd() * 0.3;
             break;
           }
           if (frente.jogador || tras.jogador || j === 1) {
-            registrar(corrida, `${tras.piloto.nome} ultrapassa ${frente.piloto.nome} pela P${j}`, 'ultrapassagem', tras.id);
+            registrar(corrida, `${tras.piloto.nome} ultrapassa ${frente.piloto.nome} pela P${j}${tras.drsNestaVolta ? ' com o DRS' : ''}`, 'ultrapassagem', tras.id);
           }
         }
         lista[j - 1] = tras;
@@ -330,7 +351,7 @@
   }
 
   const Engine = {
-    PNEUS, ORDEM_PNEUS, MODOS, PONTOS,
+    PNEUS, ORDEM_PNEUS, MODOS, PONTOS, zonasDrs, maiorReta,
     criarRng, forcaCarro, ritmoBase, vidaPneu, classificar,
     criarCorrida, passo, simularCompleta, resultado, escolherPneu, registrar,
   };

@@ -1490,6 +1490,8 @@
       linha('asfalto', 'Asfalto', ASFALTO[p.asfalto][0], ASFALTO[p.asfalto][1]),
       linha('montanha', 'Desnível', esc(p.desnivel)),
       linha('ultrapassar', 'Ultrapassagem', facil, esc(p.ondePassar)),
+      // Da F3 em diante: zonas de DRS (retas longas). Vácuo e DRS tornam as retas longas o lugar de passar.
+      ...(C.campeonato(estado.campeonato).ordem >= 4 ? [linha('reta', 'Zonas de DRS', Engine.zonasDrs(p), Engine.maiorReta(p) >= 1000 ? 'Reta de mais de 1 km: o DRS faz muita diferença.' : 'Abre na volta 3, a até 1 s do carro da frente; fecha com chuva e safety car.')] : []),
     ].join('');
   }
 
@@ -1863,7 +1865,8 @@
     const lider = ordem[0];
     const melhorDaCorrida = Math.min(...corrida.carros.map((c) => c.melhorVolta || Infinity));
     document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
-    document.getElementById('clima-corrida').innerHTML = (corrida.safetyCar > 0 ? chip(`${ic('alerta')}Safety car`, 'chip-sc') : '') + (corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '');
+    document.getElementById('clima-corrida').innerHTML = (corrida.safetyCar > 0 ? chip(`${ic('alerta')}Safety car`, 'chip-sc') : '') + (corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '')
+      + (corrida.drs ? chip(corrida.drsAtivo ? 'DRS liberado' : 'DRS fechado', corrida.drsAtivo ? 'chip-dinheiro' : '') : '');
     document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
     document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
