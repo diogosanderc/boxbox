@@ -408,8 +408,10 @@
 
   const iconeClima = (chance) => icone(chance < 20 ? 'sol' : chance < 50 ? 'parcial' : 'chuva');
 
-  function climaBloco(rotulo, periodo) {
-    return `<div class="clima"><span class="clima-icone" aria-hidden="true">${iconeClima(periodo.chance)}</span>
+  // Ícone pela chance de chuva e, sem chuva prevista, pelas nuvens do dia (sol, parcial ou nublado).
+  function climaBloco(rotulo, periodo, nuvens) {
+    const icone0 = periodo.chance >= 50 || nuvens == null ? iconeClima(periodo.chance) : icone(nuvens < 0.35 ? 'sol' : 'parcial');
+    return `<div class="clima"><span class="clima-icone" aria-hidden="true">${icone0}</span>
       <div><span class="fraco">${rotulo}</span><b>${periodo.tempAr}°C</b><span class="chuva">${ic('gota')}${periodo.chance}%</span></div></div>`;
   }
 
@@ -1031,7 +1033,7 @@
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>
-        <div class="climas">${climaBloco('Manhã', clima.manha)}${climaBloco('Tarde', clima.tarde)}${botaoAjuda('clima')}</div>
+        <div class="climas">${climaBloco('Manhã', clima.manha, clima.nuvens)}${climaBloco('Tarde', clima.tarde, clima.nuvens)}${botaoAjuda('clima')}</div>
         <div class="hero-acao">
           ${checklist()}
           ${estado.campeonato === 'f1' ? tile('Salário da etapa', `+${reais(C.salarioEtapa(estado))}`, 'dinheiro')
