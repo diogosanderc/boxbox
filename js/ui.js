@@ -11,21 +11,16 @@
 
   const app = document.getElementById('app');
   const statusEl = document.getElementById('status');
-  // Cabeçalho compacto: o cabeçalho grande some ao rolar; esta barra fina volta quando o jogador rola para cima.
+  // Cabeçalho compacto: quando o cabeçalho grande sai da tela, esta barra fina fica fixa no topo,
+  // rolando para cima ou para baixo, até o cabeçalho grande voltar a aparecer.
   const barraMini = document.createElement('div');
   barraMini.className = 'topo-mini';
   barraMini.setAttribute('aria-hidden', 'true');
   document.body.appendChild(barraMini);
-  let ultimoScroll = 0;
   window.addEventListener('scroll', () => {
-    const y = window.scrollY;
     const altura = document.querySelector('.topo').offsetHeight;
-    const subindo = y < ultimoScroll - 4;
-    const descendo = y > ultimoScroll + 4;
-    if (y <= altura || !estado || document.body.classList.contains('sem-topo')) barraMini.classList.remove('visivel');
-    else if (subindo) barraMini.classList.add('visivel');
-    else if (descendo) barraMini.classList.remove('visivel');
-    if (subindo || descendo) ultimoScroll = y;
+    const mostrar = window.scrollY > altura && estado && !document.body.classList.contains('sem-topo');
+    barraMini.classList.toggle('visivel', !!mostrar);
   }, { passive: true });
 
   let estado = null;
@@ -557,7 +552,7 @@
   // A tela é redesenhada a cada toque; a pílula vermelha parte da posição anterior e desliza até a opção nova.
   const posSegmento = {};
   function deslizarSegmentos() {
-    document.querySelectorAll('.segmentos[data-seg]').forEach((seg) => {
+    document.querySelectorAll('.segmentos[data-seg], .segmentos-abas[data-seg]').forEach((seg) => {
       const ativo = seg.querySelector('button.ativo');
       if (!ativo) return;
       const pilula = document.createElement('i');
@@ -581,7 +576,7 @@
   const noticiasNovas = () => estado.noticias.some(noticiaNova);
 
   function abas(lista, atual, alertas = {}) {
-    return `<nav class="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span>${alertas[id] ? `<i class="aba-alerta ${alertas[id]}" aria-label="${alertas[id] === 'nova' ? 'novidade' : 'pendência'}"></i>` : ''}</button>`).join('')}</nav>`;
+    return `<nav class="abas segmentos-abas" data-seg="abas">${lista.map(([id, ico, nome]) => `<button data-acao="aba" data-aba="${id}" class="${atual === id ? 'ativo' : ''}">${icone(ico)}<span>${nome}</span>${alertas[id] ? `<i class="aba-alerta ${alertas[id]}" aria-label="${alertas[id] === 'nova' ? 'novidade' : 'pendência'}"></i>` : ''}</button>`).join('')}</nav>`;
   }
 
   // Ícones em traço (estilo Feather), desenhados inline.
@@ -593,6 +588,7 @@
     noticias: '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
     local: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
     voltar: '<polyline points="15 18 9 12 15 6"/>',
+    seta: '<polyline points="9 18 15 12 9 6"/>',
     regua: '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
     voltas: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
     montanha: '<path d="M3 20l6-10 4 6 3-4 5 8z"/>',
@@ -1112,7 +1108,7 @@
     return cartao('Cabeça', `
       <div class="aneis">${anel('Moral', p.moral)}${anel('Confiança', p.confianca)}</div>
       <p class="fala">“${esc(C.humor(p))}”</p>
-      <button data-acao="psicologo">${ic('conversa')}Psicólogo · ${reais(C.precoPsicologo(estado))}</button>`, { ajuda: 'cabeca' });
+      <button data-acao="psicologo">${ic('conversa')}Psicólogo · ${reais(C.precoPsicologo(estado))}</button>`, { ajuda: 'cabeca', classe: 'cartao-cabeca' });
   }
 
   // Folha com o que fazer com um jogo de pneus: vender, doar ou descartar.
@@ -1145,7 +1141,7 @@
     else botao = `<button class="compra" data-acao="melhorar-box" data-confirmar="Confirmar: −${reais(C.precoBox(estado))}" ${estado.dinheiro < C.precoBox(estado) ? 'disabled' : ''}><b>${ic('subir')}Melhorar para ${nivel + 1}/${C.NIVEL_BOX_MAX} · ${prox.nome.toLowerCase()}</b><span>${reais(C.precoBox(estado))}</span></button>`;
     return cartao('Equipe de box', `<div class="linha"><b>${info.nome}</b><span class="espaco"></span><span class="nivel-box" aria-label="Nível ${nivel} de ${C.NIVEL_BOX_MAX}">${barras}<b>${nivel}/${C.NIVEL_BOX_MAX}</b></span></div>
       <p class="fraco mini">Uma equipe mais treinada faz a parada mais rápida (alguns centésimos), mais regular e com menos chance de dar problema.</p>
-      ${botao}`, { ajuda: 'box' });
+      ${botao}`, { ajuda: 'box', classe: 'cartao-box' });
   }
 
   function cartaoOficina() {
@@ -1167,7 +1163,7 @@
       ${!BoxPremium.ativo ? `<button class="compra premium-trancado" data-acao="premium" data-motivo="Mais espaço no estoque de pneus é do Premium."><b>${ic('cadeado')}Mais espaço no estoque</b><span>Premium · até ${C.limiteEspaco(estado)} vagas nesta categoria</span></button>`
         : C.espacoPneus(estado) < C.limiteEspaco(estado)
         ? `<button class="compra" data-acao="comprar-espaco" data-confirmar="Confirmar: −${reais(C.precoEspaco(estado))}" ${estado.dinheiro < C.precoEspaco(estado) ? 'disabled' : ''}><b>${ic('subir')}Mais espaço no estoque</b><span>+1 vaga (${C.espacoPneus(estado) + 1}/${C.limiteEspaco(estado)}) · ${reais(C.precoEspaco(estado))}</span></button>`
-        : `<p class="fraco mini">Estoque no máximo desta categoria (${C.limiteEspaco(estado)} vagas). Na próxima categoria cabe mais.</p>`}`, { ajuda: 'oficina' });
+        : `<p class="fraco mini">Estoque no máximo desta categoria (${C.limiteEspaco(estado)} vagas). Na próxima categoria cabe mais.</p>`}`, { ajuda: 'oficina', classe: 'cartao-oficina' });
   }
 
   function linhaPatrocinio(o, oferta) {
@@ -1482,6 +1478,25 @@
     return `<div class="grade">${pistas.map((id) => cartao(esc(nome(id)), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
   }
 
+  // Para onde cada notícia leva ao ser tocada: aba do paddock e o cartão do assunto.
+  // Pelo texto, para valer também nas notícias de saves antigos.
+  const DESTINOS_NOTICIA = [
+    [/engripou|retífica/i, 'resumo', '.retifica'],
+    [/pneu/i, 'oficina', '.cartao-oficina'],
+    [/patroc|contrato com|macacão/i, 'oficina', '.cartao-patrocinio'],
+    [/equipe de box/i, 'oficina', '.cartao-box'],
+    [/peças novas/i, 'oficina', '.cartao-dev'],
+    [/preparador físico|simulador/i, 'piloto', '.cartao-preparacao'],
+    [/contas apertadas|desmotivado/i, 'piloto', '.cartao-cabeca'],
+    [/desafio do dia/i, 'resumo', '.cartao-desafio'],
+    [/rival desde o kart/i, 'resumo', '.cartao-duelo'],
+    [/termina \d{4} em P|estreia na|disputa a /i, 'campeonato', '.grade'],
+  ];
+  function destinoNoticia(texto) {
+    const d = DESTINOS_NOTICIA.find(([re]) => re.test(texto));
+    return d ? { aba: d[1], sel: d[2] } : null;
+  }
+
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     const conteudo = {
@@ -1490,7 +1505,13 @@
       piloto: painelPiloto,
       oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
       caderno: painelCaderno,
-      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(textoNoticia(n.texto))}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
+      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => {
+        const ponto = noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : '';
+        const corpo = `<b>${esc(textoNoticia(n.texto))}</b><small>${quando(n)}</small>`;
+        const d = destinoNoticia(n.texto);
+        return d ? `<button class="noticia noticia-link ${noticiaNova(n) ? 'nova' : 'lida'}" data-acao="abrir-noticia" data-aba="${d.aba}" data-sel="${d.sel}">${ponto}${corpo}${icone('seta')}</button>`
+          : `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${ponto}${corpo}</article>`;
+      }).join('')}</div>`),
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
@@ -1500,7 +1521,9 @@
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
         <button class="discreto" data-acao="rever-tutorial">Rever tutorial</button>
-        <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar">Apagar carreira</button>
+        <button class="discreto" data-acao="sair-jogo">${ic('voltar')}Sair do jogo</button>
+        <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
+        <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}`;
   }
@@ -2055,7 +2078,7 @@
       ${d.sentiu.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
       <span class="subtitulo">Nessas condições, o ${Kart.monoposto() ? 'carro' : 'kart'} pedia</span>
       ${ajustes}
-      ${anotar}`, { ajuda: 'diagnostico' });
+      ${anotar}`, { ajuda: 'diagnostico', classe: 'cartao-diagnostico' });
   }
 
   // ---------- fim de temporada ----------
@@ -2374,6 +2397,12 @@
         if (!modoDev()) break;
         ir({ nome: 'inicio', dev: id });
         break;
+      case 'sair-jogo':
+        // Volta para a abertura; a carreira já está salva e reaparece em "Continuar".
+        salvar();
+        pensar();
+        ir({ nome: 'abertura' });
+        break;
       case 'voltar-abertura':
         ir({ nome: 'abertura' });
         break;
@@ -2419,6 +2448,17 @@
         corrida = null;
         ir({ nome: 'abertura' });
         break;
+      case 'abrir-noticia': {
+        tela.aba = alvo.dataset.aba;
+        render();
+        const el = app.querySelector(alvo.dataset.sel);
+        if (el) {
+          rolarPara(el, 'center');
+          el.classList.add('pisca-destaque');
+          setTimeout(() => el.classList.remove('pisca-destaque'), 1800);
+        } else rolarPara('.abas');
+        break;
+      }
       case 'aba':
         tela.aba = alvo.dataset.aba;
         render();
