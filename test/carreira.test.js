@@ -1238,3 +1238,24 @@ test('nome do piloto sempre em maiúsculas, também em carreiras antigas', () =>
   // O sobrenome do jogador não se repete no grid.
   assert.ok(!e.rivais.some((r) => r.nome.split(' ').slice(1).join(' ').toUpperCase() === 'SÂNDER'));
 });
+
+test('desafio da semana paga por medalha, só a diferença quando melhora', () => {
+  Carreira.definirPremium(true);
+  const e = Carreira.novoJogo({ seed: 21 });
+  const agora = Date.UTC(2026, 9, 22);
+  const d = Carreira.desafioDaSemana(e, agora);
+  const ouro = Carreira.premioMedalha(e, 'ouro');
+  assert.ok(ouro > 0 && Carreira.premioMedalha(e, 'bronze') === Math.round(ouro / 4 / 100) * 100);
+  const ideal = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));
+  const st = Carreira.estadoDesafio(e, d);
+  st.setup = { ...ideal };
+  const antes = e.dinheiro;
+  const r = Carreira.tentarDesafio(e, agora);
+  assert.strictEqual(r.medalha, 'ouro');
+  assert.strictEqual(e.dinheiro, antes + ouro);
+  Carreira.tentarDesafio(e, agora);
+  assert.strictEqual(e.dinheiro, antes + ouro, 'ouro de novo não paga outra vez');
+  Carreira.comecarEm(e, 'f1');
+  assert.strictEqual(Carreira.premioMedalha(e, 'ouro'), 500000);
+  Carreira.definirPremium(false);
+});

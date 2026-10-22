@@ -1066,7 +1066,7 @@ button.prazo.principal .prazo-valor { color: inherit; }
 
 /* Desafio da semana */
 .medalhas-alvo { display: grid; gap: 6px; }
-.medalha-alvo { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--raio-p); background: var(--painel-2); font-variant-numeric: tabular-nums; }
+.medalha-alvo { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--raio-p); background: var(--painel-2); font-variant-numeric: tabular-nums; }
 .medalha-alvo.ganha { outline: 2px solid var(--ouro); }
 .medalha-cor { width: 14px; height: 14px; border-radius: 50%; }
 .m-ouro { background: #ffd24a; }

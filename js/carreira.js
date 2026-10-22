@@ -1052,6 +1052,16 @@
     }
     return estado.desafio;
   }
+  // Prêmio em dinheiro por medalha: uma etapa da equipe (ouro), metade (prata) ou um quarto (bronze).
+  // Na F1, onde a equipe paga o piloto, valores fixos. Só conta a melhor medalha da semana.
+  const FRACAO_MEDALHA = { ouro: 1, prata: 0.5, bronze: 0.25 };
+  function premioMedalha(estado, medalha) {
+    if (!medalha) return 0;
+    if (estado.campeonato === 'f1') return 500000 * FRACAO_MEDALHA[medalha];
+    const etapa = Math.round(equipeBase(estado.equipeId).custoEtapa * campeonato(estado.campeonato).custo);
+    return Math.round(etapa * FRACAO_MEDALHA[medalha] / 100) * 100;
+  }
+
   function tentarDesafio(estado, agora = Date.now()) {
     if (estado.fase === 'fds') return { ok: false, erro: 'O desafio é no paddock, entre as etapas.' };
     if (!desafioLiberado(estado, agora)) return pedePremium('O desafio da semana grátis já foi. Com o Premium, tem desafio novo toda semana.');
@@ -1068,12 +1078,18 @@
     const m = d.medalhas.find((x) => st.melhor <= x.tempo);
     const ordem = ['ouro', 'prata', 'bronze'];
     const nova = m && (!st.medalha || ordem.indexOf(m.medalha) < ordem.indexOf(st.medalha)) ? m.medalha : null;
+    let premio = 0;
     if (nova) {
+      // Paga a diferença para a medalha anterior da semana (bronze e depois ouro = só o que falta).
+      premio = Math.max(0, premioMedalha(estado, nova) - premioMedalha(estado, st.medalha));
+      estado.dinheiro += premio;
+      st.premio = (st.premio || 0) + premio;
       st.medalha = nova;
       st.medalhas[nova] = (st.medalhas[nova] || 0) + 1;
       if (nova === 'ouro') estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
     }
-    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, restantes: TENTATIVAS_DESAFIO - st.tentativas.length };
+    if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio da semana${premio ? ` e ganha R$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
+    return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: TENTATIVAS_DESAFIO - st.tentativas.length };
   }
   function ajustarDesafio(estado, mudancas) {
     const st = estadoDesafio(estado);
@@ -1970,7 +1986,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
