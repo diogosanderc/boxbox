@@ -858,9 +858,18 @@ button.link-f4 { background: transparent; border-color: transparent; color: var(
 /* ---------- app do iPhone ---------- */
 html { -webkit-text-size-adjust: 100%; }
 body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
-button, .chip, .tag, img { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* É um jogo, não uma página: arrastar o dedo ou segurar não seleciona texto nem abre o menu
+   de copiar (só os campos de digitar continuam selecionáveis). */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+button, [data-acao] { touch-action: manipulation; }
 /* Telas sem o cabeçalho (abertura, nome, equipe) também fogem do notch e da ilha. */
 body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
+/* A abertura cabe inteira na tela de qualquer iPhone, sem rolar: desconta o notch/ilha,
+   a barra de início e o respiro do main. */
+.abertura { min-height: calc(100vh - 2 * var(--espaco) - env(safe-area-inset-top, 0px));
+  min-height: calc(100dvh - 2 * var(--espaco) - env(safe-area-inset-top, 0px));
+  padding: 6vh 4px max(3vh, env(safe-area-inset-bottom, 0px)); }
 
 /* Sol sempre amarelo (também o sol atrás da nuvem); a nuvem e a chuva ficam com a cor do ícone. */
 .ico .ico-sol { stroke: var(--ouro); }
