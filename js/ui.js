@@ -106,6 +106,7 @@
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
+    banco: ['Banco', `Empréstimo para investir no carro e na carreira (só com o Premium). O limite cresce com a categoria e com a popularidade. Você escolhe o prazo: ${Object.entries(C.PRAZOS_EMPRESTIMO).map(([p, j]) => `${p} etapas com ${Math.round(j * 100)}% de juros`).join(', ')}. A parcela sai do caixa ao fim de cada etapa; se não houver dinheiro, ela atrasa com multa de ${Math.round(C.MULTA_ATRASO * 100)}%, e a moral e a popularidade caem. Um empréstimo por vez; quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
     setup: ['Acerto do kart', 'Pressão: como o pneu esquenta. Eixo e bitola traseira: aderência da traseira. Bitola dianteira: como o kart entra na curva. Altura do banco: quanto peso o kart transfere nas curvas. Relação: força na saída × velocidade na reta. Carburação: mistura do motor (pobre demais pode engripar). O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é.'],
@@ -667,6 +668,7 @@
     ['chave', 'Equipe de box 3/3', 'Nos monopostos, pit stops mais rápidos e com menos erro.'],
     ['relogio', `${4} saídas no treino livre`, `Sem o Premium: ${2}. Mais voltas para achar o acerto.`],
     ['relogio', 'Desafio do dia', 'Uma pista nova todo dia, com medalhas e prêmio. Sem o Premium, só o primeiro.'],
+    ['carteira', 'Banco', 'Empréstimo para investir no carro e na carreira, pago em parcelas a cada etapa.'],
     ['regua', 'Telemetria da volta', 'Onde cada saída de treino perde tempo: retas, freada, curvas.'],
     ['x', 'Sem anúncios', 'Sem o Premium, aparece um anúncio a cada 3 corridas.'],
   ];
@@ -1201,6 +1203,38 @@
     { ajuda: 'patrocinio', classe: 'cartao-patrocinio', extra: `<span class="vagas" aria-label="${estado.patrocinios.length} de ${C.maxPatrocinios()}">${vagas}</span>` });
   }
 
+  // Banco: empréstimo do Premium. Sem o Premium, o cartão mostra o limite e o cadeado.
+  const FRACOES_EMPRESTIMO = [0.25, 0.5, 1];
+  function cartaoBanco() {
+    const limite = C.limiteEmprestimo(estado);
+    const e = estado.emprestimo;
+    const opc = { ajuda: 'banco', classe: 'cartao-banco' };
+    if (e) {
+      const pagas = e.prazo - e.restantes;
+      const quitar = C.valorQuitacao(estado);
+      return cartao('Banco', `
+        <div class="tiles">${tile('Parcela', reais(e.parcela), 'negativo')}${tile('Faltam', `${e.restantes} ${e.restantes === 1 ? 'etapa' : 'etapas'}`)}${tile('Saldo', reais(e.saldo))}</div>
+        <div class="banco-barra" aria-label="${pagas} de ${e.prazo} parcelas pagas"><i style="width:${Math.round((pagas / e.prazo) * 100)}%"></i></div>
+        <p class="fraco mini">Empréstimo de ${reais(e.valor)}. A parcela sai do caixa ao fim de cada etapa${e.atrasos ? `; ${e.atrasos} ${e.atrasos === 1 ? 'parcela atrasou' : 'parcelas atrasaram'} (multa no saldo)` : ''}.</p>
+        <button class="grande" data-acao="quitar-emprestimo" data-confirmar="Toque de novo para quitar" ${estado.dinheiro >= quitar ? '' : 'disabled'}>${ic('check')}Quitar agora · ${reais(quitar)}</button>`, opc);
+    }
+    if (!BoxPremium.ativo) {
+      return cartao('Banco', `<p class="fraco">Empréstimo de até <b>${reais(limite)}</b> para investir no carro e na carreira, pago em parcelas a cada etapa.</p>
+        <button class="grande premium-trancado" data-acao="premium" data-motivo="O banco é do Premium: empréstimo para investir no carro e na carreira.">${ic('cadeado')}Banco · Premium</button>`, opc);
+    }
+    const b = tela.banco || (tela.banco = { fracao: 1, prazo: 8 });
+    const valor = Math.round((limite * FRACOES_EMPRESTIMO[b.fracao]) / 1000) * 1000;
+    const sim = C.simularEmprestimo(valor, b.prazo);
+    return cartao('Banco', `
+      <p class="fraco mini">Limite de crédito: <b>${reais(limite)}</b> (cresce com a categoria e a popularidade).</p>
+      <span class="subtitulo">Valor</span>
+      <div class="segmentos" data-seg="banco-valor">${FRACOES_EMPRESTIMO.map((f, i) => `<button data-acao="banco-valor" data-valor="${i}" class="${b.fracao === i ? 'ativo' : ''}">${caixaCurto(Math.round((limite * f) / 1000) * 1000)}</button>`).join('')}</div>
+      <span class="subtitulo">Prazo</span>
+      <div class="segmentos" data-seg="banco-prazo">${Object.keys(C.PRAZOS_EMPRESTIMO).map((p) => `<button data-acao="banco-prazo" data-valor="${p}" class="${b.prazo === +p ? 'ativo' : ''}">${p} etapas</button>`).join('')}</div>
+      <div class="tiles">${tile('Parcela', reais(sim.parcela), 'negativo')}${tile(`Juros ${Math.round(C.PRAZOS_EMPRESTIMO[b.prazo] * 100)}%`, reais(sim.juros), 'aviso')}${tile('Total', reais(sim.total))}</div>
+      <button class="principal grande" data-acao="pegar-emprestimo" data-confirmar="Toque de novo para confirmar">${ic('carteira')}Pegar ${reais(valor)}</button>`, opc);
+  }
+
   function cartaoProposta(pr) {
     const atual = C.equipeBase(estado.equipeId);
     const nova = C.equipeBase(pr.equipe);
@@ -1481,6 +1515,7 @@
   // Para onde cada notícia leva ao ser tocada: aba do paddock e o cartão do assunto.
   // Pelo texto, para valer também nas notícias de saves antigos.
   const DESTINOS_NOTICIA = [
+    [/banco|empréstimo/i, 'oficina', '.cartao-banco'],
     [/engripou|retífica/i, 'resumo', '.retifica'],
     [/pneu/i, 'oficina', '.cartao-oficina'],
     [/patroc|contrato com|macacão/i, 'oficina', '.cartao-patrocinio'],
@@ -1503,7 +1538,7 @@
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoDesafio()}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}${cartaoBanco()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => {
         const ponto = noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : '';
@@ -2522,6 +2557,23 @@
         break;
       case 'amaciar-pneu':
         if (erro(C.amaciarPneu(estado))) { salvar(); render(); rolarPara('.acoes', 'center'); aviso('Pneu amaciado: pronto para render o máximo.'); }
+        break;
+      case 'banco-valor':
+        tela.banco = { ...(tela.banco || { prazo: 8 }), fracao: +alvo.dataset.valor };
+        render();
+        break;
+      case 'banco-prazo':
+        tela.banco = { ...(tela.banco || { fracao: 1 }), prazo: +alvo.dataset.valor };
+        render();
+        break;
+      case 'pegar-emprestimo': {
+        const b = tela.banco || { fracao: 1, prazo: 8 };
+        const valor = Math.round((C.limiteEmprestimo(estado) * FRACOES_EMPRESTIMO[b.fracao]) / 1000) * 1000;
+        if (erro(C.pegarEmprestimo(estado, valor, b.prazo))) { salvar(); render(); rolarPara('.cartao-banco', 'center'); aviso(`${reais(valor)} no caixa.`, 'carteira'); }
+        break;
+      }
+      case 'quitar-emprestimo':
+        if (erro(C.quitarEmprestimo(estado))) { salvar(); render(); rolarPara('.cartao-banco', 'center'); aviso('Empréstimo quitado.'); }
         break;
       case 'aceitar-patrocinio':
         if (erro(C.aceitarPatrocinio(estado, id, alvo.dataset.duracao))) { salvar(); render(); rolarPara('.cartao-patrocinio', 'center'); }

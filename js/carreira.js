@@ -356,6 +356,76 @@
     return Math.round(equipeBase(estado.equipeId).custoEtapa * campeonato(estado.campeonato).custo);
   }
 
+  // ---------- banco (só com o Premium) ----------
+  // Empréstimo para investir no carro e na carreira: um por vez, pago em parcelas descontadas a cada
+  // etapa. Parcela que o caixa não cobre atrasa: multa de 10% no saldo, moral e popularidade caem.
+  // Quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.
+  const LIMITE_EMPRESTIMO = { regional: 20000, nacional: 40000, internacional: 80000, f4: 200000, f3: 400000, f2: 1000000, f1: 10000000 };
+  const PRAZOS_EMPRESTIMO = { 4: 0.08, 8: 0.15, 12: 0.25 }; // etapas: juros totais
+  const MULTA_ATRASO = 0.1;
+  // Popularidade alta aumenta o crédito (até +50%).
+  const limiteEmprestimo = (estado) => Math.round((LIMITE_EMPRESTIMO[estado.campeonato] || 20000) * (1 + Math.min(100, estado.piloto.popularidade) / 200) / 1000) * 1000;
+  function simularEmprestimo(valor, prazo) {
+    const juros = Math.round(valor * PRAZOS_EMPRESTIMO[prazo]);
+    return { valor, prazo, juros, total: valor + juros, parcela: Math.ceil((valor + juros) / prazo) };
+  }
+  function pegarEmprestimo(estado, valor, prazo) {
+    if (!premium) return pedePremium('O banco é do Premium: empréstimo para investir no carro e na carreira.');
+    if (estado.fase === 'fds') return { ok: false, erro: 'O banco atende no paddock, entre as etapas.' };
+    if (estado.emprestimo) return { ok: false, erro: 'Quite o empréstimo atual antes de pegar outro.' };
+    if (!PRAZOS_EMPRESTIMO[prazo]) return { ok: false, erro: 'Prazo inválido.' };
+    valor = Math.round(valor);
+    if (!(valor >= 1000) || valor > limiteEmprestimo(estado)) return { ok: false, erro: 'Valor fora do limite do banco.' };
+    const s = simularEmprestimo(valor, +prazo);
+    estado.emprestimo = { valor, prazo: +prazo, juros: s.juros, saldo: s.total, parcela: s.parcela, restantes: +prazo, atrasos: 0 };
+    estado.dinheiro += valor;
+    noticia(estado, `${estado.piloto.nome} pega R$ ${valor.toLocaleString('pt-BR')} emprestados no banco, em ${prazo} parcelas de R$ ${s.parcela.toLocaleString('pt-BR')}.`);
+    return { ok: true, ...s };
+  }
+  // Quanto custa quitar hoje: o saldo menos metade dos juros que ainda não venceram.
+  function valorQuitacao(estado) {
+    const e = estado.emprestimo;
+    if (!e) return 0;
+    const jurosFuturos = e.juros * Math.min(e.restantes, e.prazo) / e.prazo;
+    return Math.max(0, Math.round(e.saldo - jurosFuturos / 2));
+  }
+  function quitarEmprestimo(estado) {
+    const e = estado.emprestimo;
+    if (!e) return { ok: false, erro: 'Não há empréstimo.' };
+    const valor = valorQuitacao(estado);
+    if (estado.dinheiro < valor) return { ok: false, erro: 'Dinheiro insuficiente para quitar.' };
+    estado.dinheiro -= valor;
+    estado.emprestimo = null;
+    noticia(estado, `${estado.piloto.nome} quita o empréstimo do banco antes do prazo.`);
+    return { ok: true, valor };
+  }
+  // A cada etapa: desconta a parcela ou registra o atraso.
+  function cobrarParcela(estado) {
+    const e = estado.emprestimo;
+    if (!e) return;
+    const parcela = Math.min(e.parcela, e.saldo);
+    if (estado.dinheiro >= parcela) {
+      estado.dinheiro -= parcela;
+      e.saldo -= parcela;
+      e.restantes = Math.max(0, e.restantes - 1);
+      if (e.saldo <= 0) {
+        estado.emprestimo = null;
+        noticia(estado, `Última parcela paga: ${estado.piloto.nome} está livre do banco.`);
+      } else if (e.restantes === 0) {
+        e.restantes = 1; // sobrou saldo de multas: mais uma parcela
+        e.parcela = e.saldo;
+      }
+      return;
+    }
+    const multa = Math.round(parcela * MULTA_ATRASO);
+    e.saldo += multa;
+    e.atrasos += 1;
+    e.parcela = Math.ceil(e.saldo / Math.max(1, e.restantes));
+    mexerCabeca(estado, { moral: -6 });
+    estado.piloto.popularidade = Math.max(0, Math.round((estado.piloto.popularidade - 2) * 10) / 10);
+    noticia(estado, `Parcela do banco atrasada: multa de R$ ${multa.toLocaleString('pt-BR')}. Os patrocinadores não gostam de piloto com conta atrasada.`);
+  }
+
   // Quanto custa o ano seguinte com esta equipe, para a escolha no relatório. O contrato do monoposto
   // só continua na mesma equipe e na mesma categoria; trocando, vale o preço cheio. Na F1, salário (negativo).
   function custoTemporada(estado, campId, equipeId) {
@@ -1707,6 +1777,7 @@
     estado.etapa += 1;
     estado.ofertasPatrocinio = estado.ofertasPatrocinio.filter((o) => o.expira >= estado.etapa);
     vencerPatrocinios(estado, rnd);
+    cobrarParcela(estado);
     avisarPneusNoFim(estado);
     estado.propostas = estado.propostas.filter((o) => o.expira >= estado.etapa || o.tipo === 'f4' || o.tipo === 'academia' || o.tipo === 'subida');
     if (rnd() < 0.3 + estado.piloto.popularidade / 100) gerarOfertasPatrocinio(estado, rnd, 1);
@@ -2021,6 +2092,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
+    limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,

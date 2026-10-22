@@ -1305,3 +1305,44 @@ test('rival de carreira nunca é o companheiro de equipe', () => {
     assert.ok(e.rivais.filter((r) => r.equipe === e.equipeId).length === 1, `seed ${seed}: um companheiro só`);
   }
 });
+
+test('banco: só com o Premium, parcela por etapa, atraso com multa e quitação com desconto', () => {
+  Carreira.definirPremium(false);
+  const e = Carreira.novoJogo({ seed: 31 });
+  e.fase = 'paddock';
+  const r0 = Carreira.pegarEmprestimo(e, 10000, 8);
+  assert.ok(!r0.ok && r0.premium, 'sem Premium não tem banco');
+  Carreira.definirPremium(true);
+  const limite = Carreira.limiteEmprestimo(e);
+  assert.ok(limite >= 20000);
+  assert.ok(!Carreira.pegarEmprestimo(e, limite + 1000, 8).ok, 'acima do limite');
+  const antes = e.dinheiro;
+  const r = Carreira.pegarEmprestimo(e, 20000, 8);
+  assert.ok(r.ok);
+  assert.strictEqual(e.dinheiro, antes + 20000);
+  assert.strictEqual(r.total, 23000);
+  assert.strictEqual(r.parcela, 2875);
+  assert.ok(!Carreira.pegarEmprestimo(e, 1000, 4).ok, 'um por vez');
+  // Uma etapa: paga a parcela.
+  jogarFimDeSemana(e, 'ideal');
+  assert.strictEqual(e.emprestimo.restantes, 7);
+  assert.strictEqual(e.emprestimo.saldo, 23000 - 2875);
+  // Sem dinheiro: atrasa, multa e moral cai.
+  e.fase = 'paddock';
+  const saldo = e.emprestimo.saldo;
+  e.dinheiro = 0;
+  const moral = e.piloto.moral;
+  Carreira.concluirEtapa(e);
+  assert.strictEqual(e.emprestimo.restantes, 7);
+  assert.strictEqual(e.emprestimo.saldo, saldo + Math.round(2875 * 0.1));
+  assert.ok(e.piloto.moral < moral);
+  // Quitar antes: paga menos que o saldo.
+  e.fase = 'paddock';
+  e.dinheiro = 1e6;
+  const q = Carreira.valorQuitacao(e);
+  assert.ok(q < e.emprestimo.saldo);
+  assert.ok(Carreira.quitarEmprestimo(e).ok);
+  assert.strictEqual(e.emprestimo, null);
+  assert.strictEqual(e.dinheiro, 1e6 - q);
+  Carreira.definirPremium(false);
+});

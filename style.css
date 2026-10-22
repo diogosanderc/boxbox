@@ -1185,3 +1185,7 @@ button.noticia-link .noticia-ponto { right: 22px; }
 .pisca-destaque { animation: pisca-destaque 1.6s ease-out; }
 @keyframes pisca-destaque { 0%, 40% { box-shadow: 0 0 0 2px var(--azul), 0 0 24px rgba(61, 155, 255, 0.45); } 100% { box-shadow: 0 0 0 0 transparent; } }
 .rodape-nota { flex-basis: 100%; text-align: center; margin: 2px 0 0; }
+
+/* Banco: barra das parcelas pagas. */
+.banco-barra { height: 8px; border-radius: 999px; background: var(--painel-2); overflow: hidden; margin: 10px 0 6px; }
+.banco-barra i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--ok), #6fe3a5); }
