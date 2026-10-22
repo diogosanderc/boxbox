@@ -204,8 +204,11 @@
     return venci;
   }
 
-  // O nome do piloto fica sempre em maiúsculas (como na cronometragem e nas transmissões).
-  const nomeDoPiloto = (n) => String(n || '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR');
+  // O nome do piloto fica com a inicial de cada nome em maiúscula ("Diogo Sander", "Diogo da Silva").
+  // Só a carteirinha de piloto, na abertura da carreira, mostra o nome em caixa alta.
+  const PARTICULAS_NOME = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+  const nomeDoPiloto = (n) => String(n || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR').split(' ')
+    .map((p, i) => (i > 0 && PARTICULAS_NOME.has(p) ? p : p.charAt(0).toLocaleUpperCase('pt-BR') + p.slice(1))).join(' ');
   // Sobrenome do jogador no formato dos nomes do grid ("SANDER" -> "Sander"), para não repetir no grid.
   const sobrenomeJogador = (estado) => (estado.piloto ? estado.piloto.nome.split(' ').slice(1).join(' ').toLocaleLowerCase('pt-BR').replace(/(^|\s)\S/g, (c) => c.toLocaleUpperCase('pt-BR')) : '');
 
@@ -1999,7 +2002,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, nomeDoPiloto, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;

@@ -1227,13 +1227,14 @@ test('F4: o box para chuva usa o pneu de chuva do estoque, e cada jogo volta com
   assert.ok(c2.eventos.some((ev) => /Sem pneu de chuva/.test(ev.texto)));
 });
 
-test('nome do piloto sempre em maiúsculas, também em carreiras antigas', () => {
-  const e = Carreira.novoJogo({ seed: 20, nome: '  diogo   sânder ' });
-  assert.strictEqual(e.piloto.nome, 'DIOGO SÂNDER');
+test('nome do piloto com iniciais maiúsculas, também em carreiras antigas', () => {
+  const e = Carreira.novoJogo({ seed: 20, nome: '  DIOGO   sânder ' });
+  assert.strictEqual(e.piloto.nome, 'Diogo Sânder');
+  assert.strictEqual(Carreira.nomeDoPiloto('ana da silva'), 'Ana da Silva');
   const antigo = JSON.parse(JSON.stringify(e));
-  antigo.piloto.nome = 'Ana Lima';
+  antigo.piloto.nome = 'PÉRICLES CHAMUSKA';
   Carreira.migrar(antigo);
-  assert.strictEqual(antigo.piloto.nome, 'ANA LIMA');
+  assert.strictEqual(antigo.piloto.nome, 'Péricles Chamuska');
   // O sobrenome do jogador não se repete no grid.
   assert.ok(!e.rivais.some((r) => r.nome.split(' ').slice(1).join(' ').toUpperCase() === 'SÂNDER'));
 });

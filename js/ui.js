@@ -329,16 +329,18 @@
       requestAnimationFrame(posicionar);
     }
     function fechar() {
+      const aoFechar = ativo && ativo.aoFechar;
       if (ativo) { visto[ativo.chave] = true; gravar(); }
       ativo = null;
       camada.hidden = true;
       document.body.classList.remove('tut-aberto');
+      if (aoFechar) aoFechar();
     }
-    function comecar(chave, passos) {
+    function comecar(chave, passos, aoFechar) {
       // Passos sem alvo na tela (ex.: estratégia de pneus no kart) ficam de fora.
       const validos = passos.filter((p) => !p.sel || [...document.querySelectorAll(p.sel)].some((el) => el.offsetParent !== null));
       if (!validos.length) { visto[chave] = true; gravar(); return; }
-      ativo = { chave, passos: validos, i: 0 };
+      ativo = { chave, passos: validos, i: 0, aoFechar };
       camada.hidden = false;
       document.body.classList.add('tut-aberto');
       mostrar();
@@ -381,7 +383,12 @@
       if (tela !== minha || Tutorial.ativo() || Tutorial.visto(chave) || chaveTutorial() !== chave) return;
       if (app.querySelector('.folha-fundo') || !naPista.hidden) { talvezTutorial(); return; }
       if (chave === 'corrida' && !tela.pausado && corrida && !corrida.terminou) { tela.pausado = true; clearInterval(timer); timer = null; atualizarCorrida(); }
-      Tutorial.comecar(chave, PASSOS_TUTORIAL[chave]());
+      // Fim do tutorial da corrida: volta para a torre e a corrida começa sozinha.
+      const aoFechar = chave === 'corrida' ? () => {
+        window.scrollTo({ top: 0, behavior: menosMovimento() ? 'auto' : 'smooth' });
+        if (corrida && !corrida.terminou && tela.pausado) { tela.pausado = false; iniciarTimer(); atualizarCorrida(); }
+      } : null;
+      Tutorial.comecar(chave, PASSOS_TUTORIAL[chave](), aoFechar);
     }, 450);
   }
 
@@ -816,7 +823,7 @@
         </div>
         ${cartaoLicenca(nome)}
         <label class="campo-nome"><span>Nome na licença</span>
-          <input type="text" id="nome-piloto" value="${esc(nome)}" placeholder="Ex.: DIOGO SANDER" maxlength="30" autocomplete="off" autocapitalize="characters" enterkeyhint="next"></label>
+          <input type="text" id="nome-piloto" value="${esc(nome)}" placeholder="Ex.: Diogo Sander" maxlength="30" autocomplete="off" autocapitalize="words" enterkeyhint="next"></label>
       </div>
       <div class="barra-confirmar">
         <button class="principal grande" data-acao="entrar" ${nome.trim() ? '' : 'disabled'}>Continuar</button>
