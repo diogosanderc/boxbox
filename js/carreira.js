@@ -1022,14 +1022,25 @@
   const climaAtual = (estado) => estado.calendario[estado.etapa].clima;
 
   // ---------- desafio do dia ----------
-  // Todo dia (à meia-noite do aparelho): uma pista da categoria do jogador, uma condição fixa e 3 voltas
-  // lançadas para acertar o carro. O tempo-alvo é o do próprio piloto com o acerto perfeito; medalha pela
-  // distância até ele. (O campo "semana" guarda o número do dia; o nome ficou de quando era semanal.)
+  // Uma pista da categoria do jogador, uma condição fixa e 3 voltas lançadas para acertar o carro.
+  // O tempo-alvo é o do próprio piloto com o acerto perfeito; medalha pela distância até ele.
+  // Cada desafio dura 24 h a partir da primeira volta; depois disso sai o próximo. Antes da primeira
+  // volta ele espera o jogador. (O campo "semana" guarda o número do desafio; o nome ficou de quando era semanal.)
   const DIA_MS = 86400000;
   const TENTATIVAS_DESAFIO = 3;
   const fusoMs = (agora) => new Date(agora).getTimezoneOffset() * 60000;
   const diaDesafio = (agora) => Math.floor((agora - fusoMs(agora)) / DIA_MS);
-  // Voltas que ainda dá para fazer hoje e quando sai o próximo desafio (meia-noite).
+  // Início do desafio guardado (saves de quando ele virava à meia-noite: o começo daquele dia).
+  const inicioDesafio = (st, agora) => (st.inicio != null ? st.inicio
+    : st.tentativas && st.tentativas.length ? st.semana * DIA_MS + fusoMs(agora) : null);
+  // Número do desafio valendo agora: o atual até completar 24 h da primeira volta, depois o seguinte.
+  function numeroDesafio(estado, agora) {
+    const st = estado.desafio;
+    if (!st) return diaDesafio(agora);
+    const inicio = inicioDesafio(st, agora);
+    return inicio != null && agora >= inicio + DIA_MS ? st.semana + 1 : st.semana;
+  }
+  // Voltas que ainda dá para fazer neste desafio e quando sai o próximo (24 h depois da primeira volta).
   function voltasDesafio(estado, agora = Date.now()) {
     const d = desafioDaSemana(estado, agora);
     const st = estadoDesafio(estado, d);
@@ -1042,12 +1053,12 @@
   const semanasJogadas = (estado) => estado.semanasDesafio || [];
   function desafioLiberado(estado, agora = Date.now()) {
     if (premium) return true;
-    const dia = diaDesafio(agora);
+    const dia = numeroDesafio(estado, agora);
     const jogadas = semanasJogadas(estado);
     return jogadas.includes(dia) || jogadas.length < SEMANAS_DESAFIO_GRATIS;
   }
   function desafioDaSemana(estado, agora = Date.now()) {
-    const semana = diaDesafio(agora);
+    const semana = numeroDesafio(estado, agora);
     const rnd = Engine.criarRng(semana * 7919 + 13);
     const camp = campeonato(estado.campeonato);
     const lista = Dados.KARTODROMOS[camp.regiao];
@@ -1060,10 +1071,13 @@
     const entrada = entradaJogador(estado);
     const volta = (setup) => Engine.ritmoBase(entrada, pista) - 0.6 + Kart.efeito(setup, pista, cond, pneu).tempo + chuvaPiloto(estado.piloto, cond);
     const alvo = volta(Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, pneu)));
-    const fim = (semana + 1) * DIA_MS + fusoMs(agora); // meia-noite no fuso do aparelho
+    // Fim: 24 h depois da primeira volta (null enquanto ninguém correu).
+    const st = estado.desafio;
+    const inicio = st && st.semana === semana && st.campeonato === camp.id ? inicioDesafio(st, agora) : null;
+    const fim = inicio != null ? inicio + DIA_MS : null;
     return { semana, campeonato: camp.id, pista, cond, pneu, molhado, alvo, volta, medalhas: MEDALHAS.map(([m, d]) => ({ medalha: m, tempo: alvo + d })), fim };
   }
-  // Estado do desafio de hoje (zera quando o dia vira ou o jogador muda de categoria).
+  // Estado do desafio atual (zera quando sai o próximo ou o jogador muda de categoria).
   function estadoDesafio(estado, d = desafioDaSemana(estado)) {
     const atual = estado.desafio;
     if (!atual || atual.semana !== d.semana || atual.campeonato !== d.campeonato) {
@@ -1088,7 +1102,8 @@
     const st = estadoDesafio(estado, d);
     if (!semanasJogadas(estado).includes(d.semana)) estado.semanasDesafio = [...semanasJogadas(estado), d.semana];
     const v = voltasDesafio(estado, agora);
-    if (!v.restantes) return { ok: false, erro: 'As 3 voltas de hoje já foram. Amanhã tem desafio novo.' };
+    if (!v.restantes) return { ok: false, erro: 'As 3 voltas deste desafio já foram. O próximo sai 24 h depois da primeira volta.' };
+    if (st.inicio == null) st.inicio = inicioDesafio(st, agora) ?? agora;
     const rnd = Engine.criarRng(d.semana * 31 + st.tentativas.length * 7 + 1);
     const tempo = Math.round((d.volta(st.setup) + rnd.gauss() * 0.04) * 1000) / 1000;
     const ideal = Kart.arredondarSetup(Kart.acertoIdeal(d.pista, d.cond, d.pneu));

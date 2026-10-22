@@ -989,7 +989,7 @@
     const st = C.estadoDesafio(estado, d);
     const { restantes, reabreEm } = C.voltasDesafio(estado);
     return cartao('Desafio do dia', `<div class="item-topo"><b>${esc(d.pista.nome)}</b>${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}</div>
-      <p class="fraco mini">Três voltas lançadas para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito e vale ${reais(C.premioMedalha(estado, 'ouro'))}. Termina em <span data-reabre="${d.fim}">${contagem(d.fim)}</span>.</p>
+      <p class="fraco mini">Três voltas lançadas para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito e vale ${reais(C.premioMedalha(estado, 'ouro'))}. ${d.fim ? `Termina em <span data-reabre="${d.fim}">${contagem(d.fim)}</span>.` : 'Depois da primeira volta, você tem 24 h.'}</p>
       <div class="linha">${st.melhor ? chip(`${ic('relogio')}${tempoVolta(st.melhor)}`) : ''}${st.medalha ? chip(`${ic('trofeu')}${NOME_MEDALHA[st.medalha]}`, st.medalha === 'ouro' ? 'chip-ouro' : '') : ''}<span class="espaco"></span>
       ${C.desafioLiberado(estado) ? `<button class="${restantes ? 'principal' : ''}" data-acao="abrir-desafio">${restantes ? `Correr · ${restantes} de ${C.TENTATIVAS_DESAFIO}` : `${ic('relogio')}Novo desafio em <span data-reabre="${reabreEm}">${contagem(reabreEm)}</span>`}</button>`
         : `<button class="premium-trancado" data-acao="premium" data-motivo="O desafio do dia grátis já foi. Com o Premium, tem desafio novo todo dia.">${ic('cadeado')}Premium</button>`}</div>
@@ -1010,7 +1010,7 @@
         ${(t.frases || []).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`).join('');
     app.innerHTML = `<div class="detalhe">
         <div class="linha"><button class="voltar" data-acao="voltar-paddock-pista">${icone('voltar')}<span>Paddock</span></button></div>
-        <div class="detalhe-titulo"><h1>${tituloForte(d.pista.nome)}</h1><p>Desafio do dia · ${esc(C.campeonato(d.campeonato).curto)} · termina em <span data-reabre="${d.fim}">${contagem(d.fim)}</span></p></div>
+        <div class="detalhe-titulo"><h1>${tituloForte(d.pista.nome)}</h1><p>Desafio do dia · ${esc(C.campeonato(d.campeonato).curto)}${d.fim ? ` · termina em <span data-reabre="${d.fim}">${contagem(d.fim)}</span>` : ' · 24 h a partir da primeira volta'}</p></div>
         <div class="grade">
           ${cartao('Tempos-alvo', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado · pneu de chuva` : `${ic('sol')}Seco · slick`, d.molhado ? 'chip-azul' : '')}${chip(`Asfalto ${d.cond.tempPista}°`)}</div><div class="medalhas-alvo">${medalhas}</div>
             ${st.melhor ? `<p>Sua melhor: <b>${tempoVolta(st.melhor)}</b>${st.medalha ? ` · ${NOME_MEDALHA[st.medalha]}` : ''}</p>` : ''}`)}

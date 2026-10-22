@@ -1260,23 +1260,40 @@ test('desafio do dia paga por medalha, só a diferença quando melhora', () => {
   Carreira.definirPremium(false);
 });
 
-test('desafio do dia: 3 voltas por dia e desafio novo à meia-noite', () => {
+test('desafio do dia: 3 voltas e o próximo sai 24 h depois da primeira volta', () => {
   Carreira.definirPremium(true);
   const e = Carreira.novoJogo({ seed: 22 });
-  const t0 = Date.UTC(2026, 9, 19, 15);
+  const DIA = 86400000;
+  const t0 = Date.UTC(2026, 9, 19, 22); // tarde da noite: não pode virar à meia-noite
   const d0 = Carreira.desafioDaSemana(e, t0);
+  assert.strictEqual(d0.fim, null, 'antes da primeira volta o desafio espera o jogador');
   for (let i = 0; i < 3; i++) assert.ok(Carreira.tentarDesafio(e, t0 + i * 60000).ok);
   const r = Carreira.tentarDesafio(e, t0 + 3 * 60000);
-  assert.ok(!r.ok && /Amanhã/.test(r.erro));
+  assert.ok(!r.ok && /24 h/.test(r.erro));
   const v = Carreira.voltasDesafio(e, t0 + 3 * 60000);
   assert.strictEqual(v.restantes, 0);
-  assert.strictEqual(v.reabreEm, d0.fim);
-  assert.ok(d0.fim - t0 <= 86400000 && d0.fim > t0, 'termina em menos de 1 dia');
-  // À meia-noite: outro desafio (outro dia), com 3 voltas novas.
-  const d1 = Carreira.desafioDaSemana(e, d0.fim);
+  assert.strictEqual(v.reabreEm, t0 + DIA);
+  // Passou a meia-noite: continua o mesmo desafio, sem voltas.
+  assert.strictEqual(Carreira.desafioDaSemana(e, t0 + 4 * 3600000).semana, d0.semana);
+  assert.strictEqual(Carreira.voltasDesafio(e, t0 + 4 * 3600000).restantes, 0);
+  // 24 h depois da primeira volta: desafio novo, com 3 voltas.
+  const d1 = Carreira.desafioDaSemana(e, t0 + DIA);
   assert.strictEqual(d1.semana, d0.semana + 1);
-  assert.strictEqual(Carreira.voltasDesafio(e, d0.fim).restantes, 3);
-  assert.ok(Carreira.tentarDesafio(e, d0.fim + 1000).ok);
+  assert.strictEqual(Carreira.voltasDesafio(e, t0 + DIA).restantes, 3);
+  assert.ok(Carreira.tentarDesafio(e, t0 + DIA + 1000).ok);
+  assert.strictEqual(Carreira.voltasDesafio(e, t0 + DIA + 2000).restantes, 2);
+  Carreira.definirPremium(false);
+});
+
+test('desafio do dia: save antigo (virava à meia-noite) segue valendo até a meia-noite daquele dia', () => {
+  Carreira.definirPremium(true);
+  const e = Carreira.novoJogo({ seed: 23 });
+  const t0 = Date.UTC(2026, 9, 19, 15);
+  for (let i = 0; i < 3; i++) Carreira.tentarDesafio(e, t0);
+  delete e.desafio.inicio;
+  const { reabreEm } = Carreira.voltasDesafio(e, t0);
+  assert.ok(reabreEm > t0 && reabreEm - t0 <= 86400000);
+  assert.strictEqual(Carreira.voltasDesafio(e, reabreEm).restantes, 3);
   Carreira.definirPremium(false);
 });
 
