@@ -143,6 +143,18 @@
   };
 
   // Nos monopostos (F4 à F1) os textos falam do carro, não do kart; e lá tem box para trocar pneu na chuva.
+  // Nas notícias o nome do piloto aparece com as iniciais maiúsculas ("Péricles Chamuska"), como num
+  // texto de jornal; no resto do jogo ele fica em caixa alta. Vale também para notícias antigas.
+  const PARTICULAS = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+  const nomeComIniciais = (nome) => nome.toLocaleLowerCase('pt-BR').split(' ')
+    .map((p, i) => (i > 0 && PARTICULAS.has(p) ? p : p.charAt(0).toLocaleUpperCase('pt-BR') + p.slice(1))).join(' ');
+  function textoNoticia(texto) {
+    const nome = estado && estado.piloto && estado.piloto.nome;
+    if (!nome) return texto;
+    const busca = new RegExp(nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'), 'giu');
+    return texto.replace(busca, nomeComIniciais(nome));
+  }
+
   function textoDoVeiculo(t) {
     if (!Kart.monoposto()) return t;
     return t
@@ -1424,7 +1436,7 @@
       piloto: painelPiloto,
       oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}</div>`,
       caderno: painelCaderno,
-      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(n.texto)}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
+      noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : ''}<b>${esc(textoNoticia(n.texto))}</b><small>${quando(n)}</small></article>`).join('')}</div>`),
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
