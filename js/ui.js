@@ -526,22 +526,16 @@
     const naCorrida = tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao === 'corrida';
     document.body.classList.toggle('sem-topo', naCorrida || ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
     document.body.classList.toggle('na-corrida', naCorrida);
-    pensar();
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
     talvezTutorial();
   }
 
-  // "Jogo pensando": ao trocar de tela (ou de sessão no fim de semana), um carregando rápido por cima,
-  // enquanto a tela nova já se monta embaixo. Não aparece ao abrir o jogo nem no carregamento do início.
-  let telaAnterior = null;
+  // "Jogo pensando": um carregando rápido por cima só ao ir para a pista e ao voltar ao paddock,
+  // enquanto a tela nova já se monta embaixo.
   let pensando = null;
   function pensar() {
-    const chave = `${tela.nome}|${(tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao) || ''}`;
-    const antes = telaAnterior;
-    telaAnterior = chave;
-    if (antes === null || antes === chave || tela.nome === 'carregando' || tela.nome === 'abertura') return;
     let el = document.getElementById('pensando');
     if (!el) {
       el = document.createElement('div');
@@ -2523,6 +2517,7 @@
       case 'ir-fds-confirmado':
         if (erro(C.iniciarFimDeSemana(estado))) {
           salvar();
+          pensar();
           ir({ nome: 'fds' });
           rolarPara('.corrida .coluna > .painel'); // direto para o card do treino livre
         }
@@ -2676,6 +2671,7 @@
         BoxAnuncios.depoisDaCorrida(BoxPremium.ativo);
         C.concluirEtapa(estado);
         salvar();
+        pensar();
         ir(telaDaFase());
         break;
       case 'escolher-equipe-ano':
