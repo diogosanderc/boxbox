@@ -597,8 +597,30 @@
   // então basta um; na F2 e na F1 a parada obrigatória pede dois diferentes. O resto é opcional
   // (sem ele, os rivais têm uma opção a mais).
   const compostosMinimos = (estado) => (campeonato(estado.campeonato).compostos ? 2 : 1);
+  // F3 (como a de verdade): um único composto de seco por etapa, definido pelo asfalto da pista
+  // (liso: macio; médio: médio; abrasivo: duro). Os outros compostos não servem naquela etapa.
+  // Escolha livre de composto e parada obrigatória só na F2 e na F1.
+  const COMPOSTO_DO_ASFALTO = { liso: 'slick', medio: 'medio', abrasivo: 'duro' };
+  const compostoUnico = (estado) => quatroPneus(estado) && !campeonato(estado.campeonato).compostos;
+  function compostoDaEtapa(estado, i = estado.etapa) {
+    if (!compostoUnico(estado)) return null;
+    const etapa = estado.calendario[i];
+    const pista = etapa && Dados.KARTODROMOS[campeonato(estado.campeonato).regiao].find((x) => x.id === etapa.pista);
+    return (pista && COMPOSTO_DO_ASFALTO[pista.asfalto]) || 'medio';
+  }
+  // O pneu de seco "padrão" da etapa: o composto da etapa na F3; o slick (macio) nas outras categorias.
+  const secoDaEtapa = (estado) => compostoDaEtapa(estado) || 'slick';
+  // Pneu que pode ir para o carro nesta etapa (na F3, só o composto da etapa e o de chuva).
+  const pneuValeNaEtapa = (estado, tipo) => !compostoUnico(estado) || tipo === 'chuva' || tipo === compostoDaEtapa(estado);
   function estoqueImpede(estado) {
     if (!quatroPneus(estado)) return null;
+    if (compostoUnico(estado)) {
+      const comp = compostoDaEtapa(estado);
+      const tem = (t) => estado.pneus.some((p) => p.tipo === t);
+      if (tem(comp) && tem('chuva')) return null;
+      const falta = [tem(comp) ? '' : `o pneu ${nomePneu(estado, comp).toLowerCase()}`, tem('chuva') ? '' : 'o pneu de chuva'].filter(Boolean).join(' e ');
+      return `Sem pneu para correr: falta ${falta}. Na F3 cada etapa tem um único composto de seco: em ${pistaAtual(estado).nome} é o ${nomePneu(estado, comp).toLowerCase()}, mais o de chuva.`;
+    }
     const minimo = compostosMinimos(estado);
     const secos = ['slick', 'medio', 'duro'].filter((t) => estado.pneus.some((p) => p.tipo === t)).length;
     const chuva = estado.pneus.some((p) => p.tipo === 'chuva');
@@ -612,7 +634,8 @@
   }
   // "a, b e c"
   const listaE = (l) => (l.length > 1 ? `${l.slice(0, -1).join(', ')} e ${l[l.length - 1]}` : l[0] || '');
-  const faltaNoEstoque = (estado) => (quatroPneus(estado) ? TIPOS_F3.filter((t) => !estado.pneus.some((p) => p.tipo === t)) : []);
+  const faltaNoEstoque = (estado) => (!quatroPneus(estado) ? []
+    : (compostoUnico(estado) ? [compostoDaEtapa(estado), 'chuva'] : TIPOS_F3).filter((t) => !estado.pneus.some((p) => p.tipo === t)));
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
   const custoPneu = (estado) => Math.min(6, campeonato(estado.campeonato).custo);
@@ -648,7 +671,8 @@
   function reporEstoque(estado) {
     if (estado.fase === 'fds') return { ok: false, erro: 'Na pista não dá para comprar pneu.' };
     const querer = [...faltaNoEstoque(estado)];
-    if (!querer.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) querer.unshift('slick');
+    const seco = secoDaEtapa(estado);
+    if (!querer.includes(seco) && !estado.pneus.some((p) => p.tipo === seco && p.uso < 5)) querer.unshift(seco);
     if (!querer.includes('chuva') && !estado.pneus.some((p) => p.tipo === 'chuva')) querer.push('chuva');
     if (!querer.length) return { ok: false, erro: 'O estoque já está em dia.' };
     const comprados = [];
@@ -815,8 +839,9 @@
     for (const t of falta) {
       lista.push({ id: t, bloqueia: !!impede, texto: impede ? `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque.` : `Sem pneu ${nomePneu(estado, t).toLowerCase()} no estoque. No fim de semana só dá para usar o que estiver nele, e os rivais vão ter os quatro tipos.` });
     }
-    if (!falta.includes('slick') && !estado.pneus.some((p) => p.tipo === 'slick' && p.uso < 5)) {
-      lista.push({ id: 'slick', texto: `Nenhum ${quatroPneus(estado) ? 'macio' : 'slick'} novo para a classificação e a corrida.` });
+    const seco = secoDaEtapa(estado);
+    if (!falta.includes(seco) && !estado.pneus.some((p) => p.tipo === seco && p.uso < 5)) {
+      lista.push({ id: seco, texto: `Nenhum ${nomePneu(estado, seco).toLowerCase()} novo para a classificação e a corrida${compostoUnico(estado) ? ` (o composto da F3 em ${pistaAtual(estado).nome})` : ''}.` });
     }
     const clima = estado.calendario[estado.etapa] && estado.calendario[estado.etapa].clima;
     if (clima && clima.tarde.chance >= 40 && !falta.includes('chuva') && !estado.pneus.some((p) => p.tipo === 'chuva' && p.uso < 15)) {
@@ -1044,7 +1069,7 @@
     // Da F3 em diante são quatro tipos de pneu: na estreia a equipe entrega um jogo de cada um que faltar.
     const falta = faltaNoEstoque(estado);
     for (const t of falta) comprarPneu(estado, t, true);
-    if (falta.length) noticia(estado, `A ${base.nome} entrega um jogo de ${listaE(falta.map((t) => nomePneu(estado, t).toLowerCase()))}: na ${camp.curto} é preciso ter macio, médio, duro e chuva no estoque.`);
+    if (falta.length) noticia(estado, `A ${base.nome} entrega um jogo de ${listaE(falta.map((t) => nomePneu(estado, t).toLowerCase()))}: ${compostoUnico(estado) ? 'na F3 cada etapa tem um único composto de seco, mais o de chuva' : `na ${camp.curto} é preciso ter macio, médio, duro e chuva no estoque`}.`);
     // Chegar à F1 é o fim da escada: primeiro a festa da Superlicença, depois o paddock.
     // Ao assinar, a equipe paga luvas: cinco etapas de salário de uma vez.
     if (campId === 'f1') {
@@ -1252,7 +1277,7 @@
       sessao: 'treino', saidas: [], mecanico: null, ia, cabeca: [],
       // Começa do acerto da etapa anterior (se for da mesma categoria).
       setup: anterior && Kart.ORDEM_AJUSTES.every((k) => k in anterior) ? { ...anterior } : Kart.setupPadrao(),
-      pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : 'slick') || {}).id || null,
+      pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : secoDaEtapa(estado)) || {}).id || null,
       quali: null, resultado: null, custoPago: custo,
     };
     estado.fase = 'fds';
@@ -1323,7 +1348,11 @@
   }
 
   function escolherPneu(estado, id) {
-    if (pneuPorId(estado, id)) estado.fds.pneuId = id;
+    const p = pneuPorId(estado, id);
+    if (!p) return { ok: false, erro: 'Pneu não encontrado.' };
+    if (!pneuValeNaEtapa(estado, p.tipo)) return { ok: false, erro: `Na F3 só vale o ${nomePneu(estado, compostoDaEtapa(estado)).toLowerCase()} nesta etapa (e o de chuva).` };
+    estado.fds.pneuId = id;
+    return { ok: true };
   }
 
   // O que o mecânico (se estiver trabalhando no treino) diz depois de uma saída.
@@ -1427,7 +1456,7 @@
 
   function irParaClassificacao(estado) {
     const clima = climaAtual(estado);
-    const pneu = pneuMaisNovo(estado, clima.tarde.inicioChuva === 'quali' ? 'chuva' : 'slick');
+    const pneu = pneuMaisNovo(estado, clima.tarde.inicioChuva === 'quali' ? 'chuva' : secoDaEtapa(estado));
     if (pneu) estado.fds.pneuId = pneu.id;
     estado.fds.sessao = 'quali';
   }
@@ -1455,6 +1484,7 @@
   const melhorJogo = (estado, tipo, fora = []) => estado.pneus.filter((p) => p.tipo === tipo && !fora.includes(p.id)).sort((a, b) => a.uso - b.uso)[0] || null;
   function escolherComposto(estado, composto) {
     if (!Engine.PNEUS[composto]) return { ok: false, erro: 'Composto inválido.' };
+    if (!pneuValeNaEtapa(estado, TIPO_DO_COMPOSTO[composto])) return { ok: false, erro: `Na F3 só vale o ${nomePneu(estado, compostoDaEtapa(estado)).toLowerCase()} nesta etapa.` };
     const jogo = melhorJogo(estado, TIPO_DO_COMPOSTO[composto]);
     if (!jogo) return { ok: false, erro: `Sem pneu ${Engine.PNEUS[composto].nome.toLowerCase()} no estoque.` };
     estado.fds.composto = composto;
@@ -1609,6 +1639,8 @@
       drs: campeonato(estado.campeonato).ordem >= 4,
       regraCompostos: regra, semBox: !regra, semSafetyCar: !campeonato(estado.campeonato).safetyCar, chanceSafetyCar: 0.02, semModos: true, ajusteVolta,
       ...(compostos ? { pneusIniciais: { jogador: COMPOSTO_DO_TIPO[pneuJogador.tipo] || 'Md' } } : { pneuPadrao: 'Md' }),
+      // F3: todo o grid larga com o composto da etapa.
+      ...(compostos && compostoUnico(estado) ? { pneuPadrao: COMPOSTO_DO_TIPO[compostoDaEtapa(estado)] } : {}),
     });
     corrida.sprint = sprint;
     corrida.compostos = compostos;
@@ -1621,7 +1653,7 @@
         // Para cada composto seco com jogo livre: o jogo com mais vida e quantas voltas ele ainda aguenta.
         const restantes = corrida.totalVoltas - corrida.volta + 1;
         const precisaOutro = corrida.regraCompostos && c.usados.length === 1 && c.usados[0] !== 'chuva' ? c.usados[0] : null;
-        const opcoes = Engine.ORDEM_PNEUS.map((k) => {
+        const opcoes = Engine.ORDEM_PNEUS.filter((k) => pneuValeNaEtapa(estado, TIPO_DO_COMPOSTO[k])).map((k) => {
           const jogo = jogoLivre(TIPO_DO_COMPOSTO[k]);
           if (!jogo) return null;
           const aguenta = Engine.vidaPneu(k, c.piloto, corrida.pista) * Math.max(0, 1 - jogo.uso / Engine.PNEUS[k].vida);
@@ -2147,6 +2179,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
+    compostoDaEtapa, compostoUnico, secoDaEtapa, pneuValeNaEtapa,
     investirPonto, devolverPonto, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,

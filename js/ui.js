@@ -102,7 +102,7 @@
     etapa: ['Fim de semana', 'De manhã tem treino livre; à tarde, classificação e corrida. A tarde costuma ser mais quente, e o acerto que funcionou de manhã pode não servir.'],
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
-    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e um composto de seco para correr (dois na F2 e na F1); o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
+    oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e o seco que a etapa pede: na F3, o composto único da etapa (veja no calendário); na F2 e na F1, dois compostos de seco; o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
     desafio: ['Desafio do dia', 'Todo dia, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto; à meia-noite sai um desafio novo. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, R$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha do dia: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
@@ -498,12 +498,13 @@
       const pct = desgastePct(p.uso, p.tipo);
       const classe = pct >= 100 ? 'negativo' : pct >= 60 ? 'aviso' : 'dinheiro';
       const ativo = selecionavel && estado.fds.pneuId === p.id;
+      const naoVale = selecionavel && !C.pneuValeNaEtapa(estado, p.tipo);
       const conteudo = `<span class="pneu-roda ${p.tipo} ${C.quatroPneus(estado) && p.tipo === 'slick' ? 'macio' : ''}" aria-hidden="true"></span>
         <span class="pneu-nome">${nomePneu(p.tipo)} <span class="fraco">#${i + 1}</span></span>
         <span class="pneu-trilho"><i class="${classe}-fundo" style="width:${Math.max(4, 100 - pct)}%"></i></span>
         <span class="pneu-estado ${classe}">${C.pneuNovo(p) ? 'novo' : C.pneuAmaciado(p) ? 'amaciado' : pct >= 100 ? 'acabado' : `${100 - pct}%`}</span>`;
       return selecionavel
-        ? `<button class="pneu-card ${ativo ? 'ativo' : ''}" data-acao="escolher-pneu" data-id="${p.id}" aria-pressed="${ativo}">${conteudo}</button>`
+        ? `<button class="pneu-card ${ativo ? 'ativo' : ''} ${naoVale ? 'nao-vale' : ''}" data-acao="escolher-pneu" data-id="${p.id}" aria-pressed="${ativo}" ${naoVale ? 'disabled' : ''}>${conteudo}${naoVale ? '<small class="pneu-nao-vale">não vale nesta etapa</small>' : ''}</button>`
         : `<button class="pneu-card" data-acao="pneu-opcoes" data-id="${p.id}" aria-label="Opções do ${nomePneu(p.tipo)} ${i + 1}">${conteudo}<span class="pneu-mais" aria-hidden="true">⋯</span></button>`;
     }).join('')}</div>`;
   }
@@ -1092,6 +1093,13 @@
       <p class="fraco mini">${esc(r.nome)} corre pela ${esc(eq.nome)}. Vocês começaram juntos no kart${anos ? `: ${esc(anos)}` : ''}.</p>`, { classe: 'cartao-duelo' });
   }
 
+  // F3: o composto de seco da etapa (único), com a bolinha da cor dele.
+  const chipComposto = (i) => {
+    const t = C.compostoDaEtapa(estado, i);
+    if (!t) return '';
+    const k = C.COMPOSTO_DO_TIPO[t];
+    return `<span class="chip chip-composto"><span class="composto-bola" style="--cor:${Engine.PNEUS[k].cor}"></span>${i == null ? 'Pneu da etapa: ' : ''}${nomePneu(t)}</span>`;
+  };
   function cartaoProximaEtapa() {
     const pista = C.pistaAtual(estado);
     const clima = C.climaAtual(estado);
@@ -1107,7 +1115,7 @@
       <div class="hero-corpo">
         <div class="hero-pista">
           <h2>${tituloForte(pista.nome)}</h2>
-          <div class="chips">${chipTipo(pista.tipo)}${chip(`${ic('montanha')}${pista.altitude} m`)}${chip(esc(pista.local))}</div>
+          <div class="chips">${chipTipo(pista.tipo)}${chip(`${ic('montanha')}${pista.altitude} m`)}${chip(esc(pista.local))}${chipComposto()}</div>
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>
@@ -1355,7 +1363,7 @@
       return `<div class="cal-linha ${i === estado.etapa ? 'atual' : i < estado.etapa ? 'passada' : ''}">
         <span class="cal-num">E${i + 1}</span>
         <span class="cal-nome"><b>${esc(pista.nome)}</b><small>${esc(pista.local)} · ${tipoPista[pista.tipo][1]}</small></span>
-        ${status}
+        ${C.compostoUnico(estado) ? chipComposto(i) : ''}${status}
       </div>`;
     }).join('')}</div>`;
   }
@@ -1494,7 +1502,7 @@
       ${tipo('duro', 'Duro', 'Mais lento, mas aguenta muitas voltas.')}
       ${tipo('chuva', 'Chuva', 'Obrigatório no estoque. Sem ele, chuva é com pneu de seco.')}
       <ul class="tut-regras">
-        <li>Para correr: o pneu de chuva e ${camp.compostos ? 'dois compostos de seco diferentes (a corrida tem parada obrigatória)' : 'pelo menos um composto de seco (na F3 não tem parada)'}.</li>
+        <li>${camp.compostos ? 'Para correr: o pneu de chuva e dois compostos de seco diferentes (a corrida tem parada obrigatória).' : 'Na F3 cada etapa tem um único composto de seco, definido pelo asfalto (liso: macio; médio: médio; abrasivo: duro). Para correr: o composto da etapa e o de chuva. Veja no calendário qual vem pela frente.'}</li>
         <li>Na pista não se compra pneu: o fim de semana é com o estoque que você levou.</li>
         <li>Cada jogo volta gasto depois da corrida. Use "Repor estoque" na oficina antes de cada etapa.</li>
       </ul>
@@ -1856,6 +1864,9 @@
       // O jogo que vai para o carro: o montado, se for deste composto; senão o menos gasto do estoque.
       const montado = atual === k ? estado.pneus.find((x) => x.id === estado.fds.pneuId) : null;
       const jogo = montado || estado.pneus.filter((x) => x.tipo === tipo).sort((a, b) => a.uso - b.uso)[0];
+      if (!C.pneuValeNaEtapa(estado, tipo)) {
+        return `<button class="composto" disabled><span class="composto-bola" style="--cor:${p.cor}"></span><b>${p.nome}</b><small class="fraco">não vale na etapa</small></button>`;
+      }
       if (!jogo) {
         return `<button class="composto" disabled><span class="composto-bola" style="--cor:${p.cor}"></span><b>${p.nome}</b><small class="negativo">sem no estoque</small></button>`;
       }
@@ -1869,7 +1880,10 @@
     const montado = estado.pneus.find((x) => x.id === estado.fds.pneuId);
     const vidaMontado = montado ? 100 - desgastePct(montado.uso, montado.tipo) : 100;
     const gasto = montado && vidaMontado < 60 ? `<p class="aviso-caixa">${ic('alerta')}O jogo montado (${nomePneu(montado.tipo).toLowerCase()}) tem ${Math.max(0, vidaMontado)}% de vida.${estado.pneus.some((x) => x.tipo === montado.tipo && x.uso < montado.uso) ? ' Há um jogo mais novo do mesmo tipo no estoque.' : ''}</p>` : '';
-    const regra = semParada
+    const unico = C.compostoDaEtapa(estado);
+    const regra = unico
+      ? `Na F3 cada etapa tem um único composto de seco, pelo asfalto da pista: aqui é o ${nomePneu(unico).toLowerCase()}, para todo o grid. Corrida de ${voltas} voltas, sem parada: use o jogo com mais vida.`
+      : semParada
       ? `${sprint ? 'Sprint' : 'Corrida'} de ${voltas} voltas, sem parada: escolha um pneu do estoque que aguente até o fim.`
       : `Corrida de ${voltas} voltas. É obrigatório usar dois compostos: o carro para uma vez no box (cerca de 20 s) e recebe outro jogo do seu estoque. A equipe chama na hora certa; dá para pedir o box antes durante a corrida.`;
     return cartao('Estratégia de pneus', `<p class="fraco mini">${regra}</p><div class="compostos">${opcoes}</div>${gasto}`, { ajuda: 'compostos' });
@@ -2562,7 +2576,7 @@
         abrirAjuda(alvo.dataset.chave);
         break;
       case 'escolher-pneu':
-        C.escolherPneu(estado, id);
+        if (!erro(C.escolherPneu(estado, id))) break;
         salvar();
         render();
         break;

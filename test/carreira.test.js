@@ -983,17 +983,20 @@ test('F3 em diante: macio, médio, duro e chuva no estoque; sem eles não corre,
   assert.ok(!Carreira.comprarPneu(e, 'duro').ok);
   assert.ok(!Carreira.escolherComposto(e, 'D').ok);
   e.pneus.push(...duros); // (só para seguir o teste com os quatro)
-  // Mínimo: na F3 (sem parada) um composto de seco e o de chuva; na F2 e na F1, dois de seco e o de chuva.
+  // Mínimo: na F3 (sem parada) o composto da etapa e o de chuva; na F2 e na F1, dois de seco e o de chuva.
   const f = Carreira.novoJogo({ seed: 25 });
   Carreira.comecarEm(f, 'f3');
   f.fase = 'paddock';
-  f.pneus = f.pneus.filter((p) => p.tipo === 'slick' || p.tipo === 'chuva');
-  assert.ok(!Carreira.estoqueImpede(f), 'na F3 macio + chuva basta');
+  for (const t of ['slick', 'medio', 'duro']) Carreira.comprarPneu(f, t, true);
+  const comp = Carreira.compostoDaEtapa(f);
+  f.pneus = f.pneus.filter((p) => p.tipo === comp || p.tipo === 'chuva');
+  assert.ok(!Carreira.estoqueImpede(f), 'na F3 o composto da etapa + chuva basta');
   f.pneus = f.pneus.filter((p) => p.tipo === 'chuva');
-  assert.ok(Carreira.estoqueImpede(f));
+  for (const t of ['slick', 'medio', 'duro'].filter((t) => t !== comp)) Carreira.comprarPneu(f, t, true);
+  assert.ok(Carreira.estoqueImpede(f), 'outro composto não serve na etapa');
   assert.ok(Carreira.pendenciasEtapa(f).some((x) => x.bloqueia));
   assert.ok(!Carreira.iniciarFimDeSemana(f).ok);
-  Carreira.comprarPneu(f, 'duro');
+  Carreira.comprarPneu(f, comp);
   assert.ok(!Carreira.estoqueImpede(f));
   const f2 = Carreira.novoJogo({ seed: 26 });
   Carreira.comecarEm(f2, 'f2');
@@ -1161,9 +1164,10 @@ test('repor estoque, rival de carreira, telemetria e desafio da semana', () => {
   // Repor estoque da F3 em diante: um de cada que faltar.
   Carreira.comecarEm(e, 'f3');
   e.fase = 'paddock';
-  e.pneus = e.pneus.filter((p) => p.tipo !== 'duro' && p.tipo !== 'chuva');
+  const comp = Carreira.compostoDaEtapa(e);
+  e.pneus = e.pneus.filter((p) => p.tipo !== comp && p.tipo !== 'chuva');
   const r = Carreira.reporEstoque(e);
-  assert.ok(r.ok && /duro/.test(r.texto) && /chuva/.test(r.texto), JSON.stringify(r));
+  assert.ok(r.ok && new RegExp(Carreira.nomePneu(e, comp), 'i').test(r.texto) && /chuva/.test(r.texto), JSON.stringify(r));
   assert.ok(Carreira.rivalCarreira(e), 'o rival sobe junto');
   // Telemetria: soma dos trechos = total.
   const pista = Carreira.pistaAtual(e);
@@ -1398,4 +1402,31 @@ test('pontos de evolução: ganhos pela temporada, investidos até o limite e de
   assert.ok(Carreira.proximaTemporada(e, r.opcoes[0], e.equipeId).ok);
   assert.ok(!Carreira.devolverPonto(e, 'chuva').ok, 'com a temporada começada, fica valendo');
   assert.strictEqual(e.pontosEvolucao, sobra, 'o que sobrou fica guardado');
+});
+
+test('F3: um único composto de seco por etapa, pelo asfalto; o grid inteiro larga com ele', () => {
+  const e = Carreira.novoJogo({ seed: 47 });
+  Carreira.comecarEm(e, 'f3');
+  e.fase = 'paddock';
+  for (const t of ['slick', 'medio', 'duro']) Carreira.comprarPneu(e, t, true);
+  const vistos = new Set();
+  for (let i = 0; i < e.calendario.length; i++) vistos.add(Carreira.compostoDaEtapa(e, i));
+  assert.ok(vistos.size >= 2, 'o composto muda conforme a pista');
+  const comp = Carreira.compostoDaEtapa(e);
+  const outro = ['slick', 'medio', 'duro'].find((t) => t !== comp);
+  const cl = Carreira.climaAtual(e); cl.manha.chove = false; cl.tarde.chove = false; cl.tarde.inicioChuva = null; cl.tarde.voltaChuva = null;
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  const jogoOutro = e.pneus.find((p) => p.tipo === outro);
+  assert.ok(!Carreira.escolherPneu(e, jogoOutro.id).ok, 'outro composto não vai para o carro');
+  assert.strictEqual(e.pneus.find((p) => p.id === e.fds.pneuId).tipo, comp, 'a equipe monta o composto da etapa');
+  Carreira.saidaTreino(e);
+  Carreira.irParaClassificacao(e);
+  Carreira.classificar(e);
+  const corrida = Carreira.criarCorrida(e);
+  const k = Carreira.COMPOSTO_DO_TIPO[comp];
+  assert.ok(corrida.carros.every((c) => c.pneu === k), 'todo o grid com o composto da etapa');
+  // Na F2 a escolha continua livre.
+  const f = Carreira.novoJogo({ seed: 48 });
+  Carreira.comecarEm(f, 'f2');
+  assert.strictEqual(Carreira.compostoDaEtapa(f), null);
 });

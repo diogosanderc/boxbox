@@ -1267,3 +1267,10 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
 /* Caderno: um bloco por ano, do mais recente para o mais antigo. */
 .caderno-ano { display: grid; gap: var(--espaco); }
 .caderno-ano h2 { margin: 6px 2px 0; font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 26px; color: var(--texto); }
+
+/* F3: composto da etapa. */
+.chip-composto { display: inline-flex; align-items: center; gap: 6px; }
+.chip-composto .composto-bola { width: 10px; height: 10px; }
+.pneu-card.nao-vale { opacity: 0.45; }
+.pneu-nao-vale { grid-column: 1 / -1; font-size: 11px; color: var(--fraco); }
+.chip-composto .composto-bola { border-width: 3px; }
