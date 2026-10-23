@@ -1369,3 +1369,11 @@ test('pneus zeram a cada temporada: a equipe entrega um jogo novo', () => {
   assert.ok(e.pneus.every((p) => !p.uso));
   assert.ok(e.noticias.some((n) => /pneus novos/.test(n.texto)));
 });
+
+test('subida no kart vira notícia: conquistou a vaga no campeonato seguinte', () => {
+  const e = Carreira.novoJogo({ seed: 44 });
+  e.piloto.popularidade = 99; // garante a vaga
+  while (e.fase === 'paddock') jogarFimDeSemana(e, 'ideal');
+  assert.ok(e.relatorio.opcoes.includes('nacional'));
+  assert.ok(e.noticias.some((n) => /conquistou a vaga e pode correr o Campeonato Brasileiro de Kart em \d{4}/.test(n.texto)), e.noticias.map((n) => n.texto).join('\n'));
+});

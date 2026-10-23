@@ -1942,6 +1942,10 @@
     estado.ano += 1;
     estado.fase = estado.dinheiro < custoMinimo && !propostasF4.length ? 'falencia' : 'relatorio';
     noticia(estado, `${p.nome} termina ${rel.ano} em P${pos} na ${camp.nome}. Campeão: ${rel.campeao}.`);
+    // Subida dentro do kart (Regional → Brasileiro → Europeu): a vaga vira notícia.
+    if (proximo && rel.opcoes.includes(proximo.id)) {
+      noticia(estado, `${p.nome} conquistou a vaga e pode correr o ${proximo.nome} em ${rel.ano + 1}!${pos <= VAGAS_SUBIDA ? ` O P${pos} no ${camp.curto} garantiu a subida.` : ' A popularidade abriu as portas.'}`);
+    }
     if (camp.id === 'f1' && pos === 1) {
       const n = estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length;
       noticia(estado, `${n === 1 ? 'Campeão mundial!' : `${n}º título mundial!`} Próxima meta: o ${['', 'bi', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa'][n] || `${n + 1}º `}campeonato.`);
