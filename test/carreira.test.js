@@ -1357,3 +1357,15 @@ test('F4: olheiros e academias só oferecem equipe de entrada; propostas antigas
   assert.deepStrictEqual(e.propostas.map((p) => p.equipe), ['f4-mistral', 'f4-box13']);
   assert.strictEqual(e.f4Reservada.equipe, 'f4-nordwind');
 });
+
+test('pneus zeram a cada temporada: a equipe entrega um jogo novo', () => {
+  Carreira.definirPremium(false);
+  const e = Carreira.novoJogo({ seed: 43 });
+  while (e.fase !== 'fimTemporada' && e.fase !== 'relatorio') { jogarFimDeSemana(e, 'ideal'); if (e.fase === 'paddock') continue; break; }
+  assert.ok(e.pneus.some((p) => p.uso > 0), 'no fim do ano o estoque está gasto');
+  const rel = e.relatorio;
+  assert.ok(Carreira.proximaTemporada(e, rel.opcoes[0], e.equipeId).ok);
+  assert.deepStrictEqual(e.pneus.map((p) => p.tipo).sort(), ['chuva', 'slick', 'slick']);
+  assert.ok(e.pneus.every((p) => !p.uso));
+  assert.ok(e.noticias.some((n) => /pneus novos/.test(n.texto)));
+});

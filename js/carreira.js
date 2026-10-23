@@ -269,6 +269,14 @@
     estado.fase = 'paddock';
     estado.fds = null;
     estado.desenvolvimento = {}; // carro novo a cada ano
+    // Pneus também zeram a cada ano: o estoque velho sai e a equipe entrega um jogo novo
+    // (no kart e na F4, dois slicks e um de chuva; da F3 em diante, um de cada tipo).
+    if (estado.temporadas && estado.temporadas.length) {
+      estado.pneus = [];
+      const kit = quatroPneus(estado) ? tiposPneu(estado) : ['slick', 'slick', 'chuva'];
+      for (const t of kit) comprarPneu(estado, t, true);
+      noticia(estado, `Temporada nova, pneus novos: a equipe entrega ${listaE(kit.map((t) => nomePneu(estado, t).toLowerCase()).filter((x, i, l) => l.indexOf(x) === i))}${kit.length === 3 ? ' (dois slicks)' : ''}. O estoque do ano passado ficou para trás.`);
+    }
     if ((estado.ano > 2027 || estado.etapa > 0) && camp.id !== 'f1') {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
       estado.dinheiro += apoio;
