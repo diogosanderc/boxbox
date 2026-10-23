@@ -1263,3 +1263,7 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
 .evo-btn { height: 36px; padding: 0; font-size: 20px; font-weight: 700; }
 .evo-btn.mais:not(:disabled) { background: rgba(47, 191, 113, 0.16); border-color: var(--ok); color: #bff3d6; }
 .evo-teto { position: absolute; left: 0; bottom: -2px; font-size: 10px; }
+
+/* Caderno: um bloco por ano, do mais recente para o mais antigo. */
+.caderno-ano { display: grid; gap: var(--espaco); }
+.caderno-ano h2 { margin: 6px 2px 0; font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; font-size: 26px; color: var(--texto); }

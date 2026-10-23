@@ -1610,12 +1610,24 @@
     }).join('');
   }
 
+  // Caderno por ano, do mais recente para o mais antigo; dentro do ano, cada etapa (a mais recente primeiro).
   function painelCaderno() {
     const pistas = Object.keys(estado.caderno);
     if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino, a classificação e a corrida aparecem aqui.</p>');
     const todas = Object.values(Dados.KARTODROMOS).flat();
     const nome = (id) => (todas.find((x) => x.id === id) || { nome: id }).nome;
-    return `<div class="grade">${pistas.map((id) => cartao(esc(nome(id)), blocosCaderno(estado.caderno[id]))).join('')}</div>`;
+    const visitas = new Map();
+    for (const id of pistas) {
+      for (const l of estado.caderno[id]) {
+        const chave = `${l.ano}|${l.campeonato || ''}|${l.etapa || 0}|${id}`;
+        if (!visitas.has(chave)) visitas.set(chave, { id, ano: l.ano, etapa: l.etapa || 0, ordem: (C.campeonato(l.campeonato) || { ordem: 0 }).ordem, itens: [] });
+        visitas.get(chave).itens.push(l);
+      }
+    }
+    const lista = [...visitas.values()].sort((a, b) => b.ano - a.ano || b.ordem - a.ordem || b.etapa - a.etapa);
+    const anos = [...new Set(lista.map((v) => v.ano))];
+    return anos.map((ano) => `<div class="caderno-ano"><h2>${ano}</h2><div class="grade">${lista.filter((v) => v.ano === ano)
+      .map((v) => cartao(esc(nome(v.id)), blocosCaderno(v.itens))).join('')}</div></div>`).join('');
   }
 
   // Para onde cada notícia leva ao ser tocada: aba do paddock e o cartão do assunto.
