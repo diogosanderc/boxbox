@@ -284,10 +284,11 @@ test('no começo só 3 equipes: uma de ponta, uma intermediária e uma pequena',
 test('pneu comprado entra junto com os do mesmo tipo', () => {
   const e = Carreira.novoJogo({ seed: 16 });
   e.dinheiro = 100000;
+  e.pneus = [];
   Carreira.comprarPneu(e, 'slick');
   Carreira.comprarPneu(e, 'chuva');
   Carreira.comprarPneu(e, 'slick');
-  assert.deepStrictEqual(e.pneus.map((p) => p.tipo), ['slick', 'slick', 'slick', 'slick', 'chuva', 'chuva']);
+  assert.deepStrictEqual(e.pneus.map((p) => p.tipo), ['slick', 'slick', 'chuva']);
 });
 
 test('nenhum traçado de kartódromo se cruza', () => {
@@ -336,6 +337,7 @@ test('pendências antes da etapa: slick novo, chuva prevista e motor', () => {
   e.motorHoras = Carreira.HORAS_REVISAO;
   assert.deepStrictEqual(Carreira.pendenciasEtapa(e).map((x) => x.id), ['slick', 'chuva', 'motor']);
   e.dinheiro = 100000;
+  Carreira.descartarPneu(e, e.pneus[0].id); // estoque de 4: abre vaga
   Carreira.comprarPneu(e, 'slick');
   Carreira.comprarPneu(e, 'chuva');
   Carreira.revisarMotor(e);
@@ -850,10 +852,12 @@ test('estoque de pneus: compra de espaço até 8 no kart, cada vaga mais cara', 
   try {
   const e = Carreira.novoJogo({ seed: 61 });
   e.dinheiro = 1e6;
-  assert.strictEqual(Carreira.espacoPneus(e), 6);
+  assert.strictEqual(Carreira.espacoPneus(e), 4);
   const p1 = Carreira.precoEspaco(e);
   assert.ok(Carreira.comprarEspaco(e).ok);
   assert.ok(Carreira.precoEspaco(e) > p1);
+  assert.ok(Carreira.comprarEspaco(e).ok);
+  assert.ok(Carreira.comprarEspaco(e).ok);
   assert.ok(Carreira.comprarEspaco(e).ok);
   assert.strictEqual(Carreira.espacoPneus(e), 8);
   assert.ok(!Carreira.comprarEspaco(e).ok); // limite do kart
@@ -1077,7 +1081,8 @@ test('F2: parada escolhe o jogo com vida (não para de novo) e a corrida usa o j
   Carreira.comecarEm(e, 'f2');
   e.fase = 'paddock';
   const cl = Carreira.climaAtual(e); cl.tarde.inicioChuva = null; cl.tarde.chove = false; cl.manha.chove = false; cl.tarde.chance = 0;
-  Carreira.comprarPneu(e, 'slick');
+  e.espacoExtra = 1; // um macio a mais (como quem tem o Premium)
+  assert.ok(Carreira.comprarPneu(e, 'slick').ok);
   assert.ok(Carreira.iniciarFimDeSemana(e).ok);
   Carreira.irParaClassificacao(e);
   const quali = e.pneus.find((p) => p.id === e.fds.pneuId);
@@ -1408,6 +1413,7 @@ test('F3: um único composto de seco por etapa, pelo asfalto; o grid inteiro lar
   const e = Carreira.novoJogo({ seed: 47 });
   Carreira.comecarEm(e, 'f3');
   e.fase = 'paddock';
+  e.espacoExtra = 2;
   for (const t of ['slick', 'medio', 'duro']) Carreira.comprarPneu(e, t, true);
   const vistos = new Set();
   for (let i = 0; i < e.calendario.length; i++) vistos.add(Carreira.compostoDaEtapa(e, i));

@@ -562,7 +562,7 @@
   }
 
   // Estoque de pneus: começa com MAX_PNEUS jogos; dá para comprar mais espaço, até o limite da categoria.
-  const MAX_PNEUS = 6;
+  const MAX_PNEUS = 4;
   const LIMITE_ESPACO = { kart: 8, f4: 10, f3: 12, f2: 14, f1: 16 };
   const PRECO_ESPACO = 2500; // por vaga, multiplicado pelo custo do campeonato e encarecendo a cada vaga
   const espacoPneus = (estado) => MAX_PNEUS + (estado.espacoExtra || 0);
@@ -1043,6 +1043,9 @@
     p.popularidade = ini.popularidade;
     estado.dinheiro = 120000;
     estado.noticias = [];
+    // Atalho de teste: chega com o estoque da categoria (o do kart fica para trás).
+    estado.pneus = [];
+    if (campeonato(campId).ordem < 4) for (const t of ['slick', 'slick', 'chuva']) comprarPneu(estado, t, true);
     return entrarNaCategoria(estado, { tipo: 'subida', campeonato: campId, pago: true, equipe: ini.equipe });
   }
   const comecarNaF4 = (estado) => comecarEm(estado, 'f4');
