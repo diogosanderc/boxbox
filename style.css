@@ -1245,3 +1245,11 @@ body.fundo-travado { position: fixed; left: 0; right: 0; overflow: hidden; }
 /* Depois que o rádio fala: atalho para o acerto. */
 .radio-ajustar { justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; background: rgba(61, 155, 255, 0.14); border-color: var(--azul); color: #cfe4ff; font-weight: 700; animation: radio-entra 0.3s ease-out; }
 .cartao-radio.transmitindo .radio-ajustar { display: none; }
+
+/* Faixa escura atrás do relógio, bateria e notch/ilha: o conteúdo que rola não se mistura com eles. */
+body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: #04070f; z-index: 25; pointer-events: none; }
+/* Abas do paddock trocadas com o dedo: o conteúdo entra deslizando do lado certo. */
+.desliza-da-direita { animation: desliza-direita 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.desliza-da-esquerda { animation: desliza-esquerda 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes desliza-direita { from { opacity: 0; transform: translateX(40px); } }
+@keyframes desliza-esquerda { from { opacity: 0; transform: translateX(-40px); } }
