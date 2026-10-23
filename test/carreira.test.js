@@ -1377,3 +1377,25 @@ test('subida no kart vira notícia: conquistou a vaga no campeonato seguinte', (
   assert.ok(e.relatorio.opcoes.includes('nacional'));
   assert.ok(e.noticias.some((n) => /conquistou a vaga e pode correr o Campeonato Brasileiro de Kart em \d{4}/.test(n.texto)), e.noticias.map((n) => n.texto).join('\n'));
 });
+
+test('pontos de evolução: ganhos pela temporada, investidos até o limite e devolvidos até a temporada começar', () => {
+  assert.strictEqual(Carreira.pontosEvolucaoDa(1, 3), 23);
+  assert.strictEqual(Carreira.pontosEvolucaoDa(7, 0), 11);
+  assert.strictEqual(Carreira.pontosEvolucaoDa(15, 0), 8);
+  const e = Carreira.novoJogo({ seed: 45 });
+  while (e.fase === 'paddock') jogarFimDeSemana(e, 'ideal');
+  const r = e.relatorio;
+  assert.strictEqual(e.pontosEvolucao, Carreira.pontosEvolucaoDa(r.pos, r.vitorias));
+  const antes = e.piloto.chuva;
+  assert.ok(Carreira.investirPonto(e, 'chuva').ok);
+  assert.ok(Carreira.investirPonto(e, 'chuva').ok);
+  assert.ok(Carreira.devolverPonto(e, 'chuva').ok);
+  assert.strictEqual(e.piloto.chuva, antes + 1);
+  assert.ok(!Carreira.devolverPonto(e, 'largada').ok, 'só devolve o que investiu');
+  e.piloto.ritmo = e.piloto.potencial;
+  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'não passa do limite');
+  const sobra = e.pontosEvolucao;
+  assert.ok(Carreira.proximaTemporada(e, r.opcoes[0], e.equipeId).ok);
+  assert.ok(!Carreira.devolverPonto(e, 'chuva').ok, 'com a temporada começada, fica valendo');
+  assert.strictEqual(e.pontosEvolucao, sobra, 'o que sobrou fica guardado');
+});

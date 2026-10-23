@@ -107,6 +107,7 @@
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
+    evolucao: ['Pontos de evolução', `O piloto melhora sozinho com a idade e as corridas, mas devagar. O resto vem dos pontos de evolução, ganhos no fim de cada temporada: ${C.pontosEvolucaoDa(99)} por disputar o ano, mais um bônus pela posição no campeonato (campeão +12, P2 +9, P3 +7, P4 +5, P5 a P10 +3) e +1 por vitória. Você escolhe onde investir: cada ponto vale +1 no atributo, até o limite do piloto. Especializar (chuva, largada, pneus...) ou equilibrar é com você.`],
     banco: ['Banco', `Empréstimo para investir no carro e na carreira (só com o Premium). O limite cresce com a categoria e com a popularidade. Você escolhe o prazo: ${Object.entries(C.PRAZOS_EMPRESTIMO).map(([p, j]) => `${p} etapas com ${Math.round(j * 100)}% de juros`).join(', ')}. A parcela sai do caixa ao fim de cada etapa; se não houver dinheiro, ela atrasa com multa de ${Math.round(C.MULTA_ATRASO * 100)}%, e a moral e a popularidade caem. Um empréstimo por vez; quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
@@ -1533,10 +1534,34 @@
     return cartao('Desenvolvimento do carro', `<p class="fraco mini">Peças novas para o seu carro. Cada nível soma ${C.GANHO_DEV} pontos na área até o fim da temporada; no ano seguinte o carro é novo.</p>${linhas}`, { classe: 'cartao-dev', ajuda: 'desenvolvimento' });
   }
 
+  // Pontos de evolução: o jogador escolhe onde o piloto melhora. + investe, − devolve o que foi
+  // investido desde o último fim de temporada (quando a temporada nova começa, fica valendo).
+  function cartaoPontosEvolucao(r) {
+    const p = estado.piloto;
+    const sobra = estado.pontosEvolucao || 0;
+    const dist = estado.distribuidos || {};
+    if (!sobra && !Object.values(dist).some((n) => n > 0)) return '';
+    const linhas = C.ATRIBUTOS.map((a) => {
+      const n = dist[a] || 0;
+      const teto = p[a] >= p.potencial;
+      return `<div class="evo-linha"><span>${C.NOMES_ATRIBUTOS[a]}</span>
+        <button class="evo-btn" data-acao="devolver-ponto" data-a="${a}" ${n ? '' : 'disabled'} aria-label="Tirar ponto de ${C.NOMES_ATRIBUTOS[a]}">−</button>
+        <b>${p[a]}${n ? `<small class="dinheiro"> +${n}</small>` : ''}</b>
+        <button class="evo-btn mais" data-acao="investir-ponto" data-a="${a}" ${sobra && !teto ? '' : 'disabled'} aria-label="Pôr ponto em ${C.NOMES_ATRIBUTOS[a]}">+</button>
+        ${teto ? '<small class="fraco evo-teto">no limite</small>' : ''}</div>`;
+    }).join('');
+    const ganho = r && r.pontosEvolucao ? `<p class="fraco mini">Este ano: ${C.pontosEvolucaoDa(99)} pela temporada${r.pontosEvolucao - C.pontosEvolucaoDa(99) - r.vitorias > 0 ? ` + ${r.pontosEvolucao - C.pontosEvolucaoDa(99) - r.vitorias} pelo P${r.pos}` : ''}${r.vitorias ? ` + ${r.vitorias} ${r.vitorias === 1 ? 'pela vitória' : 'pelas vitórias'}` : ''} = <b>${r.pontosEvolucao}</b>.</p>` : '';
+    return cartao('Pontos de evolução', `
+      <div class="evo-sobra"><b>${sobra}</b><span>${sobra === 1 ? 'ponto para distribuir' : 'pontos para distribuir'}</span></div>
+      ${ganho}${linhas}
+      <p class="fraco mini">Cada ponto vale +1, até o limite do piloto. Dá para mudar até a temporada começar; o que sobrar fica guardado.</p>`, { classe: 'cartao-evolucao destaque', ajuda: 'evolucao' });
+  }
+
   function painelPiloto() {
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
+      ${cartaoPontosEvolucao()}
       ${cartao(esc(p.nome), C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join(''))}
       ${cartaoCabeca()}
       ${cartaoPreparacao()}
@@ -1664,7 +1689,7 @@
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
       <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
-      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', noticias: noticiasNovas() ? 'nova' : '' })}
+      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', piloto: estado.pontosEvolucao > 0 ? 'nova' : '', noticias: noticiasNovas() ? 'nova' : '' })}
       ${conteudo}
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
@@ -2293,7 +2318,8 @@
           <div class="pos-grande"><span>Campeonato</span><b>${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P${r.pos}</b></div>
           <div class="tiles">${tile('Pontos', r.pontos)}${tile('Campeão', r.pos === 1 ? 'Você' : esc(r.campeao.split(' ')[0]))}</div><div class="tiles">${tile('Ganhos no ano', '+' + reais(ganhos), 'dinheiro')}</div>
         </section>
-        ${cartao('Evolução', r.evolucao.length
+        ${cartaoPontosEvolucao(r)}
+        ${cartao('Evolução natural', r.evolucao.length
           ? r.evolucao.map((x) => `<div class="barra"><span>${C.NOMES_ATRIBUTOS[x.a]}</span><span class="trilho"><i style="width:${x.depois}%"></i></span><b>${x.depois} <span class="dinheiro mini">${sinal(x.depois - x.antes)}</span></b></div>`).join('')
           : '<p class="vazio">Sem evolução este ano.</p>')}
         ${cartao('Dinheiro', `
@@ -2668,6 +2694,12 @@
         break;
       case 'amaciar-pneu':
         if (erro(C.amaciarPneu(estado))) { salvar(); render(); rolarPara('.acoes', 'center'); aviso('Pneu amaciado: pronto para render o máximo.'); }
+        break;
+      case 'investir-ponto':
+        if (erro(C.investirPonto(estado, alvo.dataset.a))) { salvar(); render(); }
+        break;
+      case 'devolver-ponto':
+        if (erro(C.devolverPonto(estado, alvo.dataset.a))) { salvar(); render(); }
         break;
       case 'banco-valor':
         tela.banco = { ...(tela.banco || { prazo: 8 }), fracao: +alvo.dataset.valor };

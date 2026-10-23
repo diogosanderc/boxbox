@@ -269,6 +269,7 @@
     estado.fase = 'paddock';
     estado.fds = null;
     estado.desenvolvimento = {}; // carro novo a cada ano
+    estado.distribuidos = {}; // pontos investidos ficam valendo (não dá mais para devolver)
     // Pneus também zeram a cada ano: o estoque velho sai e a equipe entrega um jogo novo
     // (no kart e na F4, dois slicks e um de chuva; da F3 em diante, um de cada tipo).
     if (estado.temporadas && estado.temporadas.length) {
@@ -1745,7 +1746,7 @@
     const rnd = rngDe(estado);
     // Andar na frente ensina mais: pódio e top 5 aceleram a evolução.
     const aprendizado = meu.fora ? 0.12 : meu.pos <= 3 ? 0.3 : meu.pos <= 5 ? 0.22 : 0.15;
-    evoluir(p, rnd, aprendizado * fatorMoral(p));
+    evoluir(p, rnd, aprendizado * fatorMoral(p) * EVOLUCAO_AUTOMATICA);
     const recordeCorrida = conferirRecorde(estado, corrida.carros.map((c) => ({ id: c.id, tempo: c.melhorVolta })), 'corrida');
     fds.resultado = { companheiro: comp ? { nome: comp.nome, pos: dele.pos, fora: dele.fora, venci: dueloCorrida } : null, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', recorde: recordeCorrida, pos: meu.pos, fora: meu.fora, motivo: meu.motivoFora, pontos: meu.pontos, ganho, patrocinio: patroc, eventos, olheiros: estado.olheiros.map((o) => o.nome), cabeca: fds.cabeca || [] };
     atualizarInteresse(estado, meu.fora ? 99 : meu.pos, rnd);
@@ -1827,6 +1828,33 @@
   }
 
   // ---------- evolução e fim de temporada ----------
+  // O piloto evolui de dois jeitos: sozinho, com a idade e as corridas (a experiência, mais devagar),
+  // e com os pontos de evolução que o jogador distribui no fim de cada temporada: 8 por disputar o ano,
+  // bônus pela posição no campeonato e +1 por vitória. Cada ponto vale +1 no atributo, até o potencial.
+  const EVOLUCAO_AUTOMATICA = 0.3;
+  const PONTOS_BASE_EVOLUCAO = 8;
+  const BONUS_EVOLUCAO = { 1: 12, 2: 9, 3: 7, 4: 5 };
+  const pontosEvolucaoDa = (pos, vitorias = 0) => PONTOS_BASE_EVOLUCAO + (BONUS_EVOLUCAO[pos] || (pos <= 10 ? 3 : 0)) + vitorias;
+  // Investe um ponto (ou devolve um investido desde o último fim de temporada).
+  function investirPonto(estado, a) {
+    const p = estado.piloto;
+    if (!ATRIBUTOS.includes(a)) return { ok: false, erro: 'Atributo inválido.' };
+    if (!(estado.pontosEvolucao > 0)) return { ok: false, erro: 'Sem pontos de evolução.' };
+    if (p[a] >= p.potencial) return { ok: false, erro: `${NOMES_ATRIBUTOS[a]} já está no limite do piloto.` };
+    p[a] += 1;
+    estado.pontosEvolucao -= 1;
+    estado.distribuidos = { ...(estado.distribuidos || {}), [a]: ((estado.distribuidos || {})[a] || 0) + 1 };
+    return { ok: true };
+  }
+  function devolverPonto(estado, a) {
+    const d = estado.distribuidos || {};
+    if (!(d[a] > 0)) return { ok: false, erro: 'Nada para devolver.' };
+    estado.piloto[a] -= 1;
+    estado.pontosEvolucao += 1;
+    estado.distribuidos = { ...d, [a]: d[a] - 1 };
+    return { ok: true };
+  }
+
   function evoluir(p, rnd, fator) {
     const taxa = p.idade <= 14 ? 0.3 : p.idade <= 17 ? 0.22 : 0.12;
     for (const a of ATRIBUTOS) {
@@ -1863,7 +1891,10 @@
     const p = estado.piloto;
     const antes = Object.fromEntries(ATRIBUTOS.map((a) => [a, p[a]]));
     if (pos === 1) mexerCabeca(estado, { moral: 15, confianca: 10 });
-    evoluir(p, rnd, fatorMoral(p));
+    evoluir(p, rnd, fatorMoral(p) * EVOLUCAO_AUTOMATICA);
+    rel.pontosEvolucao = pontosEvolucaoDa(pos, rel.vitorias);
+    estado.pontosEvolucao = (estado.pontosEvolucao || 0) + rel.pontosEvolucao;
+    estado.distribuidos = {};
     p.moral = Math.round(p.moral + (60 - p.moral) * 0.3);
     p.sensibilidade = Math.min(95, p.sensibilidade + 3);
     p.idade += 1;
@@ -2116,6 +2147,7 @@
   const Carreira = {
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
+    investirPonto, devolverPonto, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
