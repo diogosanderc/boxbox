@@ -324,6 +324,8 @@
   const precoPsicologo = (estado) => Math.round(PRECO_PSICOLOGO * campeonato(estado.campeonato).custo);
 
   // Saves antigos não tinham moral e confiança.
+  // Equipe de F4 que cada olheiro oferecia antes (de ponta) -> id do olheiro.
+  const ENTRADA_F4_ANTIGA = { 'f4-apex': 'apex-f4', 'f4-lionheart': 'lionheart-f4', 'f4-scorpio': 'scorpio-f4', 'f4-vortex': 'vortex-academia', 'f4-rossa': 'rossa-academia' };
   function migrar(estado) {
     // Carreiras antigas, sem sorteio, continuam com os nomes originais.
     usarNomesEquipes(estado && estado.nomesEquipes);
@@ -334,6 +336,16 @@
     if (estado && estado.piloto && estado.piloto.moral == null) {
       estado.piloto.moral = 60;
       estado.piloto.confianca = 50;
+    }
+    // A F4 passou a começar sempre numa equipe de entrada: vagas guardadas ou propostas ainda abertas
+    // de carreiras antigas vão para a equipe nova do mesmo olheiro.
+    if (estado && estado.piloto) {
+      const doOlheiro = (pr) => {
+        const o = Dados.OLHEIROS.find((x) => x.tipo === pr.tipo && (x.nome === pr.nome || ENTRADA_F4_ANTIGA[pr.equipe] === x.id));
+        return o ? { ...pr, nome: o.nome, equipe: o.equipe } : pr;
+      };
+      if (estado.f4Reservada && ENTRADA_F4_ANTIGA[estado.f4Reservada.equipe]) estado.f4Reservada = doOlheiro(estado.f4Reservada);
+      if (estado.propostas) estado.propostas = estado.propostas.map((pr) => ((pr.tipo === 'f4' || pr.tipo === 'academia') && ENTRADA_F4_ANTIGA[pr.equipe] ? doOlheiro(pr) : pr));
     }
     if (estado && !estado.evolucao) { estado.evolucao = []; estado.temporadas = []; estado.seguindo = null; }
     // Versões antigas paravam na tela "Rumo à F3": agora a F3 é jogável.
@@ -1879,11 +1891,11 @@
       else if (camp.ordem === 2 && pos <= VAGAS_SUBIDA) rel.motivoF4 = `Você terminou em P${pos} no ${camp.curto}: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de F4${pos <= 2 ? ' e das academias de F1' : ''}.`;
       else if (camp.ordem === 1 && pos === 1) rel.motivoF4 = 'O título brasileiro chamou a atenção de uma equipe de F4.';
       else rel.motivoF4 = `${o.nome} acompanhou suas corridas e gostou do que viu.`;
-      propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f4', nome: o.nome, equipe: o.equipe, texto: 'Vaga na Fórmula 4 para o próximo ano. Você paga 60% do orçamento da equipe.' });
+      propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'f4', nome: o.nome, equipe: o.equipe, texto: 'Vaga numa equipe de entrada da Fórmula 4 para o próximo ano. Você paga 60% do orçamento da equipe.' });
     }
     if (noKart && camp.ordem === 2 && pos <= 2) {
       const a = sortear(rnd, Dados.OLHEIROS.filter((x) => x.tipo === 'academia'));
-      propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'academia', nome: a.nome, equipe: a.equipe, texto: 'Entrar no programa de jovens pilotos de uma equipe de F1: eles pagam a F4.' });
+      propostasF4.push({ id: `pr${estado.proxId++}`, tipo: 'academia', nome: a.nome, equipe: a.equipe, texto: 'Entrar no programa de jovens pilotos de uma equipe de F1: eles pagam a F4, numa equipe parceira de entrada.' });
     }
     // A FIA só deixa correr de F4 a partir dos 15 anos: a proposta fica guardada até lá.
     if (noKart) {

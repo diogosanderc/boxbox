@@ -364,12 +364,15 @@
   ];
 
   // Quem pode aparecer no paddock observando. nivelMin: a partir de qual campeonato aparece.
+  // Na F4 todo mundo começa numa equipe de entrada (as quatro mais fracas): as de ponta só depois,
+  // por mérito. As academias de F1 pagam a F4, mas numa equipe parceira de entrada.
+  // (Os ids ficaram os antigos para não perder o interesse guardado nas carreiras em andamento.)
   const OLHEIROS = [
-    { id: 'apex-f4', nome: 'Apex Junior (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-apex' },
-    { id: 'lionheart-f4', nome: 'Lionheart F4', tipo: 'f4', nivelMin: 1, equipe: 'f4-lionheart' },
-    { id: 'scorpio-f4', nome: 'Scorpio Racing (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-scorpio' },
-    { id: 'vortex-academia', nome: 'Academia Vortex (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-vortex' },
-    { id: 'rossa-academia', nome: 'Programa Jovens Rossa (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-rossa' },
+    { id: 'apex-f4', nome: 'Mistral Formula (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-mistral' },
+    { id: 'lionheart-f4', nome: 'Nordwind Motorsport (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-nordwind' },
+    { id: 'scorpio-f4', nome: 'Pampa Racing (F4)', tipo: 'f4', nivelMin: 1, equipe: 'f4-pampa' },
+    { id: 'vortex-academia', nome: 'Academia Vortex (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-box13' },
+    { id: 'rossa-academia', nome: 'Programa Jovens Rossa (equipe de F1)', tipo: 'academia', nivelMin: 2, equipe: 'f4-pampa' },
   ];
 
   // Nomes e sobrenomes comuns de cada país (sem sobrenomes de pilotos reais de F1).

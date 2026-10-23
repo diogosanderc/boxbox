@@ -1346,3 +1346,14 @@ test('banco: só com o Premium, parcela por etapa, atraso com multa e quitação
   assert.strictEqual(e.dinheiro, 1e6 - q);
   Carreira.definirPremium(false);
 });
+
+test('F4: olheiros e academias só oferecem equipe de entrada; propostas antigas migram', () => {
+  const entrada = Dados.EQUIPES_F4.slice(-4).map((e) => e.id);
+  for (const o of Dados.OLHEIROS) assert.ok(entrada.includes(o.equipe), `${o.nome} oferece ${o.equipe}`);
+  const e = Carreira.novoJogo({ seed: 41 });
+  e.propostas = [{ id: 'a', tipo: 'f4', nome: 'Apex Junior (F4)', equipe: 'f4-apex' }, { id: 'b', tipo: 'academia', nome: 'Academia Vortex (equipe de F1)', equipe: 'f4-vortex' }];
+  e.f4Reservada = { id: 'c', tipo: 'f4', nome: 'Lionheart F4', equipe: 'f4-lionheart' };
+  Carreira.migrar(e);
+  assert.deepStrictEqual(e.propostas.map((p) => p.equipe), ['f4-mistral', 'f4-box13']);
+  assert.strictEqual(e.f4Reservada.equipe, 'f4-nordwind');
+});
