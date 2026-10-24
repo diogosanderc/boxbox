@@ -741,7 +741,7 @@
     abrirPremium();
     if (r.status === 'pending') aviso('Compra pendente: o Premium libera assim que for aprovada.');
     else if (r.status === 'nada') aviso('Nenhuma compra do Premium encontrada nesta conta.');
-    else if (r.status === 'erro') aviso('Não deu para falar com a App Store agora. Tente de novo.');
+    else if (r.status === 'erro') aviso(BoxPremium.depuracao && r.erro ? `Erro da loja: ${r.erro}` : 'Não deu para falar com a App Store agora. Tente de novo.');
   });
 
   // Ferramentas de teste (modo desenvolvedor e código de dinheiro): só no navegador. No app da App Store
@@ -830,6 +830,7 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
+          ${BoxPremium.depuracao ? `<button class="link-f4" data-acao="premium-dev">Dev (Xcode): Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>` : ''}
           ${modoDev() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>
             ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
         </div>
@@ -2995,7 +2996,8 @@
     render();
     if (v) aviso('Premium ativado! Obrigado.', 'estrela');
   });
-  BoxPremium.iniciar();
+  // Na build do Xcode, o atalho de Premium da abertura só aparece depois de saber que é depuração.
+  BoxPremium.iniciar().then(() => { if (BoxPremium.depuracao && tela.nome === 'abertura') render(); });
   BoxAnuncios.iniciar();
   BoxSave.iniciar(CHAVE_SAVE).catch(() => {}).then(render);
 })();

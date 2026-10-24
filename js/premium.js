@@ -11,15 +11,24 @@
   const plugin = nativo ? cap.registerPlugin('Premium') : null;
 
   const lerCache = () => { try { return localStorage.getItem(CHAVE) === '1'; } catch (e) { return false; } };
-  let ativo = lerCache();
+  // Atalho de desenvolvedor: só vale em build de depuração (rodando pelo Xcode); nunca na App Store.
+  const CHAVE_DEV = 'superlicenca-premium-dev';
+  const forcadoDev = () => { try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
+  let depuracao = false;
+  let daLoja = lerCache(); // o que a App Store disse (ou o cache até ela responder)
+  let ativo = daLoja;
   const ouvintes = [];
 
-  function definir(v) {
-    const novo = !!v;
-    try { localStorage.setItem(CHAVE, novo ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
+  function aplicar() {
+    const novo = daLoja || (depuracao && forcadoDev());
     if (novo === ativo) return;
     ativo = novo;
     ouvintes.forEach((f) => f(ativo));
+  }
+  function definir(v) {
+    daLoja = !!v;
+    try { localStorage.setItem(CHAVE, daLoja ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
+    aplicar();
   }
 
   const BoxPremium = {
@@ -29,6 +38,8 @@
     // que chegam fora do fluxo normal (compra aprovada depois, feita em outro aparelho...).
     async iniciar() {
       if (!plugin) return;
+      try { depuracao = !!(await plugin.isDebugBuild()).debug; } catch (e) { depuracao = false; }
+      aplicar();
       try { plugin.addListener('premiumChanged', (d) => definir(d && d.unlocked)); } catch (e) { /* sem eventos */ }
       try { definir((await plugin.isPremiumUnlocked()).unlocked); } catch (e) { /* offline: fica o cache */ }
     },
@@ -62,7 +73,14 @@
       }
     },
     // Só no navegador, pelo modo desenvolvedor.
-    alternarDev() { if (!plugin) definir(!ativo); },
+    alternarDev() {
+      if (!plugin) { definir(!ativo); return; }
+      if (!depuracao) return;
+      try { localStorage.setItem(CHAVE_DEV, forcadoDev() ? '0' : '1'); } catch (e) { /* sem armazenamento */ }
+      aplicar();
+    },
+    // true só quando o app roda pelo Xcode (build de depuração).
+    get depuracao() { return depuracao; },
     aoMudar(f) { ouvintes.push(f); },
   };
 
