@@ -262,7 +262,7 @@
       { sel: '.hero', titulo: 'A próxima etapa', texto: 'Veja as informações da pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto. É importantíssimo para o acerto do carro.' },
       { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
       { sel: '[data-aba="noticias"]', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho mostra quando tem novidade.' },
-      { sel: '[data-acao="ir-fds"]', titulo: 'Fim de semana', texto: 'Quando estiver pronto, vá para a pista. Cada etapa tem treino livre de manhã, classificação e corrida à tarde.' },
+      { sel: '[data-acao="ir-fds"]', titulo: 'Fim de semana', texto: 'Quando estiver pronto, vá para o treino livre. Cada etapa tem treino livre de manhã, classificação e corrida à tarde.' },
     ],
     treino: () => [
       { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
@@ -1012,7 +1012,7 @@
       <button class="link-oficina" data-acao="aba" data-aba="oficina">${ic('chave')}Abrir a oficina</button></div>`;
   }
 
-  // Folha que sobe ao tocar em "Ir para a pista" quando ainda falta algo.
+  // Folha que sobe ao tocar em "Ir para o treino livre" quando ainda falta algo.
   function folhaChecagem() {
     if (!tela.checagem) return '';
     const pend = C.pendenciasEtapa(estado);
@@ -1022,7 +1022,7 @@
       ${impede ? `<p class="aviso">${esc(impede)}</p>` : ''}
       ${pend.length ? pend.map((x) => `<div class="pendencia"><span>${esc(x.texto)}</span>${botaoResolver(x.id)}</div>`).join('') : '<p class="fraco">Pneus e motor em dia.</p>'}
       <div class="botoes-2"><button data-acao="fechar-checagem">Voltar</button>
-        <button class="${pend.length ? '' : 'principal'}" data-acao="ir-fds-confirmado" ${impede ? 'disabled' : ''}>${pend.length && !impede ? 'Ir mesmo assim' : 'Ir para a pista'}</button></div>
+        <button class="${pend.length ? '' : 'principal'}" data-acao="ir-fds-confirmado" ${impede ? 'disabled' : ''}>${pend.length && !impede ? 'Ir mesmo assim' : 'Ir para o treino livre'}</button></div>
     </div></div>`;
   }
 
@@ -1152,7 +1152,7 @@
             : tile('Custo da etapa', estado.contrato && estado.contrato.custoEtapa === 0 ? 'Grátis' : `−${reais(custo)}`, estado.contrato && estado.contrato.custoEtapa === 0 ? '' : 'negativo')}
           ${estado.motorQuebrado ? blocoRetifica(custo) : semDinheiro
             ? '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'
-            : '<button class="principal grande" data-acao="ir-fds">Ir para a pista</button>'}
+            : '<button class="principal grande" data-acao="ir-fds">Ir para o treino livre</button>'}
         </div>
       </div>
     </section>`;
@@ -1866,7 +1866,7 @@
         </div>
         ${aba === 'pista' ? conteudoPista(pista, camp)
         : `<div class="anotacoes">${anotacoes.length ? blocosCaderno(anotacoes) : '<p class="vazio">Você ainda não andou aqui.</p>'}</div>`}
-        ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para a pista · ${reais(C.custoEtapa(estado))}</button>` : ''}
+        ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para o treino livre · ${reais(C.custoEtapa(estado))}</button>` : ''}
       </div>
       ${folhaChecagem()}`;
   }
