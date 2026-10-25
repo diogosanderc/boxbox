@@ -107,7 +107,7 @@
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
-    evolucao: ['Pontos de evolução', `O piloto melhora sozinho com a idade e as corridas, mas devagar. O resto vem dos pontos de evolução, ganhos no fim de cada temporada: ${C.PONTOS_BASE_EVOLUCAO} por disputar o ano, mais um bônus pela posição no campeonato (campeão +${C.BONUS_EVOLUCAO[1]}, P2 +${C.BONUS_EVOLUCAO[2]}, P3 +${C.BONUS_EVOLUCAO[3]}, P4 +${C.BONUS_EVOLUCAO[4]}, P5 a P10 +${C.BONUS_ATE_P10}) e +1 por vitória (até ${C.MAX_BONUS_VITORIAS}). Você escolhe onde investir: cada +1 no atributo custa 1 ponto. Também pode tirar pontos de um atributo (−) para pôr em outro, mas o que você tira perde força. Os atributos têm um teto que depende da categoria: ${['regional','nacional','internacional','f4','f3','f2','f1'].map((c) => `${C.campeonato(c).curto} ${C.TETO_CATEGORIA[c]}`).join(', ')}. Só na F1 o piloto chega a ${C.POTENCIAL_MAXIMO}; os pontos que sobram ficam guardados para a próxima categoria. Especializar (chuva, largada, pneus...) ou equilibrar é com você.`],
+    evolucao: ['Pontos de evolução', `O piloto melhora sozinho com a idade e as corridas, mas devagar. O resto vem dos pontos de evolução, ganhos no fim de cada temporada: ${C.PONTOS_BASE_EVOLUCAO} por disputar o ano, mais um bônus pela posição no campeonato (campeão +${C.BONUS_EVOLUCAO[1]}, P2 +${C.BONUS_EVOLUCAO[2]}, P3 +${C.BONUS_EVOLUCAO[3]}, P4 +${C.BONUS_EVOLUCAO[4]}, P5 a P10 +${C.BONUS_ATE_P10}) e +1 por vitória (até ${C.MAX_BONUS_VITORIAS}). Você escolhe onde investir: cada +1 no atributo custa 1 ponto. Também pode tirar pontos de um atributo (−) para pôr em outro, mas o que você tira perde força. Cada atributo age numa parte da corrida: ritmo no tempo de volta, consistência na regularidade e nos erros, largada na primeira volta, ultrapassagem e defesa nas disputas de posição, cuidado com pneus na vida do pneu e chuva só com pista molhada. Os atributos têm um teto que depende da categoria: ${['regional','nacional','internacional','f4','f3','f2','f1'].map((c) => `${C.campeonato(c).curto} ${C.TETO_CATEGORIA[c]}`).join(', ')}. Só na F1 o piloto chega a ${C.POTENCIAL_MAXIMO}; os pontos que sobram ficam guardados para a próxima categoria. Especializar (chuva, largada, pneus...) ou equilibrar é com você.`],
     banco: ['Banco', `Empréstimo para investir no carro e na carreira (só com o Premium). O limite cresce com a categoria e com a popularidade. Você escolhe o prazo: ${Object.entries(C.PRAZOS_EMPRESTIMO).map(([p, j]) => `${p} etapas com ${Math.round(j * 100)}% de juros`).join(', ')}. A parcela sai do caixa ao fim de cada etapa; se não houver dinheiro, ela atrasa com multa de ${Math.round(C.MULTA_ATRASO * 100)}%, e a moral e a popularidade caem. Um empréstimo por vez; quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
@@ -1570,6 +1570,16 @@
 
   // Pontos de evolução: o jogador escolhe onde o piloto melhora. + investe, − devolve o que foi
   // investido desde o último fim de temporada (quando a temporada nova começa, fica valendo).
+  // O que cada atributo faz de verdade no jogo (engine.js e carreira.js).
+  const DICA_ATRIBUTO = {
+    ritmo: 'Tempo de volta: cada ponto vale 0,035 s por volta.',
+    consistencia: 'Voltas mais regulares e menos erros que tiram da corrida.',
+    largada: 'Só na largada: ganha ou perde tempo na 1ª volta.',
+    ultrapassagem: 'Chance de passar quem está à frente.',
+    defesa: 'Chance de segurar quem vem atrás.',
+    pneus: 'O pneu dura mais (até 35% a mais entre nota 0 e 100).',
+    chuva: 'Só em pista molhada: 0,03 s por volta a cada ponto.',
+  };
   function cartaoPontosEvolucao(r) {
     const p = estado.piloto;
     const sobra = estado.pontosEvolucao || 0;
@@ -1579,7 +1589,7 @@
       const n = dist[a] || 0;
       const teto = p[a] >= p.potencial;
       const sub = n > 0 ? ` <small class="dinheiro">+${n}</small>` : n < 0 ? ` <small class="evo-perda">−${-n}</small>` : '';
-      return `<div class="evo-linha"><span>${C.NOMES_ATRIBUTOS[a]}<small class="fraco">${teto ? 'no teto da categoria' : '+1 custa 1 ponto'}</small></span>
+      return `<div class="evo-linha"><span>${C.NOMES_ATRIBUTOS[a]}<small class="fraco">${DICA_ATRIBUTO[a]}${teto ? ' <b class="evo-no-teto">No teto da categoria.</b>' : ''}</small></span>
         <button class="evo-btn" data-acao="devolver-ponto" data-a="${a}" ${p[a] > C.PISO_ATRIBUTO ? '' : 'disabled'} aria-label="Tirar ponto de ${C.NOMES_ATRIBUTOS[a]}">−</button>
         <b>${p[a]}${sub}</b>
         <button class="evo-btn mais" data-acao="investir-ponto" data-a="${a}" ${sobra >= 1 && !teto ? '' : 'disabled'} aria-label="Pôr ponto em ${C.NOMES_ATRIBUTOS[a]}">+</button></div>`;
