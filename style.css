@@ -434,8 +434,6 @@ th, td { padding-inline: 4px; }
 .mecanico-opcao .mecanico-desc { line-height: 1.4; }
 .mecanico-opcao .mecanico-preco { color: var(--texto); }
 .mecanico-opcao .mecanico-preco b { color: var(--texto); }
-.mec-pro { border-color: rgba(255, 210, 74, 0.45); }
-.mec-pro > b { color: var(--ouro); }
 .camp-linha.sobe .camp-pos b { color: var(--ok); }
 .camp-corte { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; font-weight: 700; color: var(--ok); }
 .camp-corte::before, .camp-corte::after { content: ''; flex: 1; height: 1px; background: rgba(47, 191, 113, 0.5); }
@@ -1409,8 +1407,6 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .mec-seg b { font-size: 13.5px; }
 .mec-seg small { font-size: 11.5px; color: var(--fraco); }
 .mec-seg.ativo { border-color: var(--azul); background: rgba(80, 150, 255, 0.14); box-shadow: 0 0 0 1px var(--azul) inset; }
-.mec-seg.mec-pro { border-color: rgba(255, 210, 74, 0.4); }
-.mec-seg.mec-pro.ativo { border-color: var(--ouro); background: rgba(255, 210, 74, 0.1); box-shadow: 0 0 0 1px var(--ouro) inset; }
 .mec-vazio { margin: 4px 0 0; text-align: center; font-size: 12.5px; color: var(--fraco); }
 .mec-detalhe { display: grid; gap: 8px; margin-top: 4px; padding: 12px; border-radius: 14px; background: var(--painel-2); border: 1px solid var(--borda); }
 .mec-faz { margin: 0; font-weight: 600; }
@@ -1419,3 +1415,16 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .mec-precos dt { color: var(--fraco); }
 .mec-precos dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .mec-obs { margin: 0; font-size: 11.5px; color: var(--fraco); line-height: 1.35; }
+
+/* Passos do fim de semana: uma sequência (Treino → Classificação → Corrida → Resultado), não botões. */
+.passos-fds { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; margin: 0; padding: 0; list-style: none; }
+.passos-fds li { position: relative; display: grid; justify-items: center; gap: 4px; padding: 0 2px; text-align: center; pointer-events: none; }
+.passos-fds li + li::before { content: ''; position: absolute; top: 11px; right: 50%; width: 100%; height: 2px; background: var(--borda); }
+.passos-fds li.feito + li::before, .passos-fds li.atual::before { background: var(--ok); }
+.passos-fds .passo-bola { position: relative; z-index: 1; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; background: var(--fundo); border: 2px solid var(--borda); color: var(--fraco); }
+.passos-fds .passo-bola .ico-i { width: 13px; height: 13px; }
+.passos-fds li.feito .passo-bola { background: var(--ok); border-color: var(--ok); color: #06210f; }
+.passos-fds li.atual .passo-bola { background: var(--destaque); border-color: var(--destaque); color: #fff; box-shadow: 0 0 0 4px rgba(225, 6, 0, 0.18); }
+.passos-fds b { font-size: 11.5px; font-weight: 600; color: var(--fraco); white-space: nowrap; }
+.passos-fds li.atual b { color: var(--texto); }
+.passos-fds li.feito b { color: var(--ok); }

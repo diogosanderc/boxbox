@@ -858,6 +858,7 @@
           ${BoxPremium.depuracao ? `<button class="link-f4" data-acao="premium-dev">Dev (Xcode): Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>` : ''}
           ${modoDev() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>
             ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
+          <button class="link-f4 idioma" data-acao="idioma">${BoxI18n.idioma === 'en' ? 'Português' : 'English'}</button>
         </div>
       </div>`;
   }
@@ -1438,7 +1439,7 @@
     const id = ++transmissao;
     const vivo = () => id === transmissao && saida.isConnected;
     const bolhas = [...saida.querySelectorAll('.bolha')];
-    const textos = bolhas.map((b) => { const t = [...b.querySelector('p').childNodes].filter((n) => n.nodeType === 3); const txt = t.map((n) => n.textContent).join(''); t.forEach((n) => n.remove()); return txt; });
+    const textos = bolhas.map((b) => { const t = [...b.querySelector('p').childNodes].filter((n) => n.nodeType === 3); const txt = BoxI18n.traduzir(t.map((n) => n.textContent).join('')); t.forEach((n) => n.remove()); return txt; });
     const fala = bolhas.map((b) => { const span = document.createElement('span'); span.className = 'radio-fala'; b.querySelector('p').append(span); b.hidden = true; return span; });
     cartaoEl.classList.add('transmitindo');
     saida.classList.add('chegando');
@@ -1774,6 +1775,7 @@
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>
         <div class="rodape-botoes">
+          <button class="discreto" data-acao="idioma">${BoxI18n.idioma === 'en' ? 'Português' : 'English'}</button>
           <button class="discreto" data-acao="sair-jogo">Sair do jogo</button>
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
@@ -2021,7 +2023,7 @@
     const passos = [['treino', 'Treino'], ['quali', sprint ? 'Quali' : 'Classificação'], ...(sprint ? [['sprint', 'Sprint']] : []), ['grid', 'Corrida'], ['fim', 'Resultado']];
     const naSprint = sprint && !sprint.feito && (atual === 'grid' || atual === 'corrida');
     const idx = passos.findIndex(([id]) => (naSprint ? id === 'sprint' : id === atual || (atual === 'corrida' && id === 'grid')));
-    return `<div class="passos-fds">${passos.map(([, nome], i) => `<span class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}">${i < idx ? ic('check') : ''}${nome}</span>`).join('')}</div>`;
+    return `<ol class="passos-fds" role="list">${passos.map(([, nome], i) => `<li class="${i === idx ? 'atual' : i < idx ? 'feito' : ''}" ${i === idx ? 'aria-current="step"' : ''}><i class="passo-bola" aria-hidden="true">${i < idx ? ic('check') : i + 1}</i><b>${nome}</b></li>`).join('')}</ol>`;
   }
 
   function telaFimDeSemana() {
@@ -2846,6 +2848,9 @@
         estado.tutorialPneus = true;
         salvar();
         render();
+        break;
+      case 'idioma':
+        BoxI18n.definirIdioma(BoxI18n.idioma === 'en' ? 'pt' : 'en');
         break;
       case 'rever-tutorial':
         Tutorial.reiniciar();
