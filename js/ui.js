@@ -258,10 +258,11 @@
     paddock: () => [
       { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
       { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais e a confiança alta deixa mais rápido e regular.' },
-      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos (cada categoria tem um teto, e só a F1 chega a 100), conquistas e pontos de evolução.\nOficina: pneus, motor e patrocínio.\nCaderno: o que você anotou de cada pista.\nNotícias: propostas e novidades.' },
+      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos (cada categoria tem um teto, e só a F1 chega a 100), conquistas e pontos de evolução.\nOficina: pneus, motor e equipe de box.\nCaderno: o que você anotou de cada pista.\nFinanças: caixa, patrocínio e banco.\nO sino no alto traz as notícias: propostas e novidades.' },
       { sel: '.hero', titulo: 'A próxima etapa', texto: 'Veja as informações da pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto. É importantíssimo para o acerto do carro.' },
       { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
-      { sel: '[data-aba="noticias"]', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho mostra quando tem novidade.' },
+      { sel: '[data-aba="financas"]', titulo: 'Finanças', texto: 'O caixa, os patrocinadores no macacão e o banco ficam aqui.' },
+      { sel: '.sino', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho no sino mostra quando tem novidade.' },
       { sel: '[data-acao="ir-fds"]', titulo: 'Fim de semana', texto: 'Quando estiver pronto, vá para o treino livre. Cada etapa tem treino livre de manhã, classificação e corrida à tarde.' },
     ],
     treino: () => [
@@ -644,6 +645,7 @@
     campeonato: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
     piloto: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     caderno: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    sino: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
     noticias: '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
     local: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
     voltar: '<polyline points="15 18 9 12 15 6"/>',
@@ -1259,6 +1261,16 @@
     </div>`;
   }
 
+  // Resumo do caixa no topo das Finanças: quanto tem, quanto custa cada etapa e quanto entra dos patrocinadores.
+  function cartaoCaixa() {
+    const custo = C.custoEtapa(estado);
+    const apoio = (estado.patrocinios || []).reduce((t, x) => t + (x.porEtapa || 0), 0);
+    const salario = C.salarioEtapa ? C.salarioEtapa(estado) : 0;
+    const linha = (rotulo, valor) => `<div><dt>${rotulo}</dt><dd>${valor}</dd></div>`;
+    return cartao('Caixa', `<div class="caixa-grande"><b>${reais(estado.dinheiro)}</b><span>disponível</span></div>
+      <dl class="mec-precos">${linha('Custo por etapa', custo ? `−${reais(custo)}` : 'Grátis')}${linha('Patrocínios por etapa', `+${reais(apoio)}`)}${salario ? linha('Salário por etapa', `+${reais(salario)}`) : ''}</dl>`, { classe: 'cartao-caixa' });
+  }
+
   function cartaoPatrocinio() {
     // Vagas do macacão: as do Premium aparecem com cadeado para quem não tem.
     const vagas = Array.from({ length: C.MAX_PATROCINIOS }, (_, i) => `<i class="${i < estado.patrocinios.length ? 'cheia' : i >= C.maxPatrocinios() ? 'trancada' : ''}"></i>`).join('');
@@ -1702,10 +1714,10 @@
   // Para onde cada notícia leva ao ser tocada: aba do paddock e o cartão do assunto.
   // Pelo texto, para valer também nas notícias de saves antigos.
   const DESTINOS_NOTICIA = [
-    [/banco|empréstimo/i, 'oficina', '.cartao-banco'],
+    [/banco|empréstimo/i, 'financas', '.cartao-banco'],
     [/engripou|retífica/i, 'resumo', '.retifica'],
     [/pneu/i, 'oficina', '.cartao-oficina'],
-    [/patroc|contrato com|macacão/i, 'oficina', '.cartao-patrocinio'],
+    [/patroc|contrato com|macacão/i, 'financas', '.cartao-patrocinio'],
     [/equipe de box/i, 'oficina', '.cartao-box'],
     [/peças novas/i, 'oficina', '.cartao-dev'],
     [/preparador físico|simulador/i, 'piloto', '.cartao-preparacao'],
@@ -1720,7 +1732,7 @@
   }
 
   // Troca de aba do paddock (toque no menu ou deslizar o dedo). direcao: 1 = veio da direita, -1 = da esquerda.
-  const ORDEM_ABAS = ['resumo', 'campeonato', 'piloto', 'oficina', 'caderno', 'noticias'];
+  const ORDEM_ABAS = ['resumo', 'campeonato', 'piloto', 'oficina', 'caderno', 'financas'];
   function trocarAba(aba, direcao = 0) {
     tela.aba = aba;
     render();
@@ -1757,7 +1769,8 @@
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoDesafio()}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoPatrocinio()}${cartaoBanco()}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}</div>`,
+      financas: () => `<div class="grade">${cartaoCaixa()}${cartaoPatrocinio()}${cartaoBanco()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => {
         const ponto = noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : '';
@@ -1769,8 +1782,8 @@
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
-      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
-      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['noticias', 'noticias', 'Notícias']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', piloto: estado.pontosEvolucao > 0 ? 'nova' : '', noticias: noticiasNovas() ? 'nova' : '' })}
+      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span><button class="sino ${aba === 'noticias' ? 'ativo' : ''}" data-acao="aba" data-aba="${aba === 'noticias' ? 'resumo' : 'noticias'}" aria-label="Notícias">${icone('sino')}${noticiasNovas() && aba !== 'noticias' ? '<i class="sino-ponto" aria-hidden="true"></i>' : ''}</button>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
+      ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['financas', 'carteira', 'Finanças']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', piloto: estado.pontosEvolucao > 0 ? 'nova' : '' })}
       ${conteudo}
       <div class="rodape">
         <button class="botao-premium ${BoxPremium.ativo ? 'ativo' : ''}" data-acao="premium">${icone('estrela', 'ico-cheio')}${BoxPremium.ativo ? 'Premium ativo' : 'Superlicença Premium'}</button>

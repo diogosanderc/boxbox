@@ -123,7 +123,7 @@
     return r;
   }
 
-  const PT = /[áàâãéêíóôõúç]|\b(?:de|que|para|com|não|você|seu|sua|dos|das|ao|está|são|pelo|pela|mais|uma)\b/i;
+  const PT = /[áàâãéêíóôõúç]|\b(?:de|que|para|com|não|você|seu|sua|suas|seus|dos|das|da|na|nas|nos|ao|está|estão|são|pelo|pela|mais|uma|etapa|etapas|pneu|pneus|volta|voltas|corrida|treino|pista|equipe|piloto|motor|acerto|caixa|ela|ainda|sem|quando|depois|antes|onde|como|tem)\b/i;
 
   function traduzir(texto) {
     if (idioma === 'pt' || texto == null) return texto;
