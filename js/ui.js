@@ -260,7 +260,7 @@
     ],
     treino: () => [
       { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
-      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Mexa nos ajustes do ${veic()}. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
+      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: toque do lado direito para subir um passo e do esquerdo para descer, ou arraste em círculo. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
       { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
       { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
       { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
@@ -1851,24 +1851,133 @@
   }
 
   // ---------- fim de semana ----------
-  function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
-    return `<div class="setup">${Kart.ORDEM_AJUSTES.map((k) => {
-      const a = Kart.AJUSTES[k];
-      let controle;
-      if (a.tipo === 'opcoes') {
-        controle = `<div class="segmentos" data-seg="${k}">${a.opcoes.map((o, i) => `<button data-acao="${acao}" data-k="${k}" data-valor="${i}" class="${s[k] === i ? 'ativo' : ''}">${o}</button>`).join('')}</div>`;
-      } else {
-        const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`)
-          : k === 'camber' ? `${String(s[k].toFixed(2)).replace('.', ',')}°`
-            : k === 'caster' ? `${s[k]}°`
-            : k === 'freio' ? `${s[k]}% na frente`
-              : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
-        controle = `<div class="passos"><button data-acao="${acao}" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
-          <b>${rotulo}</b><button data-acao="${acao}" data-k="${k}" data-delta="1" aria-label="Aumentar ${a.nome}" ${s[k] >= a.max ? 'disabled' : ''}>+</button></div>`;
-      }
-      return `<div class="ajuste"><span class="ajuste-nome">${a.nome}${botaoAjuda(k)}</span>${controle}</div>`;
-    }).join('')}</div>`;
+  // ---------- acerto com knobs ----------
+  // Cada ajuste é um knob de 270° com um passo por posição. Toque do lado direito sobe um passo, do esquerdo
+  // desce um; arrastar em círculo gira o knob acompanhando o dedo. O ajuste só é gravado quando o dedo sai.
+  const KNOB_INI = -135, KNOB_CURSO = 270;
+  const passosAjuste = (a) => (a.tipo === 'opcoes' ? a.opcoes.length : Math.round((a.max - a.min) / a.passo) + 1);
+  const indiceAjuste = (a, v) => (a.tipo === 'opcoes' ? v : Math.round((v - a.min) / a.passo));
+  const valorAjuste = (a, i) => (a.tipo === 'opcoes' ? i : Math.round((a.min + i * a.passo) * 100) / 100);
+  const anguloKnob = (i, n) => KNOB_INI + (KNOB_CURSO * i) / (n - 1);
+  const pontoKnob = (r, ang) => { const rad = (ang * Math.PI) / 180; return [50 + r * Math.sin(rad), 50 - r * Math.cos(rad)]; };
+  const arcoKnob = (r, a0, a1) => {
+    const [x0, y0] = pontoKnob(r, a0), [x1, y1] = pontoKnob(r, a1);
+    return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  };
+  function rotuloAjuste(k, a, v) {
+    if (a.tipo === 'opcoes') return a.opcoes[v];
+    if (k === 'carburacao') return v === 0 ? 'Padrão' : v < 0 ? `Pobre ${-v}` : `Rica ${v}`;
+    if (k === 'camber') return `${String(v.toFixed(2)).replace('.', ',')}°`;
+    if (k === 'caster') return `${v}°`;
+    if (k === 'freio') return `${v}%`;
+    return `${String(v).replace('.', ',')} ${a.unidade === 'dentes' ? 'z' : a.unidade}`.trim();
   }
+  // Gradiente do corpo dos knobs: definido uma vez no documento.
+  document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><radialGradient id="knob-corpo" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#34466f"/><stop offset="1" stop-color="#0f1a33"/></radialGradient></defs></svg>');
+  const RANHURAS_KNOB = Array.from({ length: 28 }, (_, k) => {
+    const [x0, y0] = pontoKnob(27.5, k * (360 / 28)), [x1, y1] = pontoKnob(30.5, k * (360 / 28));
+    return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,0.14)" stroke-width="1.4"/>`;
+  }).join('');
+  function knobHtml(k, valor, grande) {
+    const a = Kart.AJUSTES[k], n = passosAjuste(a), i = indiceAjuste(a, valor), ang = anguloKnob(i, n);
+    const marcas = Array.from({ length: n }, (_, m) => {
+      const [x0, y0] = pontoKnob(n > 9 ? 44 : 42, anguloKnob(m, n)), [x1, y1] = pontoKnob(48, anguloKnob(m, n));
+      return `<line class="kn-marca ${m === i ? 'ativa' : ''}" x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke-width="${n > 9 ? 1.6 : 2.4}" stroke-linecap="round"/>`;
+    }).join('');
+    return `<div class="kn ${grande ? 'kn-grande' : ''}" data-k="${k}">
+      <button class="kn-nome" data-acao="ajuda" data-chave="${k}" aria-label="Ajuda: ${esc(a.nome)}"><span>${esc(a.nome)}<sup>?</sup></span></button>
+      <svg class="kn-svg" viewBox="0 0 100 100" role="slider" tabindex="0" aria-label="${esc(a.nome)}" aria-valuemin="0" aria-valuemax="${n - 1}" aria-valuenow="${i}" aria-valuetext="${esc(rotuloAjuste(k, a, valor))}">
+        ${marcas}
+        <path class="kn-trilho" d="${arcoKnob(39, KNOB_INI, KNOB_INI + KNOB_CURSO)}" fill="none" stroke-width="4.5" stroke-linecap="round"/>
+        <path class="kn-progresso" d="${i === 0 ? '' : arcoKnob(39, KNOB_INI, ang)}" fill="none" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="50" cy="52" r="30" fill="rgba(0,0,0,0.35)"/>
+        <circle cx="50" cy="50" r="29.5" fill="url(#knob-corpo)" stroke="rgba(255,255,255,0.16)" stroke-width="1.2"/>
+        ${RANHURAS_KNOB}
+        <circle cx="50" cy="50" r="22" fill="rgba(255,255,255,0.04)" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+        <g class="kn-ponteiro" style="transform:rotate(${ang}deg)"><line x1="50" y1="30" x2="50" y2="43" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><circle cx="50" cy="26.5" r="2" fill="#ff3b30"/></g>
+      </svg>
+      <span class="kn-valor">${esc(rotuloAjuste(k, a, valor))}</span></div>`;
+  }
+  // Mostra o knob na posição i sem desenhar a tela de novo (durante o arrasto).
+  function pintarKnob(cel, i) {
+    const k = cel.dataset.k, a = Kart.AJUSTES[k], n = passosAjuste(a), ang = anguloKnob(i, n);
+    const svg = cel.querySelector('.kn-svg');
+    svg.querySelector('.kn-progresso').setAttribute('d', i === 0 ? '' : arcoKnob(39, KNOB_INI, ang));
+    svg.querySelector('.kn-ponteiro').style.transform = `rotate(${ang}deg)`;
+    svg.querySelectorAll('.kn-marca').forEach((m, j) => m.classList.toggle('ativa', j === i));
+    const texto = rotuloAjuste(k, a, valorAjuste(a, i));
+    svg.setAttribute('aria-valuenow', i);
+    svg.setAttribute('aria-valuetext', texto);
+    cel.querySelector('.kn-valor').textContent = texto;
+  }
+  // Os ajustes do volante (da F2 em diante) ganham knobs grandes numa faixa própria.
+  const AJUSTES_VOLANTE = ['freio', 'diferencial', 'ers'];
+  function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
+    const ordem = Kart.ORDEM_AJUSTES;
+    const volante = ordem.filter((k) => AJUSTES_VOLANTE.includes(k));
+    const resto = ordem.filter((k) => !volante.includes(k));
+    return `<div class="setup-knobs" data-acao-setup="${acao}">
+      ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
+      <div class="kn-carro ${resto.length === 6 && !volante.length ? 'kn-3' : 'kn-4'}">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
+      <p class="kn-dica">Toque à direita do knob: +1. À esquerda: −1. Ou gire com o dedo.</p>
+    </div>`;
+  }
+  const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);
+  function aplicarAjuste(acao, k, valor) {
+    if (acao === 'ajuste-desafio') C.ajustarDesafio(estado, { [k]: valor });
+    else C.definirSetup(estado, { [k]: valor });
+    salvar();
+    render();
+  }
+  let gestoKnob = null;
+  app.addEventListener('pointerdown', (ev) => {
+    const svg = ev.target.closest('.kn-svg');
+    if (!svg || !svg.closest('.setup-knobs')) return;
+    const cel = svg.closest('.kn'), k = cel.dataset.k, acao = svg.closest('.setup-knobs').dataset.acaoSetup;
+    const a = Kart.AJUSTES[k], n = passosAjuste(a), i0 = indiceAjuste(a, setupDaAcao(acao)[k]);
+    const r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    gestoKnob = { svg, cel, k, acao, n, i0, i: i0, cx, cy, angPtr0: (Math.atan2(ev.clientX - cx, -(ev.clientY - cy)) * 180) / Math.PI,
+      angKnob0: anguloKnob(i0, n), x0: ev.clientX, y0: ev.clientY, t0: Date.now(), moveu: false, id: ev.pointerId };
+    try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* sem captura: segue assim mesmo */ }
+    cel.classList.add('arrastando');
+  });
+  app.addEventListener('pointermove', (ev) => {
+    const g = gestoKnob;
+    if (!g || ev.pointerId !== g.id) return;
+    if (!g.moveu && Math.hypot(ev.clientX - g.x0, ev.clientY - g.y0) < 7) return;
+    g.moveu = true;
+    const angPtr = (Math.atan2(ev.clientX - g.cx, -(ev.clientY - g.cy)) * 180) / Math.PI;
+    let delta = angPtr - g.angPtr0;
+    if (delta > 180) delta -= 360; else if (delta < -180) delta += 360;
+    const alvo = Math.max(KNOB_INI, Math.min(KNOB_INI + KNOB_CURSO, g.angKnob0 + delta));
+    const i = Math.round(((alvo - KNOB_INI) / KNOB_CURSO) * (g.n - 1));
+    if (i !== g.i) { g.i = i; pintarKnob(g.cel, i); }
+  });
+  const fimKnob = (ev) => {
+    const g = gestoKnob;
+    if (!g || ev.pointerId !== g.id) return;
+    gestoKnob = null;
+    g.cel.classList.remove('arrastando');
+    if (ev.type !== 'pointerup') { pintarKnob(g.cel, g.i0); return; }
+    let i = g.i;
+    if (!g.moveu && Date.now() - g.t0 < 600) i = Math.max(0, Math.min(g.n - 1, g.i0 + (ev.clientX >= g.cx ? 1 : -1)));
+    if (i === g.i0) { pintarKnob(g.cel, g.i0); return; }
+    aplicarAjuste(g.acao, g.k, valorAjuste(Kart.AJUSTES[g.k], i));
+  };
+  app.addEventListener('pointerup', fimKnob);
+  app.addEventListener('pointercancel', fimKnob);
+  app.addEventListener('keydown', (ev) => {
+    const svg = ev.target.closest && ev.target.closest('.kn-svg');
+    if (!svg || !svg.closest('.setup-knobs')) return;
+    const mais = ['ArrowUp', 'ArrowRight'].includes(ev.key), menos = ['ArrowDown', 'ArrowLeft'].includes(ev.key);
+    if (!mais && !menos) return;
+    ev.preventDefault();
+    const cel = svg.closest('.kn'), k = cel.dataset.k, acao = svg.closest('.setup-knobs').dataset.acaoSetup;
+    const a = Kart.AJUSTES[k], n = passosAjuste(a), i0 = indiceAjuste(a, setupDaAcao(acao)[k]);
+    const i = Math.max(0, Math.min(n - 1, i0 + (mais ? 1 : -1)));
+    if (i !== i0) aplicarAjuste(acao, k, valorAjuste(a, i));
+  });
 
   function passosFds(atual) {
     const sprint = estado.fds && estado.fds.sprint;
