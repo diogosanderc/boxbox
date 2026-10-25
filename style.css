@@ -894,7 +894,7 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 
 /* ---------- cabeçalho compacto ----------
    Logo menor, perfil numa linha e os três números (caixa, moral, confiança) lado a lado. */
-.topo { padding: 8px 16px 10px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); gap: 8px; }
+.topo { padding: 8px 16px 10px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); gap: 10px; }
 .marca-logo { height: 20px; }
 .perfil { gap: 10px; }
 .avatar { width: 34px; height: 34px; font-size: 13px; box-shadow: 0 0 0 2px var(--fundo), 0 0 0 3px rgba(255, 255, 255, 0.12); }
