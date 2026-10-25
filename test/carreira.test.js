@@ -1388,9 +1388,11 @@ test('subida no kart vira notícia: conquistou a vaga no campeonato seguinte', (
 });
 
 test('pontos de evolução: ganhos pela temporada, investidos até o limite e devolvidos até a temporada começar', () => {
-  assert.strictEqual(Carreira.pontosEvolucaoDa(1, 3), 23);
-  assert.strictEqual(Carreira.pontosEvolucaoDa(7, 0), 11);
-  assert.strictEqual(Carreira.pontosEvolucaoDa(15, 0), 8);
+  const base = Carreira.PONTOS_BASE_EVOLUCAO;
+  assert.strictEqual(Carreira.pontosEvolucaoDa(1, 3), base + Carreira.BONUS_EVOLUCAO[1] + 3);
+  assert.strictEqual(Carreira.pontosEvolucaoDa(1, 30), base + Carreira.BONUS_EVOLUCAO[1] + Carreira.MAX_BONUS_VITORIAS, 'vitórias têm teto');
+  assert.strictEqual(Carreira.pontosEvolucaoDa(7, 0), base + Carreira.BONUS_ATE_P10);
+  assert.strictEqual(Carreira.pontosEvolucaoDa(15, 0), base);
   const e = Carreira.novoJogo({ seed: 45 });
   while (e.fase === 'paddock') jogarFimDeSemana(e, 'ideal');
   const r = e.relatorio;
@@ -1458,4 +1460,25 @@ test('pontos de evolução: com tudo no limite, 5 pontos elevam o limite do pilo
   e.pontosEvolucao = 50;
   e.piloto.potencial = 99;
   assert.ok(!Carreira.elevarLimite(e).ok, 'máximo 99');
+});
+
+test('pontos de evolução: o +1 fica mais caro quanto mais alto o atributo, e devolver devolve o custo pago', () => {
+  assert.strictEqual(Carreira.custoPonto(55), 1);
+  assert.strictEqual(Carreira.custoPonto(69), 1);
+  assert.strictEqual(Carreira.custoPonto(70), 2);
+  assert.strictEqual(Carreira.custoPonto(81), 2);
+  assert.strictEqual(Carreira.custoPonto(82), 3);
+  const e = Carreira.novoJogo({ seed: 49 });
+  e.piloto.potencial = 95;
+  e.piloto.ritmo = 80; e.piloto.chuva = 60;
+  e.pontosEvolucao = 5; e.distribuidos = {}; e.gastosPontos = {};
+  assert.ok(Carreira.investirPonto(e, 'ritmo').ok);       // 80 -> 81, custa 2
+  assert.ok(Carreira.investirPonto(e, 'ritmo').ok);       // 81 -> 82, custa 2
+  assert.strictEqual(e.pontosEvolucao, 1);
+  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, '82 custa 3 e só sobra 1');
+  assert.ok(Carreira.investirPonto(e, 'chuva').ok);       // 60 -> 61, custa 1
+  assert.strictEqual(e.pontosEvolucao, 0);
+  assert.ok(Carreira.devolverPonto(e, 'ritmo').ok);       // devolve os 2 pagos pelo último
+  assert.strictEqual(e.piloto.ritmo, 81);
+  assert.strictEqual(e.pontosEvolucao, 2);
 });
