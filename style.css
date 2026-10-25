@@ -1369,16 +1369,15 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
   background: linear-gradient(180deg, rgba(225, 6, 0, 0.55) 0 3px, transparent 3px), repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 4px, transparent 4px 8px), #0a1327; }
 .kn-carro { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 6px; }
 .kn { display: grid; justify-items: center; align-content: start; gap: 1px; text-align: center; min-width: 0; }
-.kn-4 .kn { flex: 0 0 25%; }
-.kn-3 .kn { flex: 0 0 33.333%; }
-.kn-volante .kn { flex: 1 1 0; max-width: 128px; }
-.kn-nome { background: none; border: 0; padding: 0 2px; font: inherit; font-size: 11.5px; font-weight: 600; line-height: 1.15; color: var(--fraco); min-height: 2.3em; display: flex; align-items: flex-end; justify-content: center; cursor: pointer; text-align: center; }
+/* Três knobs por linha: grandes o bastante para o dedo. */
+.kn-carro .kn { flex: 0 0 33.333%; }
+.kn-volante .kn { flex: 1 1 0; max-width: 140px; }
+.kn-nome { background: none; border: 0; padding: 0 2px; font: inherit; font-size: 12px; font-weight: 600; line-height: 1.15; color: var(--fraco); min-height: 2.3em; display: flex; align-items: flex-end; justify-content: center; cursor: pointer; text-align: center; }
 .kn-nome sup { color: var(--azul); font-size: 9px; font-weight: 800; margin-left: 2px; }
-.kn-svg { width: 100%; max-width: 60px; aspect-ratio: 1; display: block; cursor: grab; touch-action: none; border-radius: 50%; outline: none; }
-.kn-3 .kn-svg { max-width: 68px; }
-.kn-volante .kn-svg { max-width: 80px; }
+.kn-svg { width: 100%; max-width: 74px; aspect-ratio: 1; display: block; cursor: grab; touch-action: none; border-radius: 50%; outline: none; }
+.kn-volante .kn-svg { max-width: 88px; }
 .kn-svg:focus-visible { box-shadow: 0 0 0 2px var(--azul); }
-.kn-valor { font-family: var(--fonte-titulo); font-style: italic; font-weight: 700; font-size: 13.5px; min-height: 1.3em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kn-valor { font-family: var(--fonte-titulo); font-style: italic; font-weight: 700; font-size: 14.5px; min-height: 1.3em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .kn-volante .kn-valor { font-size: 15px; }
 .kn-trilho { stroke: #1e2f55; }
 .kn-progresso { stroke: #ff3b30; }
@@ -1388,4 +1387,3 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .kn.arrastando .kn-ponteiro { transition: none; }
 .kn-dica { margin: 0; text-align: center; font-size: 11.5px; color: var(--fraco); }
 @media (prefers-reduced-motion: reduce) { .kn-ponteiro { transition: none; } }
-@media (max-width: 359px) { .kn-4 .kn { flex-basis: 33.333%; } }

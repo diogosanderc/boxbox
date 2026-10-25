@@ -1918,7 +1918,7 @@
     const resto = ordem.filter((k) => !volante.includes(k));
     return `<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
-      <div class="kn-carro ${resto.length === 6 && !volante.length ? 'kn-3' : 'kn-4'}">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
+      <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
       <p class="kn-dica">Toque à direita do knob: +1. À esquerda: −1. Ou gire com o dedo.</p>
     </div>`;
   }
