@@ -1940,7 +1940,7 @@
     return `<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
       <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
-      <p class="kn-dica">Segure o knob até acender a luz verde e deslize para os lados.</p>
+      <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
     </div>`;
   }
   const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);

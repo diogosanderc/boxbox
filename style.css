@@ -1385,7 +1385,11 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .kn-marca.ativa { stroke: rgba(255, 255, 255, 0.85); }
 .kn-ponteiro { transform-origin: 50px 50px; transition: transform 0.16s cubic-bezier(0.3, 1.4, 0.5, 1); }
 .kn.arrastando .kn-ponteiro { transition: none; }
-.kn-dica { margin: 0; text-align: center; font-size: 11.5px; color: var(--fraco); }
+.kn-dica { margin: 2px 0 0; padding: 9px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; font-size: 12.5px; font-weight: 600; line-height: 1.3; color: #bff0d3;
+  border: 1.5px solid #2fbf71; border-radius: 12px; background: rgba(47, 191, 113, 0.1); animation: kn-lembrete 1.6s ease-in-out infinite; }
+.kn-led { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 8px #2fbf71; }
+@keyframes kn-lembrete { 50% { border-color: rgba(47, 191, 113, 0.25); background: rgba(47, 191, 113, 0.03); box-shadow: none; } 0%, 100% { box-shadow: 0 0 10px rgba(47, 191, 113, 0.35); } }
+@media (prefers-reduced-motion: reduce) { .kn-dica { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .kn-ponteiro { transition: none; } }
 
 /* Knob "ativo" (dedo segurado): luz verde ao redor e valor em verde; deslizar para os lados ajusta. */
