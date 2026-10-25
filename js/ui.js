@@ -243,16 +243,22 @@
   // Na primeira vez em cada tela, um passo a passo destaca as partes da tela com um balão.
   // Fica guardado no aparelho (vale para todas as carreiras); "Rever tutorial" no paddock recomeça.
   const veic = () => (Kart.monoposto() ? 'carro' : 'kart');
+  const PASSOS_KNOBS = () => [
+    { sel: '.setup-knobs', titulo: 'Como mexer nos knobs', texto: '1. Segure o dedo em cima do knob por meio segundo, sem mexer.\n2. Quando acender a luz verde, ele está ativo.\n3. Sem soltar, deslize o dedo para a direita (sobe) ou para a esquerda (desce). O valor muda ao vivo.\n4. Solte o dedo para confirmar.' },
+    { sel: '.kn-nome', titulo: 'Sem a luz verde, nada muda', texto: 'Um toque rápido ou um deslize sem segurar não altera o knob: assim a tela rola normalmente quando você só quer descer a página. Se errar, é só ativar de novo e voltar.' },
+    { sel: '.kn-nome', titulo: 'Dúvida sobre um ajuste?', texto: 'Toque no nome do ajuste (o que tem o "?") para ler o que ele faz e como cada valor muda o comportamento.' },
+  ];
   const PASSOS_TUTORIAL = {
+    knobs: PASSOS_KNOBS,
     equipe: () => [
-      { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos e a meta é chegar à Fórmula 1 e ser campeão.' },
+      { titulo: 'Bem-vindo ao Superlicença!', texto: 'Você é o piloto e também o chefe da própria carreira. Começa no kart aos 12 anos, com atributos baixos (45 a 49). A meta é subir de categoria até a Fórmula 1 e ser campeão. O piloto melhora com as corridas e com os pontos de evolução que você distribui no fim de cada temporada.' },
       { sel: '.equipe-card', titulo: 'Escolha a equipe', texto: 'Cada equipe cobra por etapa: equipe cara anda mais, mas sobra menos dinheiro para pneus e motor.' },
       { sel: '[data-acao="ajuda"]', titulo: 'Dúvida? Toque no ícone de "?".', texto: `Quase todo cartão tem um "?" com a explicação do que ele faz. É a chave para você acertar o seu ${veic()}.` },
     ],
     paddock: () => [
       { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
       { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais e a confiança alta deixa mais rápido e regular.' },
-      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos e conquistas.\nOficina: pneus, motor e patrocínio.\nCaderno: o que você anotou de cada pista.\nNotícias: propostas e novidades.' },
+      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos (cada categoria tem um teto, e só a F1 chega a 100), conquistas e pontos de evolução.\nOficina: pneus, motor e patrocínio.\nCaderno: o que você anotou de cada pista.\nNotícias: propostas e novidades.' },
       { sel: '.hero', titulo: 'A próxima etapa', texto: 'Veja as informações da pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto. É importantíssimo para o acerto do carro.' },
       { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
       { sel: '[data-aba="noticias"]', titulo: 'Notícias', texto: 'Propostas de equipes, olheiros e o que acontece no campeonato. Um ponto vermelho mostra quando tem novidade.' },
@@ -260,12 +266,17 @@
     ],
     treino: () => [
       { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
-      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: segure o dedo em cima de um knob por meio segundo até acender a luz verde e deslize para os lados. Sem a luz verde, o knob não muda. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
+      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Cada knob é um ajuste do ${veic()}. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente. Vou te mostrar como mexer nos knobs a seguir.` },
+      ...PASSOS_KNOBS(),
       { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
       { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
       { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
       { sel: '.cartao-radio', titulo: 'Rádio', texto: 'Aqui chegam o tempo, a posição no treino e o que o piloto sentiu. Use isso para corrigir o acerto antes da próxima saída.' },
       { sel: '[data-acao="ir-quali"]', titulo: 'Classificação', texto: 'Quando o acerto estiver bom, siga para a classificação. A tarde costuma ser mais quente: o acerto pode precisar de um ajuste.' },
+    ],
+    evolucao: () => [
+      { sel: '.cartao-evolucao', titulo: 'Pontos de evolução', texto: 'Você ganha pontos por disputar a temporada, pela posição no campeonato e por vitórias. Use + para pôr um ponto num atributo e − para tirar. Quanto mais alto o atributo, mais caro o +1. O que sobrar fica guardado.' },
+      { sel: '.evo-teto', titulo: 'Teto da categoria', texto: 'Cada categoria tem um teto para os atributos, que sobe a cada degrau até a F1. Só na F1 o piloto chega a 100. Chegou no teto? Os pontos ficam guardados para quando você subir de categoria.' },
     ],
     quali: () => [
       { sel: '[data-acao="classificar"]', titulo: 'Classificação', texto: `Uma volta lançada com o acerto e o pneu escolhidos define o grid. Confira os dois antes de tocar em Classificar.` },
@@ -387,6 +398,7 @@
     window.addEventListener('scroll', () => { if (ativo) requestAnimationFrame(posicionar); }, { passive: true });
     return {
       visto: (k) => !!visto[k],
+      marcar(k) { visto[k] = true; gravar(); },
       ativo: () => !!ativo,
       comecar,
       reiniciar() { visto = {}; gravar(); },
@@ -396,7 +408,8 @@
   function chaveTutorial() {
     if (tela.nome === 'equipe') return 'equipe';
     if (tela.nome === 'paddock' && (tela.aba || 'resumo') === 'resumo') return 'paddock';
-    if (tela.nome === 'relatorio') return 'relatorio';
+    if (tela.nome === 'relatorio') return !Tutorial.visto('relatorio') ? 'relatorio' : (!Tutorial.visto('evolucao') && app.querySelector('.cartao-evolucao') ? 'evolucao' : null);
+    if (tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao === 'treino') return !Tutorial.visto('treino') ? 'treino' : (!Tutorial.visto('knobs') && app.querySelector('.setup-knobs') ? 'knobs' : null);
     if (tela.nome === 'fds' && estado && estado.fds) return { treino: 'treino', quali: 'quali', grid: 'grid', corrida: 'corrida', fim: 'resultado' }[estado.fds.sessao] || null;
     return null;
   }
@@ -410,10 +423,12 @@
       if (app.querySelector('.folha-fundo') || !naPista.hidden) { talvezTutorial(); return; }
       if (chave === 'corrida' && !tela.pausado && corrida && !corrida.terminou) { tela.pausado = true; clearInterval(timer); timer = null; atualizarCorrida(); }
       // Fim do tutorial da corrida: volta para a torre e a corrida começa sozinha.
+      // O relatório encadeia o passo a passo dos pontos de evolução e do teto.
       const aoFechar = chave === 'corrida' ? () => {
         window.scrollTo({ top: 0, behavior: menosMovimento() ? 'auto' : 'smooth' });
         if (corrida && !corrida.terminou && tela.pausado) { tela.pausado = false; iniciarTimer(); atualizarCorrida(); }
-      } : null;
+      } : chave === 'relatorio' ? () => setTimeout(talvezTutorial, 300) : null;
+      if (chave === 'treino') Tutorial.marcar('knobs'); // os passos dos knobs já vão dentro do treino
       Tutorial.comecar(chave, PASSOS_TUTORIAL[chave](), aoFechar);
     }, 450);
   }
