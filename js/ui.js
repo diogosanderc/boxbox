@@ -260,7 +260,7 @@
     ],
     treino: () => [
       { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
-      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: toque do lado direito para subir um passo e do esquerdo para descer, ou arraste em círculo. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
+      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: toque do lado direito para subir um passo e do esquerdo para descer, arraste em círculo, ou segure o dedo meio segundo até acender a luz verde e deslize para os lados. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
       { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
       { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
       { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
@@ -1919,7 +1919,7 @@
     return `<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
       <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
-      <p class="kn-dica">Toque à direita do knob: +1. À esquerda: −1. Ou gire com o dedo.</p>
+      <p class="kn-dica">Toque (direita +1, esquerda −1), gire, ou segure e deslize.</p>
     </div>`;
   }
   const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);
@@ -1930,6 +1930,9 @@
     render();
   }
   let gestoKnob = null;
+  const TEMPO_SEGURAR_KNOB = 500;
+  // Pixels de deslize por passo no modo "segurar e deslizar": menos passos pedem um deslize maior.
+  const pxPorPasso = (n) => (n <= 4 ? 34 : n <= 9 ? 24 : 14);
   app.addEventListener('pointerdown', (ev) => {
     const svg = ev.target.closest('.kn-svg');
     if (!svg || !svg.closest('.setup-knobs')) return;
@@ -1937,16 +1940,32 @@
     const a = Kart.AJUSTES[k], n = passosAjuste(a), i0 = indiceAjuste(a, setupDaAcao(acao)[k]);
     const r = svg.getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    gestoKnob = { svg, cel, k, acao, n, i0, i: i0, cx, cy, angPtr0: (Math.atan2(ev.clientX - cx, -(ev.clientY - cy)) * 180) / Math.PI,
+    gestoKnob = { ultX: ev.clientX, ativo: false, xRef: 0, svg, cel, k, acao, n, i0, i: i0, cx, cy, angPtr0: (Math.atan2(ev.clientX - cx, -(ev.clientY - cy)) * 180) / Math.PI,
       angKnob0: anguloKnob(i0, n), x0: ev.clientX, y0: ev.clientY, t0: Date.now(), moveu: false, id: ev.pointerId };
     try { svg.setPointerCapture(ev.pointerId); } catch (e) { /* sem captura: segue assim mesmo */ }
     cel.classList.add('arrastando');
+    // Segurar o dedo parado por meio segundo "acende" o knob (luz verde): daí em diante, deslizar para os lados ajusta.
+    const g = gestoKnob;
+    g.timer = setTimeout(() => {
+      if (gestoKnob !== g || g.moveu) return;
+      g.ativo = true;
+      g.xRef = g.ultX;
+      cel.classList.add('ativo');
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, TEMPO_SEGURAR_KNOB);
   });
   app.addEventListener('pointermove', (ev) => {
     const g = gestoKnob;
     if (!g || ev.pointerId !== g.id) return;
+    g.ultX = ev.clientX;
+    if (g.ativo) {
+      const i = Math.max(0, Math.min(g.n - 1, g.i0 + Math.round((ev.clientX - g.xRef) / pxPorPasso(g.n))));
+      if (i !== g.i) { g.i = i; g.moveu = true; pintarKnob(g.cel, i); }
+      return;
+    }
     if (!g.moveu && Math.hypot(ev.clientX - g.x0, ev.clientY - g.y0) < 7) return;
     g.moveu = true;
+    clearTimeout(g.timer);
     const angPtr = (Math.atan2(ev.clientX - g.cx, -(ev.clientY - g.cy)) * 180) / Math.PI;
     let delta = angPtr - g.angPtr0;
     if (delta > 180) delta -= 360; else if (delta < -180) delta += 360;
@@ -1958,10 +1977,11 @@
     const g = gestoKnob;
     if (!g || ev.pointerId !== g.id) return;
     gestoKnob = null;
-    g.cel.classList.remove('arrastando');
+    clearTimeout(g.timer);
+    g.cel.classList.remove('arrastando', 'ativo');
     if (ev.type !== 'pointerup') { pintarKnob(g.cel, g.i0); return; }
     let i = g.i;
-    if (!g.moveu && Date.now() - g.t0 < 600) i = Math.max(0, Math.min(g.n - 1, g.i0 + (ev.clientX >= g.cx ? 1 : -1)));
+    if (!g.moveu && !g.ativo && Date.now() - g.t0 < 600) i = Math.max(0, Math.min(g.n - 1, g.i0 + (ev.clientX >= g.cx ? 1 : -1)));
     if (i === g.i0) { pintarKnob(g.cel, g.i0); return; }
     aplicarAjuste(g.acao, g.k, valorAjuste(Kart.AJUSTES[g.k], i));
   };

@@ -1387,3 +1387,9 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .kn.arrastando .kn-ponteiro { transition: none; }
 .kn-dica { margin: 0; text-align: center; font-size: 11.5px; color: var(--fraco); }
 @media (prefers-reduced-motion: reduce) { .kn-ponteiro { transition: none; } }
+
+/* Knob "ativo" (dedo segurado): luz verde ao redor e valor em verde; deslizar para os lados ajusta. */
+.kn.ativo .kn-svg { box-shadow: 0 0 0 2px #2fbf71, 0 0 18px rgba(47, 191, 113, 0.65); }
+.kn.ativo .kn-valor { color: #6fe3a5; }
+.kn.ativo .kn-progresso { stroke: #2fbf71; }
+.kn.ativo .kn-svg { transition: box-shadow 0.12s ease-out; }
