@@ -196,6 +196,13 @@
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
   }
+  // Balão com várias falas (uma por parágrafo).
+  function abrirBalaoFalas(titulo, falas) {
+    balao.querySelector('h3').textContent = titulo;
+    balao.querySelector('p').innerHTML = falas.map((f) => `<span class="balao-fala">${esc(f)}</span>`).join('');
+    balao.hidden = false;
+    balao.querySelector('[data-fechar]').focus();
+  }
   balao.addEventListener('click', (ev) => { if (ev.target === balao || ev.target.closest('[data-fechar]')) balao.hidden = true; });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') balao.hidden = true; });
 
@@ -2093,8 +2100,14 @@
   }
 
   // Falas do piloto sobre a pista antes da sessão: as pistas do que mudou.
+  // Em vez de ocupar a tela com as falas, um botão compacto abre um balão com o que o piloto percebeu.
+  // Um pontinho avisa que ainda não foi lido nesta sessão.
+  const chaveLeitura = (sessao) => `${estado.ano}-${estado.etapa}-${sessao}`;
   function leitura(sessao) {
-    return `<div class="leitura">${C.leituraPista(estado, sessao).map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}</div>`;
+    const falas = C.leituraPista(estado, sessao);
+    if (!falas.length) return '';
+    const vista = (tela.leiturasVistas || {})[chaveLeitura(sessao)];
+    return `<button class="leitura-botao ${vista ? '' : 'nova'}" data-acao="leitura" data-sessao="${sessao}">${icone('piloto')}<span>O que o piloto percebeu na pista<small>${falas.length} ${falas.length === 1 ? 'comentário' : 'comentários'}</small></span><i class="leitura-ponto" aria-hidden="true"></i><b class="ajuda-falsa" aria-hidden="true">?</b></button>`;
   }
 
   function telaGrid() {
@@ -2604,6 +2617,13 @@
       case 'ajuda':
         abrirAjuda(alvo.dataset.chave);
         break;
+      case 'leitura': {
+        const sessao = alvo.dataset.sessao;
+        abrirBalaoFalas('O piloto sobre a pista', C.leituraPista(estado, sessao));
+        tela.leiturasVistas = { ...(tela.leiturasVistas || {}), [chaveLeitura(sessao)]: true };
+        alvo.classList.remove('nova');
+        break;
+      }
       case 'escolher-pneu':
         if (!erro(C.escolherPneu(estado, id))) break;
         salvar();
