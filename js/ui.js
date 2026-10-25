@@ -562,6 +562,8 @@
     const naCorrida = tela.nome === 'fds' && estado && estado.fds && estado.fds.sessao === 'corrida';
     document.body.classList.toggle('sem-topo', naCorrida || ['abertura', 'inicio', 'carregando', 'equipe', 'fimTemporada'].includes(tela.nome));
     document.body.classList.toggle('na-corrida', naCorrida);
+    // Durante o fim de semana o cabeçalho grande sai: a barra fina com nome, caixa e moral fica sempre à vista.
+    document.body.classList.toggle('fds-compacto', tela.nome === 'fds' && !naCorrida);
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     deslizarSegmentos();
@@ -2107,7 +2109,7 @@
     const falas = C.leituraPista(estado, sessao);
     if (!falas.length) return '';
     const vista = (tela.leiturasVistas || {})[chaveLeitura(sessao)];
-    return `<button class="leitura-botao ${vista ? '' : 'nova'}" data-acao="leitura" data-sessao="${sessao}">${icone('piloto')}<span>O que o piloto percebeu na pista<small>${falas.length} ${falas.length === 1 ? 'comentário' : 'comentários'}</small></span><i class="leitura-ponto" aria-hidden="true"></i><b class="ajuda-falsa" aria-hidden="true">?</b></button>`;
+    return `<button class="leitura-botao ${vista ? '' : 'nova'}" data-acao="leitura" data-sessao="${sessao}">${icone('piloto')}<span>O que o piloto percebeu <small>(${falas.length})</small></span><i class="leitura-ponto" aria-hidden="true"></i><b class="ajuda-falsa" aria-hidden="true">?</b></button>`;
   }
 
   function telaGrid() {
