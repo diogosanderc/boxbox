@@ -1374,7 +1374,7 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .kn-volante .kn { flex: 1 1 0; max-width: 140px; }
 .kn-nome { background: none; border: 0; padding: 0 2px; font: inherit; font-size: 12px; font-weight: 600; line-height: 1.15; color: var(--fraco); min-height: 2.3em; display: flex; align-items: flex-end; justify-content: center; cursor: pointer; text-align: center; }
 .kn-nome sup { color: var(--azul); font-size: 9px; font-weight: 800; margin-left: 2px; }
-.kn-svg { width: 100%; max-width: 70px; margin: 5px 0 4px; aspect-ratio: 1; display: block; cursor: grab; touch-action: none; border-radius: 50%; outline: none; }
+.kn-svg { width: 100%; max-width: 70px; margin: 5px 0 4px; aspect-ratio: 1; display: block; cursor: grab; touch-action: pan-y; border-radius: 50%; outline: none; }
 .kn-volante .kn-svg { max-width: 84px; }
 .kn-svg:focus-visible { box-shadow: 0 0 0 2px var(--azul); }
 .kn-valor { font-family: var(--fonte-titulo); font-style: italic; font-weight: 700; font-size: 14.5px; min-height: 1.3em; font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -260,7 +260,7 @@
     ],
     treino: () => [
       { sel: '.passos-fds', titulo: 'O fim de semana', texto: 'Treino, classificação, corrida e resultado. Você está no treino livre.' },
-      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: toque do lado direito para subir um passo e do esquerdo para descer, arraste em círculo, ou segure o dedo meio segundo até acender a luz verde e deslize para os lados. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
+      { sel: '.cartao-acerto', titulo: `Acerto do ${veic()}`, texto: `Gire os knobs do ${veic()}: toque do lado direito para subir um passo e do esquerdo para descer, ou segure o dedo meio segundo até acender a luz verde e deslize para os lados. O acerto ideal muda com a pista, o calor e a chuva, e ninguém te conta qual é: você descobre pelo que o piloto sente.` },
       { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
       { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
       { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
@@ -1853,7 +1853,7 @@
   // ---------- fim de semana ----------
   // ---------- acerto com knobs ----------
   // Cada ajuste é um knob de 270° com um passo por posição. Toque do lado direito sobe um passo, do esquerdo
-  // desce um; arrastar em círculo gira o knob acompanhando o dedo. O ajuste só é gravado quando o dedo sai.
+  // desce um; segurar meio segundo acende o knob e deslizar para os lados ajusta. O ajuste só é gravado quando o dedo sai.
   const KNOB_INI = -135, KNOB_CURSO = 270;
   const passosAjuste = (a) => (a.tipo === 'opcoes' ? a.opcoes.length : Math.round((a.max - a.min) / a.passo) + 1);
   const indiceAjuste = (a, v) => (a.tipo === 'opcoes' ? v : Math.round((v - a.min) / a.passo));
@@ -1919,7 +1919,7 @@
     return `<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
       <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
-      <p class="kn-dica">Toque (direita +1, esquerda −1), gire, ou segure e deslize.</p>
+      <p class="kn-dica">Toque (direita +1, esquerda −1), ou segure e deslize.</p>
     </div>`;
   }
   const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);
@@ -1947,7 +1947,7 @@
     // Segurar o dedo parado por meio segundo "acende" o knob (luz verde): daí em diante, deslizar para os lados ajusta.
     const g = gestoKnob;
     g.timer = setTimeout(() => {
-      if (gestoKnob !== g || g.moveu) return;
+      if (gestoKnob !== g || g.desistiu) return;
       g.ativo = true;
       g.xRef = g.ultX;
       cel.classList.add('ativo');
@@ -1963,16 +1963,11 @@
       if (i !== g.i) { g.i = i; g.moveu = true; pintarKnob(g.cel, i); }
       return;
     }
-    if (!g.moveu && Math.hypot(ev.clientX - g.x0, ev.clientY - g.y0) < 7) return;
-    g.moveu = true;
-    clearTimeout(g.timer);
-    const angPtr = (Math.atan2(ev.clientX - g.cx, -(ev.clientY - g.cy)) * 180) / Math.PI;
-    let delta = angPtr - g.angPtr0;
-    if (delta > 180) delta -= 360; else if (delta < -180) delta += 360;
-    const alvo = Math.max(KNOB_INI, Math.min(KNOB_INI + KNOB_CURSO, g.angKnob0 + delta));
-    const i = Math.round(((alvo - KNOB_INI) / KNOB_CURSO) * (g.n - 1));
-    if (i !== g.i) { g.i = i; pintarKnob(g.cel, i); }
+    // Mexeu antes da luz acender: é rolagem da página, o knob larga o gesto sem alterar nada.
+    if (Math.hypot(ev.clientX - g.x0, ev.clientY - g.y0) > 8) { clearTimeout(g.timer); g.desistiu = true; }
   });
+  // Depois que a luz acende, o deslize é do knob: segura a rolagem da página só nesse caso.
+  app.addEventListener('touchmove', (ev) => { if (gestoKnob && gestoKnob.ativo && ev.cancelable) ev.preventDefault(); }, { passive: false });
   const fimKnob = (ev) => {
     const g = gestoKnob;
     if (!g || ev.pointerId !== g.id) return;
@@ -1981,7 +1976,7 @@
     g.cel.classList.remove('arrastando', 'ativo');
     if (ev.type !== 'pointerup') { pintarKnob(g.cel, g.i0); return; }
     let i = g.i;
-    if (!g.moveu && !g.ativo && Date.now() - g.t0 < 600) i = Math.max(0, Math.min(g.n - 1, g.i0 + (ev.clientX >= g.cx ? 1 : -1)));
+    if (!g.moveu && !g.ativo && !g.desistiu && Date.now() - g.t0 < 600) i = Math.max(0, Math.min(g.n - 1, g.i0 + (ev.clientX >= g.cx ? 1 : -1)));
     if (i === g.i0) { pintarKnob(g.cel, g.i0); return; }
     aplicarAjuste(g.acao, g.k, valorAjuste(Kart.AJUSTES[g.k], i));
   };
