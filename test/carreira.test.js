@@ -1436,3 +1436,26 @@ test('F3: um único composto de seco por etapa, pelo asfalto; o grid inteiro lar
   Carreira.comecarEm(f, 'f2');
   assert.strictEqual(Carreira.compostoDaEtapa(f), null);
 });
+
+test('pontos de evolução: com tudo no limite, 5 pontos elevam o limite do piloto (até 99) e dá para devolver', () => {
+  const e = Carreira.novoJogo({ seed: 46 });
+  e.pontosEvolucao = 12;
+  e.distribuidos = {};
+  for (const a of Carreira.ATRIBUTOS) e.piloto[a] = e.piloto.potencial;
+  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'tudo no limite: não investe');
+  const lim = e.piloto.potencial;
+  assert.ok(Carreira.elevarLimite(e).ok);
+  assert.strictEqual(e.piloto.potencial, lim + 1);
+  assert.strictEqual(e.pontosEvolucao, 7);
+  assert.ok(Carreira.investirPonto(e, 'ritmo').ok, 'agora cabe +1');
+  assert.ok(!Carreira.devolverPonto(e, 'limite').ok, 'com o atributo usando o limite, não devolve');
+  assert.ok(Carreira.devolverPonto(e, 'ritmo').ok);
+  assert.ok(Carreira.devolverPonto(e, 'limite').ok);
+  assert.strictEqual(e.piloto.potencial, lim);
+  assert.strictEqual(e.pontosEvolucao, 12);
+  e.pontosEvolucao = 4;
+  assert.ok(!Carreira.elevarLimite(e).ok, 'faltam pontos');
+  e.pontosEvolucao = 50;
+  e.piloto.potencial = 99;
+  assert.ok(!Carreira.elevarLimite(e).ok, 'máximo 99');
+});

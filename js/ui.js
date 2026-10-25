@@ -107,7 +107,7 @@
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
-    evolucao: ['Pontos de evolução', `O piloto melhora sozinho com a idade e as corridas, mas devagar. O resto vem dos pontos de evolução, ganhos no fim de cada temporada: ${C.pontosEvolucaoDa(99)} por disputar o ano, mais um bônus pela posição no campeonato (campeão +12, P2 +9, P3 +7, P4 +5, P5 a P10 +3) e +1 por vitória. Você escolhe onde investir: cada ponto vale +1 no atributo, até o limite do piloto. Especializar (chuva, largada, pneus...) ou equilibrar é com você.`],
+    evolucao: ['Pontos de evolução', `O piloto melhora sozinho com a idade e as corridas, mas devagar. O resto vem dos pontos de evolução, ganhos no fim de cada temporada: ${C.pontosEvolucaoDa(99)} por disputar o ano, mais um bônus pela posição no campeonato (campeão +12, P2 +9, P3 +7, P4 +5, P5 a P10 +3) e +1 por vitória. Você escolhe onde investir: cada ponto vale +1 no atributo, até o limite do piloto. Quando tudo chega ao limite, ${C.CUSTO_LIMITE} pontos elevam o limite em +1 (até ${C.POTENCIAL_MAXIMO}). Especializar (chuva, largada, pneus...) ou equilibrar é com você.`],
     banco: ['Banco', `Empréstimo para investir no carro e na carreira (só com o Premium). O limite cresce com a categoria e com a popularidade. Você escolhe o prazo: ${Object.entries(C.PRAZOS_EMPRESTIMO).map(([p, j]) => `${p} etapas com ${Math.round(j * 100)}% de juros`).join(', ')}. A parcela sai do caixa ao fim de cada etapa; se não houver dinheiro, ela atrasa com multa de ${Math.round(C.MULTA_ATRASO * 100)}%, e a moral e a popularidade caem. Um empréstimo por vez; quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.`],
     patrocinio: ['Patrocínio', 'Cada empresa paga por etapa. Você fecha por 3 meses, 6 meses ou a temporada toda: o contrato curto paga um pouco mais por etapa e, quando acaba, libera a vaga para outra empresa; só o da temporada tem meta, com bônus no fim do ano se ela for cumprida. Vitórias e pódios aumentam a popularidade e atraem empresas maiores. Cabem 2 patrocinadores no macacão; com o Premium, até 5.'],
     olheiros: ['Olheiros e propostas', 'Andar bem com olheiros assistindo traz propostas. Piloto de fábrica não paga nada, mas pode receber ordem para deixar o companheiro passar. Desconfie de equipe que promete demais.'],
@@ -1364,7 +1364,7 @@
       return `<div class="cal-linha ${i === estado.etapa ? 'atual' : i < estado.etapa ? 'passada' : ''}">
         <span class="cal-num">E${i + 1}</span>
         <span class="cal-nome"><b>${esc(pista.nome)}</b><small>${esc(pista.local)} · ${tipoPista[pista.tipo][1]}</small></span>
-        ${C.compostoUnico(estado) ? chipComposto(i) : ''}${status}
+        <span class="cal-dir">${C.compostoUnico(estado) ? chipComposto(i) : ''}${status}</span>
       </div>`;
     }).join('')}</div>`;
   }
@@ -1459,14 +1459,14 @@
   // Recordes do jogador na carreira inteira.
   function cartaoRecordes() {
     const r = C.recordesCarreira(estado);
-    const n = (rotulo, valor) => `<span><b>${valor}</b>${rotulo}</span>`;
+    const n = (rotulo, valor, cor) => `<span class="rec-${cor}"><b>${valor}</b>${rotulo}</span>`;
     const cats = Object.entries(r.porCategoria).sort((a, b) => C.campeonato(a[0]).ordem - C.campeonato(b[0]).ordem);
     return cartao('Recordes da carreira', `<div class="fim-numeros recordes-numeros">
-        ${n('corridas', r.corridas)}${n(r.vitorias === 1 ? 'vitória' : 'vitórias', r.vitorias)}${n('pódios', r.podios)}${n(r.titulos === 1 ? 'título' : 'títulos', r.titulos)}
-        ${n('poles', r.poles)}${n('voltas rápidas', r.voltasRapidas)}${n('sprints', r.sprintsVencidas)}${n('pontos', r.pontos)}
+        ${n('corridas', r.corridas, 'corridas')}${n(r.vitorias === 1 ? 'vitória' : 'vitórias', r.vitorias, 'ouro')}${n('pódios', r.podios, 'podio')}${n(r.titulos === 1 ? 'título' : 'títulos', r.titulos, 'titulo')}
+        ${n('poles', r.poles, 'pole')}${n('voltas rápidas', r.voltasRapidas, 'volta')}${n('sprints', r.sprintsVencidas, 'sprint')}${n('pontos', r.pontos, 'pontos')}
       </div>
       ${r.primeiraVitoria ? `<p class="fraco mini">Primeira vitória: ${esc(r.primeiraVitoria.pista)} (${C.campeonato(r.primeiraVitoria.campeonato).curto}, ${r.primeiraVitoria.ano}).</p>` : ''}
-      ${cats.length ? `<span class="subtitulo">Por categoria</span><div class="recordes-cat">${cats.map(([id, c]) => `<div class="degrau"><b>${esc(C.campeonato(id).curto)}</b><span>${c.vitorias} vit. · ${c.podios} pód. · melhor P${c.melhor || '—'}</span><span class="${c.titulos ? 'dinheiro' : 'fraco'}">${c.titulos ? `${c.titulos}× campeão` : c.melhorCampeonato && c.melhorCampeonato < 99 ? `P${c.melhorCampeonato} no ano` : ''}</span></div>`).join('')}</div>` : ''}
+      ${cats.length ? `<span class="subtitulo">Por categoria</span><div class="recordes-cat">${cats.map(([id, c]) => `<div class="degrau degrau-cat cat-${id}"><b>${esc(C.campeonato(id).curto)}</b><span>${c.vitorias} vit. · ${c.podios} pód. · melhor P${c.melhor || '—'}</span><span class="${c.titulos ? 'dinheiro' : 'fraco'}">${c.titulos ? `${c.titulos}× campeão` : c.melhorCampeonato && c.melhorCampeonato < 99 ? `P${c.melhorCampeonato} no ano` : ''}</span></div>`).join('')}</div>` : ''}
       <span class="subtitulo">Recordes de pista que são seus</span>
       ${r.pistas.length ? `<div class="recordes-cat">${r.pistas.map((x) => `<div class="degrau"><b>${tempoVolta(x.tempo)}</b><span>${esc(x.pista || nomePistaPorChave(x.chave))}</span><span class="fraco">${x.campeonato ? esc(C.campeonato(x.campeonato).curto) : ''} ${x.ano}</span></div>`).join('')}</div>` : '<p class="vazio">Nenhum ainda. Bata o recorde de uma pista no treino, na classificação ou na corrida.</p>'}`);
   }
@@ -1559,10 +1559,18 @@
         <button class="evo-btn mais" data-acao="investir-ponto" data-a="${a}" ${sobra && !teto ? '' : 'disabled'} aria-label="Pôr ponto em ${C.NOMES_ATRIBUTOS[a]}">+</button>
         ${teto ? '<small class="fraco evo-teto">no limite</small>' : ''}</div>`;
     }).join('');
+    const todosNoLimite = C.ATRIBUTOS.every((a) => p[a] >= p.potencial);
+    const nLimite = dist.limite || 0;
+    const linhaLimite = p.potencial >= C.POTENCIAL_MAXIMO && !nLimite ? '<p class="fraco mini">O limite do piloto já está no máximo.</p>'
+      : `<div class="evo-linha evo-limite"><span>Limite do piloto<small class="fraco">${C.CUSTO_LIMITE} pontos = +1</small></span>
+        <button class="evo-btn" data-acao="devolver-ponto" data-a="limite" ${nLimite ? '' : 'disabled'} aria-label="Devolver ponto do limite">−</button>
+        <b>${p.potencial}${nLimite ? `<small class="dinheiro"> +${nLimite}</small>` : ''}</b>
+        <button class="evo-btn mais" data-acao="elevar-limite" ${sobra >= C.CUSTO_LIMITE && p.potencial < C.POTENCIAL_MAXIMO ? '' : 'disabled'} aria-label="Elevar o limite do piloto">+</button></div>`;
     const ganho = r && r.pontosEvolucao ? `<p class="fraco mini">Este ano: ${C.pontosEvolucaoDa(99)} pela temporada${r.pontosEvolucao - C.pontosEvolucaoDa(99) - r.vitorias > 0 ? ` + ${r.pontosEvolucao - C.pontosEvolucaoDa(99) - r.vitorias} pelo P${r.pos}` : ''}${r.vitorias ? ` + ${r.vitorias} ${r.vitorias === 1 ? 'pela vitória' : 'pelas vitórias'}` : ''} = <b>${r.pontosEvolucao}</b>.</p>` : '';
     return cartao('Pontos de evolução', `
       <div class="evo-sobra"><b>${sobra}</b><span>${sobra === 1 ? 'ponto para distribuir' : 'pontos para distribuir'}</span></div>
-      ${ganho}${linhas}
+      ${todosNoLimite && sobra ? `<p class="aviso-caixa">${ic('estrela')}Todos os atributos estão no limite do piloto. Use ${C.CUSTO_LIMITE} pontos para elevar o limite em +1 e abrir espaço para crescer.</p>` : ''}
+      ${ganho}${linhas}${linhaLimite}
       <p class="fraco mini">Cada ponto vale +1, até o limite do piloto. Dá para mudar até a temporada começar; o que sobrar fica guardado.</p>`, { classe: 'cartao-evolucao destaque', ajuda: 'evolucao' });
   }
 
@@ -1620,6 +1628,7 @@
   }
 
   // Caderno por ano, do mais recente para o mais antigo; dentro do ano, cada etapa (a mais recente primeiro).
+  // Dá para filtrar por categoria (Regional, F4, F3...) e por pista.
   function painelCaderno() {
     const pistas = Object.keys(estado.caderno);
     if (!pistas.length) return cartao('Caderno', '<p class="vazio">Cada saída de treino, a classificação e a corrida aparecem aqui.</p>');
@@ -1629,13 +1638,31 @@
     for (const id of pistas) {
       for (const l of estado.caderno[id]) {
         const chave = `${l.ano}|${l.campeonato || ''}|${l.etapa || 0}|${id}`;
-        if (!visitas.has(chave)) visitas.set(chave, { id, ano: l.ano, etapa: l.etapa || 0, ordem: (C.campeonato(l.campeonato) || { ordem: 0 }).ordem, itens: [] });
+        if (!visitas.has(chave)) visitas.set(chave, { id, ano: l.ano, camp: l.campeonato || '', etapa: l.etapa || 0, ordem: (C.campeonato(l.campeonato) || { ordem: 0 }).ordem, itens: [] });
         visitas.get(chave).itens.push(l);
       }
     }
-    const lista = [...visitas.values()].sort((a, b) => b.ano - a.ano || b.ordem - a.ordem || b.etapa - a.etapa);
+    const todasVisitas = [...visitas.values()];
+    const f = tela.cadFiltro || (tela.cadFiltro = { camp: 'todas', pista: 'todas' });
+    // Categorias que têm registro, da mais baixa para a mais alta.
+    const camps = [...new Set(todasVisitas.map((v) => v.camp).filter(Boolean))].sort((a, b) => C.campeonato(a).ordem - C.campeonato(b).ordem);
+    if (f.camp !== 'todas' && !camps.includes(f.camp)) f.camp = 'todas';
+    const daCategoria = todasVisitas.filter((v) => f.camp === 'todas' || v.camp === f.camp);
+    const idsPista = [...new Set(daCategoria.map((v) => v.id))].sort((a, b) => nome(a).localeCompare(nome(b), 'pt-BR'));
+    if (f.pista !== 'todas' && !idsPista.includes(f.pista)) f.pista = 'todas';
+    const lista = daCategoria.filter((v) => f.pista === 'todas' || v.id === f.pista)
+      .sort((a, b) => b.ano - a.ano || b.ordem - a.ordem || b.etapa - a.etapa);
+    const chips = ['todas', ...camps].map((c) => `<button class="chip-filtro ${f.camp === c ? 'ativo' : ''} ${c === 'todas' ? '' : `cat-${c}`}" data-acao="cad-camp" data-valor="${c}" aria-pressed="${f.camp === c}">${c === 'todas' ? 'Todas' : esc(C.campeonato(c).curto)}</button>`).join('');
+    const filtro = `<div class="filtro-caderno">
+        <div class="filtro-chips" role="group" aria-label="Categoria">${chips}</div>
+        <label class="filtro-pista"><span>Pista</span><select data-acao="cad-pista" aria-label="Filtrar por pista">
+          <option value="todas">Todas as pistas (${idsPista.length})</option>
+          ${idsPista.map((id) => `<option value="${id}" ${f.pista === id ? 'selected' : ''}>${esc(nome(id))}</option>`).join('')}</select></label>
+        <p class="fraco mini">${lista.length} ${lista.length === 1 ? 'etapa registrada' : 'etapas registradas'}${f.camp !== 'todas' || f.pista !== 'todas' ? ' com esse filtro' : ''}.</p>
+      </div>`;
+    if (!lista.length) return filtro + '<p class="vazio">Nada anotado com esse filtro.</p>';
     const anos = [...new Set(lista.map((v) => v.ano))];
-    return anos.map((ano) => `<div class="caderno-ano"><h2>${ano}</h2><div class="grade">${lista.filter((v) => v.ano === ano)
+    return filtro + anos.map((ano) => `<div class="caderno-ano"><h2>${ano}</h2><div class="grade">${lista.filter((v) => v.ano === ano)
       .map((v) => cartao(esc(nome(v.id)), blocosCaderno(v.itens))).join('')}</div></div>`).join('');
   }
 
@@ -1674,7 +1701,7 @@
   let toque = null;
   app.addEventListener('touchstart', (ev) => {
     const t = ev.touches[0];
-    toque = ev.touches.length === 1 && tela.nome === 'paddock' && !ev.target.closest('input, textarea, .segmentos, .folha-fundo, .tiles-rolam')
+    toque = ev.touches.length === 1 && tela.nome === 'paddock' && !ev.target.closest('input, textarea, select, .segmentos, .folha-fundo, .tiles-rolam, .filtro-caderno')
       ? { x: t.clientX, y: t.clientY, quando: Date.now() } : null;
   }, { passive: true });
   app.addEventListener('touchend', (ev) => {
@@ -2725,6 +2752,13 @@
       case 'investir-ponto':
         if (erro(C.investirPonto(estado, alvo.dataset.a))) { salvar(); render(); }
         break;
+      case 'cad-camp':
+        tela.cadFiltro = { camp: alvo.dataset.valor, pista: 'todas' };
+        render();
+        break;
+      case 'elevar-limite':
+        if (erro(C.elevarLimite(estado))) { salvar(); render(); }
+        break;
       case 'devolver-ponto':
         if (erro(C.devolverPonto(estado, alvo.dataset.a))) { salvar(); render(); }
         break;
@@ -2984,6 +3018,9 @@
       C.escolherPneu(estado, el.dataset.id);
       salvar();
       if (estado.fds.sessao === 'grid') render();
+    } else if (el.dataset.acao === 'cad-pista') {
+      tela.cadFiltro = { ...(tela.cadFiltro || { camp: 'todas' }), pista: el.value };
+      render();
     } else if (el.dataset.acao === 'proximo') {
       tela.proximo = el.dataset.id;
     }

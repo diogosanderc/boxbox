@@ -45,7 +45,8 @@ button {
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, transform 0.1s;
 }
-button:hover:not(:disabled) { border-color: var(--fraco); }
+/* Só com mouse: no iPhone o :hover fica preso no último toque e deixava um botão com borda de "selecionado". */
+@media (hover: hover) { button:hover:not(:disabled) { border-color: var(--fraco); } }
 button:active:not(:disabled) { transform: scale(0.98); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
 button:disabled { opacity: 0.4; cursor: default; }
@@ -758,7 +759,7 @@ h1 { font-size: 28px; }
 button.voltar { display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px 8px 10px; border-radius: 999px;
   background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); color: var(--texto); font-weight: 700; font-size: 15px; }
 button.voltar .ico { width: 20px; height: 20px; stroke-width: 2.6; }
-button.voltar:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.5); }
+@media (hover: hover) { button.voltar:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.5); } }
 
 /* ---------- ícones flat no meio do texto ---------- */
 .ico-i { width: 1.05em; height: 1.05em; stroke-width: 2.2; vertical-align: -0.17em; margin-right: 0.35em; }
@@ -1274,3 +1275,40 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
 .pneu-card.nao-vale { opacity: 0.45; }
 .pneu-nao-vale { grid-column: 1 / -1; font-size: 11px; color: var(--fraco); }
 .chip-composto .composto-bola { border-width: 3px; }
+
+/* Limite do piloto (pontos de evolução). */
+.evo-limite { margin-top: 4px; border-top: 2px solid var(--borda); }
+.evo-limite > span { display: grid; gap: 1px; }
+.evo-limite small { font-size: 11px; }
+.evo-limite .evo-btn.mais:not(:disabled) { background: rgba(255, 210, 74, 0.16); border-color: var(--ouro); color: #ffe9a3; }
+
+/* Calendário: composto da etapa e posição na mesma célula, uma abaixo da outra. */
+.cal-dir { display: grid; justify-items: end; gap: 4px; }
+.agora { white-space: nowrap; }
+
+
+/* Recordes da carreira, com uma cor para cada número. */
+.recordes-numeros span { border-color: color-mix(in srgb, var(--cor, var(--borda)) 55%, transparent); }
+.recordes-numeros .rec-corridas { --cor: #8cc4ff; } .recordes-numeros .rec-corridas b { color: #8cc4ff; }
+.recordes-numeros .rec-ouro { --cor: var(--ouro); background: rgba(255, 210, 74, 0.08); } .recordes-numeros .rec-ouro b { color: var(--ouro); }
+.recordes-numeros .rec-podio { --cor: #c9d3e6; background: rgba(201, 211, 230, 0.07); } .recordes-numeros .rec-podio b { color: #dde5f5; }
+.recordes-numeros .rec-titulo { --cor: #ff9d2e; background: rgba(255, 157, 46, 0.1); } .recordes-numeros .rec-titulo b { color: #ffb15c; }
+.recordes-numeros .rec-pole { --cor: #3d9bff; background: rgba(61, 155, 255, 0.09); } .recordes-numeros .rec-pole b { color: #8cc4ff; }
+.recordes-numeros .rec-volta { --cor: #c58bff; background: rgba(197, 139, 255, 0.09); } .recordes-numeros .rec-volta b { color: #d9b0ff; }
+.recordes-numeros .rec-sprint { --cor: #ff6b5e; background: rgba(255, 107, 94, 0.08); } .recordes-numeros .rec-sprint b { color: #ff9a90; }
+.recordes-numeros .rec-pontos { --cor: var(--ok); background: rgba(47, 191, 113, 0.08); } .recordes-numeros .rec-pontos b { color: #6fe3a5; }
+.degrau-cat { border-left: 4px solid var(--cat, var(--borda)); }
+.degrau-cat > b { color: var(--cat, var(--texto)); }
+.cat-regional { --cat: #6fe3a5; } .cat-nacional { --cat: #8cc4ff; } .cat-internacional { --cat: #c58bff; }
+.cat-f4 { --cat: #ffb15c; } .cat-f3 { --cat: #5fd6ce; } .cat-f2 { --cat: #ff8fb1; } .cat-f1 { --cat: #ff6b5e; }
+
+/* Filtro do Caderno: categorias em chips e a pista num seletor. */
+.filtro-caderno { display: grid; gap: 10px; }
+.filtro-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.filtro-chips::-webkit-scrollbar { display: none; }
+.chip-filtro { flex: none; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--painel-2); border-color: var(--borda); white-space: nowrap; }
+.chip-filtro.ativo { background: rgba(61, 155, 255, 0.18); border-color: var(--azul); color: #fff; }
+.chip-filtro[class*="cat-"]::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--cat); vertical-align: 1px; }
+.chip-filtro[class*="cat-"].ativo { border-color: var(--cat); background: color-mix(in srgb, var(--cat) 18%, transparent); }
+.filtro-pista { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; font-size: 13px; color: var(--fraco); }
+.filtro-pista select { width: 100%; min-width: 0; padding: 9px 10px; border-radius: var(--raio-p); border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); font: inherit; font-size: 14px; }

@@ -1870,6 +1870,19 @@
   const PONTOS_BASE_EVOLUCAO = 8;
   const BONUS_EVOLUCAO = { 1: 12, 2: 9, 3: 7, 4: 5 };
   const pontosEvolucaoDa = (pos, vitorias = 0) => PONTOS_BASE_EVOLUCAO + (BONUS_EVOLUCAO[pos] || (pos <= 10 ? 3 : 0)) + vitorias;
+  // Quando os atributos chegam ao limite do piloto, os pontos ainda servem: CUSTO_LIMITE pontos
+  // elevam o limite em +1 (até POTENCIAL_MAXIMO), abrindo espaço para os atributos crescerem de novo.
+  const CUSTO_LIMITE = 5;
+  const POTENCIAL_MAXIMO = 99;
+  function elevarLimite(estado) {
+    const p = estado.piloto;
+    if (p.potencial >= POTENCIAL_MAXIMO) return { ok: false, erro: 'O limite do piloto já está no máximo.' };
+    if (!((estado.pontosEvolucao || 0) >= CUSTO_LIMITE)) return { ok: false, erro: `Elevar o limite custa ${CUSTO_LIMITE} pontos de evolução.` };
+    p.potencial += 1;
+    estado.pontosEvolucao -= CUSTO_LIMITE;
+    estado.distribuidos = { ...(estado.distribuidos || {}), limite: ((estado.distribuidos || {}).limite || 0) + 1 };
+    return { ok: true };
+  }
   // Investe um ponto (ou devolve um investido desde o último fim de temporada).
   function investirPonto(estado, a) {
     const p = estado.piloto;
@@ -1883,6 +1896,14 @@
   }
   function devolverPonto(estado, a) {
     const d = estado.distribuidos || {};
+    if (a === 'limite') {
+      if (!(d.limite > 0)) return { ok: false, erro: 'Nada para devolver.' };
+      if (ATRIBUTOS.some((x) => estado.piloto[x] > estado.piloto.potencial - 1)) return { ok: false, erro: 'Tire antes os pontos dos atributos que usam esse limite.' };
+      estado.piloto.potencial -= 1;
+      estado.pontosEvolucao += CUSTO_LIMITE;
+      estado.distribuidos = { ...d, limite: d.limite - 1 };
+      return { ok: true };
+    }
     if (!(d[a] > 0)) return { ok: false, erro: 'Nada para devolver.' };
     estado.piloto[a] -= 1;
     estado.pontosEvolucao += 1;
@@ -2183,7 +2204,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     compostoDaEtapa, compostoUnico, secoDaEtapa, pneuValeNaEtapa,
-    investirPonto, devolverPonto, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
+    investirPonto, devolverPonto, elevarLimite, CUSTO_LIMITE, POTENCIAL_MAXIMO, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
