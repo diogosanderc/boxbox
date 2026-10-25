@@ -340,6 +340,12 @@
     // Carreiras antigas, sem sorteio, continuam com os nomes originais.
     usarNomesEquipes(estado && estado.nomesEquipes);
     if (estado && estado.campeonato) sincronizarCategoria(estado);
+    // Ajustes que entraram depois (caster): saves antigos, com o fim de semana em andamento, ganham o padrão.
+    if (estado && estado.campeonato) {
+      const completar = (st) => { if (st && typeof st === 'object') for (const k of Kart.ORDEM_AJUSTES) if (!(k in st)) st[k] = Kart.AJUSTES[k].padrao; };
+      if (estado.fds) { completar(estado.fds.setup); completar(estado.fds.setupCorrida); }
+      completar(estado.desafio && estado.desafio.setup);
+    }
     if (estado && estado.piloto) estado.piloto.nome = nomeDoPiloto(estado.piloto.nome);
     // Carreiras antigas contavam o motor em etapas; agora são horas (cerca de 0,9 h por etapa).
     if (estado && estado.piloto && !estado.motorEmHoras) { estado.motorHoras = Math.round((estado.motorHoras || 0) * 0.9 * 100) / 100; estado.motorEmHoras = true; }

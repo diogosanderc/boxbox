@@ -1482,3 +1482,28 @@ test('pontos de evolução: o +1 fica mais caro quanto mais alto o atributo, e d
   assert.strictEqual(e.piloto.ritmo, 81);
   assert.strictEqual(e.pontosEvolucao, 2);
 });
+
+test('kart: oito ajustes, com o caster; o ideal muda com a pista e a chuva; saves antigos ganham o padrão', () => {
+  Kart.usarCategoria('kart');
+  assert.strictEqual(Kart.ORDEM_AJUSTES.length, 8);
+  assert.strictEqual(Kart.setupPadrao().caster, 12);
+  const pista = (tipo) => ({ ...Dados.KARTODROMOS.br[0], tipo });
+  const cond = (molhado) => Kart.condicao({ manha: { tempAr: 22, chove: false }, tarde: { tempAr: 26, chove: molhado }, nuvens: 0.2 }, 'quali', molhado);
+  const veloz = Kart.acertoIdeal(pista('veloz'), cond(false), 'slick').caster;
+  const travada = Kart.acertoIdeal(pista('travada'), cond(false), 'slick').caster;
+  const molhada = Kart.acertoIdeal(pista('veloz'), cond(true), 'chuva').caster;
+  assert.ok(veloz > travada, 'pista veloz pede mais caster que a travada');
+  assert.ok(molhada > veloz, 'na chuva pede mais caster');
+  assert.ok(veloz >= 8 && veloz <= 16 && molhada <= 16);
+  // O piloto reclama do caster quando é o que mais pesa.
+  const ideal = Kart.arredondarSetup(Kart.acertoIdeal(pista('mista'), cond(false), 'slick'));
+  const d = Kart.diagnostico({ ...ideal, caster: 16 }, pista('mista'), cond(false), 'slick');
+  assert.ok(d.ajustes.some((a) => /caster/i.test(a.texto)) || d.sentiu.some((f) => /direção|frente/i.test(f)));
+  // Save antigo, com o fim de semana em andamento e sem o caster.
+  const e = Carreira.novoJogo({ seed: 51 });
+  e.fase = 'paddock';
+  Carreira.iniciarFimDeSemana(e);
+  delete e.fds.setup.caster;
+  Carreira.migrar(e);
+  assert.strictEqual(e.fds.setup.caster, 12);
+});

@@ -14,6 +14,7 @@
     alturaBanco: { nome: 'Altura do banco', tipo: 'opcoes', opcoes: ['Baixo', 'Médio', 'Alto'], padrao: 1 },
     coroa: { nome: 'Relação (coroa)', tipo: 'numero', min: 76, max: 90, passo: 1, unidade: 'dentes', padrao: 82 },
     carburacao: { nome: 'Carburação', tipo: 'numero', min: -3, max: 3, passo: 1, unidade: '', padrao: 0, rotulo: (v) => (v === 0 ? 'Padrão' : v < 0 ? `${-v} volta(s) mais pobre` : `${v} volta(s) mais rica`) },
+    caster: { nome: 'Caster', tipo: 'numero', min: 8, max: 16, passo: 1, unidade: '°', padrao: 12 },
   };
   const AJUSTES_F4 = {
     asaDianteira: { nome: 'Asa dianteira', tipo: 'numero', min: 1, max: 9, passo: 1, unidade: '', padrao: 5 },
@@ -31,10 +32,10 @@
     kart: {
       id: 'kart', veiculo: 'kart', quemAcerta: 'Mecânico',
       AJUSTES: AJUSTES_KART,
-      ORDEM: ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'alturaBanco', 'coroa', 'carburacao'],
+      ORDEM: ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'alturaBanco', 'coroa', 'carburacao', 'caster'],
       // Quanto cada unidade de erro pesa e a "escala" de tolerância de cada ajuste.
-      TOLERANCIA: { pressao: 1.0, eixo: 0.7, bitolaTraseira: 0.7, bitola: 0.8, alturaBanco: 0.8, coroa: 3, carburacao: 1.2 },
-      PESO: { pressao: 0.25, eixo: 0.3, bitolaTraseira: 0.2, bitola: 0.2, alturaBanco: 0.15, coroa: 0.2, carburacao: 0.2 },
+      TOLERANCIA: { pressao: 1.0, eixo: 0.7, bitolaTraseira: 0.7, bitola: 0.8, alturaBanco: 0.8, coroa: 3, carburacao: 1.2, caster: 1.5 },
+      PESO: { pressao: 0.25, eixo: 0.3, bitolaTraseira: 0.2, bitola: 0.2, alturaBanco: 0.15, coroa: 0.2, carburacao: 0.2, caster: 0.15 },
       traseira: 'eixo',
       ideal(pista, cond, pneu) {
         const tipo = tipoNum(pista);
@@ -48,6 +49,9 @@
           bitola: limitarK(1 - tipo * 0.6 + (cond.molhado ? 0.6 : 0), 0, 2),
           coroa: limitarK(82 - tipo * 3 + pista.altitude / 400 + (cond.molhado ? 2 : 0), 76, 90),
           carburacao: limitarK((20 - cond.tempAr) / 7 - pista.altitude / 500, -3, 3),
+          // Caster: mais estabilidade e mordida na frente. Pista veloz, molhada, fria ou verde pede mais;
+          // pista travada, quente e emborrachada pede menos (a direção fica leve para as curvas lentas).
+          caster: limitarK(12 + tipo * 1.5 + (cond.molhado ? 2 : 0) - (cond.tempPista - 30) / 12 - (cond.borracha - 0.5) * 1.5, 8, 16),
         };
       },
       // Quanto o acerto força o motor (0 = nada): carburação pobre (engripa) e relação curta demais.
@@ -60,6 +64,7 @@
         bitola: ['O kart sai de frente, não quer virar na entrada.', 'A frente morde demais, o kart fica nervoso na entrada de curva.'],
         coroa: ['Falta força na saída das curvas, o kart demora a embalar.', 'O motor passa do giro antes do fim da reta.'],
         carburacao: ['O motor está quente e gritando demais... dá medo de engripar.', 'O motor está afogando, engasga nas retomadas.'],
+        caster: ['A frente está sem firmeza: o kart fica nervoso na reta e não morde na entrada.', 'A direção está pesada e o kart demora a virar nas curvas lentas.'],
       },
       DIRECAO: {
         pressao: ['Pressão mais alta', 'Pressão mais baixa'],
@@ -69,13 +74,15 @@
         alturaBanco: ['Banco mais alto', 'Banco mais baixo'],
         coroa: ['Mais dentes na coroa', 'Menos dentes na coroa'],
         carburacao: ['Carburação mais rica', 'Carburação mais pobre'],
+        caster: ['Mais caster', 'Menos caster'],
       },
-      ONDE: { pressao: 'na pressão', eixo: 'no eixo', bitolaTraseira: 'na bitola traseira', bitola: 'na bitola dianteira', alturaBanco: 'na altura do banco', coroa: 'na relação', carburacao: 'na carburação' },
+      ONDE: { pressao: 'na pressão', eixo: 'no eixo', bitolaTraseira: 'na bitola traseira', bitola: 'na bitola dianteira', alturaBanco: 'na altura do banco', coroa: 'na relação', carburacao: 'na carburação', caster: 'no caster' },
       // verbo para baixar (erro > 0) e para subir (erro < 0)
       VERBO: {
         pressao: ['baixar', 'subir'], eixo: ['amolecer', 'endurecer'], bitolaTraseira: ['fechar a traseira', 'abrir a traseira'], bitola: ['fechar', 'abrir'],
         alturaBanco: ['baixar o banco', 'subir o banco'],
         coroa: ['tirar dentes da coroa', 'pôr mais dentes na coroa'], carburacao: ['empobrecer', 'enriquecer'],
+        caster: ['tirar caster', 'pôr mais caster'],
       },
       descrever(s, AJ) {
         // Acertos antigos do caderno podem não ter os ajustes mais novos.
@@ -83,7 +90,7 @@
           const a = AJ[k];
           if (a.tipo === 'opcoes') return a.opcoes[s[k]];
           if (a.rotulo) return `carb. ${s[k] > 0 ? '+' : ''}${s[k]}`;
-          return `${s[k]}${a.unidade === 'psi' ? ' psi' : a.unidade === 'dentes' ? 'z' : ''}`;
+          return `${s[k]}${a.unidade === 'psi' ? ' psi' : a.unidade === 'dentes' ? 'z' : a.unidade === '°' ? '°' : ''}`;
         }).join(' · ');
       },
     },
@@ -287,7 +294,7 @@
     pressao: 'Aderência do pneu', eixo: 'Saída de curva', bitolaTraseira: 'Saída de curva', bitola: 'Entrada de curva',
     alturaBanco: 'Meio de curva', coroa: 'Retas', carburacao: 'Retas', asaDianteira: 'Entrada de curva', asaTraseira: 'Curvas rápidas',
     suspensao: 'Zebras e ondulações', altura: 'Curvas rápidas', relacao: 'Retas', freio: 'Freada', diferencial: 'Saída de curva',
-    camber: 'Entrada de curva', ers: 'Retas',
+    camber: 'Entrada de curva', ers: 'Retas', caster: 'Entrada de curva',
   };
   function telemetria(setup, pista, cond, pneu) {
     const e = erros(setup, acertoIdeal(pista, cond, pneu));
@@ -463,6 +470,7 @@
     if (k === 'pressao') return `${d < 0 ? 'baixar' : 'subir'} ${plural('psi', 'psi')}`;
     if (k === 'coroa') return `${d > 0 ? 'pôr' : 'tirar'} ${plural('dente', 'dentes')}`;
     if (k === 'carburacao') return `${plural('volta', 'voltas')} mais ${d > 0 ? 'rica' : 'pobre'}`;
+    if (k === 'caster') return `${d > 0 ? 'pôr' : 'tirar'} ${plural('grau', 'graus')} de caster`;
     if (k === 'freio') return `passar ${n}% para ${d > 0 ? 'a frente' : 'trás'}`;
     if (k === 'camber') return `${String(n).replace('.', ',')}° ${d < 0 ? 'a mais' : 'a menos'} de cambagem`;
     return `${d > 0 ? 'pôr' : 'tirar'} ${plural('ponto', 'pontos')}`; // asas

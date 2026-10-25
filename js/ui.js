@@ -123,6 +123,7 @@
     alturaBanco: ['Altura do banco', 'É a altura em que o banco (e o piloto) vai preso no chassi. Banco alto joga mais peso para as rodas de fora na curva e dá aderência; banco baixo deixa o kart mais estável e livre.'],
     bitola: ['Bitola dianteira', 'É a largura entre as rodas da frente. Larga faz o kart virar mais fácil na entrada da curva; estreita deixa a frente mais calma e o kart mais estável e rápido na reta.'],
     coroa: ['Relação (coroa)', 'É o número de dentes da coroa, a engrenagem do eixo traseiro. Mais dentes: mais força na saída das curvas, mas o motor chega no limite antes do fim da reta. Menos dentes: mais velocidade final, menos força. Dentes demais fazem o motor passar do giro e o forçam.'],
+    caster: ['Caster', 'É a inclinação do pino do eixo dianteiro. Mais caster dá firmeza na reta e mais mordida na entrada da curva, mas deixa a direção pesada e o kart lento nas curvas travadas. Menos caster deixa a frente leve. Pista veloz, molhada, fria ou verde pede mais; pista travada, quente e emborrachada pede menos.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium.'],
@@ -1859,6 +1860,7 @@
       } else {
         const rotulo = k === 'carburacao' ? (s[k] === 0 ? 'Padrão' : s[k] < 0 ? `Pobre ${-s[k]}` : `Rica ${s[k]}`)
           : k === 'camber' ? `${String(s[k].toFixed(2)).replace('.', ',')}°`
+            : k === 'caster' ? `${s[k]}°`
             : k === 'freio' ? `${s[k]}% na frente`
               : `${s[k]} ${a.unidade === 'dentes' ? 'z' : a.unidade}`;
         controle = `<div class="passos"><button data-acao="${acao}" data-k="${k}" data-delta="-1" aria-label="Diminuir ${a.nome}" ${s[k] <= a.min ? 'disabled' : ''}>−</button>
