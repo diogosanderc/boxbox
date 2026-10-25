@@ -280,7 +280,6 @@
     estado.fds = null;
     estado.desenvolvimento = {}; // carro novo a cada ano
     estado.distribuidos = {}; // pontos investidos ficam valendo (não dá mais para devolver)
-    estado.gastosPontos = {};
     // Pneus também zeram a cada ano: o estoque velho sai e a equipe entrega um jogo novo
     // (no kart e na F4, dois slicks e um de chuva; da F3 em diante, um de cada tipo).
     if (estado.temporadas && estado.temporadas.length) {
@@ -1886,45 +1885,39 @@
   // Calibrado em simulações de carreira: a média dos atributos de quem joga bem chega perto do limite do
   // piloto só depois dos 22 anos (e o ritmo, o atributo que o jogador prioriza, bem antes).
   const EVOLUCAO_AUTOMATICA = 0.6;
-  const PONTOS_BASE_EVOLUCAO = 12;
-  const BONUS_EVOLUCAO = { 1: 14, 2: 11, 3: 9, 4: 7 };
-  const BONUS_ATE_P10 = 4;
+  const PONTOS_BASE_EVOLUCAO = 8;
+  const BONUS_EVOLUCAO = { 1: 10, 2: 8, 3: 6, 4: 5 };
+  const BONUS_ATE_P10 = 3;
   const MAX_BONUS_VITORIAS = 4;
   const bonusVitorias = (vitorias) => Math.min(MAX_BONUS_VITORIAS, vitorias || 0);
   const bonusPosicao = (pos) => BONUS_EVOLUCAO[pos] || (pos <= 10 ? BONUS_ATE_P10 : 0);
   const pontosEvolucaoDa = (pos, vitorias = 0) => PONTOS_BASE_EVOLUCAO + bonusPosicao(pos) + bonusVitorias(vitorias);
-  // Subir um atributo fica mais caro quanto mais alto ele está: até 69 custa 1 ponto, de 70 a 81 custa 2,
-  // a partir de 82 custa 3. Assim o limite do piloto demora a chegar, e não só pela evolução natural.
-  const FAIXAS_CUSTO = [[70, 1], [82, 2], [Infinity, 3]];
-  const custoPonto = (valor) => FAIXAS_CUSTO.find(([ate]) => valor < ate)[1];
-  // O que foi gasto desde o último fim de temporada, em ordem, para poder devolver.
-  const registrarGasto = (estado, chave, custo) => {
-    estado.distribuidos = { ...(estado.distribuidos || {}), [chave]: ((estado.distribuidos || {})[chave] || 0) + 1 };
-    estado.gastosPontos = { ...(estado.gastosPontos || {}), [chave]: [...((estado.gastosPontos || {})[chave] || []), custo] };
-  };
-  // Investe pontos em um atributo (+1 por vez, pelo custo da faixa) ou devolve o último investido.
+  // Cada ponto vale +1 em qualquer atributo (custo fixo). O − tira 1 de qualquer atributo e devolve o ponto,
+  // para redistribuir: o que se ganha de um lado se perde do outro. Dá para mexer entre as etapas, nunca no meio do fim de semana.
+  const PISO_ATRIBUTO = 30;
+  const custoPonto = () => 1;
+  // Saldo de cada atributo desde o último fim de temporada (positivo: recebeu; negativo: cedeu).
+  const mexerSaldo = (estado, a, delta) => { estado.distribuidos = { ...(estado.distribuidos || {}), [a]: ((estado.distribuidos || {})[a] || 0) + delta }; };
   function investirPonto(estado, a) {
     const p = estado.piloto;
     if (!ATRIBUTOS.includes(a)) return { ok: false, erro: 'Atributo inválido.' };
     if (!(estado.pontosEvolucao > 0)) return { ok: false, erro: 'Sem pontos de evolução.' };
-    if (p[a] >= p.potencial) return { ok: false, erro: `${NOMES_ATRIBUTOS[a]} já está no limite do piloto.` };
-    const custo = custoPonto(p[a]);
-    if (estado.pontosEvolucao < custo) return { ok: false, erro: `${NOMES_ATRIBUTOS[a]} a partir de ${p[a]} custa ${custo} pontos.` };
+    if (p[a] >= p.potencial) return { ok: false, erro: `${NOMES_ATRIBUTOS[a]} já está no teto da categoria.` };
     p[a] += 1;
-    estado.pontosEvolucao -= custo;
-    registrarGasto(estado, a, custo);
-    return { ok: true, custo };
+    estado.pontosEvolucao -= 1;
+    mexerSaldo(estado, a, 1);
+    return { ok: true, custo: 1 };
   }
+  // Tira 1 do atributo e devolve o ponto. Serve para desfazer um investimento ou para mudar de lugar um ponto.
   function devolverPonto(estado, a) {
-    const d = estado.distribuidos || {};
-    const gastos = (estado.gastosPontos || {})[a] || [];
-    if (!(d[a] > 0) || !gastos.length) return { ok: false, erro: 'Nada para devolver.' };
-    const custo = gastos[gastos.length - 1];
-    estado.piloto[a] -= 1;
-    estado.pontosEvolucao += custo;
-    estado.distribuidos = { ...d, [a]: d[a] - 1 };
-    estado.gastosPontos = { ...estado.gastosPontos, [a]: gastos.slice(0, -1) };
-    return { ok: true, custo };
+    const p = estado.piloto;
+    if (!ATRIBUTOS.includes(a)) return { ok: false, erro: 'Atributo inválido.' };
+    if (estado.fase === 'fds') return { ok: false, erro: 'Redistribua os pontos entre as etapas.' };
+    if (p[a] <= PISO_ATRIBUTO) return { ok: false, erro: `${NOMES_ATRIBUTOS[a]} não pode ficar abaixo de ${PISO_ATRIBUTO}.` };
+    p[a] -= 1;
+    estado.pontosEvolucao = (estado.pontosEvolucao || 0) + 1;
+    mexerSaldo(estado, a, -1);
+    return { ok: true, custo: 1 };
   }
 
   function evoluir(p, rnd, fator) {
@@ -1967,7 +1960,6 @@
     rel.pontosEvolucao = pontosEvolucaoDa(pos, rel.vitorias);
     estado.pontosEvolucao = (estado.pontosEvolucao || 0) + rel.pontosEvolucao;
     estado.distribuidos = {};
-    estado.gastosPontos = {};
     p.moral = Math.round(p.moral + (60 - p.moral) * 0.3);
     p.sensibilidade = Math.min(95, p.sensibilidade + 3);
     p.idade += 1;
@@ -2222,7 +2214,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     compostoDaEtapa, compostoUnico, secoDaEtapa, pneuValeNaEtapa,
-    investirPonto, devolverPonto, custoPonto, TETO_CATEGORIA, POTENCIAL_MAXIMO, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
+    investirPonto, devolverPonto, custoPonto, PISO_ATRIBUTO, TETO_CATEGORIA, POTENCIAL_MAXIMO, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
     PONTOS_BASE_EVOLUCAO, BONUS_EVOLUCAO, BONUS_ATE_P10, MAX_BONUS_VITORIAS, bonusPosicao, bonusVitorias,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,

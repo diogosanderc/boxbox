@@ -1402,13 +1402,16 @@ test('pontos de evolução: ganhos pela temporada, investidos até o limite e de
   assert.ok(Carreira.investirPonto(e, 'chuva').ok);
   assert.ok(Carreira.devolverPonto(e, 'chuva').ok);
   assert.strictEqual(e.piloto.chuva, antes + 1);
-  assert.ok(!Carreira.devolverPonto(e, 'largada').ok, 'só devolve o que investiu');
+  const pts = e.pontosEvolucao, larg = e.piloto.largada;
+  assert.ok(Carreira.devolverPonto(e, 'largada').ok, 'também dá para tirar de outro atributo');
+  assert.strictEqual(e.piloto.largada, larg - 1); assert.strictEqual(e.pontosEvolucao, pts + 1);
+  assert.ok(Carreira.investirPonto(e, 'largada').ok);
   e.piloto.ritmo = e.piloto.potencial;
   assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'não passa do limite');
   const sobra = e.pontosEvolucao;
   assert.ok(Carreira.proximaTemporada(e, r.opcoes[0], e.equipeId).ok);
-  assert.ok(!Carreira.devolverPonto(e, 'chuva').ok, 'com a temporada começada, fica valendo');
   assert.strictEqual(e.pontosEvolucao, sobra, 'o que sobrou fica guardado');
+  assert.deepStrictEqual(e.distribuidos, {}, 'a temporada nova zera o saldo');
 });
 
 test('F3: um único composto de seco por etapa, pelo asfalto; o grid inteiro larga com ele', () => {
@@ -1454,31 +1457,29 @@ test('pontos de evolução: o teto dos atributos sobe com a categoria e só a F1
   Carreira.comecarEm(e, 'f1');
   assert.strictEqual(e.piloto.potencial, 100);
   assert.ok(e.piloto.ritmo < 100, 'chega à F1 abaixo do teto, com espaço para crescer');
-  e.pontosEvolucao = 12; e.distribuidos = {}; e.gastosPontos = {};
+  e.pontosEvolucao = 12; e.distribuidos = {};
   assert.ok(Carreira.investirPonto(e, 'ritmo').ok);
   assert.ok(Carreira.devolverPonto(e, 'ritmo').ok);
   assert.strictEqual(e.pontosEvolucao, 12);
 });
 
-test('pontos de evolução: o +1 fica mais caro quanto mais alto o atributo, e devolver devolve o custo pago', () => {
-  assert.strictEqual(Carreira.custoPonto(55), 1);
-  assert.strictEqual(Carreira.custoPonto(69), 1);
-  assert.strictEqual(Carreira.custoPonto(70), 2);
-  assert.strictEqual(Carreira.custoPonto(81), 2);
-  assert.strictEqual(Carreira.custoPonto(82), 3);
+test('pontos de evolução: +1 custa 1 ponto e o − permite mover pontos de um atributo para outro', () => {
   const e = Carreira.novoJogo({ seed: 49 });
-  e.piloto.potencial = 95;
-  e.piloto.ritmo = 80; e.piloto.chuva = 60;
-  e.pontosEvolucao = 5; e.distribuidos = {}; e.gastosPontos = {};
-  assert.ok(Carreira.investirPonto(e, 'ritmo').ok);       // 80 -> 81, custa 2
-  assert.ok(Carreira.investirPonto(e, 'ritmo').ok);       // 81 -> 82, custa 2
-  assert.strictEqual(e.pontosEvolucao, 1);
-  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, '82 custa 3 e só sobra 1');
-  assert.ok(Carreira.investirPonto(e, 'chuva').ok);       // 60 -> 61, custa 1
-  assert.strictEqual(e.pontosEvolucao, 0);
-  assert.ok(Carreira.devolverPonto(e, 'ritmo').ok);       // devolve os 2 pagos pelo último
-  assert.strictEqual(e.piloto.ritmo, 81);
-  assert.strictEqual(e.pontosEvolucao, 2);
+  e.piloto.potencial = 100;
+  e.piloto.ritmo = 80; e.piloto.defesa = 60; e.piloto.chuva = 60;
+  e.pontosEvolucao = 2; e.distribuidos = {};
+  assert.strictEqual(Carreira.custoPonto(55), 1);
+  assert.strictEqual(Carreira.custoPonto(85), 1, 'custo fixo, em qualquer faixa');
+  assert.ok(Carreira.investirPonto(e, 'ritmo').ok && Carreira.investirPonto(e, 'ritmo').ok);
+  assert.strictEqual(e.piloto.ritmo, 82); assert.strictEqual(e.pontosEvolucao, 0);
+  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'sem pontos');
+  assert.ok(Carreira.devolverPonto(e, 'defesa').ok, 'tira de outro atributo');
+  assert.strictEqual(e.piloto.defesa, 59); assert.strictEqual(e.pontosEvolucao, 1);
+  assert.ok(Carreira.investirPonto(e, 'chuva').ok);
+  assert.strictEqual(e.piloto.chuva, 61);
+  assert.deepStrictEqual([e.distribuidos.ritmo, e.distribuidos.defesa, e.distribuidos.chuva], [2, -1, 1]);
+  e.piloto.defesa = Carreira.PISO_ATRIBUTO;
+  assert.ok(!Carreira.devolverPonto(e, 'defesa').ok, 'não passa do piso');
 });
 
 test('kart: oito ajustes, com o caster; o ideal muda com a pista e a chuva; saves antigos ganham o padrão', () => {

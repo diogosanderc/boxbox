@@ -1393,3 +1393,5 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .kn.ativo .kn-valor { color: #6fe3a5; }
 .kn.ativo .kn-progresso { stroke: #2fbf71; }
 .kn.ativo .kn-svg { transition: box-shadow 0.12s ease-out; }
+
+.evo-perda { color: var(--destaque-vivo); font-weight: 700; }
