@@ -1401,3 +1401,21 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .evo-perda { color: var(--destaque-vivo); font-weight: 700; }
 .evo-linha > span { min-width: 0; }
 .evo-no-teto { color: #f5b942; font-weight: 600; }
+
+/* Mecânico: seletor compacto de três opções e um detalhe só da escolhida. */
+.mec-segs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mec-seg { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 14px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); }
+.mec-seg svg { width: 22px; height: 22px; }
+.mec-seg b { font-size: 13.5px; }
+.mec-seg small { font-size: 11.5px; color: var(--fraco); }
+.mec-seg.ativo { border-color: var(--azul); background: rgba(80, 150, 255, 0.14); box-shadow: 0 0 0 1px var(--azul) inset; }
+.mec-seg.mec-pro { border-color: rgba(255, 210, 74, 0.4); }
+.mec-seg.mec-pro.ativo { border-color: var(--ouro); background: rgba(255, 210, 74, 0.1); box-shadow: 0 0 0 1px var(--ouro) inset; }
+.mec-vazio { margin: 4px 0 0; text-align: center; font-size: 12.5px; color: var(--fraco); }
+.mec-detalhe { display: grid; gap: 8px; margin-top: 4px; padding: 12px; border-radius: 14px; background: var(--painel-2); border: 1px solid var(--borda); }
+.mec-faz { margin: 0; font-weight: 600; }
+.mec-precos { margin: 0; display: grid; gap: 4px; }
+.mec-precos div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
+.mec-precos dt { color: var(--fraco); }
+.mec-precos dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mec-obs { margin: 0; font-size: 11.5px; color: var(--fraco); line-height: 1.35; }

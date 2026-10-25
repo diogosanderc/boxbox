@@ -2160,14 +2160,26 @@
     const fds = estado.fds;
     const m = C.mecanicoDoFds(fds);
     if (!m) {
-      return cartao('Mecânico', `<p class="fraco mini">Você está acertando o ${Kart.veiculo} sozinho. Se quiser ajuda, contrate alguém para o fim de semana.</p>
-        <div class="mecanicos">${Object.entries(C.MECANICOS).map(([tipo, x]) => {
-          const preco = C.precoMecanico(estado, tipo);
-          const extra = C.precoHoraExtra(estado, tipo);
-          return `<button class="compra mecanico-opcao mec-${tipo}" data-acao="contratar-mecanico" data-tipo="${tipo}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}>
-            <b>${ic(x.icone)}${x.nome}</b><span class="mecanico-desc">${x.descricao}</span>
-            <span class="mecanico-preco"><b>${reais(preco)}</b>${extra ? ` · hora extra ${reais(extra)}` : ' · fim de semana todo'}</span></button>`;
-        }).join('')}</div>`, { ajuda: 'mecanico', classe: 'cartao-mecanico' });
+      const NOMES_CURTOS = { iniciante: 'Iniciante', experiente: 'Experiente', pro: 'Técnico' };
+      const FAZ = { iniciante: 'Dá palpites sobre o que mexer.', experiente: 'Diz o que mudar e quanto.', pro: 'Monta o acerto para você.' };
+      const mil = (x) => `R$ ${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
+      const sel = C.MECANICOS[tela.mecSel] ? tela.mecSel : null;
+      const opcoes = Object.entries(C.MECANICOS).map(([tipo, x]) => `<button class="mec-seg mec-${tipo} ${sel === tipo ? 'ativo' : ''}" data-acao="mec-sel" data-tipo="${tipo}" aria-pressed="${sel === tipo}">
+          ${ic(x.icone)}<b>${NOMES_CURTOS[tipo]}</b><small>${mil(C.precoMecanico(estado, tipo))}</small></button>`).join('');
+      let detalhe = '<p class="mec-vazio">Sem mecânico, você acerta sozinho. Toque num deles para ver o que faz e quanto custa.</p>';
+      if (sel) {
+        const x = C.MECANICOS[sel], preco = C.precoMecanico(estado, sel), extra = C.precoHoraExtra(estado, sel);
+        detalhe = `<div class="mec-detalhe mec-${sel}">
+          <p class="mec-faz">${FAZ[sel]}</p>
+          <dl class="mec-precos">
+            <div><dt>Contratar agora</dt><dd>${reais(preco)}</dd></div>
+            <div><dt>${extra ? 'Hora extra, por sessão a mais' : 'Hora extra'}</dt><dd>${extra ? reais(extra) : 'não cobra'}</dd></div>
+          </dl>
+          <p class="mec-obs">${extra ? 'Vale para a sessão em que contratar. Nas seguintes (classificação, grid), cada uma custa a hora extra.' : 'Fica o fim de semana todo pelo mesmo valor.'}</p>
+          <button class="principal" data-acao="contratar-mecanico" data-tipo="${sel}" data-confirmar="Confirmar: −${reais(preco)}" ${estado.dinheiro < preco ? 'disabled' : ''}>Contratar · ${reais(preco)}</button>
+        </div>`;
+      }
+      return cartao('Mecânico', `<div class="mec-segs">${opcoes}</div>${detalhe}`, { ajuda: 'mecanico', classe: 'cartao-mecanico' });
     }
     const info = C.MECANICOS[m.tipo];
     const ativo = C.mecanicoAtivo(estado);
@@ -3030,6 +3042,10 @@
         render();
         break;
       }
+      case 'mec-sel':
+        tela.mecSel = tela.mecSel === alvo.dataset.tipo ? null : alvo.dataset.tipo;
+        render();
+        break;
       case 'contratar-mecanico':
         if (erro(C.contratarMecanico(estado, alvo.dataset.tipo))) { salvar(); render(); rolarPara('.cartao-mecanico', 'center'); aviso(`${C.MECANICOS[alvo.dataset.tipo].nome} contratado para o fim de semana.`); }
         break;
