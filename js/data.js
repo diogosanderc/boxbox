@@ -341,11 +341,11 @@
 
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
   const CAMPEONATOS = [
-    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 57, custo: 1, regiao: 'br', voltas: 16,
+    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 47, custo: 1, regiao: 'br', voltas: 16,
       chuva: 0.25, premioCampeao: 20000, popularidade: 1 },
-    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 63, custo: 1.8, regiao: 'br', voltas: 18,
+    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 55, custo: 1.8, regiao: 'br', voltas: 18,
       chuva: 0.25, premioCampeao: 50000, popularidade: 1.8 },
-    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 69, custo: 3.2, regiao: 'eu', voltas: 20,
+    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 63, custo: 3.2, regiao: 'eu', voltas: 20,
       chuva: 0.3, premioCampeao: 120000, popularidade: 3 },
     // Monopostos: só se entra por proposta de uma equipe de F4.
     { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 4, premios: 1.5, regiao: 'f4', voltas: 14,

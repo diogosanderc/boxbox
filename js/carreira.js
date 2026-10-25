@@ -112,8 +112,17 @@
   const equipesDaCategoria = (estado) => (categoriaDe(estado) !== 'kart' ? Dados.EQUIPES_MONO[estado.campeonato] : Dados.EQUIPES);
   // Escada dos monopostos: os 4 primeiros de cada um recebem proposta do seguinte.
   const PROXIMA_CATEGORIA = { f4: 'f3', f3: 'f2', f2: 'f1' };
+  // O teto dos atributos sobe a cada categoria: 100 só na F1. A preparação (físico e simulador) soma até +4.
+  const TETO_CATEGORIA = { regional: 66, nacional: 76, internacional: 86, f4: 92, f3: 95, f2: 98, f1: 100 };
+  const POTENCIAL_MAXIMO = 100;
+  function tetoDe(estado, campId) {
+    const prep = Object.values(estado.preparacao || {}).reduce((t, n) => t + n, 0);
+    return Math.min(POTENCIAL_MAXIMO, (TETO_CATEGORIA[campId || estado.campeonato] || TETO_CATEGORIA.regional) + prep);
+  }
+  const sincronizarTeto = (estado) => { if (estado.piloto) estado.piloto.potencial = tetoDe(estado); };
   // O modelo do carro (ajustes, acerto ideal, falas) acompanha a categoria.
   function sincronizarCategoria(estado) {
+    sincronizarTeto(estado);
     Kart.usarCategoria(categoriaDe(estado));
   }
 
@@ -235,9 +244,10 @@
     };
     const rnd = rngDe(estado);
     const p = { id: 'jogador', nome: nomeDoPiloto(nome), pais: 'BRA', idade: 12, popularidade: 5, moral: 60, confianca: 50 };
-    for (const a of ATRIBUTOS) p[a] = Math.round(limitar(58 + rnd.gauss() * 4, 48, 68));
-    // Ocultos: potencial (até onde pode chegar) e sensibilidade (quão bem sente o kart).
-    p.potencial = Math.round(limitar(88 + rnd.gauss() * 3, 84, 95));
+    for (const a of ATRIBUTOS) p[a] = Math.round(limitar(47 + rnd.gauss() * 1.5, 45, 49));
+    // Teto de atributos: vem da categoria (ver TETO_CATEGORIA) e é calculado em sincronizarCategoria.
+    p.potencial = TETO_CATEGORIA.regional;
+    // Oculto: sensibilidade (quão bem o piloto sente o kart).
     p.sensibilidade = Math.round(limitar(55 + rnd.gauss() * 12, 30, 85));
     estado.piloto = p;
     comprarPneu(estado, 'slick', true);
@@ -512,7 +522,7 @@
   }
 
   // ---------- preparação do piloto ----------
-  // Preparador físico e simulador: cada nível sobe o teto (potencial) em 1 e já melhora dois atributos.
+  // Preparador físico e simulador: cada nível sobe o teto em 1 e já melhora dois atributos.
   const PREPARACAO = {
     fisico: { nome: 'Preparador físico', texto: 'Mais resistência e reflexo: consistência e largada.', atributos: ['consistencia', 'largada'] },
     simulador: { nome: 'Simulador', texto: 'Voltas virtuais em cada pista: ritmo e cuidado com os pneus.', atributos: ['ritmo', 'pneus'] },
@@ -530,7 +540,7 @@
     estado.dinheiro -= preco;
     estado.preparacao = { ...(estado.preparacao || {}), [tipo]: nivelPrep(estado, tipo) + 1 };
     const p = estado.piloto;
-    p.potencial = Math.min(99, p.potencial + 1);
+    sincronizarTeto(estado);
     for (const a of info.atributos) p[a] = Math.min(p.potencial, p[a] + 1);
     noticia(estado, `${p.nome} começa a trabalhar com ${tipo === 'fisico' ? 'um preparador físico' : 'o simulador'} (nível ${nivelPrep(estado, tipo)}).`);
     return { ok: true };
@@ -1044,9 +1054,7 @@
     const p = estado.piloto;
     estado.ano += ini.idade - p.idade;
     p.idade = ini.idade;
-    // Quem chega à F1 aos 18 já tem potencial para ela.
-    p.potencial = Math.max(p.potencial, 70 + ini.ganho);
-    for (const a of ATRIBUTOS) p[a] = Math.min(p.potencial, p[a] + ini.ganho);
+    for (const a of ATRIBUTOS) p[a] = Math.min(tetoDe(estado, campId), p[a] + ini.ganho);
     p.popularidade = ini.popularidade;
     estado.dinheiro = 120000;
     estado.noticias = [];
@@ -1064,6 +1072,7 @@
     const equipeId = pr.equipe || Dados.EQUIPES_MONO[campId][2].id;
     const vinhaDoKart = categoriaDe(estado) === 'kart';
     estado.campeonato = campId;
+    sincronizarTeto(estado);
     estado.equipeId = equipeId;
     const base = equipeBase(equipeId);
     estado.contrato = {
@@ -1876,10 +1885,10 @@
   // bônus pela posição no campeonato e +1 por vitória. Cada ponto vale +1 no atributo, até o potencial.
   // Calibrado em simulações de carreira: a média dos atributos de quem joga bem chega perto do limite do
   // piloto só depois dos 22 anos (e o ritmo, o atributo que o jogador prioriza, bem antes).
-  const EVOLUCAO_AUTOMATICA = 0.15;
-  const PONTOS_BASE_EVOLUCAO = 6;
-  const BONUS_EVOLUCAO = { 1: 10, 2: 8, 3: 6, 4: 5 };
-  const BONUS_ATE_P10 = 3;
+  const EVOLUCAO_AUTOMATICA = 0.6;
+  const PONTOS_BASE_EVOLUCAO = 12;
+  const BONUS_EVOLUCAO = { 1: 14, 2: 11, 3: 9, 4: 7 };
+  const BONUS_ATE_P10 = 4;
   const MAX_BONUS_VITORIAS = 4;
   const bonusVitorias = (vitorias) => Math.min(MAX_BONUS_VITORIAS, vitorias || 0);
   const bonusPosicao = (pos) => BONUS_EVOLUCAO[pos] || (pos <= 10 ? BONUS_ATE_P10 : 0);
@@ -1888,24 +1897,11 @@
   // a partir de 82 custa 3. Assim o limite do piloto demora a chegar, e não só pela evolução natural.
   const FAIXAS_CUSTO = [[70, 1], [82, 2], [Infinity, 3]];
   const custoPonto = (valor) => FAIXAS_CUSTO.find(([ate]) => valor < ate)[1];
-  // Quando os atributos chegam ao limite do piloto, os pontos ainda servem: CUSTO_LIMITE pontos
-  // elevam o limite em +1 (até POTENCIAL_MAXIMO), abrindo espaço para os atributos crescerem de novo.
-  const CUSTO_LIMITE = 5;
-  const POTENCIAL_MAXIMO = 99;
   // O que foi gasto desde o último fim de temporada, em ordem, para poder devolver.
   const registrarGasto = (estado, chave, custo) => {
     estado.distribuidos = { ...(estado.distribuidos || {}), [chave]: ((estado.distribuidos || {})[chave] || 0) + 1 };
     estado.gastosPontos = { ...(estado.gastosPontos || {}), [chave]: [...((estado.gastosPontos || {})[chave] || []), custo] };
   };
-  function elevarLimite(estado) {
-    const p = estado.piloto;
-    if (p.potencial >= POTENCIAL_MAXIMO) return { ok: false, erro: 'O limite do piloto já está no máximo.' };
-    if (!((estado.pontosEvolucao || 0) >= CUSTO_LIMITE)) return { ok: false, erro: `Elevar o limite custa ${CUSTO_LIMITE} pontos de evolução.` };
-    p.potencial += 1;
-    estado.pontosEvolucao -= CUSTO_LIMITE;
-    registrarGasto(estado, 'limite', CUSTO_LIMITE);
-    return { ok: true };
-  }
   // Investe pontos em um atributo (+1 por vez, pelo custo da faixa) ou devolve o último investido.
   function investirPonto(estado, a) {
     const p = estado.piloto;
@@ -1923,9 +1919,8 @@
     const d = estado.distribuidos || {};
     const gastos = (estado.gastosPontos || {})[a] || [];
     if (!(d[a] > 0) || !gastos.length) return { ok: false, erro: 'Nada para devolver.' };
-    if (a === 'limite' && ATRIBUTOS.some((x) => estado.piloto[x] > estado.piloto.potencial - 1)) return { ok: false, erro: 'Tire antes os pontos dos atributos que usam esse limite.' };
     const custo = gastos[gastos.length - 1];
-    if (a === 'limite') estado.piloto.potencial -= 1; else estado.piloto[a] -= 1;
+    estado.piloto[a] -= 1;
     estado.pontosEvolucao += custo;
     estado.distribuidos = { ...d, [a]: d[a] - 1 };
     estado.gastosPontos = { ...estado.gastosPontos, [a]: gastos.slice(0, -1) };
@@ -2095,6 +2090,7 @@
       estado.equipeId = equipeId;
     }
     estado.campeonato = campeonatoId;
+    sincronizarTeto(estado);
     // Contrato de monoposto (60%, programa de jovens ou salário) continua na mesma equipe; trocar de equipe ou de campeonato zera.
     if (!(estado.contrato && estado.contrato.equipe === estado.equipeId && categoriaDe(estado) !== 'kart')) estado.contrato = null;
     estado.propostas = estado.propostas.filter((p) => p.tipo !== 'f4' && p.tipo !== 'academia' && p.tipo !== 'subida');
@@ -2226,7 +2222,7 @@
     sortearNomesEquipes, usarNomesEquipes, categoriaDe, equipesDaCategoria, PIT_F4,
     VAGAS_SUBIDA, IDADE_F4, motorPedeRevisao, equipesDisponiveis, ATRIBUTOS, NOMES_ATRIBUTOS, ETAPAS, etapasDe, VOLTAS_POR_SAIDA, seguir, pendenciasEtapa, PORTES, porteDe, equipesIniciais, humor, sessaoPsicologo, precoPsicologo, migrar, efeitoCabeca, APOIO_FAMILIA, SAIDAS_TREINO, SAIDAS_GRATIS, saidasTreino, HORAS_REVISAO, MAX_PATROCINIOS,
     compostoDaEtapa, compostoUnico, secoDaEtapa, pneuValeNaEtapa,
-    investirPonto, devolverPonto, elevarLimite, custoPonto, CUSTO_LIMITE, POTENCIAL_MAXIMO, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
+    investirPonto, devolverPonto, custoPonto, TETO_CATEGORIA, POTENCIAL_MAXIMO, pontosEvolucaoDa, EVOLUCAO_AUTOMATICA,
     PONTOS_BASE_EVOLUCAO, BONUS_EVOLUCAO, BONUS_ATE_P10, MAX_BONUS_VITORIAS, bonusPosicao, bonusVitorias,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,

@@ -1439,27 +1439,25 @@ test('F3: um único composto de seco por etapa, pelo asfalto; o grid inteiro lar
   assert.strictEqual(Carreira.compostoDaEtapa(f), null);
 });
 
-test('pontos de evolução: com tudo no limite, 5 pontos elevam o limite do piloto (até 99) e dá para devolver', () => {
+test('pontos de evolução: o teto dos atributos sobe com a categoria e só a F1 chega a 100', () => {
+  const T = Carreira.TETO_CATEGORIA;
+  assert.deepStrictEqual(Object.values(T), [...Object.values(T)].sort((x, y) => x - y), 'o teto só sobe');
+  assert.strictEqual(T.f1, 100);
+  assert.ok(['regional', 'nacional', 'internacional', 'f4', 'f3', 'f2'].every((c) => T[c] < 100));
   const e = Carreira.novoJogo({ seed: 46 });
-  e.pontosEvolucao = 12;
-  e.distribuidos = {};
+  assert.ok(Carreira.ATRIBUTOS.every((a) => e.piloto[a] >= 45 && e.piloto[a] <= 49), 'começa entre 45 e 49');
+  assert.strictEqual(e.piloto.potencial, T.regional);
+  e.pontosEvolucao = 12; e.distribuidos = {};
   for (const a of Carreira.ATRIBUTOS) e.piloto[a] = e.piloto.potencial;
-  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'tudo no limite: não investe');
-  const lim = e.piloto.potencial;
-  assert.ok(Carreira.elevarLimite(e).ok);
-  assert.strictEqual(e.piloto.potencial, lim + 1);
-  assert.strictEqual(e.pontosEvolucao, 7);
-  assert.ok(Carreira.investirPonto(e, 'ritmo').ok, 'agora cabe +1');
-  assert.ok(!Carreira.devolverPonto(e, 'limite').ok, 'com o atributo usando o limite, não devolve');
+  assert.ok(!Carreira.investirPonto(e, 'ritmo').ok, 'no teto da categoria: não investe');
+  assert.strictEqual(e.pontosEvolucao, 12, 'os pontos ficam guardados');
+  Carreira.comecarEm(e, 'f1');
+  assert.strictEqual(e.piloto.potencial, 100);
+  assert.ok(e.piloto.ritmo < 100, 'chega à F1 abaixo do teto, com espaço para crescer');
+  e.pontosEvolucao = 12; e.distribuidos = {}; e.gastosPontos = {};
+  assert.ok(Carreira.investirPonto(e, 'ritmo').ok);
   assert.ok(Carreira.devolverPonto(e, 'ritmo').ok);
-  assert.ok(Carreira.devolverPonto(e, 'limite').ok);
-  assert.strictEqual(e.piloto.potencial, lim);
   assert.strictEqual(e.pontosEvolucao, 12);
-  e.pontosEvolucao = 4;
-  assert.ok(!Carreira.elevarLimite(e).ok, 'faltam pontos');
-  e.pontosEvolucao = 50;
-  e.piloto.potencial = 99;
-  assert.ok(!Carreira.elevarLimite(e).ok, 'máximo 99');
 });
 
 test('pontos de evolução: o +1 fica mais caro quanto mais alto o atributo, e devolver devolve o custo pago', () => {
