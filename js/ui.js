@@ -2495,8 +2495,10 @@
       : `<textarea id="nota-corrida" rows="2" maxlength="300" placeholder="Sua anotação (opcional)"></textarea>
          <button class="principal grande" data-acao="anotar">${ic('lapis')}Anotar no caderno</button>`;
     return cartao('Diagnóstico', `<div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('termometro')}Ar ${d.tempAr}°`)}${chip(`Asfalto ${d.tempPista}°`)}${d.choveuNaCorrida ? chip('Choveu na corrida', 'chip-amarelo') : ''}</div>
+      ${d.nota ? `<p class="fraco mini">${esc(d.nota)}</p>` : ''}
       ${d.sentiu.map((f) => `<div class="bolha piloto">${icone('piloto')}<p>${esc(f)}</p></div>`).join('')}
       <span class="subtitulo">Nessas condições, o ${Kart.monoposto() ? 'carro' : 'kart'} pedia</span>
+      ${d.perda >= 0.05 && d.ajustes.length ? `<p class="fraco mini">O acerto custou cerca de ${d.perda.toFixed(2).replace('.', ',')} s por volta.</p>` : ''}
       ${ajustes}
       ${anotar}`, { ajuda: 'diagnostico', classe: 'cartao-diagnostico' });
   }

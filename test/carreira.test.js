@@ -1506,3 +1506,23 @@ test('kart: oito ajustes, com o caster; o ideal muda com a pista e a chuva; save
   Carreira.migrar(e);
   assert.strictEqual(e.fds.setup.caster, 12);
 });
+
+test('diagnóstico: chuva só no fim da corrida não faz o acerto de seco parecer errado', () => {
+  const e = Carreira.novoJogo({ seed: 77, equipeId: 'faisca' });
+  for (const t of Carreira.faltaNoEstoque(e)) Carreira.comprarPneu(e, t);
+  assert.ok(Carreira.iniciarFimDeSemana(e).ok);
+  const clima = Carreira.climaAtual(e), pista = Carreira.pistaAtual(e);
+  clima.tarde.inicioChuva = 'corrida';
+  clima.tarde.voltaChuva = Carreira.campeonato(e.campeonato).voltas; // só a última volta molhada
+  Carreira.irParaClassificacao(e);
+  const slick = e.pneus.find((p) => p.tipo === 'slick');
+  Carreira.escolherPneu(e, slick.id);
+  e.fds.setup = Kart.arredondarSetup(Kart.acertoIdeal(pista, Kart.condicao(clima, 'corrida', false), 'slick'));
+  Carreira.classificar(e);
+  Carreira.concluirCorrida(e, Engine.simularCompleta(Carreira.criarCorrida(e)));
+  const d = e.fds.resultado.diagnostico;
+  assert.strictEqual(d.molhado, false, 'o diagnóstico vale para o seco');
+  assert.strictEqual(d.ajustes.length, 0, 'acerto ideal de seco: nada a mudar');
+  assert.ok(d.nota && /volta/.test(d.nota), 'avisa que a chuva pegou só o fim');
+  assert.ok(d.ajustes.length <= 3 && d.perda >= 0);
+});

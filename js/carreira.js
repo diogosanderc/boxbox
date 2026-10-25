@@ -1804,12 +1804,21 @@
     estado.historico.push({ ano: estado.ano, campeonato: camp.id, etapa: estado.etapa + 1, pista: pistaAtual(estado).nome, pos: meu.pos, fora: meu.fora,
       largada, pole: poleId === 'jogador', voltaRapida: vrId === 'jogador', pontos: meu.pontos, chuva: !!corrida.molhado, idade: p.idade });
     const clima = climaAtual(estado);
-    const condFinal = Kart.condicao(clima, 'corrida', !!corrida.molhado);
-    const tipoPneu = carro.tipoPneu || 'slick';
+    // O diagnóstico vale para as condições em que a maior parte da corrida foi disputada: se a chuva só pegou
+    // o final (ou o começo), o acerto avaliado é o do seco, e a chuva vira um aviso à parte.
+    const voltaChuva = clima.tarde.inicioChuva === 'quali' ? 1 : clima.tarde.voltaChuva;
+    const totalVoltas = corrida.totalVoltas || camp.voltas || 1;
+    const fracMolhada = voltaChuva ? Math.max(0, totalVoltas - voltaChuva + 1) / totalVoltas : 0;
+    const molhadoDiag = fracMolhada >= 0.5;
+    const condFinal = Kart.condicao(clima, 'corrida', molhadoDiag);
+    const tipoLargada = (pneuPorId(estado, fds.pneuCorrida) || {}).tipo || 'slick';
+    const tipoPneu = molhadoDiag ? (carro.tipoPneu || tipoLargada) : tipoLargada;
+    const choveuNaCorrida = !!corrida.molhado && clima.tarde.inicioChuva === 'corrida';
     fds.resultado.diagnostico = {
       ...Kart.diagnostico(fds.setupCorrida, pistaAtual(estado), condFinal, tipoPneu),
       tempAr: condFinal.tempAr, tempPista: condFinal.tempPista, molhado: condFinal.molhado,
-      choveuNaCorrida: !!corrida.molhado && clima.tarde.inicioChuva === 'corrida',
+      choveuNaCorrida,
+      nota: choveuNaCorrida && !molhadoDiag ? `A chuva só pegou o fim da corrida (a partir da volta ${voltaChuva}): o diagnóstico vale para o seco.` : null,
     };
     registrarCaderno(estado, condFinal, {
       sessao: 'corrida', setup: { ...fds.setupCorrida }, pneu: tipoPneu,

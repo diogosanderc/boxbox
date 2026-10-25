@@ -813,5 +813,7 @@
     "Box: pneu de chuva": "Pit: wet tyres",
     "sem": "none",
     "/etapa": "/round",
+    "O acerto custou cerca de {1} s por volta.": "The setup cost about {1} s per lap.",
+    "A chuva só pegou o fim da corrida (a partir da volta {1}): o diagnóstico vale para o seco.": "Rain only arrived late in the race (from lap {1}): the debrief applies to the dry.",
   });
 })();

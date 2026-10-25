@@ -432,14 +432,17 @@
     const sentiu = ordenados.filter((x) => x.peso >= 0.06).slice(0, 2).map((x) => M.SINTOMAS[x.k][x.sinal]);
     // Só sugere mudar o que dá para melhorar: se já está no valor mais perto do ideal, não fala nada.
     const melhor = arredondarSetup(acertoIdeal(pista, cond, pneu));
-    const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6 && setup[x.k] !== melhor[x.k])
+    // No máximo três: os que mais pesaram. Uma lista de sete assusta mesmo quando o acerto estava quase certo.
+    const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6 && setup[x.k] !== melhor[x.k]).slice(0, 3)
       .map((x) => ({ k: x.k, texto: `${M.DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
     const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.' : null;
     let pneuDica = null;
     if (cond.molhado && pneu !== 'chuva') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
     else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
     if (!sentiu.length && !pneuDica && !motor) sentiu.push(`O ${M.veiculo} estava muito bom! Equilibrado, dava pra acelerar tudo.`);
-    return { sentiu, ajustes, pneu: pneuDica, motor };
+    // Quanto o acerto custou por volta (sem a penalidade de pneu errado), para dar a medida do que a lista pede.
+    const perda = Math.round(Math.min(3.5, 1.1 * Math.pow(desequilibrio(e), 0.9)) * 100) / 100;
+    return { sentiu, ajustes, pneu: pneuDica, motor, perda };
   }
 
   function arredondarSetup(s) {
