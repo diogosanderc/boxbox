@@ -1782,7 +1782,7 @@
     }[aba]();
     const pos = C.posicaoNoCampeonato(estado);
     app.innerHTML = `
-      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span><button class="sino ${aba === 'noticias' ? 'ativo' : ''}" data-acao="aba" data-aba="${aba === 'noticias' ? 'resumo' : 'noticias'}" aria-label="Notícias">${icone('sino')}${noticiasNovas() && aba !== 'noticias' ? '<i class="sino-ponto" aria-hidden="true"></i>' : ''}</button>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
+      <div class="linha cabecalho-tela"><h1>Paddock</h1><span class="espaco"></span><button class="sino ${aba === 'noticias' ? 'ativo' : ''}" data-acao="aba" data-aba="${aba === 'noticias' ? 'resumo' : 'noticias'}" aria-label="Notícias">${icone('sino')}${aba !== 'noticias' && noticiasNovas() ? `<b class="sino-n">${estado.noticias.filter(noticiaNova).length}</b>` : ''}</button>${chip(`${ic('trofeu')}P${pos} · ${estado.pontos.jogador} pts`, 'chip-grande')}</div>
       ${abas([['resumo', 'etapa', 'Etapa'], ['campeonato', 'campeonato', 'Tabela'], ['piloto', 'piloto', 'Piloto'], ['oficina', 'chave', 'Oficina'], ['caderno', 'caderno', 'Caderno'], ['financas', 'carteira', 'Finanças']], aba, { oficina: C.pendenciasEtapa(estado).length > 0 ? 'aviso' : '', piloto: estado.pontosEvolucao > 0 ? 'nova' : '' })}
       ${conteudo}
       <div class="rodape">
