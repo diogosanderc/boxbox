@@ -71,24 +71,53 @@
     return `<div class="dica-sec">Temperatura do pneu na corrida</div><div class="dica-termos">${termometro('tb', 0.28, ['#3f7fff', '#8fd3ff'], 'Pressão baixa', 'Pneu frio')}${termometro('ta', 0.9, ['#ff5a4f', '#ffb347'], 'Pressão alta', 'Pneu quente demais')}</div>`;
   }
 
-  // Velocidade ao longo de uma volta (curva lenta seguida de reta longa): relação curta sai forte e passa do giro cedo;
-  // relação longa sai mais devagar e chega mais rápido ao fim da reta. É um esquema, não uma simulação.
+  // Engrenagem metálica: dentes trapezoidais, anel, furos de alívio e brilho. Gira devagar (CSS), o pinhão ao contrário.
+  function engrenagem(id, cx, cy, r, dentes, cor, sentido) {
+    const p = (2 * Math.PI) / dentes, rb = r * 0.84, pts = [];
+    for (let i = 0; i < dentes; i++) {
+      const a = i * p;
+      for (const [rr, f] of [[rb, 0], [r, 0.1], [r, 0.4], [rb, 0.5]]) pts.push(`${(cx + rr * Math.cos(a + f * p)).toFixed(1)} ${(cy + rr * Math.sin(a + f * p)).toFixed(1)}`);
+    }
+    const furos = r > 22 ? Array.from({ length: 5 }, (_, i) => { const a = (i * 2 * Math.PI) / 5; return `<circle cx="${(cx + r * 0.52 * Math.cos(a)).toFixed(1)}" cy="${(cy + r * 0.52 * Math.sin(a)).toFixed(1)}" r="${(r * 0.1).toFixed(1)}" fill="#0c111b"/>`; }).join('') : '';
+    return `<g class="dica-gira ${sentido < 0 ? 'volta' : ''}">
+      <path d="M${pts.join(' L')}Z" fill="url(#${id})" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+      <circle cx="${cx}" cy="${cy}" r="${(r * 0.7).toFixed(1)}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="${(r * 0.1).toFixed(1)}"/>
+      ${furos}<circle cx="${cx}" cy="${cy}" r="${(r * 0.22).toFixed(1)}" fill="#0c111b" stroke="rgba(255,255,255,.4)" stroke-width="1.2"/></g>`;
+  }
+  // Conta-giros: arco com faixa verde, amarela e vermelha, marcas, ponteiro com sombra e cubo (o ponteiro varre até o valor).
+  function contaGiros(angulo, cor) {
+    const pol = (a, r) => [(80 + r * Math.sin((a * Math.PI) / 180)).toFixed(1), (76 - r * Math.cos((a * Math.PI) / 180)).toFixed(1)];
+    const arco = (a0, a1, r, c) => { const [x0, y0] = pol(a0, r), [x1, y1] = pol(a1, r); return `<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="butt"/>`; };
+    const marcas = Array.from({ length: 13 }, (_, i) => { const a = -90 + i * 15, [x0, y0] = pol(a, 49), [x1, y1] = pol(a, i % 3 === 0 ? 40 : 44); return `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="rgba(255,255,255,.55)" stroke-width="${i % 3 === 0 ? 2 : 1.2}" stroke-linecap="round"/>`; }).join('');
+    return `<svg viewBox="0 0 160 100" aria-hidden="true">
+      <path d="M12 76 A68 68 0 0 1 148 76" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="2"/>
+      ${arco(-90, 10, 58, '#2fbf71')}${arco(10, 42, 58, '#ffc84a')}${arco(42, 90, 58, '#ff4d4d')}${marcas}
+      <g class="dica-ponteiro" style="--ang:${angulo}deg"><line x1="80" y1="76" x2="80" y2="30" stroke="rgba(0,0,0,.45)" stroke-width="5" stroke-linecap="round" transform="translate(1.5 1.5)"/><line x1="80" y1="76" x2="80" y2="30" stroke="${cor}" stroke-width="3" stroke-linecap="round"/></g>
+      <circle cx="80" cy="76" r="8" fill="#1b2230" stroke="rgba(255,255,255,.5)" stroke-width="2"/><circle cx="80" cy="76" r="3" fill="${cor}"/>
+    </svg>`;
+  }
+  // Relação (coroa no kart, relação do câmbio nos carros): engrenagens + barras da troca entre força na saída e velocidade final,
+  // e o conta-giros no fim da reta. Não mostra o ponto ideal: só a troca.
   function visualRelacao(chave) {
     const kart = chave === 'coroa';
-    const longa = kart ? 'Menos dentes (relação longa)' : 'Relação longa', curta = kart ? 'Mais dentes (relação curta)' : 'Relação curta';
-    return `<div class="dica-sec">Velocidade ao longo de uma volta</div>
-      <svg class="dica-grafico" viewBox="0 0 340 176" aria-hidden="true">
-        <rect width="340" height="176" rx="14" fill="#0c111b"/>
-        <line x1="120" y1="18" x2="120" y2="130" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 3"/>
-        <path class="dica-linha" d="M12 100 L62 112 L112 104 C138 98 172 80 216 58 C256 40 296 34 328 32" fill="none" stroke="#8ab4ff" stroke-width="3.5" stroke-linecap="round"/>
-        <path class="dica-linha dica-linha2" d="M12 100 L62 112 L112 104 C130 86 150 64 172 52 C192 42 212 40 238 42 L328 48" fill="none" stroke="#ffb020" stroke-width="3.5" stroke-linecap="round"/>
-        <circle cx="238" cy="42" r="5" fill="#ff6b6b"/><text x="242" y="66" fill="#ff6b6b" font-size="10.5" text-anchor="middle">passa do giro</text>
-        <text x="324" y="20" fill="#8ab4ff" font-size="10.5" text-anchor="end">mais velocidade final</text>
-        <text x="132" y="116" fill="#ffb020" font-size="10.5">sai forte da curva</text>
-        <rect x="12" y="140" width="100" height="24" rx="7" fill="#1b2230"/><text x="62" y="156" fill="#9aa0aa" font-size="10.5" text-anchor="middle">curva lenta</text>
-        <rect x="122" y="140" width="206" height="24" rx="7" fill="#161c28"/><text x="225" y="156" fill="#9aa0aa" font-size="10.5" text-anchor="middle">reta longa ►</text>
-      </svg>
-      <div class="dica-legenda"><span><i style="background:#8ab4ff"></i>${esc(longa)}</span><span><i style="background:#ffb020"></i>${esc(curta)}</span></div>`;
+    const casos = [
+      { titulo: kart ? 'Menos dentes' : 'Relação longa', sub: kart ? 'coroa menor: relação longa' : 'marchas mais esticadas', dentes: 16, forca: 34, vel: 92, cor: '#8ab4ff', ids: ['gl', 'gp1'], giro: -30, giroRot: 'Sobra folga' },
+      { titulo: kart ? 'Mais dentes' : 'Relação curta', sub: kart ? 'coroa maior: relação curta' : 'marchas mais curtas', dentes: 30, forca: 92, vel: 44, cor: '#ffb020', ids: ['gc', 'gp2'], giro: 64, giroRot: 'Zona vermelha' },
+    ];
+    const defs = (id, c1, c2) => `<radialGradient id="${id}" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`;
+    const cartao = (c, i) => {
+      const rp = 13, rc = i ? 36 : 25, dist = rp + rc - 2;
+      return `<div class="dica-eng"><b>${esc(c.titulo)}</b><small>${esc(c.sub)}</small>
+        <svg viewBox="34 14 112 90" aria-hidden="true"><defs>${defs(c.ids[0], i ? '#ffd27a' : '#cfe0ff', c.cor)}${defs(c.ids[1], '#e6e9ee', '#7d8594')}</defs>
+          ${engrenagem(c.ids[1], 52, 52, rp, 9, '', -1)}${engrenagem(c.ids[0], 52 + dist, 52, rc, c.dentes, '', 1)}
+          ${kart ? `<text x="52" y="90" font-size="9" fill="#9aa0aa" text-anchor="middle">pinhão</text><text x="${52 + dist}" y="${52 + rc + 11}" font-size="9" fill="#9aa0aa" text-anchor="middle">coroa</text>` : ''}
+        </svg>
+        <div class="dica-barra"><span>Força na saída</span><i><u style="--w:${c.forca}%;background:linear-gradient(90deg,#ff9f1c,#ffd166)"></u></i></div>
+        <div class="dica-barra"><span>Velocidade final</span><i><u style="--w:${c.vel}%;background:linear-gradient(90deg,#4f8cff,#9fd0ff)"></u></i></div></div>`;
+    };
+    return `<div class="dica-sec">O que a troca faz</div><div class="dica-pares">${casos.map(cartao).join('')}</div>
+      <div class="dica-sec">Rotação no fim da reta</div>
+      <div class="dica-pares">${casos.map((c) => `<div class="dica-giro">${contaGiros(c.giro, c.cor)}<span class="${c.giro > 40 ? 'vermelho' : ''}">${esc(c.giroRot)}</span></div>`).join('')}</div>`;
   }
   const VISUAL = { pressao: visualPressao, coroa: visualRelacao, relacao: visualRelacao };
 

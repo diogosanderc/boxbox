@@ -1515,10 +1515,23 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .dica-termo span { font-size: 12px; color: var(--fraco); align-self: start; line-height: 1.25; }
 .dica-liq { transform-box: fill-box; transform-origin: bottom; animation: dica-sobe 1.1s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes dica-sobe { from { transform: scaleY(.04); } }
-.dica-grafico { width: 100%; height: auto; display: block; }
-.dica-linha { stroke-dasharray: 520; stroke-dashoffset: 0; animation: dica-traco 1.4s ease-out both; }
-.dica-linha2 { animation-delay: .25s; }
-@keyframes dica-traco { from { stroke-dashoffset: 520; } }
-.dica-legenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--fraco); margin-top: 8px; }
-.dica-legenda i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
-@media (prefers-reduced-motion: reduce) { .dica-liq, .dica-linha { animation: none; } }
+.dica-pares { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dica-eng, .dica-giro { background: var(--painel-2); border: 1px solid var(--borda); border-radius: 14px; padding: 10px; font-size: 12.5px; }
+.dica-eng b { display: block; }
+.dica-eng small { display: block; color: var(--fraco); margin-bottom: 2px; }
+.dica-eng svg { width: 100%; height: auto; display: block; }
+.dica-gira { transform-box: fill-box; transform-origin: center; animation: dica-gira 14s linear infinite; }
+.dica-gira.volta { animation-direction: reverse; animation-duration: 8s; }
+@keyframes dica-gira { to { transform: rotate(360deg); } }
+.dica-barra { margin-top: 6px; }
+.dica-barra span { display: block; color: var(--fraco); font-size: 11px; margin-bottom: 3px; }
+.dica-barra i { display: block; height: 8px; border-radius: 4px; background: #121826; overflow: hidden; }
+.dica-barra u { display: block; height: 8px; border-radius: 4px; width: var(--w); animation: dica-barra 1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes dica-barra { from { width: 0; } }
+.dica-giro { text-align: center; }
+.dica-giro svg { width: 100%; height: auto; display: block; }
+.dica-giro span { font-size: 12.5px; color: var(--fraco); }
+.dica-giro span.vermelho { color: #ff6b6b; font-weight: 700; }
+.dica-ponteiro { transform-box: view-box; transform-origin: 80px 76px; transform: rotate(var(--ang)); animation: dica-varre 1.2s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes dica-varre { from { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { .dica-liq, .dica-gira, .dica-barra u, .dica-ponteiro { animation: none; } }
