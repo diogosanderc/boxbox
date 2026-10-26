@@ -782,7 +782,7 @@ test('F2: sprint antes da corrida principal, com top 10 invertido e pontos 8-7-.
   const ordem = Carreira.ordemLargada(e).map((x) => x.id);
   assert.deepStrictEqual(ordem.slice(0, 10), q.slice(0, 10).reverse());
   const sprint = Carreira.criarCorrida(e);
-  assert.ok(sprint.sprint && sprint.totalVoltas < 18);
+  assert.ok(sprint.sprint && sprint.totalVoltas < Carreira.campeonato('f2').voltas);
   Engine.simularCompleta(sprint);
   const antes = Object.values(e.pontos).reduce((a, b) => a + b, 0);
   Carreira.concluirSprint(e, sprint);
