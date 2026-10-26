@@ -57,7 +57,7 @@ test('dicas: toda frase das dicas tem tradução para o inglês', () => {
   global.BoxI18n = require('../js/i18n.js');
   for (const f of ['dados', 'kart', 'carreira', 'corrida', 'ui', 'dicas']) require(`../js/i18n-en-${f}.js`);
   BoxI18n.usar('en');
-  const textos = new Set(['Onde fica o ponto', 'Quando mexer', 'O piloto reclama de…', 'Ver no carro']);
+  const textos = new Set(['Onde fica o ponto', 'Quando mexer', 'O piloto reclama de…', 'Ver no carro', 'Temperatura do pneu na corrida', 'Pneu frio', 'Pneu quente demais', 'Velocidade ao longo de uma volta', 'Menos dentes (relação longa)', 'Mais dentes (relação curta)', 'Relação longa', 'Relação curta', 'passa do giro', 'mais velocidade final', 'sai forte da curva', 'curva lenta', 'reta longa ►']);
   for (const c of Object.values(Dicas.CONDICAO)) if (c.rotulo !== 'Chuva') textos.add(c.rotulo);
   for (const d of Object.values(Dicas.DICAS)) { d.extremos.forEach((t) => textos.add(t)); if (d.aviso) textos.add(d.aviso); }
   for (const cat of MODELOS) { Kart.usarCategoria(cat); for (const k of Kart.ORDEM_AJUSTES) { const d = Kart.dicaAjuste(k); d.sintomas.forEach((t) => textos.add(t)); d.direcao.forEach((t) => textos.add(t)); } }

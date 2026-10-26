@@ -3,6 +3,20 @@
   'use strict';
   if (typeof BoxI18n === 'undefined') return;
   BoxI18n.registrar({
+    "Temperatura do pneu na corrida": "Tyre temperature during the race",
+    "Pneu frio": "Cold tyre",
+    "Pneu quente demais": "Overheated tyre",
+    "Ideal": "Ideal",
+    "Velocidade ao longo de uma volta": "Speed over a lap",
+    "Menos dentes (relação longa)": "Fewer teeth (long gearing)",
+    "Mais dentes (relação curta)": "More teeth (short gearing)",
+    "Relação longa": "Long gearing",
+    "Relação curta": "Short gearing",
+    "passa do giro": "over-revs",
+    "mais velocidade final": "more top speed",
+    "sai forte da curva": "strong out of the corner",
+    "curva lenta": "slow corner",
+    "reta longa ►": "long straight ►",
     "Onde fica o ponto": "Where the sweet spot is",
     "Quando mexer": "When to change it",
     "O piloto reclama de…": "The driver complains about…",
