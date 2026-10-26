@@ -1,0 +1,4 @@
+Traçado de Jeddah: derivado do modelo "Yeddah F1 Circuit" por luis.adrian.villagrana
+Fonte: https://sketchfab.com/3d-models/yeddah-f1-circuit-da6e69cc76de41579a07979de6b8cf69
+Licença: CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/)
+Alterações: só a linha central do asfalto foi extraída do modelo (200 pontos, em js/pista3d.js); a malha original não é usada.
