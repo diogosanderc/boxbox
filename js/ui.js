@@ -773,9 +773,9 @@
     else if (r.status === 'erro') aviso(BoxPremium.depuracao && r.erro ? `Erro da loja: ${r.erro}` : 'Não deu para falar com a App Store agora. Tente de novo.');
   });
 
-  // Ferramentas de teste (modo desenvolvedor e código de dinheiro): só no navegador. No app da App Store
-  // ficam desligadas. Para uma build de teste no iPhone (TestFlight), troque para true.
-  const FERRAMENTAS_TESTE = !BoxSave.nativo;
+  // Ferramentas de teste (modo desenvolvedor e código de dinheiro): no navegador e nas builds de depuração
+  // (rodando pelo Xcode). No app da App Store ficam desligadas.
+  const ferramentasTeste = () => !BoxSave.nativo || BoxPremium.depuracao;
 
   // ---------- código secreto ----------
   // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
@@ -784,11 +784,11 @@
   const CAIXA_INFINITO = 999999999;
   function encherCaixa() {
     // Save de teste levado para o app: o código não vale lá.
-    if (estado && estado.dinheiroInfinito && !FERRAMENTAS_TESTE) { estado.dinheiroInfinito = false; estado.dinheiro = estado.dinheiroAntesCodigo || 0; }
+    if (estado && estado.dinheiroInfinito && !ferramentasTeste()) { estado.dinheiroInfinito = false; estado.dinheiro = estado.dinheiroAntesCodigo || 0; }
     if (estado && estado.dinheiroInfinito) estado.dinheiro = CAIXA_INFINITO;
   }
   function usarCodigo(texto) {
-    if (!FERRAMENTAS_TESTE || !estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
+    if (!ferramentasTeste() || !estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
     estado.dinheiroInfinito = !estado.dinheiroInfinito;
     // Ao desligar, o caixa volta ao que era antes do código.
     if (estado.dinheiroInfinito) estado.dinheiroAntesCodigo = estado.dinheiro;
@@ -817,7 +817,7 @@
   folhaCodigo.addEventListener('click', (ev) => { if (ev.target === folhaCodigo || ev.target.closest('[data-fechar]')) fecharCodigo(); });
   let toquesMarca = [];
   document.querySelector('.topo .marca').addEventListener('click', () => {
-    if (!FERRAMENTAS_TESTE || !estado) return;
+    if (!ferramentasTeste() || !estado) return;
     const agora = Date.now();
     toquesMarca = toquesMarca.filter((t) => agora - t < 3000).concat(agora);
     if (toquesMarca.length < 5) return;
@@ -827,7 +827,7 @@
   });
   let digitado = '';
   document.addEventListener('keydown', (ev) => {
-    if (!FERRAMENTAS_TESTE || ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
+    if (!ferramentasTeste() || ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
     digitado = (digitado + ev.key.toLowerCase()).slice(-CODIGO_DINHEIRO.length);
     if (digitado === CODIGO_DINHEIRO) { digitado = ''; usarCodigo(CODIGO_DINHEIRO); }
   });
@@ -835,10 +835,10 @@
   // ---------- início ----------
   // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.
   const CHAVE_DEV = 'superlicenca-dev';
-  const modoDev = () => { if (!FERRAMENTAS_TESTE) return false; try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
+  const modoDev = () => { if (!ferramentasTeste()) return false; try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
   let toquesLogo = [];
   function tocarLogo() {
-    if (!FERRAMENTAS_TESTE) return;
+    if (!ferramentasTeste()) return;
     const agora = Date.now();
     toquesLogo = toquesLogo.filter((t) => agora - t < 3000).concat(agora);
     if (toquesLogo.length < 5) return;
