@@ -1849,7 +1849,7 @@
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
-        <p class="fraco mini rodape-nota">Carros em 3D: “F1 2022 {FREE!!}”, de 3dblenderlol, e “Racing Kart 125cc (low poly)”, de sceeth, ambos CC BY 4.0. Traçado de Jeddah: “Yeddah F1 Circuit”, de luis.adrian.villagrana, CC BY 4.0.</p>
+        <p class="fraco mini rodape-nota">Carros em 3D: “F1 2022 {FREE!!}”, de 3dblenderlol, e “Racing Kart 125cc (low poly)”, de sceeth, ambos CC BY 4.0.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }
@@ -1893,7 +1893,7 @@
   // Sobre, números e traçado da pista: usado na tela "Ver pista" e na folha aberta durante o fim de semana.
   function conteudoPista(pista, camp) {
     const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
-    return `${BoxPista3D.html(pista)}${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
+    return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
       <div class="dados">
         ${dado('regua', 'Extensão', `${extensao} km`)}${dado('voltas', 'Voltas', camp.voltas)}${dado('montanha', 'Altitude', `${pista.altitude} m`)}
         ${dado('bandeira', 'Tipo', tipoPista[pista.tipo][1])}${pista.largura ? dado('largura', 'Largura', `${pista.largura} m`) : ''}${pista.sentido ? dado('sentido', 'Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}
@@ -1918,7 +1918,6 @@
     </div>`;
     folhaPista.hidden = false;
     folhaPista.querySelector('.folha').scrollTop = 0;
-    BoxPista3D.ligar(folhaPista, pista);
   }
 
   // Linha de dado: ícone, rótulo em caixa alta e valor grande.
@@ -1942,7 +1941,6 @@
         ${estado.dinheiro >= C.custoEtapa(estado) ? `<button class="principal grande" data-acao="ir-fds">Ir para o treino livre · ${reais(C.custoEtapa(estado))}</button>` : ''}
       </div>
       ${folhaChecagem()}`;
-    if (aba === 'pista') BoxPista3D.ligar(app, pista);
   }
 
   // ---------- fim de semana ----------
