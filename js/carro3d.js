@@ -1,11 +1,11 @@
-// Carro 3D da tela de acerto dos monopostos: modelo glTF desenhado em WebGL2, sem biblioteca.
+// Carro 3D da tela de acerto (monopostos e kart): modelo glTF desenhado em WebGL2, sem biblioteca.
 // Quando o jogador mexe num knob, a câmera vai até a peça e ela se move na hora.
-// Modelo: "F1 2022 {FREE!!}" por 3dblenderlol (sketchfab.com/3dblenderlol), licença CC BY 4.0 (modelos/f1/LICENSE.txt).
+// Modelos (licença CC BY 4.0, textos em modelos/*/LICENSE.txt):
+//   F1: "F1 2022 {FREE!!}" por 3dblenderlol (sketchfab.com/3dblenderlol)
+//   Kart: "Racing Kart 125cc (low poly)" por sceeth (sketchfab.com/sceeth)
 (function (root) {
   'use strict';
 
-  const ARQUIVO = 'modelos/f1/scene.json';
-  const BINARIOS = ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt']; // a versão .txt (base64) é a da prévia na web
   const deg = Math.PI / 180;
 
   // ---------- matrizes (4x4, colunas) ----------
@@ -26,6 +26,10 @@
   const trans = (x, y, z) => { const m = ident(); m[12] = x; m[13] = y; m[14] = z; return m; };
   const rotX = (a) => { const m = ident(), c = Math.cos(a), s = Math.sin(a); m[5] = c; m[6] = s; m[9] = -s; m[10] = c; return m; };
   const escala = (x, y, z) => { const m = ident(); m[0] = x; m[5] = y; m[10] = z; return m; };
+  const rotY = (a) => { const m = ident(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[2] = -s; m[8] = s; m[10] = c; return m; };
+  const rotZ = (a) => { const m = ident(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[1] = s; m[4] = -s; m[5] = c; return m; };
+  // gira em torno de um ponto do mundo
+  const emTorno = (p, r) => mul(trans(p[0], p[1], p[2]), mul(r, trans(-p[0], -p[1], -p[2])));
   const pivoX = (p, a) => mul(trans(p[0], p[1], p[2]), mul(rotX(a), trans(-p[0], -p[1], -p[2])));
   function persp(fov, asp, n, f) { const t = 1 / Math.tan(fov / 2), m = new Float32Array(16); m[0] = t / asp; m[5] = t; m[10] = (f + n) / (n - f); m[11] = -1; m[14] = (2 * f * n) / (n - f); return m; }
   function olhar(eye, t) {
@@ -52,8 +56,8 @@
     o = vec4(cor.rgb*d + sp + rim*vec3(.6,.7,1.), 1.);
   }`;
 
-  async function lerBinario() {
-    for (const url of BINARIOS) {
+  async function lerBinario(urls) {
+    for (const url of urls) {
       try {
         const r = await fetch(url);
         if (!r.ok) continue;
@@ -66,8 +70,8 @@
     throw new Error('modelo 3D sem arquivo de geometria');
   }
 
-  async function carregarModelo(gl) {
-    const [j, bin] = await Promise.all([fetch(ARQUIVO).then((r) => r.json()), lerBinario()]);
+  async function carregarModelo(gl, def) {
+    const [j, bin] = await Promise.all([fetch(def.arquivo).then((r) => r.json()), lerBinario(def.binarios)]);
     const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
     const prog = gl.createProgram();
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
@@ -78,19 +82,38 @@
       const T = a.componentType === 5126 ? Float32Array : a.componentType === 5125 ? Uint32Array : a.componentType === 5123 ? Uint16Array : Uint8Array;
       return { arr: new T(bin, off, a.count * nc), a };
     };
-    const malhas = j.meshes.map((m) => m.primitives.map((pr) => {
+    const criar = (pos, nor, ix, tipo, pr) => {
       const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
-      for (const [nome, l] of [['POSITION', loc.p], ['NORMAL', loc.n]]) {
-        const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, dados(pr.attributes[nome]).arr, gl.STATIC_DRAW);
+      for (const [arr, l] of [[pos, loc.p], [nor, loc.n]]) {
+        const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
         gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 3, gl.FLOAT, false, 0, 0);
       }
-      const ix = dados(pr.indices), ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ix.arr, gl.STATIC_DRAW);
+      const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ix, gl.STATIC_DRAW);
       gl.bindVertexArray(null);
       const pb = (j.materials[pr.material] || {}).pbrMetallicRoughness || {};
-      return { vao, n: ix.arr.length, tipo: ix.a.componentType, cor: pb.baseColorFactor || [1, 1, 1, 1], mr: [pb.metallicFactor == null ? 0 : pb.metallicFactor, pb.roughnessFactor == null ? 0.5 : pb.roughnessFactor] };
+      return { vao, n: ix.length, tipo, cor: pb.baseColorFactor || [1, 1, 1, 1], mr: [pb.metallicFactor == null ? 0 : pb.metallicFactor, pb.roughnessFactor == null ? 0.5 : pb.roughnessFactor] };
+    };
+    const malhas = j.meshes.map((m) => m.primitives.map((pr) => {
+      const ix = dados(pr.indices);
+      return criar(dados(pr.attributes.POSITION).arr, dados(pr.attributes.NORMAL).arr, ix.arr, ix.a.componentType, pr);
     }));
     const nos = j.nodes.map((n, i) => ({ i, filhos: n.children || [], malha: n.mesh, local: n.matrix ? new Float32Array(n.matrix) : trs(n.translation || [0, 0, 0], n.rotation || [0, 0, 0, 1], n.scale || [1, 1, 1]), mundo: null, cor: null, mr: null }));
-    return { nos, malhas, prog, loc, raizes: j.scenes[j.scene || 0].nodes };
+    // Peças soltas num só objeto (as 4 rodas do kart): separa os triângulos em um nó novo por grupo.
+    const divididos = {};
+    if (def.dividir) {
+      const { no, grupo, n } = def.dividir, nd = nos[no], pr = j.meshes[nd.malha].primitives[0];
+      const pos = dados(pr.attributes.POSITION).arr, nor = dados(pr.attributes.NORMAL).arr, ix = dados(pr.indices).arr;
+      const por = Array.from({ length: n }, () => []);
+      for (let t = 0; t < ix.length; t += 3) { const v = ix[t] * 3; por[grupo(pos[v], pos[v + 1], pos[v + 2])].push(ix[t], ix[t + 1], ix[t + 2]); }
+      const base = nd.malha; nd.malha = null;
+      por.forEach((tri, g) => {
+        malhas.push([criar(pos, nor, new Uint32Array(tri), 5125, pr)]);
+        const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
+        nos.push(novo); nd.filhos.push(novo.i); divididos[g] = novo.i;
+      });
+      void base;
+    }
+    return { nos, malhas, prog, loc, divididos, raizes: j.scenes[j.scene || 0].nodes };
   }
 
   function desenhar(gl, mod, vp) {
@@ -109,26 +132,125 @@
     for (const r of mod.raizes) visita(r, ident());
   }
 
-  // ---------- o carro ----------
-  // Coordenadas do modelo: frente do carro em +z, y para cima. Os números abaixo são os nós do arquivo glTF.
-  const RODAS = { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] };
-  const ASA_DIANT = [22], ASA_TRAS = [63, 65];
+  // ---------- os carros ----------
+  // Cada modelo diz onde estão as peças (números de nós do arquivo glTF), como pintar e como mexer em cada ajuste.
+  // Frente do carro em +z, y para cima. Posições em unidades do próprio modelo.
   const hex = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255, 1];
+  const claro = (c) => Math.max(c[0], c[1], c[2]) < 0.05;
+  const tomPneu = (psi, min, max) => { const t = Math.max(0, Math.min(1, (psi - min) / (max - min))); return t < 0.4 ? [0.10, 0.16, 0.26, 1] : t > 0.78 ? [0.30, 0.10, 0.08, 1] : [0.075, 0.085, 0.11, 1]; };
 
-  // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
-  const FOCOS = {
-    geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
-    asaDianteira: { yaw: 0.7, pitch: 0.2, dist: 4.2, t: [0, 0.2, 3.1] },
-    asaTraseira: { yaw: 3.5, pitch: 0.22, dist: 4.4, t: [0, 0.65, -1.0] },
-    altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
-    suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
-    pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
+  const F1 = {
+    id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
+    credito: '3D: 3dblenderlol · CC BY 4.0',
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao }),
+    // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
+    focos: {
+      geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
+      asaDianteira: { yaw: 0.7, pitch: 0.2, dist: 4.2, t: [0, 0.2, 3.1] },
+      asaTraseira: { yaw: 3.5, pitch: 0.22, dist: 4.4, t: [0, 0.65, -1.0] },
+      altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
+      suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
+      pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
+    },
+    RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
+    CARROCERIA: [4, 27, 30, 20], ASA_DIANT: [22], ASA_TRAS: [63, 65],
+    pintar(m, cor) {
+      const PNEU = hex('#13161c'), CARB = hex('#232c3d');
+      for (const n of m.nos) {
+        if (n.malha == null) continue;
+        const orig = m.malhas[n.malha][0].cor;
+        if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.3, 0.35]; }
+        else if (n.i === 22 || n.i === 63) n.cor = hex('#2b3550');
+        else if (this.RODAS[n.i]) n.cor = PNEU;
+        else if (claro(orig)) n.cor = CARB;
+      }
+      // nós-raiz que não são rodas: sobem e descem juntos com a altura e balançam com a suspensão
+      const tem = (i) => !!this.RODAS[i] || m.nos[i].filhos.some(tem);
+      let n = m.nos[m.raizes[0]];
+      while (n.filhos.length === 1) n = m.nos[n.filhos[0]];
+      this.corpo = n.filhos.filter((c) => !tem(c));
+    },
+    cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 3.2 * deg, asaT: (al.asaTraseira - 5) * 3.6 * deg, y: (al.altura - 1) * 0.075, psi: al.pressao }; },
+    aplicar(m, t, dt, al, a) {
+      const k = 1 - Math.exp(-dt * 7);
+      a.asaF += ((al.asaDianteira - 5) * 3.2 * deg - a.asaF) * k;
+      a.asaT += ((al.asaTraseira - 5) * 3.6 * deg - a.asaT) * k;
+      a.y += ((al.altura - 1) * 0.075 - a.y) * k;
+      a.psi += (al.pressao - a.psi) * k;
+      const freq = [1.6, 2.4, 4.2][al.suspensao], amp = [0.032, 0.016, 0.006][al.suspensao];
+      const bal = reduzido() ? 0 : Math.sin(t * freq) * amp * (0.6 + 0.4 * Math.sin(t * 0.7));
+      const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
+      for (const i of this.ASA_DIANT) m.nos[i].mundo = pivoX([0, 0.2, 3.15], -a.asaF);
+      for (const i of this.ASA_TRAS) m.nos[i].mundo = pivoX([0, 0.62, -0.95], -a.asaT);
+      const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol));
+      for (const i of this.corpo) m.nos[i].mundo = corpo;
+      // pressão: o pneu dilata e muda de tom (frio azulado, quente avermelhado)
+      const f = 1 + (a.psi - 23.5) * 0.006, cor = tomPneu(a.psi, 19, 27);
+      for (const [i, c] of Object.entries(this.RODAS)) { m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(escala(f, f, 1), trans(-c[0], -c[1], -c[2]))); m.nos[i].cor = cor; }
+    },
   };
 
-  const CARROCERIA = [4, 27, 30, 20];
-  const S = { cor: '#e10600', canvas: null, gl: null, modelo: null, erro: false, carregando: false, host: null, raf: 0, corpo: [],
-    alvo: { asaDianteira: 5, asaTraseira: 5, altura: 1, suspensao: 1, pressao: 23.5 },
-    ang: { asaF: 0, asaT: 0, y: 0, psi: 23.5 }, foco: 'geral', cam: null, giro: 0, auto: 0, arrasto: 0, volta: 0, ultimo: 0, tempo: 0, arrastando: false, ux: 0 };
+  // Kart: as quatro rodas vêm num objeto só e são separadas ao carregar (grupo 0..3 = esquerda/direita x trás/frente).
+  const KART = {
+    id: 'kart', arquivo: 'modelos/kart/scene.json', binarios: ['modelos/kart/scene.bin', 'modelos/kart/scene.bin.txt'],
+    credito: '3D: sceeth · CC BY 4.0',
+    alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster }),
+    dividir: { no: 21, n: 4, grupo: (x, y) => (x > 0 ? 1 : 0) + (y > -1.5 ? 2 : 0) },
+    // centro de cada roda (esquerda/direita, trás/frente) e o lado do eixo x em que ela fica
+    RODAS: [{ c: [-83.5, 22.4, -224.2], lado: -1, frente: false }, { c: [83.5, 22.4, -224.2], lado: 1, frente: false }, { c: [-74.2, 21.3, -71.6], lado: -1, frente: true }, { c: [74.2, 21.3, -71.6], lado: 1, frente: true }],
+    CARROCERIA: [19, 25, 37, 23], BANCO: [39, 33], MOTOR: [3, 5],
+    focos: {
+      geral: { yaw: 0.95, pitch: 0.3, dist: 330, t: [0, 30, -130] },
+      pressao: { yaw: 1.2, pitch: 0.12, dist: 120, t: [74, 22, -72] },
+      bitola: { yaw: 0.3, pitch: 0.45, dist: 240, t: [0, 20, -72] },
+      bitolaTraseira: { yaw: 3.4, pitch: 0.4, dist: 260, t: [0, 20, -224] },
+      eixo: { yaw: 2.4, pitch: 0.28, dist: 230, t: [0, 22, -224] },
+      alturaBanco: { yaw: 1.5708, pitch: 0.1, dist: 230, t: [0, 45, -170] },
+      coroa: { yaw: -1.2, pitch: 0.35, dist: 170, t: [-30, 25, -195] },
+      carburacao: { yaw: -1.2, pitch: 0.35, dist: 170, t: [-40, 25, -195] },
+      caster: { yaw: 0.6, pitch: 0.3, dist: 150, t: [-74, 22, -72] },
+    },
+    pintar(m, cor) {
+      const QUADRO = hex('#3b4357'), PNEU = hex('#14171d'), MOTOR = hex('#9aa3b5'), BANCO = hex('#1b2030');
+      for (const n of m.nos) {
+        if (n.malha == null) continue;
+        if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.2, 0.4]; }
+        else if (this.MOTOR.includes(n.i)) { n.cor = MOTOR; n.mr = [0.7, 0.35]; }
+        else if (this.BANCO.includes(n.i)) n.cor = BANCO;
+        else if (Object.values(m.divididos).includes(n.i)) n.cor = PNEU;
+        else { n.cor = QUADRO; n.mr = [0.6, 0.4]; }
+      }
+    },
+    cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
+    iniciarAng(al) { return { psi: al.pressao, bt: al.bitolaTraseira - 1, bf: al.bitola - 1, banco: al.alturaBanco - 1, caster: al.caster, eixo: al.eixo }; },
+    aplicar(m, t, dt, al, a) {
+      const k = 1 - Math.exp(-dt * 7);
+      a.psi += (al.pressao - a.psi) * k; a.bt += (al.bitolaTraseira - 1 - a.bt) * k; a.bf += (al.bitola - 1 - a.bf) * k;
+      a.banco += (al.alturaBanco - 1 - a.banco) * k; a.caster += (al.caster - a.caster) * k;
+      const f = 1 + (a.psi - 12) * 0.011, cor = tomPneu(a.psi, 9, 20);
+      // eixo traseiro: quanto mais mole, mais o eixo flexiona e as rodas de trás balançam
+      const flex = reduzido() ? 0 : Math.sin(t * 2.6) * [3.4, 1.4, 0.35][al.eixo] * deg;
+      // caster: as rodas da frente esterçam mais quanto maior o ângulo
+      const esterco = reduzido() ? 0 : Math.sin(t * 1.1) * ((a.caster - 8) / 8) * 11 * deg;
+      this.RODAS.forEach((r, g) => {
+        const c = r.c, desloca = r.lado * (r.frente ? a.bf : a.bt) * 9;
+        let giro = ident();
+        if (r.frente) giro = rotY(esterco); else giro = rotZ(flex * r.lado);
+        m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f))));
+        m.nos[m.divididos[g]].cor = cor;
+      });
+      const banco = trans(0, a.banco * 7, 0);
+      for (const i of this.BANCO) m.nos[i].mundo = banco;
+    },
+  };
+  const MODELOS = { f1: F1, kart: KART };
+
+  const S = { cor: '#e10600', tipo: 'f1', canvas: null, gl: null, erro: false, host: null, raf: 0,
+    mods: {}, // por tipo: { modelo, carregando, ang }
+    alvo: {}, foco: 'geral', cam: null, auto: 0, arrasto: 0, volta: 0, ultimo: 0, tempo: 0, arrastando: false, ux: 0 };
+  const def = () => MODELOS[S.tipo];
+  const modeloAtual = () => (S.mods[S.tipo] || {}).modelo;
   const reduzido = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function suporta() {
@@ -147,99 +269,71 @@
     } catch (e) { S.erro = true; return false; }
   }
 
-  function pintar(m) {
-    const VERM = hex(S.cor), CARB = hex('#232c3d'), PNEU = hex('#13161c');
-    for (const n of m.nos) {
-      if (n.malha == null) continue;
-      const orig = m.malhas[n.malha][0].cor;
-      if ([4, 27, 30, 20].includes(n.i)) { n.cor = VERM; n.mr = [0.3, 0.35]; }
-      else if (n.i === 22 || n.i === 63) n.cor = hex('#2b3550');
-      else if (RODAS[n.i]) n.cor = PNEU;
-      else if (Math.max(orig[0], orig[1], orig[2]) < 0.05) n.cor = CARB;
-    }
-    // nós-raiz que não são rodas: sobem e descem juntos com a altura e balançam com a suspensão
-    const tem = (i) => !!RODAS[i] || m.nos[i].filhos.some(tem);
-    let n = m.nos[m.raizes[0]];
-    while (n.filhos.length === 1) n = m.nos[n.filhos[0]];
-    S.corpo = n.filhos.filter((c) => !tem(c));
-  }
-
-  function aplicar(t, dt) {
-    const m = S.modelo, a = S.ang, al = S.alvo, k = 1 - Math.exp(-dt * 7);
-    a.asaF += ((al.asaDianteira - 5) * 3.2 * deg - a.asaF) * k;
-    a.asaT += ((al.asaTraseira - 5) * 3.6 * deg - a.asaT) * k;
-    a.y += ((al.altura - 1) * 0.075 - a.y) * k;
-    a.psi += (al.pressao - a.psi) * k;
-    const freq = [1.6, 2.4, 4.2][al.suspensao], amp = [0.032, 0.016, 0.006][al.suspensao];
-    const bal = reduzido() ? 0 : Math.sin(t * freq) * amp * (0.6 + 0.4 * Math.sin(t * 0.7));
-    const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
-    for (const i of ASA_DIANT) m.nos[i].mundo = pivoX([0, 0.2, 3.15], -a.asaF);
-    for (const i of ASA_TRAS) m.nos[i].mundo = pivoX([0, 0.62, -0.95], -a.asaT);
-    const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol));
-    for (const i of S.corpo) m.nos[i].mundo = corpo;
-    // pressão: o pneu dilata e muda de tom (frio azulado, quente avermelhado)
-    const f = 1 + (a.psi - 23.5) * 0.006, tom = Math.max(0, Math.min(1, (a.psi - 19) / 8));
-    const cor = tom < 0.4 ? [0.10, 0.16, 0.26, 1] : tom > 0.78 ? [0.30, 0.10, 0.08, 1] : [0.075, 0.085, 0.11, 1];
-    for (const [i, c] of Object.entries(RODAS)) { m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(escala(f, f, 1), trans(-c[0], -c[1], -c[2]))); m.nos[i].cor = cor; }
-  }
-
   function quadro(agora) {
     S.raf = 0;
-    const host = S.host;
-    if (!host || !host.isConnected || !S.modelo) return;
+    const host = S.host, m = modeloAtual();
+    if (!host || !host.isConnected || !m) return;
     if (typeof document !== 'undefined' && document.hidden) { S.ultimo = 0; S.raf = requestAnimationFrame(quadro); return; }
     const dt = Math.min(0.05, S.ultimo ? (agora - S.ultimo) / 1000 : 0.016); S.ultimo = agora; S.tempo += dt;
     const c = S.canvas, r = host.getBoundingClientRect(), d = Math.min(2, (typeof devicePixelRatio === 'number' && devicePixelRatio) || 1);
     const W = Math.max(2, Math.round(r.width * d)), H = Math.max(2, Math.round(r.height * d));
     if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
     // câmera: vai até o foco; no foco geral o carro gira devagar
-    const alvo = FOCOS[S.foco] || FOCOS.geral, kc = 1 - Math.exp(-dt * 4.2), cam = S.cam;
+    const focos = def().focos, alvo = focos[S.foco] || focos.geral, kc = 1 - Math.exp(-dt * 4.2), cam = S.cam;
     let dy = alvo.yaw - cam.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
     cam.yaw += dy * kc; cam.pitch += (alvo.pitch - cam.pitch) * kc; cam.dist += (alvo.dist - cam.dist) * kc;
     for (let i = 0; i < 3; i++) cam.t[i] += (alvo.t[i] - cam.t[i]) * kc;
     if (S.foco === 'geral' && !reduzido() && !S.arrastando) S.auto += dt * 0.18;
     const yaw = cam.yaw + S.arrasto + (S.foco === 'geral' ? S.auto : 0), pit = cam.pitch;
     const eye = [cam.t[0] + Math.sin(yaw) * Math.cos(pit) * cam.dist, cam.t[1] + Math.sin(pit) * cam.dist, cam.t[2] + Math.cos(yaw) * Math.cos(pit) * cam.dist];
-    aplicar(S.tempo, dt);
-    const gl = S.gl;
+    def().aplicar(m, S.tempo, dt, S.alvo, S.mods[S.tipo].ang);
+    const gl = S.gl, esc = S.tipo === 'kart' ? 100 : 1;
     gl.viewport(0, 0, W, H); gl.enable(gl.DEPTH_TEST); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    desenhar(gl, S.modelo, mul(persp(0.62, W / H, 0.1, 80), olhar(eye, cam.t)));
+    desenhar(gl, m, mul(persp(0.62, W / H, 0.1 * esc, 80 * esc), olhar(eye, cam.t)));
     S.raf = requestAnimationFrame(quadro);
   }
 
   function iniciar() {
-    if (S.raf || !S.modelo) return;
+    if (S.raf || !modeloAtual()) return;
     S.ultimo = 0; S.raf = requestAnimationFrame(quadro);
   }
 
   // ---------- interface com o jogo ----------
-  const alvoDoSetup = (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao });
-
   // Marcação do espaço do carro dentro do cartão de acerto (vazia se o aparelho não tem WebGL2).
-  function html() {
-    return suporta() ? '<div class="carro3d" data-carro3d role="img" aria-label="Carro em 3D: a câmera segue o ajuste que você mexe"><span class="carro3d-carregando">Carregando o carro…</span><small class="carro3d-credito">3D: 3dblenderlol · CC BY 4.0</small></div>' : '';
+  function html(tipo) {
+    if (!suporta() || !MODELOS[tipo]) return '';
+    return `<div class="carro3d" data-carro3d role="img" aria-label="Carro em 3D: a câmera segue o ajuste que você mexe"><span class="carro3d-carregando">Carregando o carro…</span><small class="carro3d-credito">${MODELOS[tipo].credito}</small></div>`;
+  }
+  function mostrar(host) {
+    host.querySelector('.carro3d-carregando')?.remove();
+    host.prepend(S.canvas);
+    iniciar();
   }
   // Depois de desenhar a tela: coloca o canvas no espaço e liga o carro ao acerto atual.
-  function ligar(raiz, setup, cor) {
+  function ligar(raiz, setup, cor, tipo) {
     const host = raiz.querySelector('[data-carro3d]');
     if (!host) { S.host = null; return; }
-    if (!suporta()) return;
+    if (!suporta() || !MODELOS[tipo || 'f1']) return;
+    tipo = tipo || 'f1';
+    if (tipo !== S.tipo) { S.tipo = tipo; S.cam = null; S.foco = 'geral'; S.alvo = {}; S.arrasto = 0; }
     S.host = host;
-    if (cor && cor !== S.cor) { S.cor = cor; if (S.modelo) for (const i of CARROCERIA) S.modelo.nos[i].cor = hex(cor); }
-    if (setup) S.alvo = { ...S.alvo, ...alvoDoSetup(setup) };
-    if (!S.cam) { const g = FOCOS.geral; S.cam = { yaw: g.yaw, pitch: g.pitch, dist: g.dist, t: g.t.slice() }; Object.assign(S.ang, { asaF: (S.alvo.asaDianteira - 5) * 3.2 * deg, asaT: (S.alvo.asaTraseira - 5) * 3.6 * deg, y: (S.alvo.altura - 1) * 0.075, psi: S.alvo.pressao }); }
-    if (S.modelo) { host.querySelector('.carro3d-carregando')?.remove(); host.prepend(S.canvas); iniciar(); return; }
-    if (S.carregando) return;
-    S.carregando = true;
-    carregarModelo(S.gl).then((m) => {
-      S.modelo = m; pintar(m); S.carregando = false;
-      if (S.host && S.host.isConnected) { S.host.querySelector('.carro3d-carregando')?.remove(); S.host.prepend(S.canvas); iniciar(); }
-    }).catch(() => { S.erro = true; S.carregando = false; if (S.host) S.host.remove(); });
+    const corNova = cor && cor !== S.cor;
+    if (cor) S.cor = cor;
+    if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) };
+    if (!S.cam) { const g = def().focos.geral; S.cam = { yaw: g.yaw, pitch: g.pitch, dist: g.dist, t: g.t.slice() }; }
+    const ent = S.mods[tipo] || (S.mods[tipo] = { modelo: null, carregando: false, ang: null });
+    if (ent.modelo) { if (corNova) def().cores(ent.modelo, S.cor); mostrar(host); return; }
+    if (ent.carregando) return;
+    ent.carregando = true;
+    carregarModelo(S.gl, def()).then((m) => {
+      ent.modelo = m; ent.carregando = false; def().pintar(m, S.cor); ent.ang = def().iniciarAng(S.alvo);
+      if (S.host && S.host.isConnected && S.tipo === tipo) mostrar(S.host);
+    }).catch(() => { S.erro = true; ent.carregando = false; if (S.host) S.host.remove(); });
   }
   // Foco da câmera: a peça do knob mexido; sem foco próprio, volta à visão geral.
   function foco(chave) {
     clearTimeout(S.volta);
-    S.foco = FOCOS[chave] ? chave : 'geral';
+    S.foco = def().focos[chave] ? chave : 'geral';
     S.arrasto = 0;
   }
   // Depois de soltar o knob, a câmera espera um pouco e volta a mostrar o carro inteiro.
@@ -249,8 +343,8 @@
   }
   // Prévia ao vivo, enquanto o knob ainda está sendo arrastado.
   function previa(chave, valor) { if (chave in S.alvo) S.alvo[chave] = valor; }
-  function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...alvoDoSetup(setup) }; }
+  function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) }; }
 
-  const api = { html, ligar, foco, soltar, previa, definir, FOCOS };
+  const api = { html, ligar, foco, soltar, previa, definir };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxCarro3D = api;
 })(typeof window !== 'undefined' ? window : globalThis);

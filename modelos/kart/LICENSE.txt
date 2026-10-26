@@ -1,0 +1,11 @@
+Model Information:
+* title:	Racing Kart 125cc (low poly)
+* source:	https://sketchfab.com/3d-models/racing-kart-125cc-low-poly-556de8fb71fc4f6c96a2786d3b6552c0
+* author:	sceeth (https://sketchfab.com/sceeth)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+This work is based on "Racing Kart 125cc (low poly)" (https://sketchfab.com/3d-models/racing-kart-125cc-low-poly-556de8fb71fc4f6c96a2786d3b6552c0) by sceeth (https://sketchfab.com/sceeth) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+Colors and textures were replaced in the game.

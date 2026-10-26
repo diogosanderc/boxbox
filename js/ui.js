@@ -584,7 +584,7 @@
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     const knobs = app.querySelector('.setup-knobs');
-    if (knobs && Kart.monoposto()) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor);
+    if (knobs) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
     deslizarSegmentos();
     talvezTutorial();
   }
@@ -1982,7 +1982,7 @@
     const ordem = Kart.ORDEM_AJUSTES;
     const volante = ordem.filter((k) => AJUSTES_VOLANTE.includes(k));
     const resto = ordem.filter((k) => !volante.includes(k));
-    return `${Kart.monoposto() ? BoxCarro3D.html() : ''}<div class="setup-knobs" data-acao-setup="${acao}">
+    return `${BoxCarro3D.html(Kart.monoposto() ? 'f1' : 'kart')}<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
       <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
       <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
