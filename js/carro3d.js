@@ -202,7 +202,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa, difEntrada: s.difEntrada, camberTras: s.camberTras, rake: s.rake, barra: s.barra, arrefecimento: s.arrefecimento }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa, rake: s.rake, arrefecimento: s.arrefecimento }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -216,9 +216,6 @@
       mapa: { yaw: 2.5, pitch: 0.3, dist: 4.8, t: [0, 0.6, 0.2] },
       arrefecimento: { yaw: 1.5708, pitch: 0.1, dist: 4.2, t: [0.4, 0.45, 0.4] },
       rake: { yaw: 1.5708, pitch: 0.02, dist: 7, t: [0, 0.35, 1.15] },
-      barra: { yaw: 0.1, pitch: 0.12, dist: 7.2, t: [0, 0.45, 1.15] },
-      difEntrada: { yaw: 2.7, pitch: 0.32, dist: 5.2, t: [0, 0.35, -0.5] },
-      camberTras: { yaw: 3.14, pitch: 0.12, dist: 4.8, t: [0, 0.32, -0.72] },
       diferencial: { yaw: 2.7, pitch: 0.32, dist: 5.2, t: [0, 0.35, -0.5] },
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
@@ -243,14 +240,14 @@
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, fMapa: 0, fBarra: 0, fArr: 0, rake: al.rake == null ? 1 : al.rake, cambT: al.camberTras == null ? -2 : al.camberTras, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, fMapa: 0, fArr: 0, rake: al.rake == null ? 1 : al.rake, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
     aplicar(m, t, dt, al, a, foco) {
       const k = 1 - Math.exp(-dt * 7);
       // Rodas girando, só enquanto o jogador mexe no knob certo:
       // relação: curta gira devagar (aceleração), longa gira rápido (velocidade final);
       // freio: gira e freia em ciclo; a roda com mais parcela do freio para antes e o nariz abaixa;
       // diferencial: aberto, uma roda de trás gira muito mais que a outra; travado, as duas giram iguais.
-      const emMov = (foco === 'relacao' || foco === 'freio' || foco === 'diferencial' || foco === 'difEntrada') && !reduzido();
+      const emMov = (foco === 'relacao' || foco === 'freio' || foco === 'diferencial') && !reduzido();
       a.fRel += ((emMov ? 1 : 0) - a.fRel) * (1 - Math.exp(-dt * 3));
       const vel = { 6: 0, 33: 0, 83: 0, 89: 0 };
       let mergulho = 0;
@@ -261,14 +258,13 @@
         const ff = cic(Math.min(1.3, 0.28 / fr)), rr = cic(Math.min(1.3, 0.28 / (1 - fr)));
         vel[6] = vel[89] = w * ff; vel[33] = vel[83] = w * rr;
         mergulho = (1 - ff) * (fr / 0.56) * 1.4 * deg;
-      } else if (foco === 'diferencial' || foco === 'difEntrada') {
-        const k = [0.75, 0.35, 0][(foco === 'difEntrada' ? al.difEntrada : al.diferencial) == null ? 1 : (foco === 'difEntrada' ? al.difEntrada : al.diferencial)], w = 11;
+      } else if (foco === 'diferencial') {
+        const k = [0.75, 0.35, 0][al.diferencial == null ? 1 : al.diferencial], w = 11;
         vel[6] = vel[89] = w; vel[83] = w * (1 + k); vel[33] = w * (1 - k);
       }
       a.mergulho = (a.mergulho || 0) + (mergulho * a.fRel - (a.mergulho || 0)) * k;
       for (const i in vel) a.g[i] += dt * vel[i] * a.fRel;
       a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
-      a.cambT += ((al.camberTras == null ? -2 : al.camberTras) - a.cambT) * k;
       a.asaF += ((al.asaDianteira - 5) * 4 * deg - a.asaF) * k;
       a.asaT += ((al.asaTraseira - 5) * 4.5 * deg - a.asaT) * k;
       a.y += ((al.altura - 1) * 0.075 - a.y) * k;
@@ -278,11 +274,9 @@
       const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
       m.nos[m.partes.asaF].mundo = pivoX([0, 0.14, 3.22], a.asaF);
       m.nos[m.partes.asaT].mundo = pivoX([0, 0.62, -0.92], a.asaT);
-      // rake: mais inclinação = traseira mais alta que a frente (nariz abaixa); barra: a carroceria rola, mais com a barra macia
+      // rake: mais inclinação = traseira mais alta que a frente (o nariz abaixa)
       a.rake += ((al.rake == null ? 1 : al.rake) - a.rake) * k;
-      a.fBarra += ((foco === 'barra' && !reduzido() ? 1 : 0) - a.fBarra) * (1 - Math.exp(-dt * 3));
-      const rolagem = Math.sin(t * 1.4) * [3, 1.5, 0.5][al.barra == null ? 1 : al.barra] * deg * a.fBarra;
-      const corpo = mul(trans(0, a.y + bal, 0), mul(pivoX([0, 0.3, 1.15], rol + a.mergulho + (a.rake - 1) * 1.6 * deg), emTorno([0, 0.3, 1.15], rotZ(rolagem))));
+      const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol + a.mergulho + (a.rake - 1) * 1.6 * deg));
       for (const i of this.corpo) m.nos[i].mundo = corpo;
       // mapa do motor: o motor treme mais quanto mais potência (só enquanto o jogador mexe no knob)
       a.fMapa += ((foco === 'mapa' && !reduzido() ? 1 : 0) - a.fMapa) * (1 - Math.exp(-dt * 3));
@@ -294,8 +288,7 @@
       const f = 1 + (a.psi - 23.5) * 0.012;
       // cambagem: as rodas da frente inclinam para dentro (quanto mais negativa, mais inclinadas)
       for (const [i, c] of Object.entries(this.RODAS)) {
-        const lado = c[0] > 0 ? 1 : -1;
-        const lean = c[2] > 1 ? (-a.camb - 3) * 6 * deg * lado : (-a.cambT - 2) * 6 * deg * lado;
+        const lean = c[2] > 1 ? (-a.camb - 3) * 6 * deg * (c[0] > 0 ? 1 : -1) : 0;
         m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(rotX(a.g[i]), mul(escala(1, f, f), trans(-c[0], -c[1], -c[2])))));
       }
     },
