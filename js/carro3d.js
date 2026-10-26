@@ -182,7 +182,6 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    credito: '3D: 3dblenderlol · CC BY 4.0',
     alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
@@ -235,7 +234,6 @@
   // Kart: as quatro rodas vêm num objeto só e são separadas ao carregar (grupo 0..3 = esquerda/direita x trás/frente).
   const KART = {
     id: 'kart', arquivo: 'modelos/kart/scene.json', binarios: ['modelos/kart/scene.bin', 'modelos/kart/scene.bin.txt'],
-    credito: '3D: sceeth · CC BY 4.0',
     alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster, coroa: s.coroa, carburacao: s.carburacao }),
     // no arquivo, o eixo y do objeto é o comprimento do kart (y menor = mais perto da frente)
     hastes: 4,
@@ -376,7 +374,7 @@
   // Marcação do espaço do carro dentro do cartão de acerto (vazia se o aparelho não tem WebGL2).
   function html(tipo) {
     if (!suporta() || !MODELOS[tipo]) return '';
-    return `<div class="carro3d" data-carro3d role="img" aria-label="Carro em 3D: a câmera segue o ajuste que você mexe"><span class="carro3d-carregando">Carregando o carro…</span><small class="carro3d-credito">${MODELOS[tipo].credito}</small></div>`;
+    return `<div class="carro3d" data-carro3d role="img" aria-label="Carro em 3D: a câmera segue o ajuste que você mexe"><span class="carro3d-carregando">Carregando o carro…</span></div>`;
   }
   function mostrar(host) {
     host.querySelector('.carro3d-carregando')?.remove();
