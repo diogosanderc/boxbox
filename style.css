@@ -1440,3 +1440,13 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .caixa-grande b { font-family: var(--fonte-titulo); font-style: italic; font-size: 30px; color: #3ddc84; }
 .caixa-grande span { font-size: 12px; color: var(--fraco); }
 .cabecalho-tela .chip-grande { height: 34px; display: inline-flex; align-items: center; padding-top: 0; padding-bottom: 0; }
+
+/* Proposta de outra equipe: folha com a faixa da cor da equipe e uma linha discreta nos Olheiros. */
+.folha-proposta { border-top: 4px solid var(--cor-equipe, var(--destaque)); }
+.proposta-pre { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fraco); }
+.folha-proposta h3 { margin: 2px 0 6px; font-size: 22px; }
+.proposta-linha { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px; border-radius: 14px; background: var(--painel-2); border: 1px solid var(--borda); color: var(--texto); text-align: left; }
+.proposta-linha .cor { width: 6px; align-self: stretch; border-radius: 3px; }
+.proposta-linha b { flex: 1; }
+.proposta-linha small { color: var(--fraco); }
+.proposta-linha .ico-i { width: 16px; height: 16px; color: var(--fraco); }

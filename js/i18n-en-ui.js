@@ -815,5 +815,9 @@
     "/etapa": "/round",
     "O acerto custou cerca de {1} s por volta.": "The setup cost about {1} s per lap.",
     "A chuva só pegou o fim da corrida (a partir da volta {1}): o diagnóstico vale para o seco.": "Rain only arrived late in the race (from lap {1}): the debrief applies to the dry.",
+    "Proposta de outra equipe": "Offer from another team",
+    "Decidir depois": "Decide later",
+    "Proposta da {1}": "Offer from {1}",
+    "Confirmar troca": "Confirm the switch",
   });
 })();

@@ -1316,6 +1316,7 @@
       <button class="principal grande" data-acao="pegar-emprestimo" data-confirmar="Toque de novo para confirmar">${ic('carteira')}Pegar ${reais(valor)}</button>`, opc);
   }
 
+  const TIPOS_PROPOSTA = { fabrica: 'Piloto de fábrica', desconto: 'Vaga com desconto', furada: 'Vaga com desconto' };
   function cartaoProposta(pr) {
     const atual = C.equipeBase(estado.equipeId);
     const nova = C.equipeBase(pr.equipe);
@@ -1328,11 +1329,28 @@
     </div>`;
   }
 
+  // Proposta de outra equipe: abre em folha assim que chega (uma vez); "Decidir depois" fecha e a linha fica nos Olheiros.
+  function folhaProposta() {
+    const pr = tela.propostaId && estado.propostas.find((x) => x.id === tela.propostaId);
+    if (!pr) return '';
+    const atual = C.equipeBase(estado.equipeId);
+    const nova = C.equipeBase(pr.equipe);
+    return `<div class="folha-fundo" data-acao-fundo="fechar-proposta"><div class="folha folha-proposta" role="dialog" aria-modal="true" aria-labelledby="folha-titulo" style="--cor-equipe:${nova.cor}">
+      <span class="proposta-pre">Proposta de outra equipe</span>
+      <h3 id="folha-titulo">${esc(pr.nome)}</h3>
+      <div class="chips">${chip(TIPOS_PROPOSTA[pr.tipo] || 'Proposta')}${pr.segundoPiloto ? chip(`${ic('alerta')}Segundo piloto`, 'chip-amarelo') : ''}</div>
+      ${nova.descricao ? `<p class="fraco">${esc(nova.descricao)}</p>` : ''}
+      <div class="tiles">${tile('Kart', `${pr.materialPrometido} <span class="fraco">vs ${atual.material}</span>`)}${tile('Por etapa', pr.custoEtapa ? reais(pr.custoEtapa) : 'Grátis', 'dinheiro')}${tile('Multa', reais(pr.multa), 'aviso')}</div>
+      <div class="botoes-2"><button class="principal" data-acao="aceitar-proposta" data-id="${pr.id}" data-confirmar="Confirmar troca">Aceitar</button><button data-acao="recusar-proposta" data-id="${pr.id}">Recusar</button></div>
+      <button class="discreto" data-acao="fechar-proposta">Decidir depois</button>
+    </div></div>`;
+  }
+
   function cartaoOlheiros() {
     const olheiros = estado.olheiros || [];
     return cartao('Olheiros', `
       ${olheiros.length ? `<div class="chips">${olheiros.map((o) => chip(esc(o.nome))).join('')}</div>` : '<p class="vazio">Ninguém importante hoje.</p>'}
-      ${estado.propostas.map(cartaoProposta).join('')}`, { ajuda: 'olheiros', classe: 'cartao-olheiros' });
+      ${estado.propostas.filter((pr) => TIPOS_PROPOSTA[pr.tipo]).map((pr) => `<button class="proposta-linha" data-acao="abrir-proposta" data-id="${pr.id}" data-proposta="${pr.id}"><span class="cor" style="background:${C.equipeBase(pr.equipe).cor}"></span><b>Proposta da ${esc(pr.nome)}</b><small>${TIPOS_PROPOSTA[pr.tipo]}</small>${icone('seta')}</button>`).join('')}`, { ajuda: 'olheiros', classe: 'cartao-olheiros' });
   }
 
   const semAcento = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -1730,7 +1748,7 @@
     // Proposta de outra equipe: leva até o cartão dela (nos olheiros, na aba Piloto).
     if (/faz uma proposta/i.test(texto)) {
       const pr = (estado.propostas || []).find((p) => texto.includes(p.nome));
-      return { aba: 'piloto', sel: pr ? `[data-proposta=${pr.id}]` : '.cartao-olheiros' };
+      return { aba: 'piloto', sel: pr ? `[data-proposta=${pr.id}]` : '.cartao-olheiros', proposta: pr ? pr.id : '' };
     }
     const d = DESTINOS_NOTICIA.find(([re]) => re.test(texto));
     return d ? { aba: d[1], sel: d[2] } : null;
@@ -1770,6 +1788,11 @@
 
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
+    // Proposta nova de outra equipe: abre em folha uma única vez (depois fica na linha dos Olheiros).
+    if (!tela.propostaId && !Tutorial.ativo() && !tela.checagem) {
+      const nova = estado.propostas.find((pr) => !pr.vista && TIPOS_PROPOSTA[pr.tipo]);
+      if (nova) { nova.vista = true; tela.propostaId = nova.id; salvar(); }
+    }
     const conteudo = {
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoDesafio()}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
@@ -1781,7 +1804,7 @@
         const ponto = noticiaNova(n) ? '<i class="noticia-ponto" aria-label="nova"></i>' : '';
         const corpo = `<b>${esc(textoNoticia(n.texto))}</b><small>${quando(n)}</small>`;
         const d = destinoNoticia(n.texto);
-        return d ? `<button class="noticia noticia-link ${noticiaNova(n) ? 'nova' : 'lida'}" data-acao="abrir-noticia" data-aba="${d.aba}" data-sel="${d.sel}">${ponto}${corpo}${icone('seta')}</button>`
+        return d ? `<button class="noticia noticia-link ${noticiaNova(n) ? 'nova' : 'lida'}" data-acao="abrir-noticia" data-aba="${d.aba}" data-sel="${d.sel}" ${d.proposta ? `data-proposta-abrir="${d.proposta}"` : ''}>${ponto}${corpo}${icone('seta')}</button>`
           : `<article class="noticia ${noticiaNova(n) ? 'nova' : 'lida'}">${ponto}${corpo}</article>`;
       }).join('')}</div>`),
     }[aba]();
@@ -1799,7 +1822,7 @@
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
       </div>
-      ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}`;
+      ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }
 
   const SOBRE_TIPO = {
@@ -2888,6 +2911,7 @@
         break;
       case 'abrir-noticia': {
         tela.aba = alvo.dataset.aba;
+        if (alvo.dataset.propostaAbrir) tela.propostaId = alvo.dataset.propostaAbrir;
         render();
         const el = app.querySelector(alvo.dataset.sel);
         if (el) {
@@ -2991,7 +3015,16 @@
         salvar();
         render();
         break;
+      case 'abrir-proposta':
+        tela.propostaId = id;
+        render();
+        break;
+      case 'fechar-proposta':
+        tela.propostaId = null;
+        render();
+        break;
       case 'aceitar-proposta': {
+        tela.propostaId = null;
         const r = C.aceitarProposta(estado, id);
         if (erro(r)) { salvar(); ir(telaDaFase()); if (r.f4) aviso('Bem-vindo à Fórmula 4! O carro é outro: asas, suspensão e box.'); else if (estado.fase === 'paddock') aviso(`Bem-vindo à ${C.campeonato(estado.campeonato).curto}!`); }
         break;
@@ -3006,6 +3039,7 @@
         if (erro(C.desenvolverCarro(estado, id))) { salvar(); render(); rolarPara('.cartao-dev', 'center'); aviso(`${C.AREAS_DEV[id]}: peças novas no carro.`, 'subir'); }
         break;
       case 'recusar-proposta':
+        tela.propostaId = null;
         C.recusarProposta(estado, id);
         salvar();
         render();
@@ -3198,6 +3232,7 @@
   app.addEventListener('click', (ev) => {
     if (tela.nome === 'abertura' && ev.target.closest('.abertura-marca')) tocarLogo();
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
+    if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-proposta') { tela.propostaId = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-pneu') { tela.pneuOpcoes = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-mudancas') { tela.mudancas = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-largada') app.querySelector('.folha-largada [data-acao="fechar-largada"]').click();
