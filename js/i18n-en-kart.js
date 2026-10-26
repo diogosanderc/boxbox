@@ -277,6 +277,7 @@
     'Motor engripou': 'Engine seized',
     'Carregando o carro…': 'Loading the car…',
     'Sair': 'Exit',
+    'Pode parar quantas vezes quiser, enquanto houver jogo novo no estoque (o número mostra quantos).': 'You can pit as often as you like while there are fresh sets in stock (the number shows how many).',
     'Volta {#1} do pneu': 'Tyre lap {1}',
     'Vida do pneu': 'Tyre life',
     'Pneu dá até o fim da corrida.': 'The tyres will last to the end of the race.',

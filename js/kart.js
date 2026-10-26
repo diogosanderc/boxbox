@@ -320,7 +320,9 @@
       tempo: Math.min(3.5, 1.1 * Math.pow(d, 0.9)),
       sigma: 1 + 0.4 * Math.min(d, 3),
       erro: 1 + 0.6 * Math.min(d, 4),
-      desgaste: 1 + 0.25 * Math.abs(e.pressao) + 0.2 * Math.abs(e[M.traseira]),
+      // Carro equilibrado gasta menos pneu: o desgaste cresce com o desequilíbrio do acerto inteiro (acerto afinado ~0,9;
+      // acerto de fábrica ~1,2; carro muito fora ~2) e, em cima disso, com a pressão e a traseira, que castigam o pneu direto.
+      desgaste: 0.8 + 0.3 * Math.min(d, 4) + 0.15 * Math.abs(e.pressao) + 0.1 * Math.abs(e[M.traseira]),
       quebra: 0,
       motivoQuebra: 'Quebra',
     };

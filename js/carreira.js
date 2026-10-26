@@ -1665,6 +1665,7 @@
     corrida.compostos = compostos;
     corrida.jogosJogador = jogos;
     if (monoposto) corrida.temJogo = (tipo) => !!jogoLivre(tipo);
+    if (monoposto) corrida.jogosLivres = (tipo) => estado.pneus.filter((p) => p.tipo === tipo && !jogos.some((j) => j.id === p.id)).length;
     if (quatro) {
       // Na parada, o jogador recebe um jogo do estoque: o composto pedido ou, se não houver, outro seco que tenha.
       corrida.trocaPneu = (c, desejado) => {
