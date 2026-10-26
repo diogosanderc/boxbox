@@ -1,154 +1,24 @@
-// Pista em 3D: mostra o traçado da pista (asfalto, linhas, zebras, linha de largada e um carro de referência) no cartão
-// "Ver pista". Jeddah usa o modelo CC BY 4.0 "Yeddah F1 Circuit" (luis.adrian.villagrana); as outras pistas são desenhadas
-// aqui a partir da ficha de cada uma (extensão, retas, curvas lentas/médias/rápidas, grampos, sentido). O traçado das pistas
-// de kart vem dos pontos de data.js; os dos monopostos são aproximados (não são o desenho real do circuito).
+// Pista em 3D: mostra o traçado de um circuito (asfalto, linhas, zebras, linha de largada e um carro de referência) no cartão
+// "Ver pista". O traçado é a linha central extraída do mapa do circuito (ver REAIS); circuitos sem traçado não mostram nada.
 (function (root) {
   'use strict';
 
   // Jeddah: traçado extraído do modelo CC BY 4.0 "Yeddah F1 Circuit" (luis.adrian.villagrana): linha central do asfalto, 200 pontos [x, z].
   const JEDDAH = [[-787.5,-375.6],[-787.4,-359.8],[-783.6,-342.2],[-777.1,-324.3],[-769.0,-307.1],[-760.0,-290.3],[-750.3,-273.8],[-739.7,-257.7],[-728.2,-242.1],[-715.5,-227.4],[-701.7,-213.7],[-687.1,-201.0],[-671.7,-189.3],[-655.7,-178.8],[-639.1,-169.0],[-622.3,-160.0],[-605.3,-151.5],[-588.0,-143.5],[-570.6,-136.0],[-552.8,-129.3],[-534.7,-123.5],[-516.1,-118.7],[-497.1,-115.2],[-477.8,-113.1],[-458.2,-112.2],[-438.3,-112.2],[-418.4,-113.1],[-398.4,-114.1],[-378.5,-115.1],[-358.7,-115.3],[-339.3,-114.0],[-320.4,-110.9],[-302.6,-105.4],[-286.4,-97.2],[-271.5,-86.6],[-257.1,-74.8],[-242.8,-62.9],[-228.2,-51.8],[-213.0,-41.9],[-197.0,-34.0],[-179.4,-28.0],[-160.9,-23.5],[-142.1,-19.6],[-123.5,-15.4],[-105.1,-10.3],[-87.3,-4.2],[-69.8,3.4],[-53.0,12.3],[-36.6,22.5],[-20.7,33.6],[-5.0,45.4],[10.5,57.5],[26.1,69.5],[41.9,81.0],[58.1,91.5],[74.9,100.6],[92.1,108.6],[109.7,115.8],[127.5,122.6],[145.3,129.3],[162.9,136.2],[180.4,143.7],[197.6,151.9],[214.4,160.8],[231.0,170.4],[247.5,180.3],[263.9,190.2],[280.5,199.9],[297.0,209.5],[313.8,218.5],[331.1,226.5],[348.9,232.8],[366.8,236.8],[384.4,237.4],[401.8,235.3],[419.4,231.2],[437.2,226.6],[455.0,222.0],[472.8,217.7],[490.9,214.7],[509.8,213.4],[529.3,213.6],[549.2,214.6],[569.1,215.5],[589.0,216.4],[608.6,217.9],[627.9,220.4],[646.7,224.2],[665.0,229.7],[682.6,236.9],[699.6,245.5],[716.2,255.1],[732.7,264.8],[749.3,274.4],[766.2,283.0],[783.5,289.6],[800.2,292.3],[814.9,290.5],[826.4,284.6],[833.0,276.6],[834.5,266.6],[830.5,255.7],[821.3,244.5],[807.9,234.6],[791.6,226.7],[773.6,220.6],[755.4,214.8],[737.2,209.2],[719.0,203.5],[700.8,197.9],[682.6,192.2],[664.3,186.6],[646.0,181.2],[627.5,176.2],[608.9,171.6],[590.0,167.4],[570.9,164.0],[551.5,161.3],[531.9,158.9],[512.3,156.7],[492.6,155.2],[473.2,155.2],[454.5,157.2],[436.2,160.7],[418.0,164.6],[399.8,168.6],[381.7,172.2],[363.8,174.7],[345.8,175.3],[327.8,172.3],[310.7,165.6],[295.2,156.3],[280.0,145.9],[265.0,135.1],[250.0,124.3],[234.8,114.3],[218.7,106.0],[201.5,100.7],[182.6,97.6],[163.6,94.9],[144.8,91.6],[126.8,87.0],[110.5,80.0],[96.3,70.6],[82.4,59.4],[68.9,47.5],[55.4,35.5],[41.7,24.1],[27.4,13.8],[11.6,4.9],[-5.7,-2.6],[-23.2,-10.0],[-40.6,-17.5],[-58.1,-25.0],[-75.9,-31.7],[-94.0,-37.5],[-112.5,-42.4],[-131.5,-46.2],[-150.1,-50.8],[-165.5,-56.8],[-178.7,-64.5],[-191.3,-73.4],[-203.4,-83.6],[-215.0,-95.0],[-225.9,-108.0],[-237.0,-120.5],[-251.2,-132.1],[-267.4,-142.4],[-283.7,-152.6],[-300.0,-162.9],[-316.3,-173.1],[-332.7,-183.2],[-349.0,-193.4],[-365.4,-203.6],[-381.7,-213.8],[-398.1,-223.9],[-414.4,-234.2],[-430.7,-244.4],[-447.0,-254.7],[-463.4,-264.8],[-479.8,-274.7],[-496.3,-284.4],[-513.0,-293.8],[-529.7,-303.0],[-546.6,-312.0],[-563.6,-320.6],[-580.6,-329.1],[-597.7,-337.6],[-614.7,-346.0],[-631.8,-354.3],[-648.9,-362.7],[-666.0,-371.0],[-683.1,-379.3],[-700.2,-387.7],[-717.5,-395.6],[-735.0,-401.5],[-751.5,-404.1],[-765.5,-402.6],[-776.4,-397.3],[-783.7,-388.3]];
 
-  // ---------- utilidades ----------
-  const hashTxt = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
-  function rng(semente) {
-    let a = semente >>> 0;
-    return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  }
-  const entre = (r, a, b) => a + (b - a) * r();
-  const limitar = (v, a, b) => Math.max(a, Math.min(b, v));
+  // Traçados reais, extraídos da linha central do mapa de cada circuito ([x, z], 240 pontos). Só os circuitos listados aqui
+  // têm pista em 3D; nos demais o cartão não mostra nada.
+  const REAIS = { spa: [[-419.6,195.1],[-421.7,190.3],[-421.9,182.7],[-420.0,172.5],[-416.0,161.2],[-411.7,149.9],[-406.9,138.9],[-401.7,128.1],[-396.0,117.5],[-389.6,107.3],[-382.8,97.5],[-375.5,87.8],[-367.7,78.7],[-360.1,69.7],[-352.7,60.6],[-345.2,51.6],[-337.6,42.7],[-330.1,33.8],[-322.9,25.7],[-316.3,17.0],[-309.7,8.2],[-302.8,-0.6],[-295.8,-9.2],[-288.4,-17.3],[-280.4,-24.7],[-271.7,-32.0],[-262.3,-38.7],[-252.3,-45.0],[-242.1,-51.1],[-231.8,-57.2],[-221.9,-63.6],[-212.2,-70.7],[-202.8,-78.3],[-193.6,-86.1],[-184.3,-93.9],[-175.0,-101.6],[-165.5,-109.0],[-155.7,-116.0],[-145.7,-122.6],[-135.4,-128.7],[-124.8,-134.5],[-114.0,-139.8],[-103.1,-144.9],[-92.0,-149.8],[-81.0,-154.7],[-69.9,-159.6],[-58.8,-164.4],[-47.8,-169.3],[-36.7,-174.2],[-25.7,-179.0],[-14.6,-183.9],[-3.5,-188.8],[7.5,-193.6],[18.6,-198.5],[29.7,-203.3],[40.8,-208.2],[51.8,-213.1],[62.9,-217.9],[74.0,-222.8],[85.1,-227.7],[96.2,-232.4],[107.4,-236.0],[118.2,-237.7],[128.8,-237.8],[139.5,-237.4],[150.3,-236.9],[161.1,-236.2],[171.9,-235.7],[182.7,-235.4],[193.8,-235.4],[204.5,-235.0],[214.7,-233.2],[224.4,-229.5],[233.8,-223.9],[242.6,-216.4],[251.0,-207.7],[259.1,-198.8],[267.2,-189.9],[275.4,-181.0],[283.0,-171.8],[288.9,-162.2],[292.3,-152.9],[292.9,-144.9],[290.9,-139.2],[286.7,-136.0],[280.2,-135.5],[272.0,-137.9],[263.1,-143.1],[254.0,-149.9],[244.9,-156.3],[235.6,-160.9],[225.9,-163.3],[215.8,-163.7],[205.2,-162.0],[194.1,-158.4],[183.0,-153.7],[172.0,-148.8],[160.8,-144.1],[149.6,-139.7],[138.2,-135.5],[126.8,-131.6],[115.4,-127.7],[103.9,-123.9],[92.4,-120.1],[81.2,-115.8],[70.7,-110.6],[61.5,-104.2],[53.9,-96.7],[48.1,-87.9],[44.2,-78.1],[42.5,-67.2],[43.2,-56.0],[46.1,-45.0],[50.9,-34.8],[57.3,-25.8],[65.2,-18.0],[74.5,-11.4],[84.7,-5.9],[95.6,-2.0],[106.9,1.0],[118.3,3.6],[129.8,6.0],[140.3,9.1],[147.6,11.2],[151.7,12.4],[152.5,13.3],[150.0,13.7],[144.6,12.4],[139.1,11.1],[132.6,8.7],[129.0,7.0],[128.6,6.2],[131.4,6.4],[137.6,7.3],[146.6,9.9],[155.8,12.7],[166.9,16.1],[178.0,20.2],[188.1,25.5],[196.6,31.8],[202.8,39.6],[207.0,48.3],[209.6,58.3],[211.6,69.1],[213.6,79.8],[216.6,89.6],[221.1,98.5],[227.9,106.4],[236.6,113.4],[246.8,119.4],[257.6,124.7],[268.0,130.4],[276.8,137.1],[283.3,144.7],[287.5,153.0],[289.3,162.2],[288.6,172.1],[285.3,182.6],[279.5,192.5],[272.0,201.1],[263.7,208.0],[254.4,213.1],[244.2,216.1],[233.2,217.1],[221.8,216.1],[210.4,213.4],[199.2,209.3],[188.3,204.5],[177.7,198.9],[167.5,192.6],[157.5,185.8],[148.0,178.5],[138.9,170.6],[130.2,162.3],[121.9,153.6],[114.0,144.5],[106.5,135.1],[99.3,125.5],[92.2,115.7],[85.0,105.9],[77.6,96.5],[69.7,87.5],[61.1,79.3],[52.0,72.0],[42.4,65.7],[32.2,60.4],[21.5,55.8],[10.8,51.4],[2.9,47.9],[-1.8,45.6],[-3.2,44.3],[-1.5,44.0],[3.1,44.6],[8.0,45.5],[12.6,47.0],[14.2,48.1],[12.4,48.4],[7.3,47.8],[-0.9,45.9],[-12.1,43.1],[-23.8,40.6],[-35.5,39.3],[-46.9,39.0],[-58.2,39.8],[-69.3,41.9],[-80.4,45.6],[-91.4,50.5],[-102.1,56.0],[-112.8,61.7],[-123.5,67.3],[-134.3,72.7],[-145.3,77.6],[-156.5,82.2],[-167.8,86.2],[-179.2,89.8],[-190.8,92.9],[-202.6,95.8],[-214.1,97.5],[-224.1,97.1],[-233.8,95.7],[-243.1,95.1],[-252.1,95.1],[-260.8,95.9],[-269.2,97.3],[-277.5,100.3],[-287.0,106.1],[-296.6,113.5],[-306.1,120.9],[-315.7,128.2],[-325.3,135.6],[-334.9,143.0],[-344.5,150.4],[-354.0,157.8],[-363.6,165.2],[-373.2,172.5],[-382.8,179.9],[-392.4,187.3],[-402.0,193.3],[-409.8,196.6],[-415.6,197.2]] };
 
-  // ---------- traçado: pontos [x, z] de uma curva fechada (em metros) ----------
-  // Pistas de kart: pontos do mapa (data.js), suavizados com Catmull-Rom e escalados para a extensão real.
-  function deTracado(pts, extensao) {
-    const n = pts.length, saida = [];
-    const cr = (p0, p1, p2, p3, t) => {
-      const t2 = t * t, t3 = t2 * t;
-      return [0, 1].map((k) => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3));
-    };
-    for (let i = 0; i < n; i++) for (let s = 0; s < 8; s++) saida.push(cr(pts[(i + n - 1) % n], pts[i], pts[(i + 1) % n], pts[(i + 2) % n], s / 8));
-    const comp = perimetro(saida), k = (extensao || comp) / comp;
-    return saida.map((p) => [p[0] * k, p[1] * k]);
-  }
   function perimetro(p) { let s = 0; for (let i = 0; i < p.length; i++) { const a = p[i], b = p[(i + 1) % p.length]; s += Math.hypot(b[0] - a[0], b[1] - a[1]); } return s; }
-
-  // Monopostos: monta o circuito andando como uma tartaruga (reta, curva, reta...), fecha o laço e confere se não se cruza.
-  const CURVAS = {
-    grampo: { ang: [150, 175], raio: [24, 34] },
-    lenta: { ang: [62, 105], raio: [40, 75] },
-    media: { ang: [35, 75], raio: [95, 170] },
-    rapida: { ang: [14, 40], raio: [230, 460] },
-  };
-  function montar(pista, tentativa) {
-    const r = rng(hashTxt(pista.id) + tentativa * 7919);
-    const sinal = pista.sentido === 'horário' ? -1 : 1;
-    const L = pista.extensao || 4500, retas = (pista.retas || [800]).slice();
-    const c = pista.curvas || { lentas: 5, medias: 5, rapidas: 4 };
-    const hairpins = Math.min(pista.grampos || 0, c.lentas);
-    const curvas = [];
-    const nova = (tipo, grupo) => { const d = CURVAS[tipo]; curvas.push({ grupo, ang: entre(r, d.ang[0], d.ang[1]), raio: entre(r, d.raio[0], d.raio[1]), s: 1 }); };
-    for (let i = 0; i < hairpins; i++) nova('grampo', 'a');
-    for (let i = 0; i < c.lentas - hairpins; i++) nova('lenta', 'a');
-    for (let i = 0; i < c.medias; i++) nova('media', 'b');
-    for (let i = 0; i < c.rapidas; i++) nova('rapida', 'c');
-    // ordem: grupos em blocos de 1 a 3 curvas seguidas (varrida de rápidas, sequência de lentas...)
-    const grupos = { a: curvas.filter((q) => q.grupo === 'a'), b: curvas.filter((q) => q.grupo === 'b'), c: curvas.filter((q) => q.grupo === 'c') };
-    const seq = [];
-    while (grupos.a.length + grupos.b.length + grupos.c.length) {
-      const vivos = ['a', 'b', 'c'].filter((g) => grupos[g].length);
-      const g = vivos[Math.floor(r() * vivos.length)];
-      const n = Math.min(grupos[g].length, 1 + Math.floor(r() * 3));
-      for (let i = 0; i < n; i++) seq.push(grupos[g].splice(Math.floor(r() * grupos[g].length), 1)[0]);
-    }
-    const n = seq.length;
-    // sentido: a maioria das curvas vira para o lado do circuito; algumas (chicanes) para o outro, e a soma fecha 360°
-    for (const q of seq) q.s = q.raio < 40 || r() > 0.3 ? 1 : -1;
-    const soma = () => seq.reduce((a, q) => a + q.s * q.ang, 0);
-    while (soma() < 300) { const o = seq.filter((q) => q.s < 0).sort((a, b) => a.ang - b.ang)[0]; if (!o) break; o.s = 1; }
-    const total = soma(), f = total > 0 ? 360 / total : 1;
-    for (const q of seq) q.ang *= f;
-    // retas: a primeira fica antes da primeira curva (reta dos boxes); as outras, espalhadas
-    const lacuna = new Array(n + 1).fill(0);
-    retas.forEach((m, k) => { lacuna[k === 0 ? 0 : 1 + Math.floor(((k + r() * 0.8) * n) / retas.length) % n] += m; });
-    const somaRetas = retas.reduce((a, b) => a + b, 0);
-    let arco = seq.reduce((a, q) => a + q.raio * (q.ang * Math.PI / 180), 0);
-    const disponivel = Math.max(L * 0.1, L - somaRetas);
-    if (arco > disponivel * 0.85) { const k = (disponivel * 0.85) / arco; seq.forEach((q) => { q.raio *= k; }); arco *= k; }
-    const livre = Math.max(0, L - somaRetas - arco);
-    const pesos = lacuna.map(() => 0.3 + r() * 1.2), ps = pesos.reduce((a, b) => a + b, 0);
-    const g = pesos.map((p) => (livre * p) / ps);
-    const MIN = 12;
-    const percurso = () => {
-      let x = 0, y = 0, th = r.th0 || 0; const pts = [[x, y]], dirs = [];
-      const reta = (len, i) => { const passos = Math.max(1, Math.ceil(len / 25)); dirs.push({ i, u: [Math.cos(th), Math.sin(th)] }); for (let k = 0; k < passos; k++) { x += Math.cos(th) * len / passos; y += Math.sin(th) * len / passos; pts.push([x, y]); } };
-      for (let i = 0; i <= n; i++) {
-        reta(Math.max(MIN, g[i] + lacuna[i]), i);
-        if (i < n) {
-          const q = seq[i], ang = q.s * sinal * q.ang * Math.PI / 180, passos = Math.max(2, Math.ceil(q.ang / 6));
-          for (let k = 0; k < passos; k++) {
-            const d = ang / passos, m = th + d / 2, corda = 2 * q.raio * Math.sin(Math.abs(d) / 2);
-            x += Math.cos(m) * corda; y += Math.sin(m) * corda; th += d; pts.push([x, y]);
-          }
-        }
-      }
-      return { pts, dirs, fim: [x, y] };
-    };
-    // fecha o laço mexendo no tamanho das retas (solução de menor norma, algumas iterações)
-    let res;
-    for (let it = 0; it < 40; it++) {
-      res = percurso();
-      const e = res.fim;
-      if (Math.hypot(e[0], e[1]) < 3) break;
-      const A = res.dirs.reduce((m, d) => [m[0] + d.u[0] * d.u[0], m[1] + d.u[0] * d.u[1], m[3] + d.u[1] * d.u[1]], [0, 0, 0, 0]);
-      const det = A[0] * A[3] - A[1] * A[1];
-      if (Math.abs(det) < 1e-6) break;
-      const lx = (-e[0] * A[3] + e[1] * A[1]) / det, ly = (-e[1] * A[0] + e[0] * A[1]) / det;
-      for (const d of res.dirs) g[d.i] = Math.max(0, g[d.i] + 0.8 * (lx * d.u[0] + ly * d.u[1]) - 0);
-    }
-    const pts = res.pts.slice(0, -1), e = res.fim, N = pts.length;
-    // resto do erro de fechamento distribuído ao longo do percurso
-    const comp = pts.map((_, i) => i / N);
-    const fechado = pts.map((p, i) => [p[0] - e[0] * comp[i], p[1] - e[1] * comp[i]]);
-    const fim = fechado.map((p) => [p[0], -p[1]]), razao = perimetro(fim) / L, k = 1 / Math.max(razao, 0.01);
-    return { pts: fim.map((p) => [p[0] * k, p[1] * k]), razao };
-  }
-
-  // O traçado não pode se cruzar nem passar perto demais de si mesmo.
-  function cruza(a, b, c, d) {
-    const o = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
-    return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
-  }
-  function limpo(pts, folga) {
-    const N = pts.length, sep = Math.max(6, Math.round(N / 18));
-    for (let i = 0; i < N; i++) for (let j = i + 2; j < N; j++) {
-      if (i === 0 && j === N - 1) continue;
-      if (cruza(pts[i], pts[(i + 1) % N], pts[j], pts[(j + 1) % N])) return false;
-    }
-    for (let i = 0; i < N; i++) for (let j = i + sep; j < N; j++) {
-      if (N - (j - i) < sep) continue;
-      if (Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]) < folga) return false;
-    }
-    return true;
-  }
+  const limitar = (v, a, b) => Math.max(a, Math.min(b, v));
   const cacheTracado = new Map();
+  // Pontos [x, z] em metros (escalados para a extensão da ficha) ou null se a pista não tem traçado real.
   function tracado(pista) {
+    if (!REAIS[pista.id]) return null;
     if (cacheTracado.has(pista.id)) return cacheTracado.get(pista.id);
-    let pts;
-    if (pista.id === 'jeddah') pts = JEDDAH.map((q) => [q[0] * (pista.extensao || 6174) / perimetro(JEDDAH), q[1] * (pista.extensao || 6174) / perimetro(JEDDAH)]);
-    else if (pista.tracado) pts = deTracado(pista.tracado, pista.extensao || 1000);
-    else {
-      // procura (por tentativas) um laço que feche sem esticar muito e sem se cruzar; senão, o menos ruim
-      let melhor = null, folga = 55;
-      for (let t = 0; t < 500 && !pts; t++) {
-        const { pts: p, razao } = montar(pista, t);
-        if (!p.every((q) => isFinite(q[0]) && isFinite(q[1]))) continue;
-        const ok = limpo(p, folga), nota = (ok ? 0 : 1) + Math.abs(1 - Math.min(razao, 1.5));
-        if (!melhor || nota < melhor.nota) melhor = { p, nota };
-        if (ok && razao > 0.88 && razao < 1.12) pts = p;
-        if (t === 150) folga = 38;
-        if (t === 300) folga = 22;
-      }
-      pts = pts || melhor.p;
-    }
+    const base = REAIS[pista.id], k = (pista.extensao || perimetro(base)) / perimetro(base);
+    const pts = base.map((q) => [q[0] * k, q[1] * k]);
     cacheTracado.set(pista.id, pts);
     return pts;
   }
@@ -296,7 +166,7 @@
     if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
     if (!S.arrastando && !reduzido()) { if (cena.alongado) S.balanco += dt * 0.35; else S.yaw += dt * 0.12; }
     const yawCena = cena.alongado ? -cena.teta + Math.sin(S.balanco) * 0.3 + S.yaw : S.yaw;
-    const dist = Math.max(cena.ext.a * 1.0, cena.ext.b * 1.25) * (cena.alongado ? 1.02 : 1.2) * S.zoom, pit = S.pitch;
+    const dist = (cena.alongado ? Math.max(cena.ext.a * 1.0, cena.ext.b * 1.25) * 1.4 : Math.max(cena.ext.a, cena.ext.b) * 1.5) * S.zoom, pit = S.pitch;
     const eye = [Math.sin(yawCena) * Math.cos(pit) * dist, Math.sin(pit) * dist, Math.cos(yawCena) * Math.cos(pit) * dist];
     const gl = S.gl, mvp = mul(persp(0.62, W / H, cena.diag * 0.02, cena.diag * 6), olhar(eye, [0, 0, 0]));
     gl.viewport(0, 0, W, H); gl.enable(gl.DEPTH_TEST); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -313,7 +183,7 @@
 
   // ---------- interface com o jogo ----------
   function html(pista) {
-    if (!pista || !suporta()) return '';
+    if (!pista || !tracado(pista) || !suporta()) return '';
     return `<div class="pista3d" data-pista3d="${pista.id}" role="img" aria-label="Pista em 3D: arraste para girar"><span class="pista3d-carregando">Carregando a pista…</span></div>`;
   }
   function mostrar(host) {
@@ -325,7 +195,7 @@
   function ligar(raiz, pista) {
     const host = raiz.querySelector('[data-pista3d]');
     if (!host) { S.host = null; return; }
-    if (!pista || !suporta()) return;
+    if (!pista || !tracado(pista) || !suporta()) return;
     S.host = host;
     if (S.id !== pista.id) { S.id = pista.id; S.cena = null; S.yaw = 0; S.balanco = 0; S.pitch = 0.95; S.zoom = 1; }
     const pronta = S.cache.get(pista.id);
@@ -339,6 +209,6 @@
     }).catch(() => { S.carregando = null; if (S.host) S.host.remove(); });
   }
 
-  const api = { html, ligar, tracado, perimetro, limpo };
+  const api = { html, ligar, tracado, perimetro };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxPista3D = api;
 })(typeof window !== 'undefined' ? window : globalThis);
