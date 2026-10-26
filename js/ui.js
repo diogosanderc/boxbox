@@ -2737,9 +2737,6 @@
   // Chegada à F1: a Superlicença, o fim da escada que começou no kart aos 12 anos.
   function telaSuperlicenca() {
     const f = estado.final;
-    const corridas = estado.historico.filter((h) => !h.fora);
-    const vitorias = corridas.filter((h) => h.pos === 1).length;
-    const titulos = estado.temporadas.filter((t) => t.pos === 1).length;
     app.innerHTML = `<section class="fim-hero campeao revelado superlicenca">
         <div class="confete" aria-hidden="true">${confete(32)}</div>
         <span class="campeao-ano">Superlicença conquistada</span>
@@ -2748,13 +2745,6 @@
         <span class="fim-frase">Você chegou à Fórmula 1</span>
         <span class="fim-campeao">Piloto titular da ${esc(f.equipe)} em ${f.ano}</span>
       </section>
-      <div class="fim-numeros">
-        <span><b>${estado.temporadas.length}</b>temporadas</span>
-        <span><b>${estado.historico.length}</b>corridas</span>
-        <span><b>${vitorias}</b>vitórias</span>
-        <span><b>${titulos}</b>títulos</span>
-      </div>
-      ${cartao('Do kart à F1', `<div class="escada">${estado.temporadas.map((t) => `<div class="degrau"><span>${t.ano}</span><b>${esc(C.campeonato(t.campeonato).curto)}</b><span class="${t.pos === 1 ? 'dinheiro' : ''}">P${t.pos}</span></div>`).join('')}</div>`)}
       <button class="principal grande" data-acao="comecar-f1">Correr na F1</button>`;
   }
 
