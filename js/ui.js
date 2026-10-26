@@ -3052,8 +3052,7 @@
         if (erro(C.iniciarFimDeSemana(estado))) {
           salvar();
           pensar();
-          ir({ nome: 'fds' });
-          rolarPara('.corrida .coluna > .painel'); // direto para o card do treino livre
+          ir({ nome: 'fds' }); // abre no topo: título, passos, o card do treino e os knobs à vista
         }
         break;
       case 'fechar-checagem':
