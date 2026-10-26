@@ -1,5 +1,7 @@
 # Acerto ideal: fórmulas e valores por pista
 
+> **Atualização:** o kart passou a ter 6 knobs (altura do banco e caster saíram) e a F1, 9 (cambagem, inclinação/rake e mapa do motor saíram). As fórmulas desses knobs continuam descritas abaixo, mas eles não são mais ajustáveis nem entram no desequilíbrio.
+
 Gerado do código (`js/kart.js`). Cada pista tem um acerto ideal escondido, calculado a partir das características da pista (tipo, altitude, retas, curvas, grampos, zebras, asfalto, desnível) e das condições do dia. O quanto o acerto do jogador se afasta do ideal vira perda de tempo, erro, desgaste de pneu e risco de quebra.
 
 ## Como o desvio vira perda

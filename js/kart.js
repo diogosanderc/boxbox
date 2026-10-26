@@ -32,7 +32,8 @@
     kart: {
       id: 'kart', veiculo: 'kart', quemAcerta: 'Mecânico',
       AJUSTES: AJUSTES_KART,
-      ORDEM: ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'alturaBanco', 'coroa', 'carburacao', 'caster'],
+      // Seis knobs (altura do banco e caster ficam de fora: valores só para ler saves antigos).
+      ORDEM: ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'coroa', 'carburacao'],
       // Quanto cada unidade de erro pesa e a "escala" de tolerância de cada ajuste.
       TOLERANCIA: { pressao: 1.0, eixo: 0.7, bitolaTraseira: 0.7, bitola: 0.8, alturaBanco: 0.8, coroa: 3, carburacao: 1.2, caster: 1.5 },
       PESO: { pressao: 0.25, eixo: 0.3, bitolaTraseira: 0.2, bitola: 0.2, alturaBanco: 0.15, coroa: 0.2, carburacao: 0.2, caster: 0.15 },
@@ -233,8 +234,8 @@
   };
   const F2 = MODELOS.f2;
   const opt = (AJ, k, s) => AJ[k].opcoes[s[k] == null ? AJ[k].padrao : s[k]];
-  const ORDEM_F1 = ['asaDianteira', 'asaTraseira', 'suspensao', 'altura', 'rake', 'pressao', 'arrefecimento', 'freio',
-    'diferencial', 'mapa', 'ers', 'camber'];
+// Nove knobs, como na F2 (cambagem, inclinação e mapa do motor ficam de fora; valores só para ler saves antigos).
+  const ORDEM_F1 = ['asaDianteira', 'asaTraseira', 'suspensao', 'altura', 'pressao', 'arrefecimento', 'freio', 'diferencial', 'ers'];
   MODELOS.f1 = {
     ...F2,
     id: 'f1',
@@ -259,7 +260,7 @@
     VERBO: { ...F2.VERBO, camber: ['pôr mais cambagem', 'tirar cambagem'], ers: ['usar mais nas curvas', 'usar mais nas retas'],
       arrefecimento: ['fechar o arrefecimento', 'abrir o arrefecimento'], rake: ['baixar a inclinação', 'subir a inclinação'] },
     descrever(s, AJ) {
-      return `Asas ${s.asaDianteira}/${s.asaTraseira} · susp. ${AJ.suspensao.opcoes[s.suspensao]} · alt. ${AJ.altura.opcoes[s.altura]} · rake ${opt(AJ, 'rake', s)} · ${String(s.pressao).replace('.', ',')} psi · arref. ${opt(AJ, 'arrefecimento', s)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]} · mapa ${AJ.mapa.opcoes[s.mapa == null ? 1 : s.mapa]} · ERS ${AJ.ers.opcoes[s.ers]} · camb. ${String(s.camber).replace('.', ',')}°`;
+      return `Asas ${s.asaDianteira}/${s.asaTraseira} · susp. ${AJ.suspensao.opcoes[s.suspensao]} · alt. ${AJ.altura.opcoes[s.altura]} · ${String(s.pressao).replace('.', ',')} psi · arref. ${opt(AJ, 'arrefecimento', s)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]} · ERS ${AJ.ers.opcoes[s.ers]}`;
     },
   };
 

@@ -301,7 +301,7 @@
     'baixar a inclinação': 'lower the rake',
     'subir a inclinação': 'raise the rake',
     'O arrefecimento está fechado demais para esta pista: o motor pode superaquecer.': 'The cooling is too closed for this track: the engine could overheat.',
-    'Asas {1}/{2} · susp. {3} · alt. {4} · rake {5} · {6} psi · arref. {7} · freio {8}% · dif. {9} · mapa {10} · ERS {11} · camb. {12}°': 'Wings {1}/{2} · susp. {3} · ride ht. {4} · rake {5} · {6} psi · cooling {7} · brake {8}% · diff {9} · map {10} · ERS {11} · camber {12}°',
+    'Asas {1}/{2} · susp. {3} · alt. {4} · {5} psi · arref. {6} · freio {7}% · dif. {8} · ERS {9}': 'Wings {1}/{2} · susp. {3} · ride ht. {4} · {5} psi · cooling {6} · brake {7}% · diff {8} · ERS {9}',
     'O motor de {1} superaqueceu! A equipe vai precisar de uma retífica.': "{1}'s engine has overheated! The team will need a rebuild.",
     'Volta {#1} do pneu': 'Tyre lap {1}',
     'Vida do pneu': 'Tyre life',

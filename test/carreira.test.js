@@ -1482,29 +1482,32 @@ test('pontos de evolução: +1 custa 1 ponto e o − permite mover pontos de um 
   assert.ok(!Carreira.devolverPonto(e, 'defesa').ok, 'não passa do piso');
 });
 
-test('kart: oito ajustes, com o caster; o ideal muda com a pista e a chuva; saves antigos ganham o padrão', () => {
+test('kart: seis knobs; o ideal muda com a pista e a chuva; saves antigos com mais ajustes seguem valendo', () => {
   Kart.usarCategoria('kart');
-  assert.strictEqual(Kart.ORDEM_AJUSTES.length, 8);
-  assert.strictEqual(Kart.setupPadrao().caster, 12);
+  assert.deepStrictEqual(Kart.ORDEM_AJUSTES, ['pressao', 'eixo', 'bitolaTraseira', 'bitola', 'coroa', 'carburacao']);
+  assert.deepStrictEqual(Object.keys(Kart.setupPadrao()), Kart.ORDEM_AJUSTES);
   const pista = (tipo) => ({ ...Dados.KARTODROMOS.br[0], tipo });
   const cond = (molhado) => Kart.condicao({ manha: { tempAr: 22, chove: false }, tarde: { tempAr: 26, chove: molhado }, nuvens: 0.2 }, 'quali', molhado);
-  const veloz = Kart.acertoIdeal(pista('veloz'), cond(false), 'slick').caster;
-  const travada = Kart.acertoIdeal(pista('travada'), cond(false), 'slick').caster;
-  const molhada = Kart.acertoIdeal(pista('veloz'), cond(true), 'chuva').caster;
-  assert.ok(veloz > travada, 'pista veloz pede mais caster que a travada');
-  assert.ok(molhada > veloz, 'na chuva pede mais caster');
-  assert.ok(veloz >= 8 && veloz <= 16 && molhada <= 16);
-  // O piloto reclama do caster quando é o que mais pesa.
-  const ideal = Kart.arredondarSetup(Kart.acertoIdeal(pista('mista'), cond(false), 'slick'));
-  const d = Kart.diagnostico({ ...ideal, caster: 16 }, pista('mista'), cond(false), 'slick');
-  assert.ok(d.ajustes.some((a) => /caster/i.test(a.texto)) || d.sentiu.some((f) => /direção|frente/i.test(f)));
-  // Save antigo, com o fim de semana em andamento e sem o caster.
+  const veloz = Kart.acertoIdeal(pista('veloz'), cond(false), 'slick'), travada = Kart.acertoIdeal(pista('travada'), cond(false), 'slick');
+  assert.ok(veloz.coroa < travada.coroa, 'pista veloz pede relação mais longa');
+  assert.ok(Kart.acertoIdeal(pista('veloz'), cond(true), 'chuva').pressao > veloz.pressao, 'na chuva pede mais pressão');
+  // Save antigo, com o fim de semana em andamento e com os ajustes que saíram: o acerto segue calculando.
   const e = Carreira.novoJogo({ seed: 51 });
   e.fase = 'paddock';
   Carreira.iniciarFimDeSemana(e);
-  delete e.fds.setup.caster;
+  Object.assign(e.fds.setup, { alturaBanco: 2, caster: 16 });
   Carreira.migrar(e);
-  assert.strictEqual(e.fds.setup.caster, 12);
+  assert.ok(Kart.ORDEM_AJUSTES.every((k) => typeof e.fds.setup[k] === 'number'));
+});
+
+test('F1 tem nove knobs, como a F2', () => {
+  Kart.usarCategoria('f1');
+  assert.deepStrictEqual(Kart.ORDEM_AJUSTES, ['asaDianteira', 'asaTraseira', 'suspensao', 'altura', 'pressao', 'arrefecimento', 'freio', 'diferencial', 'ers']);
+  Kart.usarCategoria('f2');
+  assert.strictEqual(Kart.ORDEM_AJUSTES.length, 9);
+  Kart.usarCategoria('f4');
+  assert.strictEqual(Kart.ORDEM_AJUSTES.length, 6);
+  Kart.usarCategoria('kart');
 });
 
 test('diagnóstico: chuva só no fim da corrida não faz o acerto de seco parecer errado', () => {

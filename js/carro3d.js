@@ -202,7 +202,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa, rake: s.rake, arrefecimento: s.arrefecimento }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber == null ? -3 : s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa == null ? 1 : s.mapa, rake: s.rake == null ? 1 : s.rake, arrefecimento: s.arrefecimento }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -297,7 +297,7 @@
   // Kart: as quatro rodas vêm num objeto só e são separadas ao carregar (grupo 0..3 = esquerda/direita x trás/frente).
   const KART = {
     id: 'kart', arquivo: 'modelos/kart/scene.json', binarios: ['modelos/kart/scene.bin', 'modelos/kart/scene.bin.txt'],
-    alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster, coroa: s.coroa, carburacao: s.carburacao }),
+    alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco == null ? 1 : s.alturaBanco, caster: s.caster == null ? 12 : s.caster, coroa: s.coroa, carburacao: s.carburacao }),
     // no arquivo, o eixo y do objeto é o comprimento do kart (y menor = mais perto da frente)
     hastes: 4,
     // eixo traseiro: a barra (e o que está colada nela) sai do chassi e dobra. mundo(): da posição no arquivo para o mundo.
