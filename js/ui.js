@@ -2384,7 +2384,7 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}${corrida && corrida.regraCompostos ? '<div id="box-composto" class="box-composto"></div>' : ''}`)}
+        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${corrida && corrida.compostos ? '<div id="pneu-corrida"></div>' : ''}${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}${corrida && corrida.regraCompostos ? '<div id="box-composto" class="box-composto"></div>' : ''}`)}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
     </div>`;
@@ -2399,7 +2399,8 @@
     const melhorDaCorrida = Math.min(...corrida.carros.map((c) => c.melhorVolta || Infinity));
     document.getElementById('volta').innerHTML = corrida.volta === 0 ? 'GRID' : `VOLTA <b>${corrida.volta}<span>/${corrida.totalVoltas}</span></b>`;
     document.getElementById('clima-corrida').innerHTML = (corrida.safetyCar > 0 ? chip(`${ic('alerta')}Safety car`, 'chip-sc') : '') + (corrida.molhado ? chip(`${ic('chuva')}Molhado`, 'chip-azul') : '')
-      + (corrida.drs ? chip(corrida.drsAtivo ? 'DRS liberado' : 'DRS fechado', corrida.drsAtivo ? 'chip-dinheiro' : '') : '');
+      + (corrida.drs ? chip(corrida.drsAtivo ? 'DRS liberado' : 'DRS fechado', corrida.drsAtivo ? 'chip-dinheiro' : '') : '')
+      + chipPneuTopo();
     document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
     document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
@@ -2444,12 +2445,51 @@
           }).join('')}</div>
             ${eu.usados.length < 2 ? '<small class="fraco">Ainda falta a parada obrigatória.</small>' : ''}`;
     }
+    const indPneu = document.getElementById('pneu-corrida');
+    if (indPneu) indPneu.innerHTML = eu.fora || corrida.terminou || corrida.molhado || !Engine.PNEUS[eu.pneu] ? '' : indicadorPneu(eu);
     const comp = corrida.compostos;
     const pneuTile = comp ? tile(Engine.PNEUS[eu.pneu].nome, `${Math.max(0, 100 - Math.round((eu.uso / Engine.PNEUS[eu.pneu].vida) * 100))}%`) : tile('Pneu', `${100 - desgastePct(eu.uso, eu.tipoPneu)}%`);
     document.getElementById('info-jogador').innerHTML = eu.fora
       ? tile('Fora', statusFora(eu.motivoFora), 'negativo')
       : `${tile('Posição', `P${eu.pos}`)}${tile('Largou', `P${eu.largada}`)}${tile('Ganhou', ganhou > 0 ? `▲${ganhou}` : ganhou < 0 ? `▼${-ganhou}` : '—', ganhou > 0 ? 'dinheiro' : ganhou < 0 ? 'negativo' : '')}${pneuTile}`;
     avisosDaCorrida(eu);
+  }
+
+  // Resumo do pneu no alto da corrida (a lista de pilotos é longa e o cartão completo fica lá embaixo).
+  function chipPneuTopo() {
+    const eu = corrida.carros.find((c) => c.jogador);
+    if (!eu || eu.fora || corrida.terminou || !corrida.compostos || corrida.molhado || !Engine.PNEUS[eu.pneu]) return '';
+    const e = estadoPneu(eu);
+    return `<span class="chip chip-pneu ${e.nivel}"><span class="composto-bola mini" style="--cor:${e.p.cor}"></span>${e.pct}%${e.nivel === 'critico' ? ' · BOX!' : ''}</span>`;
+  }
+  const TRACO_COMPOSTO = { M: 'Mais rápido, mas gasta mais depressa.', Md: 'O meio-termo: dura um pouco mais.', D: 'Dura mais na pista, mas é mais lento.' };
+  // Estado do pneu do jogador: quanto resta, quantas voltas ele ainda aguenta (no ritmo de desgaste que ele realmente tem,
+  // que já leva em conta a pista, o acerto e o ritmo) e se precisa parar nos boxes.
+  function estadoPneu(eu) {
+    const p = Engine.PNEUS[eu.pneu];
+    const restantes = Math.max(0, corrida.totalVoltas - corrida.volta);
+    const ritmo = Math.max(0.3, eu.idadePneu >= 2 ? eu.uso / eu.idadePneu : corrida.pista.desgaste);
+    const pct = Math.max(0, Math.round(100 - (eu.uso / p.vida) * 100));
+    const voltasPneu = Math.max(0, Math.floor((p.vida - eu.uso) / ritmo));
+    const pendente = !!corrida.regraCompostos && eu.usados.length < 2;
+    const naoChega = voltasPneu < restantes;
+    let nivel = 'ok', msg = 'Pneu dá até o fim da corrida.';
+    if (corrida.sprint) { if (naoChega) { nivel = 'atencao'; msg = 'Sem parada na sprint: poupe o pneu até a bandeirada.'; } }
+    else if (eu.boxPedido) { nivel = 'atencao'; msg = 'Box pedido: o carro entra na próxima volta.'; }
+    else if (naoChega && voltasPneu <= 3) { nivel = 'critico'; msg = 'Pneu no limite: chame o box agora.'; }
+    else if (pendente && restantes <= 10) { nivel = 'critico'; msg = `Faltam ${restantes} voltas e a parada obrigatória ainda não foi feita. Chame o box!`; }
+    else if (pendente) { nivel = 'atencao'; msg = `Parada obrigatória pendente · o pneu aguenta cerca de ${voltasPneu} voltas.`; }
+    else if (naoChega) { nivel = 'atencao'; msg = `O pneu não chega ao fim: pare em até ${voltasPneu} voltas.`; }
+    return { p, pct, nivel, msg, voltasPneu };
+  }
+  function indicadorPneu(eu) {
+    const e = estadoPneu(eu);
+    return `<div class="pneu-ind ${e.nivel}">
+      <div class="pneu-ind-topo"><span class="composto-bola" style="--cor:${e.p.cor}"></span><b>${e.p.nome}</b><small>Volta ${eu.idadePneu} do pneu</small><b class="pneu-ind-pct">${e.pct}%</b></div>
+      <div class="pneu-barra" role="progressbar" aria-label="Vida do pneu" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${e.pct}"><i style="width:${e.pct}%"></i></div>
+      <p class="pneu-ind-msg">${e.nivel === 'ok' ? ic('pneu') : ic('alerta')}<span>${e.msg}</span></p>
+      <small class="pneu-ind-traco">${TRACO_COMPOSTO[eu.pneu]}</small>
+    </div>`;
   }
 
   // Avisos rápidos durante a bateria: mudança de posição, chuva e o rival seguido.
@@ -2460,9 +2500,11 @@
     if (sc && !memo.sc) aviso('Safety car na pista!', 'alerta');
     else if (!sc && memo.sc) aviso('Relargada!', 'bandeira');
     else if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
+    else if (!eu.fora && corrida.compostos && !corrida.molhado && Engine.PNEUS[eu.pneu] && !corrida.sprint && estadoPneu(eu).nivel === 'critico' && !memo.pneuCritico) { memo.pneuCritico = true; aviso('Pneu no limite: hora de parar nos boxes!', 'alerta'); }
     else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
     const rival = estado.seguindo && corrida.carros.find((c) => c.id === estado.seguindo);
     if (rival && rival.fora && !memo.rivalFora) aviso(`${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`, 'estrela');
+    if (!eu.fora && corrida.compostos && Engine.PNEUS[eu.pneu] && eu.idadePneu <= 1) memo.pneuCritico = false;
     memo.pos = eu.pos;
     memo.molhado = !!corrida.molhado;
     memo.sc = sc;

@@ -1146,8 +1146,9 @@
     return {
       ...p, voltas: camp.voltas, perdaBox: camp.compostos ? 20 : 99,
       // Asfalto abrasivo gasta mais pneu; liso, menos. Retas longas facilitam a ultrapassagem.
-      // Com compostos (F2 e F1) o desgaste é escalado para as corridas curtas do jogo pedirem uma parada.
-      desgaste: (DESGASTE_ASFALTO[p.asfalto] || 0.9) * (camp.compostos ? 1.9 : 1),
+      // Com compostos (F2 e F1) o desgaste é escalado para as corridas curtas do jogo pedirem uma parada
+      // (na F1, de 40 voltas, o fator cai pela metade: o mesmo ritmo de desgaste por volta de corrida).
+      desgaste: (DESGASTE_ASFALTO[p.asfalto] || 0.9) * (camp.compostos ? 1.9 * Math.min(1, 20 / camp.voltas) : 1),
       ultrapassagem: p.ultrapassagem != null ? p.ultrapassagem : { travada: 0.4, mista: 0.55, veloz: 0.7 }[p.tipo],
       peso: { motor: 1, aero: 0.3, chassi: 1.4 },
     };

@@ -1457,3 +1457,31 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .sair-topo:focus-visible { outline: 2px solid #5aa9ff; outline-offset: 2px; }
 .topo .sair-topo { margin-left: auto; }
 .topo-mini .sair-topo { padding: 4px 10px; }
+
+/* ---------- indicador de pneu na corrida (F2 e F1) ---------- */
+.pneu-ind { display: grid; gap: 6px; padding: 10px 12px; margin-top: 8px; border-radius: var(--raio-m); background: var(--painel-2); border: 1px solid var(--borda); }
+.pneu-ind-topo { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pneu-ind-topo b:first-of-type { font-size: 15px; }
+.pneu-ind-topo small { color: var(--fraco); font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pneu-ind-pct { font-family: var(--fonte-titulo); font-style: italic; font-size: 18px; font-variant-numeric: tabular-nums; margin-left: auto; }
+.pneu-barra { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.pneu-barra i { display: block; height: 100%; border-radius: 999px; background: var(--ok, #2fbf71); transition: width 0.4s ease; }
+.pneu-ind-msg { margin: 0; display: flex; align-items: flex-start; gap: 6px; font-size: 13px; font-weight: 600; line-height: 1.3; }
+.pneu-ind-msg .ico { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.pneu-ind-traco { color: var(--fraco); font-size: 11.5px; }
+.pneu-ind.ok .pneu-ind-msg { color: #2fbf71; }
+.pneu-ind.atencao { border-color: #ffb340; }
+.pneu-ind.atencao .pneu-barra i { background: #ffb340; }
+.pneu-ind.atencao .pneu-ind-msg { color: #ffb340; }
+.pneu-ind.critico { border-color: #ff3b30; box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.5) inset; animation: pneu-pulsa 1.1s ease-in-out infinite; }
+.pneu-ind.critico .pneu-barra i { background: #ff3b30; }
+.pneu-ind.critico .pneu-ind-msg { color: #ff6b61; }
+@keyframes pneu-pulsa { 50% { box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.5) inset, 0 0 14px rgba(255, 59, 48, 0.45); } }
+@media (prefers-reduced-motion: reduce) { .pneu-ind.critico { animation: none; } }
+
+.chip-pneu { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.chip-pneu.atencao { border-color: #ffb340; color: #ffb340; }
+.chip-pneu.critico { border-color: #ff3b30; color: #ff6b61; background: rgba(255, 59, 48, 0.14); animation: pneu-pulsa 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .chip-pneu.critico { animation: none; } }
+.chip-pneu .composto-bola { width: 12px; height: 12px; flex: none; border-width: 3px; }
+.chip-pneu { padding: 2px 8px; font-size: 12px; }
