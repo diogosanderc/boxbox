@@ -148,6 +148,7 @@
     ...AJUSTES_F4,
     freio: { nome: 'Balanço de freio', tipo: 'numero', min: 50, max: 62, passo: 1, unidade: '%', padrao: 56 },
     diferencial: { nome: 'Diferencial', tipo: 'opcoes', opcoes: ['Aberto', 'Médio', 'Travado'], padrao: 1 },
+    mapa: { nome: 'Mapa do motor', tipo: 'opcoes', opcoes: ['Econômico', 'Equilibrado', 'Potência'], padrao: 1 },
   };
   const AJUSTES_F1 = {
     ...AJUSTES_F2,
@@ -160,6 +161,8 @@
   const idealF2 = (pista, cond) => ({
     freio: limitarK(55.5 + Math.min(3, pista.grampos || 0) * 0.8 - (cond.molhado ? 2.5 : 0) + (cond.tempPista - 30) / 20, 50, 62),
     diferencial: limitarK(1 - 0.6 * tipoNum(pista) - (cond.molhado ? 0.7 : 0), 0, 2),
+    // Mapa do motor: retas longas e pista veloz pedem potência; calor e chuva pedem economia (motor mais frio, entrega suave).
+    mapa: limitarK(1 + 0.7 * tipoNum(pista) + (maiorReta(pista) >= 1000 ? 0.3 : 0) - (cond.tempAr > 32 ? 0.5 : 0) - (cond.molhado ? 0.5 : 0), 0, 2),
   });
   // Cambagem: curvas rápidas pedem mais cambagem (mais negativa); calor, asfalto abrasivo e chuva pedem menos.
   // ERS: retas longas pedem a bateria nas retas; pista travada, nas saídas de curva.
@@ -172,19 +175,20 @@
     ...F4,
     id: 'f2',
     AJUSTES: AJUSTES_F2,
-    ORDEM: [...F4.ORDEM, 'freio', 'diferencial'],
-    TOLERANCIA: { ...F4.TOLERANCIA, freio: 1.5, diferencial: 0.7 },
-    PESO: { ...F4.PESO, freio: 0.2, diferencial: 0.2 },
+    ORDEM: [...F4.ORDEM, 'freio', 'diferencial', 'mapa'],
+    TOLERANCIA: { ...F4.TOLERANCIA, freio: 1.5, diferencial: 0.7, mapa: 0.7 },
+    PESO: { ...F4.PESO, freio: 0.2, diferencial: 0.2, mapa: 0.2 },
     ideal(pista, cond, pneu) { return { ...F4.ideal(pista, cond, pneu), ...idealF2(pista, cond) }; },
     SINTOMAS: {
       ...F4.SINTOMAS,
       freio: ['A traseira trava nas freadas fortes e o carro quer rodar.', 'A frente trava nas freadas e o carro passa reto na curva.'],
       diferencial: ['A roda de dentro patina na saída das curvas lentas.', 'O carro não quer virar no meio da curva, empurra de frente.'],
+      mapa: ['Falta potência: não consigo atacar nem me defender nas retas.', 'O motor esquenta e gasta demais, vamos pagar por isso no fim da corrida.'],
     },
-    DIRECAO: { ...F4.DIRECAO, freio: ['Freio mais para a frente', 'Freio mais para trás'], diferencial: ['Diferencial mais travado', 'Diferencial mais aberto'] },
-    ONDE: { ...F4.ONDE, freio: 'no balanço de freio', diferencial: 'no diferencial' },
-    VERBO: { ...F4.VERBO, freio: ['passar o freio para trás', 'passar o freio para a frente'], diferencial: ['abrir o diferencial', 'travar o diferencial'] },
-    descrever(s, AJ) { return `${F4.descrever(s, AJ)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]}`; },
+    DIRECAO: { ...F4.DIRECAO, freio: ['Freio mais para a frente', 'Freio mais para trás'], diferencial: ['Diferencial mais travado', 'Diferencial mais aberto'], mapa: ['Mapa mais potente', 'Mapa mais econômico'] },
+    ONDE: { ...F4.ONDE, freio: 'no balanço de freio', diferencial: 'no diferencial', mapa: 'no mapa do motor' },
+    VERBO: { ...F4.VERBO, freio: ['passar o freio para trás', 'passar o freio para a frente'], diferencial: ['abrir o diferencial', 'travar o diferencial'], mapa: ['economizar o motor', 'dar mais potência'] },
+    descrever(s, AJ) { return `${F4.descrever(s, AJ)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]} · mapa ${AJ.mapa.opcoes[s.mapa == null ? 1 : s.mapa]}`; },
   };
   const F2 = MODELOS.f2;
   MODELOS.f1 = {
@@ -294,7 +298,7 @@
     pressao: 'Aderência do pneu', eixo: 'Saída de curva', bitolaTraseira: 'Saída de curva', bitola: 'Entrada de curva',
     alturaBanco: 'Meio de curva', coroa: 'Retas', carburacao: 'Retas', asaDianteira: 'Entrada de curva', asaTraseira: 'Curvas rápidas',
     suspensao: 'Zebras e ondulações', altura: 'Curvas rápidas', relacao: 'Retas', freio: 'Freada', diferencial: 'Saída de curva',
-    camber: 'Entrada de curva', ers: 'Retas', caster: 'Entrada de curva',
+    camber: 'Entrada de curva', ers: 'Retas', caster: 'Entrada de curva', mapa: 'Retas',
   };
   function telemetria(setup, pista, cond, pneu) {
     const e = erros(setup, acertoIdeal(pista, cond, pneu));

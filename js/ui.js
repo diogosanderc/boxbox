@@ -128,7 +128,7 @@
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
     box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium.'],
     compostos: ['Pneus macio, médio e duro', 'Da F3 em diante o estoque tem quatro tipos de pneu: macio (o slick), médio, duro e chuva. Para correr é obrigatório ter o de chuva e um composto de seco na F3 (dois na F2 e na F1, que têm parada obrigatória). Com menos que os quatro dá para ir, mas o fim de semana é só com o que estiver no estoque (na pista não se compra pneu), e os rivais têm todos. Cada jogo volta gasto depois da corrida. No seco, cada piloto escolhe o composto de largada. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na F2 e na F1, na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez e recebe outro jogo do estoque. Na F3 não tem parada. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada.'],
-    setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio e diferencial; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
+    setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio, diferencial e mapa do motor; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
     asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
     suspensao: ['Suspensão', 'É a firmeza das molas e amortecedores. Macia: o carro absorve zebras e ondulações, mas rola nas curvas. Dura: responde rápido, mas pula nas zebras.'],
@@ -137,6 +137,7 @@
     freio: ['Balanço de freio', 'É quanto da força de freio vai para as rodas da frente (em %). Mais à frente: freada estável, mas a frente pode travar e passar reto. Mais atrás: o carro vira melhor na freada, mas a traseira pode travar e rodar.'],
     diferencial: ['Diferencial', 'Controla quanto as rodas de trás podem girar diferente uma da outra. Travado: mais tração na saída das curvas lentas, mas o carro empurra de frente no meio da curva. Aberto: vira melhor, mas a roda de dentro patina.'],
     camber: ['Cambagem dianteira', 'É a inclinação das rodas da frente (em graus negativos). Mais cambagem: mais aderência nas curvas rápidas, mas gasta o pneu por dentro e piora a freada. Menos: freia melhor e poupa pneu.'],
+    mapa: ['Mapa do motor', 'Escolhe como o motor entrega a potência. Econômico: poupa o motor e esquenta menos, mas falta força para atacar e se defender nas retas. Potência: força máxima nas retas e nas ultrapassagens, mas o motor esquenta e gasta mais. Equilibrado: um pouco de cada. Pista veloz pede potência; calor e chuva pedem economia.'],
     ers: ['Uso do ERS', 'É onde a bateria híbrida entrega a potência extra. Retas: mais velocidade final para atacar e defender. Curvas: mais tração na saída das curvas lentas. Equilibrado: um pouco de cada.'],
     temporada: ['Próximo ano', 'Os 4 primeiros do campeonato sobem: Regional → Brasileiro → Europeu → F4 → F3 → F2 → F1 (o campeão brasileiro também recebe proposta de F4). Muita popularidade também abre o campeonato seguinte. Cada degrau custa mais e tem rivais mais fortes. No começo do ano a família ajuda com um dinheiro.'],
   };
@@ -1993,7 +1994,7 @@
     cel.querySelector('.kn-valor').textContent = texto;
   }
   // Os ajustes do volante (da F2 em diante) ganham knobs grandes numa faixa própria.
-  const AJUSTES_VOLANTE = ['freio', 'diferencial', 'ers'];
+  const AJUSTES_VOLANTE = ['freio', 'diferencial', 'mapa', 'ers'];
   function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
     const ordem = Kart.ORDEM_AJUSTES;
     const volante = ordem.filter((k) => AJUSTES_VOLANTE.includes(k));

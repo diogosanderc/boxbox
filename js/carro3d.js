@@ -202,7 +202,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -213,6 +213,7 @@
       pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
       relacao: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
       freio: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
+      mapa: { yaw: 2.5, pitch: 0.3, dist: 4.8, t: [0, 0.6, 0.2] },
       diferencial: { yaw: 2.7, pitch: 0.32, dist: 5.2, t: [0, 0.35, -0.5] },
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
@@ -237,7 +238,7 @@
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, fMapa: 0, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
     aplicar(m, t, dt, al, a, foco) {
       const k = 1 - Math.exp(-dt * 7);
       // Rodas girando, só enquanto o jogador mexe no knob certo:
@@ -273,6 +274,11 @@
       m.nos[m.partes.asaT].mundo = pivoX([0, 0.62, -0.92], a.asaT);
       const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol + a.mergulho));
       for (const i of this.corpo) m.nos[i].mundo = corpo;
+      // mapa do motor: o motor treme mais quanto mais potência (só enquanto o jogador mexe no knob)
+      a.fMapa += ((foco === 'mapa' && !reduzido() ? 1 : 0) - a.fMapa) * (1 - Math.exp(-dt * 3));
+      const vib = a.fMapa * [0.004, 0.009, 0.02][al.mapa == null ? 1 : al.mapa];
+      const tremor = trans(Math.sin(t * 47) * vib, Math.sin(t * 53) * vib * 0.8, 0);
+      for (const i of [30, 20]) m.nos[i].mundo = mul(tremor, corpo);
       // pressão: o pneu infla e desinfla (a cor não muda)
       const f = 1 + (a.psi - 23.5) * 0.012;
       // cambagem: as rodas da frente inclinam para dentro (quanto mais negativa, mais inclinadas)
