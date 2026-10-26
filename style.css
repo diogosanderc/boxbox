@@ -1499,4 +1499,3 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .box-comp.sel { border-color: #5aa9ff; box-shadow: 0 0 0 1px #5aa9ff inset; background: rgba(90, 169, 255, 0.12); }
 .box-comp:disabled { opacity: 0.45; cursor: default; }
 .folha-box .corrida-cartao-3d, .folha-box .carro3d { margin-bottom: 4px; }
-.folha-box .botoes-2 { position: sticky; bottom: -20px; padding: 10px 0 2px; background: linear-gradient(180deg, transparent, var(--painel) 28%); }

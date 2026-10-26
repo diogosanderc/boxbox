@@ -126,7 +126,7 @@
     caster: ['Caster', 'É a inclinação do pino do eixo dianteiro. Mais caster dá firmeza na reta e mais mordida na entrada da curva, mas deixa a direção pesada e o kart lento nas curvas travadas. Menos caster deixa a frente leve. Pista veloz, molhada, fria ou verde pede mais; pista travada, quente e emborrachada pede menos.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
-    box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium. Na corrida da F2 e da F1, quando o pneu chega no limite a equipe chama "Box, box!": a corrida fica parada e você escolhe o pneu e mexe nos knobs do carro. Dá para chamar o carro quando quiser.'],
+    box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium. Na corrida da F2 e da F1, quando o pneu chega no limite a equipe chama "Box, box!": a corrida fica parada e você escolhe o pneu da parada. Dá para chamar o carro quando quiser.'],
     compostos: ['Pneus macio, médio e duro', 'Da F3 em diante o estoque tem quatro tipos de pneu: macio (o slick), médio, duro e chuva. Para correr é obrigatório ter o de chuva e um composto de seco na F3 (dois na F2 e na F1, que têm parada obrigatória). Com menos que os quatro dá para ir, mas o fim de semana é só com o que estiver no estoque (na pista não se compra pneu), e os rivais têm todos. Cada jogo volta gasto depois da corrida. No seco, cada piloto escolhe o composto de largada. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na F2 e na F1, na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez e recebe outro jogo do estoque. Na F3 não tem parada. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada. Quanto mais equilibrado o carro, menos o pneu gasta: acerto afinado desgasta bem menos que acerto fora do ponto, e o ritmo da pista também conta. Na corrida principal dá para parar quantas vezes quiser, desde que haja um jogo novo no estoque; por isso mais vagas (Premium) deixam a estratégia mais livre.'],
     setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio, diferencial e mapa do motor; na F1, cambagem e ERS. Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
@@ -1999,10 +1999,8 @@
       <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
     </div>`;
   }
-  const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : acao === 'ajuste-box' ? estado.fds.setupCorrida : estado.fds.setup);
+  const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);
   function aplicarAjuste(acao, k, valor) {
-    // No box, o ajuste vale a partir da próxima volta e a corrida segue pausada: nada de redesenhar a tela.
-    if (acao === 'ajuste-box') { estado.fds.setupCorrida[k] = valor; BoxCarro3D.previa(k, valor); salvar(); return; }
     if (acao === 'ajuste-desafio') C.ajustarDesafio(estado, { [k]: valor });
     else C.definirSetup(estado, { [k]: valor });
     salvar();
@@ -2456,13 +2454,13 @@
   }
 
   // ---------- Box, box! ----------
-  // A equipe chama o piloto: a corrida pára, e aqui dá para escolher o pneu e mexer nos knobs do carro.
+  // A equipe chama o piloto: a corrida pára e aqui se escolhe o pneu da parada (o acerto do carro não muda no box).
   // "Entrar nos boxes" pede a parada (entra na próxima volta); "Seguir na pista" fecha e a corrida continua.
   const RADIO_BOX = {
     pneu: 'Box, box! O pneu está no limite. Entra agora e escolhe o próximo jogo.',
     obrigatoria: 'Box, box! Ainda falta a parada obrigatória e as voltas estão acabando.',
     chuva: 'Box, box! Começou a chover: vem trocar para o pneu de chuva.',
-    manual: 'Você chamou o carro para o box. Escolha o pneu e ajuste o que quiser.',
+    manual: 'Você chamou o carro para o box. Escolha o pneu da parada.',
   };
   function pausarPelaTela() {
     tela.pausado = true;
@@ -2515,13 +2513,9 @@
       <span class="subtitulo">${molhado ? 'Pneu de chuva' : 'Escolha o pneu'}</span>
       <div class="box-compostos ${molhado ? 'uma' : ''}">${botoes}</div>
       <p class="fraco mini">${molhado ? '' : `Faltam ${faltando} voltas. ${pendente ? 'A parada obrigatória exige trocar de composto. ' : ''}`}A parada custa cerca de ${corrida.pista.perdaBox} s e o jogo novo sai do estoque.</p>
-      <span class="subtitulo">Ajuste do carro</span>
-      <p class="fraco mini">A corrida fica parada enquanto você ajusta. O que mudar vale a partir da próxima volta.</p>
-      ${editorSetup(estado.fds.setupCorrida, 'ajuste-box')}
       <div class="botoes-2"><button class="principal" data-acao="box-entrar" ${tela.box.escolha ? '' : 'disabled'}>${ic('pneu')}Entrar nos boxes</button><button data-acao="box-seguir">Seguir na pista</button></div>
     </div></div>`;
     travarFundo();
-    BoxCarro3D.ligar(el, estado.fds.setupCorrida, C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
   }
   function fecharBox() {
     const b = tela.box;
