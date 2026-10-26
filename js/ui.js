@@ -1961,13 +1961,13 @@
     const [x0, y0] = pontoKnob(27.5, k * (360 / 28)), [x1, y1] = pontoKnob(30.5, k * (360 / 28));
     return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,0.14)" stroke-width="1.4"/>`;
   }).join('');
-  function knobHtml(k, valor, grande) {
+  function knobHtml(k, valor) {
     const a = Kart.AJUSTES[k], n = passosAjuste(a), i = indiceAjuste(a, valor), ang = anguloKnob(i, n);
     const marcas = Array.from({ length: n }, (_, m) => {
       const [x0, y0] = pontoKnob(n > 9 ? 44 : 42, anguloKnob(m, n)), [x1, y1] = pontoKnob(48, anguloKnob(m, n));
       return `<line class="kn-marca ${m === i ? 'ativa' : ''}" x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke-width="${n > 9 ? 1.6 : 2.4}" stroke-linecap="round"/>`;
     }).join('');
-    return `<div class="kn ${grande ? 'kn-grande' : ''}" data-k="${k}">
+    return `<div class="kn" data-k="${k}">
       <button class="kn-nome" data-acao="ajuda" data-chave="${k}" aria-label="Ajuda: ${esc(a.nome)}"><span>${esc(a.nome)}<sup>?</sup></span></button>
       <svg class="kn-svg" viewBox="0 0 100 100" role="slider" tabindex="0" aria-label="${esc(a.nome)}" aria-valuemin="0" aria-valuemax="${n - 1}" aria-valuenow="${i}" aria-valuetext="${esc(rotuloAjuste(k, a, valor))}">
         ${marcas}
@@ -1993,15 +1993,9 @@
     svg.setAttribute('aria-valuetext', texto);
     cel.querySelector('.kn-valor').textContent = texto;
   }
-  // Os ajustes do volante (da F2 em diante) ganham knobs grandes numa faixa própria.
-  const AJUSTES_VOLANTE = ['freio', 'diferencial', 'mapa', 'ers'];
   function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
-    const ordem = Kart.ORDEM_AJUSTES;
-    const volante = ordem.filter((k) => AJUSTES_VOLANTE.includes(k));
-    const resto = ordem.filter((k) => !volante.includes(k));
     return `${BoxCarro3D.html(Kart.monoposto() ? 'f1' : 'kart')}<div class="setup-knobs" data-acao-setup="${acao}">
-      ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
-      <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
+      <div class="kn-carro">${Kart.ORDEM_AJUSTES.map((k) => knobHtml(k, s[k])).join('')}</div>
       <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
     </div>`;
   }
