@@ -351,7 +351,17 @@
     if (estado && estado.campeonato) sincronizarCategoria(estado);
     // Ajustes que entraram depois (caster): saves antigos, com o fim de semana em andamento, ganham o padrão.
     if (estado && estado.campeonato) {
-      const completar = (st) => { if (st && typeof st === 'object') for (const k of Kart.ORDEM_AJUSTES) if (!(k in st)) st[k] = Kart.AJUSTES[k].padrao; };
+      // Ajustes que entraram depois ganham o padrão; valores fora da faixa atual (pressão e cambagem da F1 mudaram de faixa)
+      // são trazidos para dentro dela, no passo do knob.
+      const completar = (st) => {
+        if (!st || typeof st !== 'object') return;
+        for (const k of Kart.ORDEM_AJUSTES) {
+          const a = Kart.AJUSTES[k];
+          if (!(k in st) || typeof st[k] !== 'number') { st[k] = a.padrao; continue; }
+          if (a.tipo === 'numero') st[k] = Math.round((Math.max(a.min, Math.min(a.max, st[k])) - a.min) / a.passo) * a.passo + a.min;
+          else st[k] = Math.max(0, Math.min(a.opcoes.length - 1, Math.round(st[k])));
+        }
+      };
       if (estado.fds) { completar(estado.fds.setup); completar(estado.fds.setupCorrida); }
       completar(estado.desafio && estado.desafio.setup);
     }
@@ -1778,9 +1788,11 @@
     devolverPneus(estado, corrida);
     const carro = corrida.carros.find((c) => c.jogador);
     somarHoras(estado, HORAS.corrida);
-    if (meu.fora && meu.motivoFora === 'Motor engripou') {
+    if (meu.fora && (meu.motivoFora === 'Motor engripou' || meu.motivoFora === 'Superaquecimento')) {
       estado.motorQuebrado = true;
-      noticia(estado, `O motor de ${p.nome} engripou! A equipe vai precisar de uma retífica.`);
+      noticia(estado, meu.motivoFora === 'Superaquecimento'
+        ? `O motor de ${p.nome} superaqueceu! A equipe vai precisar de uma retífica.`
+        : `O motor de ${p.nome} engripou! A equipe vai precisar de uma retífica.`);
     }
 
     // Cabeça do piloto: o resultado em relação à largada pesa na confiança.

@@ -150,26 +150,68 @@
     diferencial: { nome: 'Diferencial', tipo: 'opcoes', opcoes: ['Aberto', 'Médio', 'Travado'], padrao: 1 },
     mapa: { nome: 'Mapa do motor', tipo: 'opcoes', opcoes: ['Econômico', 'Equilibrado', 'Potência'], padrao: 1 },
   };
+  // F1: o câmbio é fixo na temporada (não muda por pista), então a relação sai e entra o arrefecimento. A pressão tem piso
+  // (a Pirelli impõe pressões mínimas) e a cambagem fica na faixa que a Pirelli permite. O diferencial ganha entrada e saída.
+  const { relacao: _semCambio, ...AJUSTES_F2_SEM_CAMBIO } = AJUSTES_F2;
   const AJUSTES_F1 = {
-    ...AJUSTES_F2,
-    camber: { nome: 'Cambagem dianteira', tipo: 'numero', min: -4, max: -2, passo: 0.25, unidade: '°', padrao: -3 },
+    ...AJUSTES_F2_SEM_CAMBIO,
+    relacao: AJUSTES_F4.relacao, // só para ler saves e cadernos antigos; fora da ORDEM
+    pressao: { nome: 'Pressão dos pneus', tipo: 'numero', min: 23, max: 29, passo: 0.5, unidade: 'psi', padrao: 25.5 },
+    diferencial: { nome: 'Diferencial (saída)', tipo: 'opcoes', opcoes: ['Aberto', 'Médio', 'Travado'], padrao: 1 },
+    difEntrada: { nome: 'Diferencial (entrada)', tipo: 'opcoes', opcoes: ['Aberto', 'Médio', 'Travado'], padrao: 1 },
+    arrefecimento: { nome: 'Arrefecimento', tipo: 'opcoes', opcoes: ['Fechado', 'Médio', 'Aberto'], padrao: 1 },
+    rake: { nome: 'Inclinação (rake)', tipo: 'opcoes', opcoes: ['Baixa', 'Média', 'Alta'], padrao: 1 },
+    barra: { nome: 'Barra estabilizadora', tipo: 'opcoes', opcoes: ['Macia', 'Média', 'Dura'], padrao: 1 },
+    camber: { nome: 'Cambagem dianteira', tipo: 'numero', min: -3.5, max: -2.5, passo: 0.25, unidade: '°', padrao: -3 },
+    camberTras: { nome: 'Cambagem traseira', tipo: 'numero', min: -2.5, max: -1.25, passo: 0.25, unidade: '°', padrao: -2 },
     ers: { nome: 'Uso do ERS', tipo: 'opcoes', opcoes: ['Curvas', 'Equilibrado', 'Retas'], padrao: 1 },
   };
   const maiorReta = (pista) => Math.max(0, ...(pista.retas || [0]));
+  // Perfil de energia da pista. Demanda: quanto da volta é acelerador a fundo (retas somadas sobre a extensão). Colheita:
+  // quantas freadas fortes por km há para recarregar a bateria (curvas lentas, grampos e, menos, médias). Escassez: quando a
+  // demanda passa da colheita (Monza), a energia acaba antes do fim da reta; quando sobra (Mônaco), dá para gastar à vontade.
+  function perfilEnergia(pista) {
+    if (!pista.extensao || !pista.curvas) {
+      const d = limitarK(0.5 + 0.4 * tipoNum(pista), 0, 1);
+      return { demanda: d, colheita: 1 - d, escassez: d };
+    }
+    const reta = (pista.retas || []).reduce((a, b) => a + b, 0);
+    const demanda = limitarK((reta / pista.extensao - 0.15) / 0.3, 0, 1);
+    const c = pista.curvas;
+    const colheita = limitarK(((c.lentas + 1.5 * (pista.grampos || 0) + 0.3 * c.medias) / (pista.extensao / 1000) - 0.7) / 2.5, 0, 1);
+    return { demanda, colheita, escassez: limitarK(0.5 + 0.5 * (demanda - colheita), 0, 1) };
+  }
   // Freio: mais freadas fortes (grampos) pedem o freio mais à frente; chuva pede mais atrás.
   // Diferencial: pista travada pede travado (tração na saída); veloz e chuva pedem mais aberto.
   const idealF2 = (pista, cond) => ({
     freio: limitarK(55.5 + Math.min(3, pista.grampos || 0) * 0.8 - (cond.molhado ? 2.5 : 0) + (cond.tempPista - 30) / 20, 50, 62),
     diferencial: limitarK(1 - 0.6 * tipoNum(pista) - (cond.molhado ? 0.7 : 0), 0, 2),
-    // Mapa do motor: retas longas e pista veloz pedem potência; calor e chuva pedem economia (motor mais frio, entrega suave).
-    mapa: limitarK(1 + 0.7 * tipoNum(pista) + (maiorReta(pista) >= 1000 ? 0.3 : 0) - (cond.tempAr > 32 ? 0.5 : 0) - (cond.molhado ? 0.5 : 0), 0, 2),
+    // Mapa do motor: a potência extra só rende onde há muito acelerador a fundo (Monza); em pista cheia de curvas lentas
+    // (Mônaco) o mapa forte gasta e esquenta o motor sem render tempo. Calor e chuva pedem entrega mais suave.
+    mapa: limitarK(0.25 + 1.6 * perfilEnergia(pista).demanda - (cond.molhado ? 0.5 : 0) - (cond.tempAr > 32 ? 0.3 : 0), 0, 2),
   });
-  // Cambagem: curvas rápidas pedem mais cambagem (mais negativa); calor, asfalto abrasivo e chuva pedem menos.
-  // ERS: retas longas pedem a bateria nas retas; pista travada, nas saídas de curva.
-  const idealF1 = (pista, cond) => ({
-    camber: limitarK(-3 - 0.5 * tipoNum(pista) + (pista.asfalto === 'abrasivo' ? 0.4 : 0) + (cond.tempPista - 30) / 40 + (cond.molhado ? 0.6 : 0), -4, -2),
-    ers: limitarK(1 + 0.6 * tipoNum(pista) + (maiorReta(pista) >= 1000 ? 0.4 : 0) - (cond.molhado ? 0.4 : 0), 0, 2),
-  });
+  // F1. Pressão: a Pirelli impõe um piso; pista quente pede pressão inicial menor (o pneu esquenta e sobe, cerca de 1,25 psi
+  // por 10 °C), pista fria e chuva pedem mais. Cambagem: fica na faixa permitida (dianteira −3,25° a −2,75°, traseira −2,25° a
+  // −1,5°), mais negativa em pista veloz e menos com calor, asfalto abrasivo e chuva. ERS: com energia escassa (Monza) vale
+  // concentrar nas retas; com energia sobrando (Mônaco) dá para usar também na saída das curvas. Arrefecimento: altitude, calor
+  // e muito acelerador a fundo pedem as aberturas abertas (custa arrasto); fechado demais superaquece o motor.
+  // Inclinação (rake): pista veloz pede carro mais plano (menos arrasto). Barra: chicanes e curvas lentas pedem barra dura,
+  // curvas longas e rápidas pedem macia (a dura sobrecarrega o pneu). Diferencial de entrada: mais travado em pista veloz.
+  const idealF1 = (pista, cond) => {
+    const e = perfilEnergia(pista), t = tipoNum(pista), c = pista.curvas || { lentas: 0, medias: 0, rapidas: 0 };
+    const nCurvas = Math.max(1, c.lentas + c.medias + c.rapidas);
+    const abrasivo = pista.asfalto === 'abrasivo';
+    return {
+      pressao: limitarK(26 - (cond.tempPista - 30) / 8, 23, 29),
+      camber: limitarK(-3 - 0.2 * t + (abrasivo ? 0.2 : 0) + (cond.tempPista - 30) / 80 + (cond.molhado ? 0.2 : 0), -3.5, -2.5),
+      camberTras: limitarK(-1.9 - 0.1 * t + (abrasivo ? 0.1 : 0) + (cond.tempPista - 30) / 160 + (cond.molhado ? 0.1 : 0), -2.5, -1.25),
+      ers: limitarK(1 + 1.6 * (e.escassez - 0.5) - (cond.molhado ? 0.4 : 0), 0, 2),
+      arrefecimento: limitarK(0.7 + (pista.altitude || 0) / 1400 + (cond.tempAr - 24) / 12 + 0.6 * e.demanda - (cond.molhado ? 0.5 : 0), 0, 2),
+      rake: limitarK(1.2 - 0.9 * e.demanda, 0, 2),
+      barra: limitarK(1 + 0.7 * ((c.lentas + (pista.grampos || 0) - c.rapidas) / nCurvas) - (cond.molhado ? 0.3 : 0), 0, 2),
+      difEntrada: limitarK(1 + 0.4 * t - (cond.molhado ? 0.2 : 0), 0, 2),
+    };
+  };
   const F4 = MODELOS.f4;
   MODELOS.f2 = {
     ...F4,
@@ -191,23 +233,40 @@
     descrever(s, AJ) { return `${F4.descrever(s, AJ)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]} · mapa ${AJ.mapa.opcoes[s.mapa == null ? 1 : s.mapa]}`; },
   };
   const F2 = MODELOS.f2;
+  const opt = (AJ, k, s) => AJ[k].opcoes[s[k] == null ? AJ[k].padrao : s[k]];
+  const ORDEM_F1 = ['asaDianteira', 'asaTraseira', 'suspensao', 'altura', 'rake', 'barra', 'pressao', 'arrefecimento', 'freio',
+    'diferencial', 'difEntrada', 'mapa', 'ers', 'camber', 'camberTras'];
   MODELOS.f1 = {
     ...F2,
     id: 'f1',
     AJUSTES: AJUSTES_F1,
-    ORDEM: [...F2.ORDEM, 'camber', 'ers'],
-    TOLERANCIA: { ...F2.TOLERANCIA, camber: 0.4, ers: 0.7 },
-    PESO: { ...F2.PESO, camber: 0.2, ers: 0.2 },
+    ORDEM: ORDEM_F1,
+    TOLERANCIA: { ...F2.TOLERANCIA, camber: 0.3, camberTras: 0.3, ers: 0.7, arrefecimento: 0.7, rake: 0.7, barra: 0.7, difEntrada: 0.7 },
+    PESO: { ...F2.PESO, camber: 0.2, camberTras: 0.12, ers: 0.2, arrefecimento: 0.2, rake: 0.15, barra: 0.12, difEntrada: 0.1 },
     ideal(pista, cond, pneu) { return { ...F2.ideal(pista, cond, pneu), ...idealF1(pista, cond) }; },
+    // Fechar demais o arrefecimento superaquece o motor.
+    forcaMotor: (e) => Math.max(0, -e.arrefecimento - 0.8),
+    motivoForca: 'Superaquecimento',
     SINTOMAS: {
       ...F2.SINTOMAS,
       camber: ['Os pneus da frente gastam por dentro e o carro trava na freada em linha reta.', 'A frente perde aderência nas curvas rápidas, o pneu rola.'],
+      camberTras: ['A traseira escorrega na saída das curvas e o pneu de trás gasta por dentro.', 'A traseira perde aderência nas curvas rápidas, o pneu de trás rola.'],
       ers: ['Falta bateria no fim das retas, os outros me passam no vácuo.', 'Sobra bateria na reta, mas falta tração na saída das curvas.'],
+      arrefecimento: ['A temperatura do motor está subindo, preciso abrir mais as saídas de ar.', 'Estamos perdendo velocidade final: as aberturas de ar estão grandes demais.'],
+      rake: ['Falta apoio no assoalho: o carro não gruda nas curvas rápidas.', 'Muito arrasto: o carro perde velocidade final nas retas.'],
+      barra: ['Nas chicanes o carro rola e demora a trocar de apoio.', 'O pneu de fora sofre nas curvas longas: a barra está dura demais.'],
+      difEntrada: ['O carro fica nervoso na entrada da curva: a traseira quer passar à frente.', 'O carro não quer girar na entrada da curva, empurra de frente.'],
     },
-    DIRECAO: { ...F2.DIRECAO, camber: ['Menos cambagem', 'Mais cambagem'], ers: ['ERS mais para as retas', 'ERS mais para as curvas'] },
-    ONDE: { ...F2.ONDE, camber: 'na cambagem', ers: 'no ERS' },
-    VERBO: { ...F2.VERBO, camber: ['pôr mais cambagem', 'tirar cambagem'], ers: ['usar mais nas curvas', 'usar mais nas retas'] },
-    descrever(s, AJ) { return `${F2.descrever(s, AJ)} · camb. ${String(s.camber).replace('.', ',')}° · ERS ${AJ.ers.opcoes[s.ers]}`; },
+    DIRECAO: { ...F2.DIRECAO, camber: ['Menos cambagem', 'Mais cambagem'], camberTras: ['Menos cambagem atrás', 'Mais cambagem atrás'], ers: ['ERS mais para as retas', 'ERS mais para as curvas'],
+      arrefecimento: ['Abrir o arrefecimento', 'Fechar o arrefecimento'], rake: ['Mais inclinação (rake)', 'Menos inclinação (rake)'], barra: ['Barra mais dura', 'Barra mais macia'],
+      difEntrada: ['Diferencial de entrada mais travado', 'Diferencial de entrada mais aberto'], diferencial: ['Diferencial de saída mais travado', 'Diferencial de saída mais aberto'] },
+    ONDE: { ...F2.ONDE, camber: 'na cambagem', camberTras: 'na cambagem traseira', ers: 'no ERS', arrefecimento: 'no arrefecimento', rake: 'na inclinação (rake)', barra: 'na barra estabilizadora', difEntrada: 'no diferencial de entrada', diferencial: 'no diferencial de saída' },
+    VERBO: { ...F2.VERBO, camber: ['pôr mais cambagem', 'tirar cambagem'], camberTras: ['pôr mais cambagem atrás', 'tirar cambagem atrás'], ers: ['usar mais nas curvas', 'usar mais nas retas'],
+      arrefecimento: ['fechar o arrefecimento', 'abrir o arrefecimento'], rake: ['baixar a inclinação', 'subir a inclinação'], barra: ['amaciar a barra', 'endurecer a barra'],
+      difEntrada: ['abrir o diferencial de entrada', 'travar o diferencial de entrada'], diferencial: ['abrir o diferencial de saída', 'travar o diferencial de saída'] },
+    descrever(s, AJ) {
+      return `Asas ${s.asaDianteira}/${s.asaTraseira} · susp. ${AJ.suspensao.opcoes[s.suspensao]} · alt. ${AJ.altura.opcoes[s.altura]} · rake ${opt(AJ, 'rake', s)} · barra ${opt(AJ, 'barra', s)} · ${String(s.pressao).replace('.', ',')} psi · arref. ${opt(AJ, 'arrefecimento', s)} · freio ${s.freio}% · dif. ${AJ.diferencial.opcoes[s.diferencial]}/${opt(AJ, 'difEntrada', s)} · mapa ${AJ.mapa.opcoes[s.mapa == null ? 1 : s.mapa]} · ERS ${AJ.ers.opcoes[s.ers]} · camb. ${String(s.camber).replace('.', ',')}°/${String(s.camberTras == null ? AJ.camberTras.padrao : s.camberTras).replace('.', ',')}°`;
+    },
   };
 
   let M = MODELOS.kart;
@@ -299,6 +358,7 @@
     alturaBanco: 'Meio de curva', coroa: 'Retas', carburacao: 'Retas', asaDianteira: 'Entrada de curva', asaTraseira: 'Curvas rápidas',
     suspensao: 'Zebras e ondulações', altura: 'Curvas rápidas', relacao: 'Retas', freio: 'Freada', diferencial: 'Saída de curva',
     camber: 'Entrada de curva', ers: 'Retas', caster: 'Entrada de curva', mapa: 'Retas',
+    camberTras: 'Saída de curva', arrefecimento: 'Retas', rake: 'Curvas rápidas', barra: 'Meio de curva', difEntrada: 'Entrada de curva',
   };
   function telemetria(setup, pista, cond, pneu) {
     const e = erros(setup, acertoIdeal(pista, cond, pneu));
@@ -330,7 +390,7 @@
     const forca = forcaMotor(e);
     if (forca > 0) {
       r.quebra = 0.0065 * Math.pow(forca, 1.5);
-      r.motivoQuebra = 'Motor engripou';
+      r.motivoQuebra = M.motivoForca || 'Motor engripou';
     }
     if (cond.molhado && pneu !== 'chuva') {
       r.tempo += 5;
@@ -441,7 +501,7 @@
     // No máximo três: os que mais pesaram. Uma lista de sete assusta mesmo quando o acerto estava quase certo.
     const ajustes = ordenados.filter((x) => Math.abs(x.erro) >= 0.6 && setup[x.k] !== melhor[x.k]).slice(0, 3)
       .map((x) => ({ k: x.k, texto: `${M.DIRECAO[x.k][x.sinal]}${Math.abs(x.erro) > 1.6 ? ' (bem mais)' : ' (um pouco)'}` }));
-    const motor = forcaMotor(e) > 0 ? 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.' : null;
+    const motor = forcaMotor(e) > 0 ? (M.id === 'f1' ? 'O arrefecimento está fechado demais para esta pista: o motor pode superaquecer.' : 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.') : null;
     let pneuDica = null;
     if (cond.molhado && pneu !== 'chuva') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
     else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
@@ -508,7 +568,7 @@
 
   // Descreve um acerto de qualquer categoria (o caderno guarda acertos de kart e de monopostos).
   function descreverSetup(s) {
-    const mod = 'ers' in s ? MODELOS.f1 : 'freio' in s ? MODELOS.f2 : 'asaTraseira' in s ? MODELOS.f4 : MODELOS.kart;
+    const mod = 'ers' in s || 'arrefecimento' in s ? MODELOS.f1 : 'freio' in s ? MODELOS.f2 : 'asaTraseira' in s ? MODELOS.f4 : MODELOS.kart;
     return mod.descrever(s, mod.AJUSTES);
   }
 
