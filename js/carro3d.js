@@ -125,7 +125,8 @@
     pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
   };
 
-  const S = { canvas: null, gl: null, modelo: null, erro: false, carregando: false, host: null, raf: 0, corpo: [],
+  const CARROCERIA = [4, 27, 30, 20];
+  const S = { cor: '#e10600', canvas: null, gl: null, modelo: null, erro: false, carregando: false, host: null, raf: 0, corpo: [],
     alvo: { asaDianteira: 5, asaTraseira: 5, altura: 1, suspensao: 1, pressao: 23.5 },
     ang: { asaF: 0, asaT: 0, y: 0, psi: 23.5 }, foco: 'geral', cam: null, giro: 0, auto: 0, arrasto: 0, volta: 0, ultimo: 0, tempo: 0, arrastando: false, ux: 0 };
   const reduzido = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -147,7 +148,7 @@
   }
 
   function pintar(m) {
-    const VERM = hex('#e10600'), CARB = hex('#232c3d'), PNEU = hex('#13161c');
+    const VERM = hex(S.cor), CARB = hex('#232c3d'), PNEU = hex('#13161c');
     for (const n of m.nos) {
       if (n.malha == null) continue;
       const orig = m.malhas[n.malha][0].cor;
@@ -219,11 +220,12 @@
     return suporta() ? '<div class="carro3d" data-carro3d role="img" aria-label="Carro em 3D: a câmera segue o ajuste que você mexe"><span class="carro3d-carregando">Carregando o carro…</span><small class="carro3d-credito">3D: 3dblenderlol · CC BY 4.0</small></div>' : '';
   }
   // Depois de desenhar a tela: coloca o canvas no espaço e liga o carro ao acerto atual.
-  function ligar(raiz, setup) {
+  function ligar(raiz, setup, cor) {
     const host = raiz.querySelector('[data-carro3d]');
     if (!host) { S.host = null; return; }
     if (!suporta()) return;
     S.host = host;
+    if (cor && cor !== S.cor) { S.cor = cor; if (S.modelo) for (const i of CARROCERIA) S.modelo.nos[i].cor = hex(cor); }
     if (setup) S.alvo = { ...S.alvo, ...alvoDoSetup(setup) };
     if (!S.cam) { const g = FOCOS.geral; S.cam = { yaw: g.yaw, pitch: g.pitch, dist: g.dist, t: g.t.slice() }; Object.assign(S.ang, { asaF: (S.alvo.asaDianteira - 5) * 3.2 * deg, asaT: (S.alvo.asaTraseira - 5) * 3.6 * deg, y: (S.alvo.altura - 1) * 0.075, psi: S.alvo.pressao }); }
     if (S.modelo) { host.querySelector('.carro3d-carregando')?.remove(); host.prepend(S.canvas); iniciar(); return; }

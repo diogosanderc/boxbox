@@ -584,7 +584,7 @@
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     const knobs = app.querySelector('.setup-knobs');
-    if (knobs && Kart.monoposto()) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup));
+    if (knobs && Kart.monoposto()) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor);
     deslizarSegmentos();
     talvezTutorial();
   }
