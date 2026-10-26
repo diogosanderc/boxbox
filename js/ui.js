@@ -179,7 +179,7 @@
   const balao = document.createElement('div');
   balao.className = 'balao-fundo';
   balao.hidden = true;
-  balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><button class="principal" data-fechar>Entendi</button></div>';
+  balao.innerHTML = '<div class="balao" role="dialog" aria-modal="true" aria-labelledby="balao-titulo"><h3 id="balao-titulo"></h3><p></p><div class="dica-rica" data-rica></div><button class="principal" data-fechar>Entendi</button></div>';
   document.body.appendChild(balao);
   // Com qualquer folha ou balão aberto, a tela de trás fica travada (não rola junto com o dedo).
   // No iPhone, só overflow: hidden não basta: o corpo fica fixo na posição atual e volta ao fechar.
@@ -205,6 +205,9 @@
     const [titulo, texto] = AJUDAS[chave].map(textoDoVeiculo);
     balao.querySelector('h3').textContent = titulo;
     balao.querySelector('p').textContent = texto;
+    // Knobs do acerto: régua, condições e sintomas (dicas visuais), e um atalho para ver a peça no carro 3D.
+    const rica = BoxDicas.html(chave, Kart.dicaAjuste(chave));
+    balao.querySelector('[data-rica]').innerHTML = rica + (rica && document.querySelector('[data-carro3d]') ? `<button class="dica-ver" data-ver-carro="${chave}">Ver no carro</button>` : '');
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
   }
@@ -212,10 +215,15 @@
   function abrirBalaoFalas(titulo, falas) {
     balao.querySelector('h3').textContent = titulo;
     balao.querySelector('p').innerHTML = falas.map((f) => `<span class="balao-fala">${esc(f)}</span>`).join('');
+    balao.querySelector('[data-rica]').innerHTML = '';
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
   }
-  balao.addEventListener('click', (ev) => { if (ev.target === balao || ev.target.closest('[data-fechar]')) balao.hidden = true; });
+  balao.addEventListener('click', (ev) => {
+    const ver = ev.target.closest('[data-ver-carro]');
+    if (ver) { BoxCarro3D.foco(ver.dataset.verCarro); BoxCarro3D.soltar(); balao.hidden = true; return; }
+    if (ev.target === balao || ev.target.closest('[data-fechar]')) balao.hidden = true;
+  });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') balao.hidden = true; });
 
   // ---------- "na pista": barra animada enquanto o treino ou a volta lançada acontece ----------

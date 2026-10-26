@@ -567,6 +567,11 @@
     return sugestaoMecanico(pista, cond, pneu, Math.max(30, M.id !== 'kart' ? mecanico + 2 : mecanico - 10), rnd, RUIDO_IA);
   }
 
+  // Sintomas (valor baixo demais, valor alto demais) e o que fazer em cada caso, para o "?" do knob (null se o modelo não tem).
+  function dicaAjuste(k) {
+    return M.SINTOMAS[k] && M.DIRECAO[k] ? { sintomas: M.SINTOMAS[k], direcao: M.DIRECAO[k] } : null;
+  }
+
   // Descreve um acerto de qualquer categoria (o caderno guarda acertos de kart e de monopostos).
   function descreverSetup(s) {
     const mod = 'ers' in s || 'arrefecimento' in s ? MODELOS.f1 : 'freio' in s ? MODELOS.f2 : 'asaTraseira' in s ? MODELOS.f4 : MODELOS.kart;
@@ -579,7 +584,7 @@
     get veiculo() { return M.veiculo; },
     PNEUS_KART, usarCategoria, categoria, monoposto: () => M.id !== 'kart',
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito, telemetria,
-    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, pisoPressao, descreverSetup,
+    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, pisoPressao, descreverSetup, dicaAjuste,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
   else root.BoxKart = Kart;
