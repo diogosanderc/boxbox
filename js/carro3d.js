@@ -28,6 +28,14 @@
   const escala = (x, y, z) => { const m = ident(); m[0] = x; m[5] = y; m[10] = z; return m; };
   const rotY = (a) => { const m = ident(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[2] = -s; m[8] = s; m[10] = c; return m; };
   const rotZ = (a) => { const m = ident(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[1] = s; m[4] = -s; m[5] = c; return m; };
+  // gira um ângulo em torno de um eixo qualquer (passando pela origem)
+  function rotEixo(eixo, a) {
+    const l = Math.hypot(...eixo), x = eixo[0] / l, y = eixo[1] / l, z = eixo[2] / l, c = Math.cos(a), s = Math.sin(a), t = 1 - c, m = ident();
+    m[0] = t * x * x + c; m[1] = t * x * y + s * z; m[2] = t * x * z - s * y;
+    m[4] = t * x * y - s * z; m[5] = t * y * y + c; m[6] = t * y * z + s * x;
+    m[8] = t * x * z + s * y; m[9] = t * y * z - s * x; m[10] = t * z * z + c;
+    return m;
+  }
   // gira em torno de um ponto do mundo
   const emTorno = (p, r) => mul(trans(p[0], p[1], p[2]), mul(r, trans(-p[0], -p[1], -p[2])));
   const pivoX = (p, a) => mul(trans(p[0], p[1], p[2]), mul(rotX(a), trans(-p[0], -p[1], -p[2])));
@@ -195,11 +203,12 @@
   const KART = {
     id: 'kart', arquivo: 'modelos/kart/scene.json', binarios: ['modelos/kart/scene.bin', 'modelos/kart/scene.bin.txt'],
     credito: '3D: sceeth · CC BY 4.0',
-    alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster }),
-    dividir: { no: 21, n: 4, grupo: (x, y) => (x > 0 ? 1 : 0) + (y > -1.5 ? 2 : 0) },
+    alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster, coroa: s.coroa, carburacao: s.carburacao }),
+    // no arquivo, o eixo y do objeto é o comprimento do kart (y menor = mais perto da frente)
+    dividir: { no: 21, n: 4, grupo: (x, y) => (x > 0 ? 1 : 0) + (y < 1.5 ? 2 : 0) },
     // centro de cada roda (esquerda/direita, trás/frente) e o lado do eixo x em que ela fica
     RODAS: [{ c: [-83.5, 22.4, -224.2], lado: -1, frente: false }, { c: [83.5, 22.4, -224.2], lado: 1, frente: false }, { c: [-74.2, 21.3, -71.6], lado: -1, frente: true }, { c: [74.2, 21.3, -71.6], lado: 1, frente: true }],
-    CARROCERIA: [19, 25, 37, 23], BANCO: [39, 33], MOTOR: [3, 5],
+    CARROCERIA: [19, 25, 37, 23], BANCO: [39, 33], MOTOR: [3, 5], ESCAPE: 11, VOLANTE: 7,
     focos: {
       geral: { yaw: 0.95, pitch: 0.3, dist: 330, t: [0, 30, -130] },
       pressao: { yaw: 1.2, pitch: 0.12, dist: 120, t: [74, 22, -72] },
@@ -216,32 +225,48 @@
       for (const n of m.nos) {
         if (n.malha == null) continue;
         if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.2, 0.4]; }
-        else if (this.MOTOR.includes(n.i)) { n.cor = MOTOR; n.mr = [0.7, 0.35]; }
+        else if (this.MOTOR.includes(n.i) || n.i === this.ESCAPE) { n.cor = MOTOR; n.mr = [0.7, 0.35]; }
         else if (this.BANCO.includes(n.i)) n.cor = BANCO;
         else if (Object.values(m.divididos).includes(n.i)) n.cor = PNEU;
         else { n.cor = QUADRO; n.mr = [0.6, 0.4]; }
       }
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { psi: al.pressao, bt: al.bitolaTraseira - 1, bf: al.bitola - 1, banco: al.alturaBanco - 1, caster: al.caster, eixo: al.eixo }; },
-    aplicar(m, t, dt, al, a) {
-      const k = 1 - Math.exp(-dt * 7);
+    iniciarAng(al) { return { psi: al.pressao, bt: al.bitolaTraseira - 1, bf: al.bitola - 1, banco: al.alturaBanco - 1, caster: al.caster, coroa: al.coroa, carb: al.carburacao, fCaster: 0, fCoroa: 0, fCarb: 0, giro: 0 }; },
+    aplicar(m, t, dt, al, a, foco) {
+      const k = 1 - Math.exp(-dt * 7), ke = 1 - Math.exp(-dt * 3);
       a.psi += (al.pressao - a.psi) * k; a.bt += (al.bitolaTraseira - 1 - a.bt) * k; a.bf += (al.bitola - 1 - a.bf) * k;
       a.banco += (al.alturaBanco - 1 - a.banco) * k; a.caster += (al.caster - a.caster) * k;
+      a.coroa += (al.coroa - a.coroa) * k; a.carb += (al.carburacao - a.carb) * k;
+      // os movimentos de caster, coroa e carburação só rodam enquanto o jogador mexe no knob
+      const mov = reduzido() ? 0 : 1;
+      a.fCaster += ((foco === 'caster' ? mov : 0) - a.fCaster) * ke;
+      a.fCoroa += ((foco === 'coroa' ? mov : 0) - a.fCoroa) * ke;
+      a.fCarb += ((foco === 'carburacao' ? mov : 0) - a.fCarb) * ke;
       const f = 1 + (a.psi - 12) * 0.011, cor = tomPneu(a.psi, 9, 20);
       // eixo traseiro: quanto mais mole, mais o eixo flexiona e as rodas de trás balançam
       const flex = reduzido() ? 0 : Math.sin(t * 2.6) * [3.4, 1.4, 0.35][al.eixo] * deg;
-      // caster: as rodas da frente esterçam mais quanto maior o ângulo
-      const esterco = reduzido() ? 0 : Math.sin(t * 1.1) * ((a.caster - 8) / 8) * 11 * deg;
+      // caster: o ângulo do pino de direção. Ao esterçar, a roda da frente se inclina (cambagem): mais caster, mais inclina.
+      const esterco = Math.sin(t * 1.6) * 16 * deg * a.fCaster, incl = esterco * ((a.caster - 8) / 8) * 1.1;
+      // coroa: com mais dentes a roda de trás gira mais devagar para a mesma rotação do motor
+      a.giro += dt * (3 + (90 - a.coroa) * 0.7) * a.fCoroa;
       this.RODAS.forEach((r, g) => {
         const c = r.c, desloca = r.lado * (r.frente ? a.bf : a.bt) * 9;
         let giro = ident();
-        if (r.frente) giro = rotY(esterco); else giro = rotZ(flex * r.lado);
+        if (r.frente) giro = mul(rotY(esterco), rotZ(incl * r.lado)); else giro = mul(rotZ(flex * r.lado), rotX(a.giro));
         m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f))));
         m.nos[m.divididos[g]].cor = cor;
       });
+      // volante acompanha a esterçada
+      m.nos[this.VOLANTE].mundo = emTorno([0, 65, -112], rotEixo([0, 0.55, 0.83], -esterco * 2.2));
       const banco = trans(0, a.banco * 7, 0);
       for (const i of this.BANCO) m.nos[i].mundo = banco;
+      // carburação: o motor vibra e o escapamento esquenta (mistura pobre) ou fica escuro de fuligem (mistura rica)
+      const vib = a.fCarb * (0.3 + Math.abs(a.carb) * 0.22);
+      const tremor = mul(trans(Math.sin(t * 47) * vib, Math.sin(t * 53) * vib * 0.7, 0), ident());
+      for (const i of [...this.MOTOR, this.ESCAPE]) m.nos[i].mundo = tremor;
+      const q = Math.abs(a.carb) / 3, base = [0.6, 0.63, 0.71], alvoCor = a.carb < 0 ? [1, 0.42, 0.16] : [0.05, 0.045, 0.045];
+      m.nos[this.ESCAPE].cor = [base[0] + (alvoCor[0] - base[0]) * q, base[1] + (alvoCor[1] - base[1]) * q, base[2] + (alvoCor[2] - base[2]) * q, 1];
     },
   };
   const MODELOS = { f1: F1, kart: KART };
@@ -286,7 +311,7 @@
     if (S.foco === 'geral' && !reduzido() && !S.arrastando) S.auto += dt * 0.18;
     const yaw = cam.yaw + S.arrasto + (S.foco === 'geral' ? S.auto : 0), pit = cam.pitch;
     const eye = [cam.t[0] + Math.sin(yaw) * Math.cos(pit) * cam.dist, cam.t[1] + Math.sin(pit) * cam.dist, cam.t[2] + Math.cos(yaw) * Math.cos(pit) * cam.dist];
-    def().aplicar(m, S.tempo, dt, S.alvo, S.mods[S.tipo].ang);
+    def().aplicar(m, S.tempo, dt, S.alvo, S.mods[S.tipo].ang, S.foco);
     const gl = S.gl, esc = S.tipo === 'kart' ? 100 : 1;
     gl.viewport(0, 0, W, H); gl.enable(gl.DEPTH_TEST); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     desenhar(gl, m, mul(persp(0.62, W / H, 0.1 * esc, 80 * esc), olhar(eye, cam.t)));
