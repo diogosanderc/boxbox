@@ -5,7 +5,7 @@ const path = require('path');
 
 const raiz = path.join(__dirname, '..');
 const destino = path.join(raiz, 'www');
-const ITENS = ['index.html', 'style.css', 'js', 'img', 'fontes'];
+const ITENS = ['index.html', 'style.css', 'js', 'img', 'fontes', 'modelos'];
 // Originais de alta resolução das logos não entram no app.
 const FORA = new Set(['logo-original.png', 'logo-barra-original.png']);
 

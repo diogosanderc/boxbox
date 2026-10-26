@@ -583,6 +583,8 @@
     document.body.classList.toggle('fds-compacto', tela.nome === 'fds' && !naCorrida);
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
+    const knobs = app.querySelector('.setup-knobs');
+    if (knobs && Kart.monoposto()) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup));
     deslizarSegmentos();
     talvezTutorial();
   }
@@ -1980,7 +1982,7 @@
     const ordem = Kart.ORDEM_AJUSTES;
     const volante = ordem.filter((k) => AJUSTES_VOLANTE.includes(k));
     const resto = ordem.filter((k) => !volante.includes(k));
-    return `<div class="setup-knobs" data-acao-setup="${acao}">
+    return `${Kart.monoposto() ? BoxCarro3D.html() : ''}<div class="setup-knobs" data-acao-setup="${acao}">
       ${volante.length ? `<div class="kn-volante">${volante.map((k) => knobHtml(k, s[k], true)).join('')}</div>` : ''}
       <div class="kn-carro">${resto.map((k) => knobHtml(k, s[k], false)).join('')}</div>
       <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
@@ -2015,6 +2017,7 @@
       g.ativo = true;
       g.xRef = g.ultX;
       cel.classList.add('ativo');
+      BoxCarro3D.foco(k);
       if (navigator.vibrate) navigator.vibrate(12);
     }, TEMPO_SEGURAR_KNOB);
   });
@@ -2024,7 +2027,7 @@
     g.ultX = ev.clientX;
     if (g.ativo) {
       const i = Math.max(0, Math.min(g.n - 1, g.i0 + Math.round((ev.clientX - g.xRef) / pxPorPasso(g.n))));
-      if (i !== g.i) { g.i = i; g.moveu = true; pintarKnob(g.cel, i); }
+      if (i !== g.i) { g.i = i; g.moveu = true; pintarKnob(g.cel, i); BoxCarro3D.previa(g.k, valorAjuste(Kart.AJUSTES[g.k], i)); }
       return;
     }
     // Mexeu antes da luz acender: é rolagem da página, o knob larga o gesto sem alterar nada.
@@ -2038,10 +2041,12 @@
     gestoKnob = null;
     clearTimeout(g.timer);
     g.cel.classList.remove('arrastando', 'ativo');
-    if (ev.type !== 'pointerup') { pintarKnob(g.cel, g.i0); return; }
+    BoxCarro3D.soltar();
+    const volta = () => { pintarKnob(g.cel, g.i0); BoxCarro3D.previa(g.k, setupDaAcao(g.acao)[g.k]); };
+    if (ev.type !== 'pointerup') { volta(); return; }
     let i = g.i;
-    if (!g.ativo) { pintarKnob(g.cel, g.i0); return; }
-    if (i === g.i0) { pintarKnob(g.cel, g.i0); return; }
+    if (!g.ativo) { volta(); return; }
+    if (i === g.i0) { volta(); return; }
     aplicarAjuste(g.acao, g.k, valorAjuste(Kart.AJUSTES[g.k], i));
   };
   app.addEventListener('pointerup', fimKnob);

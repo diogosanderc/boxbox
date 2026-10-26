@@ -266,5 +266,6 @@
     'Outros': 'Other',
     'Quebra': 'Breakdown',
     'Motor engripou': 'Engine seized',
+    'Carregando o carro…': 'Loading the car…',
   });
 })();
