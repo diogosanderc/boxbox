@@ -1485,3 +1485,18 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 @media (prefers-reduced-motion: reduce) { .chip-pneu.critico { animation: none; } }
 .chip-pneu .composto-bola { width: 12px; height: 12px; flex: none; border-width: 3px; }
 .chip-pneu { padding: 2px 8px; font-size: 12px; }
+
+/* ---------- Box, box! (janela de pit stop na corrida) ---------- */
+.folha-box { max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px)); overflow-y: auto; border-color: rgba(225, 6, 0, 0.7); -webkit-overflow-scrolling: touch; }
+.box-pre { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fraco); }
+.folha-box h3 { margin: 0; font-family: var(--fonte-titulo); font-style: italic; font-size: 34px; letter-spacing: 0.02em; color: #ff3b30; }
+.box-radio { margin: 0; font-size: 15px; font-style: italic; line-height: 1.4; }
+.box-compostos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.box-compostos.uma { grid-template-columns: minmax(0, 1fr); }
+.box-comp { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); font: inherit; cursor: pointer; }
+.box-comp b { font-size: 15px; }
+.box-comp small { font-size: 11px; color: var(--fraco); text-align: center; line-height: 1.2; }
+.box-comp.sel { border-color: #5aa9ff; box-shadow: 0 0 0 1px #5aa9ff inset; background: rgba(90, 169, 255, 0.12); }
+.box-comp:disabled { opacity: 0.45; cursor: default; }
+.folha-box .corrida-cartao-3d, .folha-box .carro3d { margin-bottom: 4px; }
+.folha-box .botoes-2 { position: sticky; bottom: -20px; padding: 10px 0 2px; background: linear-gradient(180deg, transparent, var(--painel) 28%); }
