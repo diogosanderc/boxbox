@@ -1,4 +1,4 @@
-# Superlicença: do kart à Fórmula 1
+# Superlicença (Super Licence): do kart à Fórmula 1
 
 Você é um piloto de 12 anos começando no kart e também o cabeça da própria carreira: escolhe a equipe,
 cuida do dinheiro, busca patrocínio, acerta o kart para cada pista e clima, e decide quais propostas aceitar.
@@ -169,7 +169,7 @@ GOLAÇO): o Xcode abre o projeto em `ios/`, e o jogo vai junto na pasta `www/`.
   limpeza que o iOS faz nos dados de sites. A gravação passa por um arquivo temporário, então fechar o
   app no meio não estraga o save. Um save antigo no `localStorage` é levado para o arquivo na primeira
   abertura.
-- **App:** `com.diogosander.superlicenca`, nome "Superlicença", só iPhone, só retrato, barra de status
+- **App:** `com.diogosander.superlicenca`, nome "Superlicença" em português e "Super Licence" em inglês (ios/App/App/*.lproj/InfoPlist.strings; logotipos img/logo.png e img/logo-en.png), só iPhone, só retrato, barra de status
   clara, fundo azul-marinho sem flash branco, iOS 15 ou mais novo. Time de assinatura `2H5Z26H77P`
   (o mesmo do GOLAÇO).
 

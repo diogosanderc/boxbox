@@ -24,6 +24,14 @@
     barraMini.classList.toggle('visivel', !!mostrar);
   }, { passive: true });
 
+  // Nome e logotipo no idioma do jogo: "Superlicença" em português e "Super Licence" em inglês.
+  const logoJogo = () => (BoxI18n.idioma === 'en' ? 'img/logo-en.png' : 'img/logo.png');
+  if (BoxI18n.idioma === 'en') {
+    const marca = document.querySelector('.marca-logo');
+    if (marca) { marca.src = 'img/logo-barra-en.png'; marca.alt = 'Super Licence'; }
+    document.title = 'Super Licence';
+  }
+
   let estado = null;
   let tela = { nome: 'abertura' };
   let timer = null;
@@ -872,7 +880,7 @@
     app.innerHTML = `
       <div class="abertura">
         <div class="abertura-marca">
-          <img class="logo-img" src="img/logo.png" alt="Superlicença: do kart ao topo" width="1200" height="776">
+          <img class="logo-img" src="${logoJogo()}" alt="Superlicença: do kart ao topo" width="1200" height="776">
         </div>
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
@@ -940,7 +948,7 @@
   function telaCarregando() {
     app.innerHTML = `
       <div class="abertura carregando">
-        <div class="abertura-marca"><img class="logo-img logo-img-menor" src="img/logo.png" alt="Superlicença" width="1200" height="776"></div>
+        <div class="abertura-marca"><img class="logo-img logo-img-menor" src="${logoJogo()}" alt="Superlicença" width="1200" height="776"></div>
         <div class="carregando-bloco" role="status" aria-live="polite">
           <div class="carregando-trilho"><i data-barra></i></div>
           <span class="fraco" data-passo>${PASSOS_CARREGANDO[0]}</span>
