@@ -202,7 +202,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber, relacao: s.relacao }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -212,6 +212,8 @@
       suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
       pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
       relacao: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
+      freio: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
+      diferencial: { yaw: 2.7, pitch: 0.32, dist: 5.2, t: [0, 0.35, -0.5] },
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
     RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
@@ -235,12 +237,30 @@
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, giro: 0, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
     aplicar(m, t, dt, al, a, foco) {
       const k = 1 - Math.exp(-dt * 7);
-      // relação do câmbio: enquanto o jogador mexe nela, as rodas giram (curta: devagar, aceleração; longa: rápido, velocidade final)
-      a.fRel += ((foco === 'relacao' && !reduzido() ? 1 : 0) - a.fRel) * (1 - Math.exp(-dt * 3));
-      a.giro += dt * [5, 11, 19][al.relacao == null ? 1 : al.relacao] * a.fRel;
+      // Rodas girando, só enquanto o jogador mexe no knob certo:
+      // relação: curta gira devagar (aceleração), longa gira rápido (velocidade final);
+      // freio: gira e freia em ciclo; a roda com mais parcela do freio para antes e o nariz abaixa;
+      // diferencial: aberto, uma roda de trás gira muito mais que a outra; travado, as duas giram iguais.
+      const emMov = (foco === 'relacao' || foco === 'freio' || foco === 'diferencial') && !reduzido();
+      a.fRel += ((emMov ? 1 : 0) - a.fRel) * (1 - Math.exp(-dt * 3));
+      const vel = { 6: 0, 33: 0, 83: 0, 89: 0 };
+      let mergulho = 0;
+      if (foco === 'relacao') { const w = [5, 11, 19][al.relacao == null ? 1 : al.relacao]; for (const i in vel) vel[i] = w; }
+      else if (foco === 'freio') {
+        const fr = (al.freio == null ? 56 : al.freio) / 100, w = 12;
+        const cic = (d) => { const u = t % 3.6; return u < 1.2 ? 1 : u < 1.2 + d ? 1 - (u - 1.2) / d : u < 2.6 ? 0 : u < 3.2 ? (u - 2.6) / 0.6 : 1; };
+        const ff = cic(Math.min(1.3, 0.28 / fr)), rr = cic(Math.min(1.3, 0.28 / (1 - fr)));
+        vel[6] = vel[89] = w * ff; vel[33] = vel[83] = w * rr;
+        mergulho = (1 - ff) * (fr / 0.56) * 1.4 * deg;
+      } else if (foco === 'diferencial') {
+        const k = [0.75, 0.35, 0][al.diferencial == null ? 1 : al.diferencial], w = 11;
+        vel[6] = vel[89] = w; vel[83] = w * (1 + k); vel[33] = w * (1 - k);
+      }
+      a.mergulho = (a.mergulho || 0) + (mergulho * a.fRel - (a.mergulho || 0)) * k;
+      for (const i in vel) a.g[i] += dt * vel[i] * a.fRel;
       a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
       a.asaF += ((al.asaDianteira - 5) * 4 * deg - a.asaF) * k;
       a.asaT += ((al.asaTraseira - 5) * 4.5 * deg - a.asaT) * k;
@@ -251,14 +271,14 @@
       const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
       m.nos[m.partes.asaF].mundo = pivoX([0, 0.14, 3.22], a.asaF);
       m.nos[m.partes.asaT].mundo = pivoX([0, 0.62, -0.92], a.asaT);
-      const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol));
+      const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol + a.mergulho));
       for (const i of this.corpo) m.nos[i].mundo = corpo;
       // pressão: o pneu infla e desinfla (a cor não muda)
       const f = 1 + (a.psi - 23.5) * 0.012;
       // cambagem: as rodas da frente inclinam para dentro (quanto mais negativa, mais inclinadas)
       for (const [i, c] of Object.entries(this.RODAS)) {
         const lean = c[2] > 1 ? (-a.camb - 3) * 6 * deg * (c[0] > 0 ? 1 : -1) : 0;
-        m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(rotX(a.giro), mul(escala(1, f, f), trans(-c[0], -c[1], -c[2])))));
+        m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(rotX(a.g[i]), mul(escala(1, f, f), trans(-c[0], -c[1], -c[2])))));
       }
     },
   };
