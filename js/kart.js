@@ -156,7 +156,7 @@
   const AJUSTES_F1 = {
     ...AJUSTES_F2_SEM_CAMBIO,
     relacao: AJUSTES_F4.relacao, // só para ler saves e cadernos antigos; fora da ORDEM
-    pressao: { nome: 'Pressão dos pneus', tipo: 'numero', min: 23, max: 29, passo: 0.5, unidade: 'psi', padrao: 25.5 },
+    pressao: { nome: 'Pressão dos pneus', tipo: 'numero', min: 20, max: 29, passo: 0.5, unidade: 'psi', padrao: 25.5 },
     arrefecimento: { nome: 'Arrefecimento', tipo: 'opcoes', opcoes: ['Fechado', 'Médio', 'Aberto'], padrao: 1 },
     rake: { nome: 'Inclinação (rake)', tipo: 'opcoes', opcoes: ['Baixa', 'Média', 'Alta'], padrao: 1 },
     camber: { nome: 'Cambagem dianteira', tipo: 'numero', min: -3.5, max: -2.5, passo: 0.25, unidade: '°', padrao: -3 },
@@ -192,11 +192,19 @@
   // concentrar nas retas; com energia sobrando (Mônaco) dá para usar também na saída das curvas. Arrefecimento: altitude, calor
   // e muito acelerador a fundo pedem as aberturas abertas (custa arrasto); fechado demais superaquece o motor.
   // Inclinação (rake): pista veloz pede carro mais plano (menos arrasto).
+  // Piso de pressão inicial imposto pela Pirelli: varia por circuito (maior onde a carga no pneu é alta). Estimado pela
+  // fração de curvas rápidas, pelo tipo de pista e pelo asfalto: Mônaco ~22 psi, Monza ~25, Silverstone/Spa ~26. Só na F1.
+  function pisoPressao(pista) {
+    if (!pista || !pista.curvas) return null;
+    const c = pista.curvas, total = (c.lentas + c.medias + c.rapidas) || 1;
+    const carga = 0.6 * (c.rapidas / total) + 0.2 * ({ veloz: 1, mista: 0.5, travada: 0 }[pista.tipo] || 0) + 0.2 * (pista.asfalto === 'abrasivo' ? 1 : 0.3);
+    return Math.round(limitarK(20 + 11 * carga, 20, 28) * 2) / 2;
+  }
   const idealF1 = (pista, cond) => {
     const e = perfilEnergia(pista), t = tipoNum(pista);
     const abrasivo = pista.asfalto === 'abrasivo';
     return {
-      pressao: limitarK(26 - (cond.tempPista - 30) / 8, 23, 29),
+      pressao: limitarK(pisoPressao(pista) + 1.5 - (cond.tempPista - 30) / 8, pisoPressao(pista), 29),
       camber: limitarK(-3 - 0.2 * t + (abrasivo ? 0.2 : 0) + (cond.tempPista - 30) / 80 + (cond.molhado ? 0.2 : 0), -3.5, -2.5),
       ers: limitarK(1 + 1.6 * (e.escassez - 0.5) - (cond.molhado ? 0.4 : 0), 0, 2),
       arrefecimento: limitarK(0.7 + (pista.altitude || 0) / 1400 + (cond.tempAr - 24) / 18 + 0.5 * e.demanda - (cond.molhado ? 0.5 : 0), 0, 2),
@@ -564,7 +572,7 @@
     get veiculo() { return M.veiculo; },
     PNEUS_KART, usarCategoria, categoria, monoposto: () => M.id !== 'kart',
     setupPadrao, gerarClima, condicao, acertoIdeal, erros, forcaMotor, desequilibrio, efeito, telemetria,
-    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, descreverSetup,
+    feedbackPiloto, falaCondicoes, diagnostico, dicaMecanico, sugestaoMecanico, analiseTecnica, setupIA, arredondarSetup, pisoPressao, descreverSetup,
   };
   if (typeof module === 'object' && module.exports) module.exports = Kart;
   else root.BoxKart = Kart;

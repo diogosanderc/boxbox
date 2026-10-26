@@ -45,15 +45,16 @@ test('equilíbrio F1: chuva pede mais asa, carro mais alto, suspensão mais maci
 
 test('equilíbrio F1: pista quente pede pressão inicial menor, fria pede maior (cerca de 1,25 psi por 10 °C), sempre dentro do piso da Pirelli', () => {
   const p = monza();
-  const quente = ideal(p, seco(p, { tempAr: p.clima + 10, tempPista: p.clima + 27 })).pressao;
+  const quente = ideal(p, seco(p, { tempAr: p.clima + 3, tempPista: p.clima + 8 })).pressao;
   const frio = ideal(p, seco(p, { tempAr: p.clima - 8, tempPista: p.clima - 2 })).pressao;
   assert.ok(quente < frio);
-  assert.ok(Math.abs((frio - quente) - 1.25 * 2.9) < 0.6, 'inclinação perto de 1,25 psi por 10 °C');
+  assert.ok(Math.abs((frio - quente) - 1.25 * 1.0) < 0.6, 'inclinação perto de 1,25 psi por 10 °C');
   Kart.usarCategoria('f1');
   const { min, max } = Kart.AJUSTES.pressao;
   for (const q of Object.values(pistas)) for (const c of [seco(q), chuva(q)]) {
     const v = ideal(q, c, c.molhado ? 'chuva' : 'slick').pressao;
     assert.ok(v >= min && v <= max, `${q.nome}: pressão ${v}`);
+    assert.ok(v >= Kart.pisoPressao(q), `${q.nome}: pressão ${v} abaixo do piso`);
   }
 });
 
@@ -98,4 +99,10 @@ test('equilíbrio: o acerto afinado desgasta menos o pneu que o de fábrica, que
   const d = (s) => Kart.efeito(s, p, c, 'slick').desgaste;
   assert.ok(d(afinado) < d(fabrica), 'afinado < fábrica');
   assert.ok(d(fabrica) < d(fora), 'fábrica < muito fora');
+});
+
+test('equilíbrio F1: piso de pressão varia por circuito (Mônaco baixo, Spa/Silverstone alto)', () => {
+  Kart.usarCategoria('f1');
+  const piso = (id) => Kart.pisoPressao(pistas[id]);
+  assert.ok(piso('monaco') < piso('spa'));
 });

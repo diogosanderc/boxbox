@@ -125,7 +125,7 @@
     quali: ['Classificação', 'A volta lançada define o grid. À tarde o ar e o asfalto estão mais quentes e a pista tem mais borracha: isso muda o kart inteiro, não só os pneus. Depois do treino livre ninguém mexe no kart por você: o acerto é seu. O acerto e o pneu daqui continuam na corrida, com ajustes finos no grid.'],
     grid: ['Antes da largada', 'No grid ainda dá para mexer em todo o acerto e trocar o jogo de pneus. Só o motor não: revisão é no paddock. Na corrida o asfalto tem ainda mais borracha que na classificação.'],
     // Um "?" para cada ajuste do kart: o que ele significa.
-    pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal. Na F1 a Pirelli impõe uma pressão mínima de largada: dá para ir de 23 a 29 psi, e pista quente pede valor menor (o pneu esquenta e a pressão sobe).'],
+    pressao: ['Pressão dos pneus', 'É quanto ar vai no pneu (em psi). Ela decide como o pneu esquenta e quanto dura: pressão certa deixa a borracha na temperatura ideal. Na F1 a Pirelli impõe uma pressão mínima de largada: o mínimo muda por circuito (cerca de 22 psi em Mônaco, 26 em Spa) e vai até 29 psi; pista quente pede valor menor (o pneu esquenta e a pressão sobe).'],
     eixo: ['Eixo traseiro', 'É a barra que segura as rodas de trás. O kart não tem diferencial: o eixo precisa torcer na curva. Mole torce mais e dá mais aderência atrás; duro torce menos e deixa a traseira mais livre.'],
     bitolaTraseira: ['Bitola traseira', 'É a largura entre as rodas de trás. Estreita dá mais aderência atrás; larga solta a traseira para o kart não arrastar nas curvas. Na chuva, abrir ajuda o peso a passar para as rodas de fora.'],
     alturaBanco: ['Altura do banco', 'É a altura em que o banco (e o piloto) vai preso no chassi. Banco alto joga mais peso para as rodas de fora na curva e dá aderência; banco baixo deixa o kart mais estável e livre.'],
@@ -2003,10 +2003,16 @@
     svg.setAttribute('aria-valuetext', texto);
     cel.querySelector('.kn-valor').textContent = texto;
   }
+  // F1: mostra a pressão mínima da Pirelli para a pista (o knob não desce abaixo dela).
+  function pisoPressaoDica(acao) {
+    if (!Kart.monoposto() || !('arrefecimento' in Kart.AJUSTES)) return '';
+    const piso = Kart.pisoPressao(acao === 'ajuste-desafio' ? C.desafioDaSemana(estado).pista : C.pistaAtual(estado));
+    return piso == null ? '' : `<p class="kn-dica">Pressão mínima da Pirelli nesta pista: ${String(piso).replace('.', ',')} psi</p>`;
+  }
   function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
     return `${BoxCarro3D.html(Kart.monoposto() ? 'f1' : 'kart')}<div class="setup-knobs" data-acao-setup="${acao}">
       <div class="kn-carro">${Kart.ORDEM_AJUSTES.map((k) => knobHtml(k, s[k])).join('')}</div>
-      <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>
+      <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>${pisoPressaoDica(acao)}
     </div>`;
   }
   const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);

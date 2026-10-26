@@ -1273,9 +1273,15 @@
     const depois = voltasDesafio(estado, agora);
     return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: depois.restantes, reabreEm: depois.reabreEm };
   }
+  // Pressão mínima da Pirelli na pista (só F1): o acerto nunca fica abaixo dela.
+  function comPiso(setup, pista) {
+    const piso = Kart.pisoPressao(pista);
+    if (piso != null && Kart.AJUSTES.pressao && setup.arrefecimento != null && setup.pressao < piso) return { ...setup, pressao: piso };
+    return setup;
+  }
   function ajustarDesafio(estado, mudancas) {
     const st = estadoDesafio(estado);
-    st.setup = Kart.arredondarSetup({ ...st.setup, ...mudancas });
+    st.setup = comPiso(Kart.arredondarSetup({ ...st.setup, ...mudancas }), desafioDaSemana(estado).pista);
   }
 
   function iniciarFimDeSemana(estado) {
@@ -1306,7 +1312,7 @@
     estado.fds = {
       sessao: 'treino', saidas: [], mecanico: null, ia, cabeca: [],
       // Começa do acerto da etapa anterior (se for da mesma categoria).
-      setup: anterior && Kart.ORDEM_AJUSTES.every((k) => k in anterior) ? { ...anterior } : Kart.setupPadrao(),
+      setup: comPiso(anterior && Kart.ORDEM_AJUSTES.every((k) => k in anterior) ? { ...anterior } : Kart.setupPadrao(), pista),
       pneuId: (pneuMaisNovo(estado, manha.molhado ? 'chuva' : secoDaEtapa(estado)) || {}).id || null,
       quali: null, resultado: null, custoPago: custo,
     };
@@ -1374,7 +1380,7 @@
 
   // O acerto fica livre em todas as sessões, inclusive no grid.
   function definirSetup(estado, setup) {
-    estado.fds.setup = Kart.arredondarSetup({ ...estado.fds.setup, ...setup });
+    estado.fds.setup = comPiso(Kart.arredondarSetup({ ...estado.fds.setup, ...setup }), pistaAtual(estado));
   }
 
   function escolherPneu(estado, id) {
