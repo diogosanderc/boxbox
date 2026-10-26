@@ -182,7 +182,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -191,6 +191,7 @@
       altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
       suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
       pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
+      camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
     RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
     CARROCERIA: [4, 27, 30, 20], ASA_DIANT: [22], ASA_TRAS: [63, 65],
@@ -211,9 +212,10 @@
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 3.2 * deg, asaT: (al.asaTraseira - 5) * 3.6 * deg, y: (al.altura - 1) * 0.075, psi: al.pressao }; },
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 3.2 * deg, asaT: (al.asaTraseira - 5) * 3.6 * deg, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
     aplicar(m, t, dt, al, a) {
       const k = 1 - Math.exp(-dt * 7);
+      a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
       a.asaF += ((al.asaDianteira - 5) * 3.2 * deg - a.asaF) * k;
       a.asaT += ((al.asaTraseira - 5) * 3.6 * deg - a.asaT) * k;
       a.y += ((al.altura - 1) * 0.075 - a.y) * k;
@@ -227,7 +229,12 @@
       for (const i of this.corpo) m.nos[i].mundo = corpo;
       // pressão: o pneu dilata e muda de tom (frio azulado, quente avermelhado)
       const f = 1 + (a.psi - 23.5) * 0.006, cor = tomPneu(a.psi, 19, 27);
-      for (const [i, c] of Object.entries(this.RODAS)) { m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(escala(f, f, 1), trans(-c[0], -c[1], -c[2]))); m.nos[i].cor = cor; }
+      // cambagem: as rodas da frente inclinam para dentro (quanto mais negativa, mais inclinadas)
+      for (const [i, c] of Object.entries(this.RODAS)) {
+        const lean = c[2] > 1 ? (-a.camb - 3) * 6 * deg * (c[0] > 0 ? 1 : -1) : 0;
+        m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(escala(f, f, 1), trans(-c[0], -c[1], -c[2]))));
+        m.nos[i].cor = cor;
+      }
     },
   };
 
