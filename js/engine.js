@@ -7,9 +7,9 @@
   // vida: voltas (em desgaste 1.0) até o pneu "cair do penhasco".
   // desgaste: segundos perdidos por volta de uso.
   const PNEUS = {
-    M: { nome: 'Macio', cor: '#e10600', ritmo: 0, vida: 16, desgaste: 0.075 },
-    Md: { nome: 'Médio', cor: '#ffd400', ritmo: 0.55, vida: 26, desgaste: 0.05 },
-    D: { nome: 'Duro', cor: '#f2f2f2', ritmo: 1.0, vida: 38, desgaste: 0.035 },
+    M: { nome: 'Macio', cor: '#e10600', ritmo: 0, vida: 15, desgaste: 0.075 },
+    Md: { nome: 'Médio', cor: '#ffd400', ritmo: 0.55, vida: 22, desgaste: 0.05 },
+    D: { nome: 'Duro', cor: '#f2f2f2', ritmo: 1.0, vida: 30, desgaste: 0.035 },
   };
   const ORDEM_PNEUS = ['M', 'Md', 'D'];
 
