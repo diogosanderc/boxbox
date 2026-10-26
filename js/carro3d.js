@@ -121,7 +121,20 @@
       });
       void base;
     }
-    return { nos, malhas, prog, loc, divididos, raizes: j.scenes[j.scene || 0].nodes };
+    // Hastes: cilindros de comprimento 1 ao longo de x, esticados por quem usa (o eixo que acompanha a roda).
+    const raizes = j.scenes[j.scene || 0].nodes.slice(), hastes = [];
+    for (let h = 0; h < (def.hastes || 0); h++) {
+      const N = 16, pos = new Float32Array(N * 2 * 3), nor = new Float32Array(N * 2 * 3), tri = [];
+      for (let q = 0; q < N; q++) {
+        const a = (q / N) * 2 * Math.PI, cy = Math.cos(a), sz = Math.sin(a);
+        for (let e = 0; e < 2; e++) { const v = (e * N + q) * 3; pos.set([e, cy, sz], v); nor.set([0, cy, sz], v); }
+        const q2 = (q + 1) % N; tri.push(q, q2, N + q, q2, N + q2, N + q);
+      }
+      malhas.push([criar(pos, nor, new Uint32Array(tri), 5125, {})]);
+      const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
+      nos.push(novo); raizes.push(novo.i); hastes.push(novo.i);
+    }
+    return { nos, malhas, prog, loc, divididos, hastes, raizes };
   }
 
   function desenhar(gl, mod, vp) {
@@ -205,6 +218,7 @@
     credito: '3D: sceeth · CC BY 4.0',
     alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster, coroa: s.coroa, carburacao: s.carburacao }),
     // no arquivo, o eixo y do objeto é o comprimento do kart (y menor = mais perto da frente)
+    hastes: 4,
     dividir: { no: 21, n: 4, grupo: (x, y) => (x > 0 ? 1 : 0) + (y < 1.5 ? 2 : 0) },
     // centro de cada roda (esquerda/direita, trás/frente) e o lado do eixo x em que ela fica
     RODAS: [{ c: [-83.5, 22.4, -224.2], lado: -1, frente: false }, { c: [83.5, 22.4, -224.2], lado: 1, frente: false }, { c: [-74.2, 21.3, -71.6], lado: -1, frente: true }, { c: [74.2, 21.3, -71.6], lado: 1, frente: true }],
@@ -228,6 +242,7 @@
         else if (this.MOTOR.includes(n.i) || n.i === this.ESCAPE) { n.cor = MOTOR; n.mr = [0.7, 0.35]; }
         else if (this.BANCO.includes(n.i)) n.cor = BANCO;
         else if (Object.values(m.divididos).includes(n.i)) n.cor = PNEU;
+        else if (m.hastes.includes(n.i)) { n.cor = QUADRO; n.mr = [0.6, 0.4]; }
         else { n.cor = QUADRO; n.mr = [0.6, 0.4]; }
       }
     },
@@ -256,16 +271,20 @@
         if (r.frente) giro = mul(rotY(esterco), rotZ(incl * r.lado)); else giro = mul(rotZ(flex * r.lado), rotX(a.giro));
         m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f))));
         m.nos[m.divididos[g]].cor = cor;
+        // a haste do eixo cresce junto com a roda, para a barra nunca ficar cortada
+        const fora = (r.frente ? a.bf : a.bt) * 9, h = m.nos[m.hastes[g]], R = r.frente ? 3.2 : 3.8, ini = r.frente ? 64.2 : 68;
+        const comp = fora > 0.2 ? fora + 6 : 0.001, x0 = r.lado > 0 ? ini - 6 : -(ini - 6) - comp;
+        h.mundo = mul(trans(x0, c[1], c[2]), escala(comp, R, R));
       });
       // volante acompanha a esterçada
       m.nos[this.VOLANTE].mundo = emTorno([0, 65, -112], rotEixo([0, 0.55, 0.83], -esterco * 2.2));
       const banco = trans(0, a.banco * 7, 0);
       for (const i of this.BANCO) m.nos[i].mundo = banco;
-      // carburação: o motor vibra e o escapamento esquenta (mistura pobre) ou fica escuro de fuligem (mistura rica)
+      // carburação: o motor vibra; o escapamento fica vermelho (mistura pobre, quente) ou azulado (mistura rica, fria)
       const vib = a.fCarb * (0.3 + Math.abs(a.carb) * 0.22);
       const tremor = mul(trans(Math.sin(t * 47) * vib, Math.sin(t * 53) * vib * 0.7, 0), ident());
       for (const i of [...this.MOTOR, this.ESCAPE]) m.nos[i].mundo = tremor;
-      const q = Math.abs(a.carb) / 3, base = [0.6, 0.63, 0.71], alvoCor = a.carb < 0 ? [1, 0.42, 0.16] : [0.05, 0.045, 0.045];
+      const q = Math.abs(a.carb) / 3, base = [0.6, 0.63, 0.71], alvoCor = a.carb < 0 ? [1, 0.12, 0.08] : [0.2, 0.5, 1];
       m.nos[this.ESCAPE].cor = [base[0] + (alvoCor[0] - base[0]) * q, base[1] + (alvoCor[1] - base[1]) * q, base[2] + (alvoCor[2] - base[2]) * q, 1];
     },
   };
