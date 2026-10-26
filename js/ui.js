@@ -537,6 +537,7 @@
   // No cabeçalho compacto, milhões viram "R$ 13,9 mi" para caber ao lado da moral e da confiança.
   const caixaCurto = (x) => (Math.abs(x) >= 1e6 ? `${x < 0 ? '−' : ''}R$ ${(Math.abs(x) / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : reais(x));
   function atualizarStatus() {
+    document.getElementById('sair-topo').hidden = !estado;
     if (!estado) { statusEl.innerHTML = ''; barraMini.innerHTML = ''; return; }
     const eq = C.equipeBase(estado.equipeId);
     const camp = C.campeonato(estado.campeonato);
@@ -548,7 +549,8 @@
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
     barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
       <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${estado.dinheiroInfinito ? 'R$ ∞' : reais(estado.dinheiro)}</span>
-      <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>`;
+      <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>
+      <button class="sair-topo" data-sair>Sair</button>`;
     statusEl.innerHTML = `<div class="perfil">
         <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
         <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
@@ -561,6 +563,15 @@
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
   }
+
+  // "Sair do jogo" no topo (cabeçalho e barra fina): volta para a abertura; a carreira já está salva e reaparece em "Continuar".
+  function sairDoJogo() {
+    salvar();
+    pensar();
+    ir({ nome: 'abertura' });
+  }
+  document.querySelector('.topo').addEventListener('click', (ev) => { if (ev.target.closest('[data-sair]')) sairDoJogo(); });
+  barraMini.addEventListener('click', (ev) => { if (ev.target.closest('[data-sair]')) sairDoJogo(); });
 
   statusEl.addEventListener('click', (ev) => {
     if (!ev.target.closest('[data-acao="rever-tutorial"]') || !estado) return;
@@ -2866,10 +2877,7 @@
         ir({ nome: 'inicio', dev: id });
         break;
       case 'sair-jogo':
-        // Volta para a abertura; a carreira já está salva e reaparece em "Continuar".
-        salvar();
-        pensar();
-        ir({ nome: 'abertura' });
+        sairDoJogo();
         break;
       case 'voltar-abertura':
         ir({ nome: 'abertura' });

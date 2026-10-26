@@ -1455,3 +1455,10 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .proposta-linha b { flex: 1; }
 .proposta-linha small { color: var(--fraco); }
 .proposta-linha .ico-i { width: 16px; height: 16px; color: var(--fraco); }
+
+/* ---------- sair do jogo no topo ---------- */
+.sair-topo { font: inherit; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); cursor: pointer; white-space: nowrap; }
+.sair-topo:active { background: var(--destaque); border-color: var(--destaque); }
+.sair-topo:focus-visible { outline: 2px solid #5aa9ff; outline-offset: 2px; }
+.topo .sair-topo { margin-left: auto; }
+.topo-mini .sair-topo { padding: 4px 10px; }

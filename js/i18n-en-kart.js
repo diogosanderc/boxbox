@@ -267,6 +267,7 @@
     'Quebra': 'Breakdown',
     'Motor engripou': 'Engine seized',
     'Carregando o carro…': 'Loading the car…',
+    'Sair': 'Exit',
     'Carros em 3D: “F1 2022 {FREE!!}”, de 3dblenderlol, e “Racing Kart 125cc (low poly)”, de sceeth, ambos CC BY 4.0.': '3D cars: “F1 2022 {FREE!!}” by 3dblenderlol and “Racing Kart 125cc (low poly)” by sceeth, both CC BY 4.0.',
   });
 })();
