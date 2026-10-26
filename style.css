@@ -1542,3 +1542,18 @@ path.dica-vento { stroke: #8ab4ff; stroke-width: 1.6; stroke-linecap: round; fil
 @keyframes dica-quica { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { path.dica-vento, .dica-balanca, .dica-quica { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .dica-liq, .dica-gira, .dica-barra u, .dica-ponteiro { animation: none; } }
+
+.dica-empilha { display: grid; gap: 10px; }
+.dica-caso { background: var(--painel-2); border: 1px solid var(--borda); border-radius: 16px; padding: 10px 12px 12px; display: grid; gap: 4px; }
+.dica-caso-topo { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dica-caso-topo b { font-size: 14px; }
+.dica-caso-topo small { color: var(--fraco); font-size: 12px; }
+.dica-cena { width: 100%; height: auto; display: block; overflow: hidden; border-radius: 10px; }
+.dica-topo { width: 100%; height: auto; display: block; overflow: visible; }
+.dica-barras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.dica-topo { max-height: 200px; }
+.dica-roda { animation: dica-roda 1.6s linear infinite; }
+@keyframes dica-roda { to { transform: rotate(360deg); } }
+path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: round; animation: dica-calor 1.4s ease-in-out infinite; }
+@keyframes dica-calor { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .dica-roda, path.dica-calor { animation: none; } }

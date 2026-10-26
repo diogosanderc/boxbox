@@ -53,6 +53,7 @@
     "entradas de ar pequenas": "small air intakes",
     "entradas de ar grandes": "large air intakes",
     "Temperatura do motor": "Engine temperature",
+    "movimento": "movement",
     "Onde fica o ponto": "Where the sweet spot is",
     "Quando mexer": "When to change it",
     "O piloto reclama de…": "The driver complains about…",
