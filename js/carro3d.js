@@ -123,6 +123,27 @@
       });
       void base;
     }
+    // Partes móveis de uma peça só (os flaps das asas): separa os triângulos cujo centro passa no teste
+    // (em coordenadas do modelo) numa malha à parte, filha do mesmo nó.
+    const partes = {};
+    if (def.partes) {
+      const pais = {}; nos.forEach((n) => n.filhos.forEach((f) => { pais[f] = n.i; }));
+      const mundoNo = (i) => { const c = []; for (let x = i; x != null; x = pais[x]) c.push(x); return c.reverse().reduce((m, x) => mul(m, nos[x].local), ident()); };
+      for (const pt of def.partes) {
+        const nd = nos[pt.no], pr = j.meshes[nd.malha].primitives[0], W = mundoNo(pt.no);
+        const pos = dados(pr.attributes.POSITION).arr, nor = dados(pr.attributes.NORMAL).arr, ix = dados(pr.indices).arr;
+        const mp = (v) => { const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2]; return [W[0] * x + W[4] * y + W[8] * z + W[12], W[1] * x + W[5] * y + W[9] * z + W[13], W[2] * x + W[6] * y + W[10] * z + W[14]]; };
+        const resto = [], sel = [];
+        for (let t = 0; t < ix.length; t += 3) {
+          const a = mp(ix[t]), b = mp(ix[t + 1]), c = mp(ix[t + 2]);
+          (pt.teste((a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3) ? sel : resto).push(ix[t], ix[t + 1], ix[t + 2]);
+        }
+        malhas[nd.malha] = [criar(pos, nor, new Uint32Array(resto), 5125, pr)];
+        malhas.push([criar(pos, nor, new Uint32Array(sel), 5125, pr)]);
+        const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
+        nos.push(novo); nd.filhos.push(novo.i); partes[pt.id] = novo.i;
+      }
+    }
     // Peça que dobra (o eixo traseiro do kart): tira da malha os triângulos que estão junto da barra e
     // guarda numa malha à parte, cujos vértices são recalculados a cada quadro.
     let flexivel = null;
@@ -154,7 +175,7 @@
       const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
       nos.push(novo); raizes.push(novo.i); hastes.push(novo.i);
     }
-    return { nos, malhas, prog, loc, divididos, hastes, flexivel, raizes };
+    return { nos, malhas, prog, loc, divididos, hastes, flexivel, partes, raizes };
   }
 
   function desenhar(gl, mod, vp) {
@@ -178,11 +199,10 @@
   // Frente do carro em +z, y para cima. Posições em unidades do próprio modelo.
   const hex = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255, 1];
   const claro = (c) => Math.max(c[0], c[1], c[2]) < 0.05;
-  const tomPneu = (psi, min, max) => { const t = Math.max(0, Math.min(1, (psi - min) / (max - min))); return t < 0.4 ? [0.10, 0.16, 0.26, 1] : t > 0.78 ? [0.30, 0.10, 0.08, 1] : [0.075, 0.085, 0.11, 1]; };
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.pressao, camber: s.camber, relacao: s.relacao }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -191,17 +211,20 @@
       altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
       suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
       pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
+      relacao: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
     RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
-    CARROCERIA: [4, 27, 30, 20], ASA_DIANT: [22], ASA_TRAS: [63, 65],
+    CARROCERIA: [4, 27, 30, 20],
+    // flaps: os elementos de trás da asa dianteira e o elemento de cima da asa traseira (sem as placas laterais)
+    partes: [{ id: 'asaF', no: 22, teste: (x, y, z) => z < 3.22 && Math.abs(x) < 0.8 }, { id: 'asaT', no: 63, teste: (x, y, z) => y > 0.66 && Math.abs(x) < 0.47 }],
     pintar(m, cor) {
       const PNEU = hex('#13161c'), CARB = hex('#232c3d');
       for (const n of m.nos) {
         if (n.malha == null) continue;
         const orig = m.malhas[n.malha][0].cor;
         if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.3, 0.35]; }
-        else if (n.i === 22 || n.i === 63) n.cor = hex('#2b3550');
+        else if (n.i === 22 || n.i === 63 || n.i === m.partes.asaF || n.i === m.partes.asaT) n.cor = hex('#2b3550');
         else if (this.RODAS[n.i]) n.cor = PNEU;
         else if (claro(orig)) n.cor = CARB;
       }
@@ -212,28 +235,30 @@
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
     cores(m, cor) { for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor); },
-    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 3.2 * deg, asaT: (al.asaTraseira - 5) * 3.6 * deg, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
-    aplicar(m, t, dt, al, a) {
+    iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, giro: 0, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
+    aplicar(m, t, dt, al, a, foco) {
       const k = 1 - Math.exp(-dt * 7);
+      // relação do câmbio: enquanto o jogador mexe nela, as rodas giram (curta: devagar, aceleração; longa: rápido, velocidade final)
+      a.fRel += ((foco === 'relacao' && !reduzido() ? 1 : 0) - a.fRel) * (1 - Math.exp(-dt * 3));
+      a.giro += dt * [5, 11, 19][al.relacao == null ? 1 : al.relacao] * a.fRel;
       a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
-      a.asaF += ((al.asaDianteira - 5) * 3.2 * deg - a.asaF) * k;
-      a.asaT += ((al.asaTraseira - 5) * 3.6 * deg - a.asaT) * k;
+      a.asaF += ((al.asaDianteira - 5) * 4 * deg - a.asaF) * k;
+      a.asaT += ((al.asaTraseira - 5) * 4.5 * deg - a.asaT) * k;
       a.y += ((al.altura - 1) * 0.075 - a.y) * k;
       a.psi += (al.pressao - a.psi) * k;
       const freq = [1.6, 2.4, 4.2][al.suspensao], amp = [0.032, 0.016, 0.006][al.suspensao];
       const bal = reduzido() ? 0 : Math.sin(t * freq) * amp * (0.6 + 0.4 * Math.sin(t * 0.7));
       const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
-      for (const i of this.ASA_DIANT) m.nos[i].mundo = pivoX([0, 0.2, 3.15], -a.asaF);
-      for (const i of this.ASA_TRAS) m.nos[i].mundo = pivoX([0, 0.62, -0.95], -a.asaT);
+      m.nos[m.partes.asaF].mundo = pivoX([0, 0.14, 3.22], a.asaF);
+      m.nos[m.partes.asaT].mundo = pivoX([0, 0.62, -0.92], a.asaT);
       const corpo = mul(trans(0, a.y + bal, 0), pivoX([0, 0.3, 1.15], rol));
       for (const i of this.corpo) m.nos[i].mundo = corpo;
-      // pressão: o pneu dilata e muda de tom (frio azulado, quente avermelhado)
-      const f = 1 + (a.psi - 23.5) * 0.006, cor = tomPneu(a.psi, 19, 27);
+      // pressão: o pneu infla e desinfla (a cor não muda)
+      const f = 1 + (a.psi - 23.5) * 0.012;
       // cambagem: as rodas da frente inclinam para dentro (quanto mais negativa, mais inclinadas)
       for (const [i, c] of Object.entries(this.RODAS)) {
         const lean = c[2] > 1 ? (-a.camb - 3) * 6 * deg * (c[0] > 0 ? 1 : -1) : 0;
-        m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(escala(f, f, 1), trans(-c[0], -c[1], -c[2]))));
-        m.nos[i].cor = cor;
+        m.nos[i].mundo = mul(trans(c[0], c[1], c[2]), mul(rotZ(lean), mul(rotX(a.giro), mul(escala(1, f, f), trans(-c[0], -c[1], -c[2])))));
       }
     },
   };
@@ -286,7 +311,7 @@
       a.fCaster += ((foco === 'caster' ? mov : 0) - a.fCaster) * ke;
       a.fCoroa += ((foco === 'coroa' ? mov : 0) - a.fCoroa) * ke;
       a.fCarb += ((foco === 'carburacao' ? mov : 0) - a.fCarb) * ke;
-      const f = 1 + (a.psi - 12) * 0.011, cor = tomPneu(a.psi, 9, 20);
+      const f = 1 + (a.psi - 12) * 0.014;
       // eixo traseiro: a barra dobra (mole dobra muito, duro quase nada) e as rodas de trás inclinam junto com as pontas
       const flecha = reduzido() ? 0 : Math.sin(t * 2.2) * [10, 4.2, 0.8][al.eixo], L = this.EIXO_COMP, flex = Math.atan((2 * flecha) / L);
       const fx = m.flexivel;
@@ -305,7 +330,6 @@
         if (r.frente) giro = mul(rotY(esterco), rotZ(incl * r.lado)); else giro = rotX(a.giro);
         const inclina = r.frente ? ident() : emTorno([r.lado * this.EIXO_PINO, c[1], c[2]], rotZ(flex * r.lado));
         m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), mul(inclina, emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f)))));
-        m.nos[m.divididos[g]].cor = cor;
         // a haste do eixo cresce junto com a roda, para a barra nunca ficar cortada
         const fora = (r.frente ? a.bf : a.bt) * 9, h = m.nos[m.hastes[g]], R = r.frente ? 3.2 : 3.8, ini = r.frente ? 64.2 : 68;
         const comp = fora > 0.2 ? fora + 6 : 0.001, x0 = r.lado > 0 ? ini - 6 : -(ini - 6) - comp;
