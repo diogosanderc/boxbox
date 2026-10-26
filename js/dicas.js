@@ -211,16 +211,21 @@
   }
 
 
-  // Altura com o carro 3D do jogo: o ajuste vai e volta sozinho entre baixo e alto (feito em ui.js), e a régua e as barras
+  // Altura e asas com o carro 3D do jogo: o ajuste vai e volta sozinho entre os extremos (feito em ui.js), e a régua e as barras
   // acompanham pelo atributo data-alto. host3d é a marcação do carro 3D (BoxCarro3D.html).
-  function visual3dAltura(host3d) {
-    const barra = (r, cls, cor) => `<div class="dica-barra ${cls}"><span>${esc(r)}</span><i><u style="background:${cor}"></u></i></div>`;
+  const REGUA3D = {
+    altura: { extremos: ['Carro baixo · rente ao chão', 'Carro alto · longe do chão'], barras: [['Aderência (efeito solo)', 'b-ader', 'ouro'], ['Risco de bater no chão', 'b-bate', 'vermelho']] },
+    asaTraseira: { extremos: ['Pouca asa', 'Muita asa'], barras: [['Aderência nas curvas', 'a-ader', 'ouro'], ['Velocidade na reta', 'a-vel', 'azul']] },
+    asaDianteira: { extremos: ['Pouca asa', 'Muita asa'], barras: [['Aderência nas curvas', 'a-ader', 'ouro'], ['Velocidade na reta', 'a-vel', 'azul']] },
+  };
+  function visual3d(chave, host3d) {
+    const c = REGUA3D[chave];
     return `<div class="dica-sec">Onde o ajuste mexe</div>
       <div class="dica-3d" data-alto="0">${host3d}
-        <div class="dica-3d-regua"><i></i><u></u><span class="dica-3d-baixo">Carro baixo · rente ao chão</span><span class="dica-3d-alto">Carro alto · longe do chão</span></div>
-        <div class="dica-barras">${barra('Aderência (efeito solo)', 'b-ader', BAR.ouro)}${barra('Risco de bater no chão', 'b-bate', BAR.vermelho)}</div></div>`;
+        <div class="dica-3d-regua"><i></i><u></u><span class="dica-3d-baixo">${esc(c.extremos[0])}</span><span class="dica-3d-alto">${esc(c.extremos[1])}</span></div>
+        <div class="dica-barras">${c.barras.map(([r, cls, cor]) => `<div class="dica-barra ${cls}"><span>${esc(r)}</span><i><u style="background:${BAR[cor]}"></u></i></div>`).join('')}</div></div>`;
   }
-  const VISUAL3D = { altura: visual3dAltura };
+  const tem3d = (chave) => !!REGUA3D[chave];
 
   const VISUAL = { pressao: visualPressao, coroa: visualRelacao, relacao: visualRelacao, asaDianteira: visualAsa, asaTraseira: visualAsa, altura: visualAltura, suspensao: visualSuspensao, diferencial: visualDiferencial, freio: visualFreio, arrefecimento: visualArrefecimento };
 
@@ -228,7 +233,7 @@
   function html(chave, dica, host3d) {
     const d = DICAS[chave];
     if (!d) return '';
-    const regua = host3d && VISUAL3D[chave] ? VISUAL3D[chave](host3d) : VISUAL[chave] ? VISUAL[chave](chave) : `<div class="dica-sec">Onde fica o ponto</div>
+    const regua = host3d && tem3d(chave) ? visual3d(chave, host3d) : VISUAL[chave] ? VISUAL[chave](chave) : `<div class="dica-sec">Onde fica o ponto</div>
       <div class="dica-regua"><i></i></div>
       <div class="dica-extremos"><b>◄ ${esc(d.extremos[0])}</b><b>${esc(d.extremos[1])} ►</b></div>`;
     const quando = `<div class="dica-sec">Quando mexer</div><div class="dica-grade">${d.quando.map(([c, s]) => {
@@ -242,6 +247,6 @@
     return regua + quando + sint + aviso;
   }
 
-  const api = { CONDICAO, DICAS, html };
+  const api = { CONDICAO, DICAS, html, tem3d };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxDicas = api;
 })(typeof window !== 'undefined' ? window : globalThis);

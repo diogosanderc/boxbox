@@ -1572,3 +1572,17 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .dica-3d[data-alto="1"] .b-ader u { width: 38%; }
 .dica-3d[data-alto="0"] .b-bate u { width: 84%; }
 .dica-3d[data-alto="1"] .b-bate u { width: 8%; }
+
+/* "?" cabe no iPhone: respeita a área segura e rola por dentro; botão fixo embaixo; cenas mais baixas */
+.balao-fundo { padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+.balao { max-height: 100%; min-height: 0; padding: 16px 16px 0; gap: 10px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+.balao > * { min-width: 0; }
+.balao > button.principal { position: sticky; bottom: 0; margin: 4px -16px 0; width: calc(100% + 32px); border-radius: 0 0 var(--raio) var(--raio); padding: 14px; }
+.balao .dica-cena { max-height: 128px; }
+.balao .dica-3d .carro3d { height: 170px; }
+.balao .dica-topo { max-height: 150px; }
+.balao .dica-sec { margin: 10px 0 6px; }
+.dica-3d[data-alto="0"] .a-ader u { width: 34%; }
+.dica-3d[data-alto="1"] .a-ader u { width: 92%; }
+.dica-3d[data-alto="0"] .a-vel u { width: 92%; }
+.dica-3d[data-alto="1"] .a-vel u { width: 44%; }

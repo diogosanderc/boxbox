@@ -208,22 +208,25 @@
     // Knobs do acerto: régua, condições e sintomas (dicas visuais), e um atalho para ver a peça no carro 3D.
     // Na altura, o próprio carro 3D do jogo entra no balão e o ajuste vai e volta sozinho entre baixo e alto.
     const kn = document.querySelector('.setup-knobs');
-    const host3d = chave === 'altura' && kn && Kart.monoposto() && !menosMovimento() ? BoxCarro3D.html('f1') : '';
+    const host3d = BoxDicas.tem3d(chave) && kn && Kart.monoposto() && !menosMovimento() ? BoxCarro3D.html('f1') : '';
     const rica = BoxDicas.html(chave, Kart.dicaAjuste(chave), host3d);
     balao.querySelector('[data-rica]').innerHTML = rica + (rica && !host3d && document.querySelector('[data-carro3d]') ? `<button class="dica-ver" data-ver-carro="${chave}">Ver no carro</button>` : '');
-    if (host3d) iniciar3dAltura(kn.dataset.acaoSetup);
+    if (host3d) iniciar3d(chave, kn.dataset.acaoSetup);
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
   }
-  // Altura no balão: o carro 3D sai da tela de acerto, vai para o balão e volta ao fechar.
+  // Altura e asas no balão: o carro 3D sai da tela de acerto, vai para o balão e volta ao fechar. O ajuste vai e volta sozinho
+  // entre o mínimo e o máximo (a câmera das asas olha de lado, onde o ângulo do flap aparece).
   let anim3d = null;
-  function iniciar3dAltura(acao) {
+  const CENA3D = { altura: { foco: 'altura' }, asaTraseira: { foco: 'asaTraseiraLado' }, asaDianteira: { foco: 'asaDianteiraLado' } };
+  function iniciar3d(chave, acao) {
     BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, 'f1');
-    BoxCarro3D.foco('altura');
+    BoxCarro3D.foco(CENA3D[chave].foco);
+    const a = Kart.AJUSTES[chave];
     let alto = false;
     const passo = () => {
       alto = !alto;
-      BoxCarro3D.previa('altura', alto ? 2 : 0);
+      BoxCarro3D.previa(chave, alto ? a.max : a.min);
       const painel = balao.querySelector('.dica-3d');
       if (painel) painel.dataset.alto = alto ? '1' : '0';
     };

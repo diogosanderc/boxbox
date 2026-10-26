@@ -208,6 +208,9 @@
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
       asaDianteira: { yaw: 0.7, pitch: 0.2, dist: 4.2, t: [0, 0.2, 3.1] },
       asaTraseira: { yaw: 3.5, pitch: 0.22, dist: 4.4, t: [0, 0.65, -1.0] },
+      // visões de lado, para o "?" das asas (o ângulo do flap aparece melhor de perfil)
+      asaTraseiraLado: { yaw: 1.5708, pitch: 0.12, dist: 3.0, t: [0, 0.62, -1.2] },
+      asaDianteiraLado: { yaw: 1.5708, pitch: 0.12, dist: 3.2, t: [0, 0.28, 3.15] },
       altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
       suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
       pressao: { yaw: 1.15, pitch: 0.1, dist: 3.3, t: [0.78, 0.32, 2.42] },
