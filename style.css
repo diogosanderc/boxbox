@@ -1534,4 +1534,11 @@ body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 .dica-giro span.vermelho { color: #ff6b6b; font-weight: 700; }
 .dica-ponteiro { transform-box: view-box; transform-origin: 80px 76px; transform: rotate(var(--ang)); animation: dica-varre 1.2s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes dica-varre { from { transform: rotate(-90deg); } }
+path.dica-vento { stroke: #8ab4ff; stroke-width: 1.6; stroke-linecap: round; fill: none; opacity: .65; stroke-dasharray: 7 6; animation: dica-vento .7s linear infinite; }
+@keyframes dica-vento { to { stroke-dashoffset: 13; } }
+.dica-balanca { transform-box: fill-box; transform-origin: center; animation: dica-balanca 2.4s ease-in-out infinite; }
+@keyframes dica-balanca { 0%, 100% { transform: translateY(1px) rotate(-5deg); } 50% { transform: translateY(5px) rotate(5deg); } }
+.dica-quica { animation: dica-quica .5s ease-in-out infinite; }
+@keyframes dica-quica { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { path.dica-vento, .dica-balanca, .dica-quica { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .dica-liq, .dica-gira, .dica-barra u, .dica-ponteiro { animation: none; } }
