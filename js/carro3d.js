@@ -90,16 +90,18 @@
       const T = a.componentType === 5126 ? Float32Array : a.componentType === 5125 ? Uint32Array : a.componentType === 5123 ? Uint16Array : Uint8Array;
       return { arr: new T(bin, off, a.count * nc), a };
     };
-    const criar = (pos, nor, ix, tipo, pr) => {
+    const criar = (pos, nor, ix, tipo, pr, dinamico) => {
       const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+      let bufPos = null;
       for (const [arr, l] of [[pos, loc.p], [nor, loc.n]]) {
-        const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+        const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, dinamico && arr === pos ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
+        if (arr === pos) bufPos = b;
         gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 3, gl.FLOAT, false, 0, 0);
       }
       const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ix, gl.STATIC_DRAW);
       gl.bindVertexArray(null);
       const pb = (j.materials[pr.material] || {}).pbrMetallicRoughness || {};
-      return { vao, n: ix.length, tipo, cor: pb.baseColorFactor || [1, 1, 1, 1], mr: [pb.metallicFactor == null ? 0 : pb.metallicFactor, pb.roughnessFactor == null ? 0.5 : pb.roughnessFactor] };
+      return { vao, bufPos, n: ix.length, tipo, cor: pb.baseColorFactor || [1, 1, 1, 1], mr: [pb.metallicFactor == null ? 0 : pb.metallicFactor, pb.roughnessFactor == null ? 0.5 : pb.roughnessFactor] };
     };
     const malhas = j.meshes.map((m) => m.primitives.map((pr) => {
       const ix = dados(pr.indices);
@@ -121,6 +123,24 @@
       });
       void base;
     }
+    // Peça que dobra (o eixo traseiro do kart): tira da malha os triângulos que estão junto da barra e
+    // guarda numa malha à parte, cujos vértices são recalculados a cada quadro.
+    let flexivel = null;
+    if (def.flexivel) {
+      const f = def.flexivel, nd = nos[f.no], pr = j.meshes[nd.malha].primitives[0];
+      const pos = dados(pr.attributes.POSITION).arr, nor = dados(pr.attributes.NORMAL).arr, ix = dados(pr.indices).arr;
+      const perto = (v) => { const w = f.mundo(pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]); return Math.hypot(w[1] - f.centro[0], w[2] - f.centro[1]) < f.raio && Math.abs(w[0]) < f.xmax; };
+      const resto = [], sel = [];
+      for (let t = 0; t < ix.length; t += 3) (perto(ix[t]) && perto(ix[t + 1]) && perto(ix[t + 2]) ? sel : resto).push(ix[t], ix[t + 1], ix[t + 2]);
+      const p2 = new Float32Array(sel.length * 3), n2 = new Float32Array(sel.length * 3), seq = new Uint32Array(sel.length);
+      sel.forEach((v, k) => { p2.set(pos.subarray(v * 3, v * 3 + 3), k * 3); n2.set(nor.subarray(v * 3, v * 3 + 3), k * 3); seq[k] = k; });
+      malhas[nd.malha] = [criar(pos, nor, new Uint32Array(resto), 5125, pr)];
+      const prim = criar(p2, n2, seq, 5125, pr, true);
+      malhas.push([prim]);
+      const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
+      nos.push(novo); nd.filhos.push(novo.i);
+      flexivel = { no: novo.i, prim, pos: p2, base: p2.slice() };
+    }
     // Hastes: cilindros de comprimento 1 ao longo de x, esticados por quem usa (o eixo que acompanha a roda).
     const raizes = j.scenes[j.scene || 0].nodes.slice(), hastes = [];
     for (let h = 0; h < (def.hastes || 0); h++) {
@@ -134,7 +154,7 @@
       const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
       nos.push(novo); raizes.push(novo.i); hastes.push(novo.i);
     }
-    return { nos, malhas, prog, loc, divididos, hastes, raizes };
+    return { nos, malhas, prog, loc, divididos, hastes, flexivel, raizes };
   }
 
   function desenhar(gl, mod, vp) {
@@ -219,6 +239,9 @@
     alvo: (s) => ({ pressao: s.pressao, eixo: s.eixo, bitolaTraseira: s.bitolaTraseira, bitola: s.bitola, alturaBanco: s.alturaBanco, caster: s.caster, coroa: s.coroa, carburacao: s.carburacao }),
     // no arquivo, o eixo y do objeto é o comprimento do kart (y menor = mais perto da frente)
     hastes: 4,
+    // eixo traseiro: a barra (e o que está colada nela) sai do chassi e dobra. mundo(): da posição no arquivo para o mundo.
+    flexivel: { no: 17, raio: 7.2, centro: [22.4, -224.2], xmax: 84, mundo: (x, y, z) => [100 * x, 100 * z, -100 * y] },
+    EIXO_COMP: 67.5, EIXO_PINO: 68,
     dividir: { no: 21, n: 4, grupo: (x, y) => (x > 0 ? 1 : 0) + (y < 1.5 ? 2 : 0) },
     // centro de cada roda (esquerda/direita, trás/frente) e o lado do eixo x em que ela fica
     RODAS: [{ c: [-83.5, 22.4, -224.2], lado: -1, frente: false }, { c: [83.5, 22.4, -224.2], lado: 1, frente: false }, { c: [-74.2, 21.3, -71.6], lado: -1, frente: true }, { c: [74.2, 21.3, -71.6], lado: 1, frente: true }],
@@ -228,7 +251,7 @@
       pressao: { yaw: 1.2, pitch: 0.12, dist: 120, t: [74, 22, -72] },
       bitola: { yaw: 0.3, pitch: 0.45, dist: 240, t: [0, 20, -72] },
       bitolaTraseira: { yaw: 3.4, pitch: 0.4, dist: 260, t: [0, 20, -224] },
-      eixo: { yaw: 2.4, pitch: 0.28, dist: 230, t: [0, 22, -224] },
+      eixo: { yaw: 3.14, pitch: 0.62, dist: 200, t: [0, 22, -224] },
       alturaBanco: { yaw: 1.5708, pitch: 0.1, dist: 230, t: [0, 45, -170] },
       coroa: { yaw: -1.2, pitch: 0.35, dist: 170, t: [-30, 25, -195] },
       carburacao: { yaw: -1.2, pitch: 0.35, dist: 170, t: [-40, 25, -195] },
@@ -259,8 +282,14 @@
       a.fCoroa += ((foco === 'coroa' ? mov : 0) - a.fCoroa) * ke;
       a.fCarb += ((foco === 'carburacao' ? mov : 0) - a.fCarb) * ke;
       const f = 1 + (a.psi - 12) * 0.011, cor = tomPneu(a.psi, 9, 20);
-      // eixo traseiro: quanto mais mole, mais o eixo flexiona e as rodas de trás balançam
-      const flex = reduzido() ? 0 : Math.sin(t * 2.6) * [3.4, 1.4, 0.35][al.eixo] * deg;
+      // eixo traseiro: a barra dobra (mole dobra muito, duro quase nada) e as rodas de trás inclinam junto com as pontas
+      const flecha = reduzido() ? 0 : Math.sin(t * 2.2) * [10, 4.2, 0.8][al.eixo], L = this.EIXO_COMP, flex = Math.atan((2 * flecha) / L);
+      const fx = m.flexivel;
+      for (let v = 0; v < fx.base.length; v += 3) {
+        const xw = Math.max(-L, Math.min(L, fx.base[v] * 100)), dy = -flecha * (1 - (xw / L) * (xw / L));
+        fx.pos[v] = fx.base[v]; fx.pos[v + 1] = fx.base[v + 1]; fx.pos[v + 2] = fx.base[v + 2] + dy / 100;
+      }
+      S.gl.bindBuffer(S.gl.ARRAY_BUFFER, fx.prim.bufPos); S.gl.bufferSubData(S.gl.ARRAY_BUFFER, 0, fx.pos);
       // caster: o ângulo do pino de direção. Ao esterçar, a roda da frente se inclina (cambagem): mais caster, mais inclina.
       const esterco = Math.sin(t * 1.6) * 16 * deg * a.fCaster, incl = esterco * ((a.caster - 8) / 8) * 1.1;
       // coroa: com mais dentes a roda de trás gira mais devagar para a mesma rotação do motor
@@ -268,8 +297,9 @@
       this.RODAS.forEach((r, g) => {
         const c = r.c, desloca = r.lado * (r.frente ? a.bf : a.bt) * 9;
         let giro = ident();
-        if (r.frente) giro = mul(rotY(esterco), rotZ(incl * r.lado)); else giro = mul(rotZ(flex * r.lado), rotX(a.giro));
-        m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f))));
+        if (r.frente) giro = mul(rotY(esterco), rotZ(incl * r.lado)); else giro = rotX(a.giro);
+        const inclina = r.frente ? ident() : emTorno([r.lado * this.EIXO_PINO, c[1], c[2]], rotZ(flex * r.lado));
+        m.nos[m.divididos[g]].mundo = mul(trans(desloca, 0, 0), mul(inclina, emTorno([c[0], c[1], c[2]], mul(giro, escala(1, f, f)))));
         m.nos[m.divididos[g]].cor = cor;
         // a haste do eixo cresce junto com a roda, para a barra nunca ficar cortada
         const fora = (r.frente ? a.bf : a.bt) * 9, h = m.nos[m.hastes[g]], R = r.frente ? 3.2 : 3.8, ini = r.frente ? 64.2 : 68;
