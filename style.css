@@ -1358,7 +1358,7 @@ body.fds-compacto main { gap: 10px; }
 
 .cartao-acerto { gap: 8px; }
 .cartao-acerto .cartao-topo { margin-bottom: 0; }
-.coluna > .acoes button:not(.principal) { padding: 8px 12px; font-size: 13.5px; }
+.coluna > .acoes button:not(.principal) { padding: 14px; font-size: 16px; }
 body.fds-compacto .cabecalho-tela h1 { font-size: 20px; }
 
 /* ---------- acerto com knobs ---------- */
