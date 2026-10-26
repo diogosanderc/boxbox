@@ -79,7 +79,7 @@ test('o acerto ideal muda com a temperatura e com a chuva', () => {
 test('slick na chuva é muito pior que pneu de chuva', () => {
   const pista = Dados.KARTODROMOS.br[0];
   const cond = { tempAr: 18, tempPista: 20, molhado: true, borracha: 0 };
-  const s = Kart.setupPadrao();
+  const s = Kart.arredondarSetup(Kart.acertoIdeal(pista, cond, 'chuva')); // acerto de chuva: só o pneu muda
   assert.ok(Kart.efeito(s, pista, cond, 'slick').tempo > Kart.efeito(s, pista, cond, 'chuva').tempo + 3);
 });
 

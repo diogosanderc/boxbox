@@ -341,8 +341,12 @@
 
   const forcaMotor = (e) => M.forcaMotor(e);
 
+  // Zona morta: errar por menos de meia tolerância não custa nada (o carro "perdoa" um clique fora do ponto); acima disso o
+  // custo cresce com o quadrado do que passou da zona.
+  const ZONA_MORTA = 0.5;
+  const custoErro = (k, ek) => { const x = Math.max(0, Math.abs(ek) - ZONA_MORTA); return M.PESO[k] * x * x; };
   function desequilibrio(e) {
-    return M.ORDEM.reduce((s, k) => s + M.PESO[k] * e[k] * e[k], 0);
+    return M.ORDEM.reduce((s, k) => s + custoErro(k, e[k]), 0);
   }
 
   // Telemetria: onde, na volta, o acerto está custando tempo. Divide os segundos perdidos pelo peso de cada
@@ -361,7 +365,7 @@
     const trechos = {};
     for (const k of M.ORDEM) {
       const nome = TRECHO_DO_AJUSTE[k] || 'Outros';
-      trechos[nome] = (trechos[nome] || 0) + (d > 0 ? total * (M.PESO[k] * e[k] * e[k]) / d : 0);
+      trechos[nome] = (trechos[nome] || 0) + (d > 0 ? total * (custoErro(k, e[k])) / d : 0);
     }
     return { total, trechos: Object.entries(trechos).map(([trecho, perda]) => ({ trecho, perda })).sort((a, b) => b.perda - a.perda) };
   }
@@ -403,7 +407,7 @@
   // Frases do piloto depois de uma saída para a pista. Quanto maior a sensibilidade, mais certeiro.
   function feedbackPiloto(e, sensibilidade, rnd) {
     const ordenados = M.ORDEM
-      .map((k) => ({ k, peso: M.PESO[k] * e[k] * e[k], sinal: e[k] > 0 ? 1 : 0 }))
+      .map((k) => ({ k, peso: custoErro(k, e[k]), sinal: e[k] > 0 ? 1 : 0 }))
       .sort((a, b) => b.peso - a.peso);
     const SINTOMAS = M.SINTOMAS;
     if (ordenados[0].peso < 0.06) return [`O ${M.veiculo} está muito bom! Equilibrado, dá pra acelerar tudo.`];
@@ -474,7 +478,7 @@
   }
 
   function dicaMecanico(e, mecanico, rnd) {
-    const pior = M.ORDEM.map((k) => ({ k, peso: M.PESO[k] * e[k] * e[k] })).sort((a, b) => b.peso - a.peso)[0];
+    const pior = M.ORDEM.map((k) => ({ k, peso: custoErro(k, e[k]) })).sort((a, b) => b.peso - a.peso)[0];
     if (pior.peso < 0.06) return 'Mecânico: não mexe em nada, está no ponto.';
     if (rnd() > mecanico / 110) return 'Mecânico: difícil dizer... vamos testar e ver o cronômetro.';
     const verbo = M.VERBO[pior.k][e[pior.k] > 0 ? 0 : 1];
@@ -487,7 +491,7 @@
   function diagnostico(setup, pista, cond, pneu) {
     const e = erros(setup, acertoIdeal(pista, cond, pneu));
     const ordenados = M.ORDEM
-      .map((k) => ({ k, peso: M.PESO[k] * e[k] * e[k], sinal: e[k] > 0 ? 1 : 0, erro: e[k] }))
+      .map((k) => ({ k, peso: custoErro(k, e[k]), sinal: e[k] > 0 ? 1 : 0, erro: e[k] }))
       .sort((a, b) => b.peso - a.peso);
     const sentiu = ordenados.filter((x) => x.peso >= 0.06).slice(0, 2).map((x) => M.SINTOMAS[x.k][x.sinal]);
     // Só sugere mudar o que dá para melhorar: se já está no valor mais perto do ideal, não fala nada.
@@ -516,9 +520,9 @@
   }
 
   // Acerto sugerido pelo mecânico para uma condição: perto do ideal, com erro que depende da qualidade dele.
-  function sugestaoMecanico(pista, cond, pneu, mecanico, rnd) {
+  function sugestaoMecanico(pista, cond, pneu, mecanico, rnd, fator = 1) {
     const ideal = acertoIdeal(pista, cond, pneu);
-    const ruido = (100 - mecanico) / 40;
+    const ruido = fator * (100 - mecanico) / 40;
     const s = {};
     for (const k of M.ORDEM) s[k] = ideal[k] + rnd.gauss() * ruido * M.TOLERANCIA[k];
     return arredondarSetup(s);
@@ -554,10 +558,12 @@
     return { itens, lista: lista.length ? lista : ['O acerto está no ponto. Não mexe em nada.'], alvo };
   }
 
+  // Com a zona morta o erro pequeno não custa nada; as equipes da IA erram mais (em unidades de tolerância) para manter o ritmo delas.
+  const RUIDO_IA = 1.5;
   // Acerto que uma equipe da IA usa (mecânicos melhores chegam mais perto do ideal).
   function setupIA(pista, cond, pneu, mecanico, rnd) {
     // Na F4 as equipes têm engenheiros de verdade: acertam melhor que no kart.
-    return sugestaoMecanico(pista, cond, pneu, Math.max(30, M.id !== 'kart' ? mecanico + 2 : mecanico - 10), rnd);
+    return sugestaoMecanico(pista, cond, pneu, Math.max(30, M.id !== 'kart' ? mecanico + 2 : mecanico - 10), rnd, RUIDO_IA);
   }
 
   // Descreve um acerto de qualquer categoria (o caderno guarda acertos de kart e de monopostos).
