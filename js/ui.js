@@ -835,7 +835,11 @@
   // ---------- início ----------
   // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.
   const CHAVE_DEV = 'superlicenca-dev';
-  const modoDev = () => { if (!ferramentasTeste()) return false; try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
+  // No navegador o modo desenvolvedor já vem ligado (5 toques no logotipo desligam); no Xcode precisa ligar com 5 toques.
+  const modoDev = () => {
+    if (!ferramentasTeste()) return false;
+    try { const v = localStorage.getItem(CHAVE_DEV); return BoxSave.nativo ? v === '1' : v !== '0'; } catch (e) { return !BoxSave.nativo; }
+  };
   let toquesLogo = [];
   function tocarLogo() {
     if (!ferramentasTeste()) return;
@@ -844,7 +848,7 @@
     if (toquesLogo.length < 5) return;
     toquesLogo = [];
     const ligar = !modoDev();
-    try { if (ligar) localStorage.setItem(CHAVE_DEV, '1'); else localStorage.removeItem(CHAVE_DEV); } catch (e) { /* sem armazenamento */ }
+    try { localStorage.setItem(CHAVE_DEV, ligar ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
     render();
     aviso(ligar ? 'Modo desenvolvedor ligado' : 'Modo desenvolvedor desligado');
   }
