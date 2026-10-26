@@ -359,7 +359,7 @@
       chuva: 0.25, premioCampeao: 150000, popularidade: 6, categoria: 'f4' },
     { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 82, custo: 9, premios: 3, regiao: 'f2', voltas: 18, sprint: true, compostos: true, safetyCar: true,
       chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f2' },
-    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 12, premios: 40, regiao: 'f1', voltas: 20, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
+    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 12, premios: 40, regiao: 'f1', voltas: 40, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
       chuva: 0.2, premioCampeao: 5000000, popularidade: 12, categoria: 'f1' },
   ];
 
