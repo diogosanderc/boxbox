@@ -1157,8 +1157,8 @@
       ...p, voltas: camp.voltas, perdaBox: camp.compostos ? 20 : 99,
       // Asfalto abrasivo gasta mais pneu; liso, menos. Retas longas facilitam a ultrapassagem.
       // Com compostos (F2 e F1) o desgaste é escalado por categoria (desgasteComposto, em data.js) para as corridas do jogo
-      // pedirem paradas. Com acerto equilibrado e asfalto médio, na F2 (40 voltas) e na F1 (52) o macio dura ~15 voltas,
-      // o médio ~22 e o duro ~30: a F2 cabe numa parada (macio + duro); a F1 pede duas ou mais.
+      // pedirem uma parada (automática). Com acerto equilibrado e asfalto médio, na F2 (30 voltas) e na F1 (40) o macio dura
+      // ~15 voltas, o médio ~22 e o duro ~30: uma parada cobre a corrida.
       desgaste: (DESGASTE_ASFALTO[p.asfalto] || 0.9) * (camp.compostos ? camp.desgasteComposto || 1.5 : 1),
       ultrapassagem: p.ultrapassagem != null ? p.ultrapassagem : { travada: 0.4, mista: 0.55, veloz: 0.7 }[p.tipo],
       peso: { motor: 1, aero: 0.3, chassi: 1.4 },
@@ -1632,24 +1632,22 @@
       corrida.molhado = molhado;
       const cond = Kart.condicao(clima, 'corrida', molhado);
       const setup = c.jogador ? fds.setupCorrida : fds.ia[c.id].tarde;
-      // Na F4 dá para parar no box e trocar para pneu de chuva (o jogador pede; a IA para uma ou duas voltas depois da chuva).
+      // Troca para o pneu de chuva: automática, para o jogador e para os rivais. A equipe chama o carro uma ou duas voltas
+      // depois que a chuva começa. O jogo de chuva do jogador sai do estoque, com o desgaste dele; sem jogo de chuva o carro
+      // segue de seco.
       let pit = 0;
-      // Nos monopostos (F4 em diante) o pneu de chuva do box sai do estoque, com o desgaste dele.
-      const jogoChuva = c.jogador && monoposto && corrida.boxJogador ? jogoLivre('chuva') : null;
-      if (c.jogador && monoposto && corrida.boxJogador && !jogoChuva) {
-        corrida.boxJogador = false;
+      const querChuva = monoposto && molhado && c.tipoPneu !== 'chuva' && v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2);
+      const jogoChuva = c.jogador && querChuva ? jogoLivre('chuva') : null;
+      if (c.jogador && querChuva && !jogoChuva && !corrida.semChuvaAvisado) {
+        corrida.semChuvaAvisado = true;
         Engine.registrar(corrida, 'Sem pneu de chuva no estoque: o carro segue com pneu de seco.', 'alerta', c.id);
       }
-      // Da F3 em diante, já de chuva, o jogador pode pedir o box para pôr um jogo de chuva mais novo.
-      const chuvaNova = c.jogador && molhado && c.tipoPneu === 'chuva' && jogoChuva;
-      if (chuvaNova || (monoposto && molhado && c.tipoPneu !== 'chuva' && (c.jogador ? corrida.boxJogador : v >= chuvaDesde + (c.id.charCodeAt(c.id.length - 1) % 2)))) {
+      if (querChuva && (!c.jogador || jogoChuva)) {
         c.tipoPneu = 'chuva';
         c.uso = jogoChuva ? trocarJogo(c, jogoChuva) : 0;
         if (c.usados && c.usados.length < 2) c.usados.push('chuva'); // pneu de chuva dispensa a regra dos dois compostos
         pit = PIT_F4 - (c.jogador ? EQUIPE_BOX[nivelBox(estado)].ganho : 0);
-        corrida.boxJogador = c.jogador ? false : corrida.boxJogador;
-        Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva${chuvaNova ? ' novo' : ''}.`, 'box', c.id);
-        if (chuvaNova) c.paradas += 1;
+        Engine.registrar(corrida, `${c.piloto.nome} para no box e coloca pneu de chuva.`, 'box', c.id);
       }
       const pneu = c.tipoPneu;
       const ef = Kart.efeito(setup, pista, cond, pneu);

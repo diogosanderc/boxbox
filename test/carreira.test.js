@@ -619,9 +619,9 @@ test('F4: proposta leva aos monopostos, com carro, pistas e equipes próprias', 
   assert.strictEqual(Kart.categoria(), 'kart');
 });
 
-test('F4: com chuva, quem para no box para pneu de chuva anda mais rápido', () => {
+test('F4: com chuva, a equipe troca sozinha para o pneu de chuva (se há jogo no estoque) e anda mais rápido', () => {
   const tempos = {};
-  for (const box of [false, true]) {
+  for (const temChuva of [false, true]) {
     let soma = 0;
     for (let seed = 1; seed <= 6; seed++) {
       const e = Carreira.novoJogo({ seed });
@@ -633,14 +633,14 @@ test('F4: com chuva, quem para no box para pneu de chuva anda mais rápido', () 
       clima.tarde.inicioChuva = 'corrida'; clima.tarde.voltaChuva = 4; clima.tarde.chove = true;
       Carreira.irParaClassificacao(e);
       Carreira.classificar(e);
+      if (!temChuva) e.pneus = e.pneus.filter((p) => p.tipo !== 'chuva');
       const c = Carreira.criarCorrida(e);
-      c.boxJogador = box;
       Engine.simularCompleta(c);
       const eu = c.carros.find((x) => x.jogador);
-      if (box) assert.strictEqual(eu.tipoPneu, 'chuva');
+      assert.strictEqual(eu.tipoPneu === 'chuva', temChuva);
       soma += eu.fora ? 20 : eu.pos;
     }
-    tempos[box] = soma;
+    tempos[temChuva] = soma;
   }
   Carreira.migrar({ campeonato: 'regional' });
   assert.ok(tempos[true] < tempos[false], JSON.stringify(tempos));

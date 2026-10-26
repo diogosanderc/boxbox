@@ -134,8 +134,8 @@
     caster: ['Caster', 'É a inclinação do pino do eixo dianteiro. Mais caster dá firmeza na reta e mais mordida na entrada da curva, mas deixa a direção pesada e o kart lento nas curvas travadas. Menos caster deixa a frente leve. Pista veloz, molhada, fria ou verde pede mais; pista travada, quente e emborrachada pede menos.'],
     carburacao: ['Carburação', 'É a mistura de ar e gasolina do motor. Rica tem mais gasolina: o motor fica mais frio e seguro, mas engasga se passar do ponto. Pobre tem menos: o motor grita mais, mas esquenta e pode engripar (o pistão trava).'],
     diagnostico: ['Diagnóstico', 'Depois da bandeirada o piloto conta o que sentiu no kart e para que lado cada ajuste deveria ter ido nas condições da corrida. Anote no caderno: da próxima vez nessa pista, com tempo parecido, você já sabe por onde começar.'],
-    box: ['Equipe de box', 'Nos monopostos a parada no box conta: troca de pneu na chuva e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium. Na corrida da F2 e da F1, quando o pneu chega no limite a equipe chama "Box, box!": a corrida fica parada e você escolhe o pneu da parada. Dá para chamar o carro quando quiser.'],
-    compostos: ['Pneus macio, médio e duro', 'Da F3 em diante o estoque tem quatro tipos de pneu: macio (o slick), médio, duro e chuva. Para correr é obrigatório ter o de chuva e um composto de seco na F3 (dois na F2 e na F1, que têm parada obrigatória). Com menos que os quatro dá para ir, mas o fim de semana é só com o que estiver no estoque (na pista não se compra pneu), e os rivais têm todos. Cada jogo volta gasto depois da corrida. No seco, cada piloto escolhe o composto de largada. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na F2 e na F1, na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez e recebe outro jogo do estoque. Na F3 não tem parada. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada. Quanto mais equilibrado o carro, menos o pneu gasta: acerto afinado desgasta bem menos que acerto fora do ponto, e o ritmo da pista também conta. Na corrida principal dá para parar quantas vezes quiser, desde que haja um jogo novo no estoque; por isso mais vagas (Premium) deixam a estratégia mais livre.'],
+    box: ['Equipe de box', 'Nos monopostos a equipe de box faz as paradas sozinha: troca para o pneu de chuva quando começa a chover e, na F2 e na F1, a parada obrigatória. Cada nível da equipe tira alguns centésimos da parada, deixa o tempo mais regular e diminui a chance de um pit stop dar errado. O nível 1 é o de todo mundo; o 2 e o 3 são do Premium.'],
+    compostos: ['Pneus macio, médio e duro', 'Da F3 em diante o estoque tem quatro tipos de pneu: macio (o slick), médio, duro e chuva. Para correr é obrigatório ter o de chuva e um composto de seco na F3 (dois na F2 e na F1, que têm parada obrigatória). Com menos que os quatro dá para ir, mas o fim de semana é só com o que estiver no estoque (na pista não se compra pneu), e os rivais têm todos. Cada jogo volta gasto depois da corrida. No seco, cada piloto escolhe o composto de largada. Macio: mais aderência e tempo melhor, mas gasta rápido. Duro: mais lento e dura muito. Médio: o meio-termo. Na F2 e na F1, na corrida principal é obrigatório usar dois compostos, então todo mundo para uma vez e recebe outro jogo do estoque. Na F3 não tem parada. Largar de macio dá posições no começo; de duro, permite parar mais tarde e terminar com pneu novo. Na sprint não tem parada. Quanto mais equilibrado o carro, menos o pneu gasta: acerto afinado desgasta bem menos que acerto fora do ponto, e o ritmo da pista também conta. A parada é automática: a equipe chama o carro e coloca um jogo novo do estoque, então ter jogos sobrando (mais vagas, no Premium) ajuda.'],
     setupF4: ['Acerto do monoposto', 'Na F2 entram também balanço de freio, diferencial e mapa do motor; na F1, cambagem, ERS, arrefecimento e inclinação (no lugar da relação do câmbio, que é fixa). Asas: seguram o carro nas curvas, mas freiam na reta. Suspensão: como o carro passa nas zebras e responde nas curvas. Altura: perto do chão tem mais aderência, mas pode bater. Pressão: como o pneu esquenta. Relação: força na saída × velocidade na reta. O acerto ideal muda com a pista, o calor, o ar e a chuva.'],
     asaDianteira: ['Asa dianteira', 'É a asa na frente do carro. Mais asa: a frente gruda mais nas curvas, mas o carro fica nervoso atrás e perde um pouco na reta. Menos asa: a frente escapa nas curvas rápidas.'],
     asaTraseira: ['Asa traseira', 'É a asa de trás, a que mais segura o carro no chão. Mais asa: traseira firme nas curvas de alta, mas o carro fica lento na reta. Menos asa: mais velocidade final, traseira mais solta.'],
@@ -168,7 +168,7 @@
   function textoDoVeiculo(t) {
     if (!Kart.monoposto()) return t;
     return t
-      .replace('No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.', 'Se chover na corrida, dá para chamar o carro para o box e pôr pneu de chuva (a parada custa uns 24 segundos).')
+      .replace('No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.', 'Se chover na corrida, a equipe chama o carro sozinha para pôr pneu de chuva (a parada custa uns 24 segundos), desde que haja um jogo de chuva no estoque.')
       .replace('O kart não vem com mecânico: o acerto é seu.', 'O acerto é seu.')
       .replace(/\b(o|no|do|um) kart\b/g, (_, art) => `${art} carro`)
       .replace(/\bO kart\b/g, 'O carro')
@@ -301,7 +301,7 @@
     corrida: () => [
       { sel: '#tabela', titulo: 'Corrida ao vivo', texto: 'Posição, tempo da última volta (roxo é a melhor da corrida), posições ganhas ou perdidas e a distância para o líder. Você aparece destacado.' },
       { sel: '#btn-play', titulo: 'Pausar', texto: 'A corrida anda sozinha. Toque aqui para pausar e continuar quando quiser.' },
-      { sel: '#info-jogador', titulo: `Seu ${veic()}`, texto: 'Posição, de onde largou, quantas posições ganhou e o estado do pneu. Nos monopostos, aqui também ficam os botões de box.' },
+      { sel: '#info-jogador', titulo: `Seu ${veic()}`, texto: 'Posição, de onde largou, quantas posições ganhou e o estado do pneu.' },
       { sel: '#eventos', titulo: 'Narração', texto: 'Ultrapassagens, paradas, safety car e chuva aparecem aqui, volta a volta.' },
     ],
     resultado: () => [
@@ -2394,10 +2394,9 @@
         <div class="tabela-ajustada" id="tabela"></div>
       </section>
       <div class="coluna">
-        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${corrida && corrida.compostos ? '<div id="pneu-corrida"></div>' : ''}${Kart.monoposto() ? '<div id="box-f4"></div>' : ''}${corrida && corrida.regraCompostos ? '<div id="box-composto" class="box-composto"></div>' : ''}`)}
+        ${cartao(Kart.monoposto() ? 'Seu carro' : 'Seu kart', `<div id="info-jogador" class="tiles tiles-4"></div>${corrida && corrida.compostos ? '<div id="pneu-corrida"></div>' : ''}`)}
         ${cartao('Corrida', '<div class="eventos" id="eventos"></div>')}
       </div>
-      <div id="folha-box"></div>
     </div>`;
   }
 
@@ -2433,26 +2432,6 @@
       .map((e) => `<div class="ev-${e.tipo} ${e.carroId === 'jogador' ? 'ev-jogador' : ''}"><span class="v">V${e.volta}</span>${esc(e.texto)}</div>`).join('');
     const eu = corrida.carros.find((c) => c.jogador);
     const ganhou = eu.largada - eu.pos;
-    // F4: com chuva e pneu slick, o jogador pode chamar o carro para o box.
-    const boxF4 = document.getElementById('box-f4');
-    if (boxF4) {
-      boxF4.innerHTML = eu.fora || corrida.terminou ? ''
-        : eu.tipoPneu === 'chuva' ? (corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: chuva novo na próxima volta</button>`
-          : corrida.temJogo && corrida.temJogo('chuva') ? `<div class="linha">${chip(`${ic('pneu')}Pneu de chuva · ${Math.max(0, 100 - desgastePct(eu.uso, 'chuva'))}%`, 'chip-azul')}<button data-acao="box-chuva">${ic('pneu')}Box: chuva novo</button></div>`
-          : chip(`${ic('pneu')}Pneu de chuva`, 'chip-azul'))
-          : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: entra na próxima volta</button>`
-            : corrida.temJogo && !corrida.temJogo('chuva') ? `<button class="grande" disabled>${ic('pneu')}Sem pneu de chuva no estoque</button>`
-              : `<button class="grande ${corrida.molhado ? 'principal' : ''}" data-acao="box-chuva" ${corrida.molhado ? '' : 'disabled'}>${ic('pneu')}Box: pneu de chuva${corrida.molhado ? '' : ' (só com chuva)'}</button>`;
-    }
-    // F2 e F1: chamar o carro para o box (abre a janela "Box, box!": pneu e acerto, com a corrida parada).
-    const boxComp = document.getElementById('box-composto');
-    if (boxComp) {
-      boxComp.innerHTML = eu.fora || corrida.terminou ? ''
-        : eu.boxPedido ? `<button class="grande" disabled>${ic('radio')}Box pedido: ${Engine.PNEUS[eu.boxPedido].nome.toLowerCase()} na próxima volta</button>`
-          : corrida.boxJogador ? `<button class="grande" disabled>${ic('radio')}Box pedido: pneu de chuva na próxima volta</button>`
-            : `<button class="grande" data-acao="box-chamar">${ic('radio')}Chamar para o box</button>
-              <small class="fraco">${eu.usados.length < 2 ? 'Ainda falta a parada obrigatória.' : 'Pode parar quantas vezes quiser, enquanto houver jogo novo no estoque.'}</small>`;
-    }
     const indPneu = document.getElementById('pneu-corrida');
     if (indPneu) indPneu.innerHTML = eu.fora || corrida.terminou || corrida.molhado || !Engine.PNEUS[eu.pneu] ? '' : indicadorPneu(eu);
     const comp = corrida.compostos;
@@ -2463,106 +2442,37 @@
     avisosDaCorrida(eu);
   }
 
-  // ---------- Box, box! ----------
-  // A equipe chama o piloto: a corrida pára e aqui se escolhe o pneu da parada (o acerto do carro não muda no box).
-  // "Entrar nos boxes" pede a parada (entra na próxima volta); "Seguir na pista" fecha e a corrida continua.
-  const RADIO_BOX = {
-    pneu: 'Box, box! O pneu está no limite. Entra agora e escolhe o próximo jogo.',
-    obrigatoria: 'Box, box! Ainda falta a parada obrigatória e as voltas estão acabando.',
-    chuva: 'Box, box! Começou a chover: vem trocar para o pneu de chuva.',
-    manual: 'Você chamou o carro para o box. Escolha o pneu da parada.',
-  };
-  function pausarPelaTela() {
-    tela.pausado = true;
-    clearInterval(timer); timer = null;
-    const btn = document.getElementById('btn-play');
-    if (btn) btn.innerHTML = icone('play', 'ico-cheio');
-  }
-  // Composto sugerido: o mais rápido que ainda tem jogo novo e aguenta as voltas que faltam no ritmo de desgaste atual.
-  function sugestaoBox(eu) {
-    const restantes = Math.max(1, corrida.totalVoltas - corrida.volta);
-    const ritmo = Math.max(0.3, eu.idadePneu >= 2 ? eu.uso / eu.idadePneu : corrida.pista.desgaste);
-    const pendente = !!corrida.regraCompostos && eu.usados.length < 2;
-    const livres = Engine.ORDEM_PNEUS.filter((k) => corrida.jogosLivres(C.TIPO_DO_COMPOSTO[k]) > 0 && !(pendente && k === eu.pneu));
-    return livres.find((k) => (Engine.PNEUS[k].vida / ritmo) * 0.95 >= restantes) || livres[livres.length - 1] || null;
-  }
-  function abrirBox(motivo) {
-    if (!corrida || corrida.terminou || !corrida.regraCompostos || tela.box) return;
-    const eu = corrida.carros.find((c) => c.jogador);
-    if (!eu || eu.fora || eu.boxPedido) return;
-    const molhado = !!corrida.molhado;
-    if (molhado && corrida.jogosLivres('chuva') <= 0 && motivo !== 'manual') return;
-    tela.box = { motivo: molhado && motivo !== 'manual' ? 'chuva' : motivo, escolha: molhado ? 'chuva' : sugestaoBox(eu), pausadoAntes: !!tela.pausado };
-    pausarPelaTela();
-    desenharBox();
-  }
-  function desenharBox() {
-    const el = document.getElementById('folha-box');
-    if (!el || !tela.box) return;
-    const eu = corrida.carros.find((c) => c.jogador);
-    const molhado = !!corrida.molhado;
-    const ritmo = Math.max(0.3, eu.idadePneu >= 2 ? eu.uso / eu.idadePneu : corrida.pista.desgaste);
-    const restantes = Math.max(0, corrida.totalVoltas - corrida.volta);
-    const sug = molhado ? 'chuva' : sugestaoBox(eu);
-    const pendente = eu.usados.length < 2;
-    const opcoes = molhado ? ['chuva'] : Engine.ORDEM_PNEUS;
-    const botoes = opcoes.map((k) => {
-      const nome = k === 'chuva' ? 'Chuva' : Engine.PNEUS[k].nome, cor = k === 'chuva' ? '#3a8dff' : Engine.PNEUS[k].cor;
-      const n = corrida.jogosLivres(k === 'chuva' ? 'chuva' : C.TIPO_DO_COMPOSTO[k]);
-      const igual = !molhado && pendente && k === eu.pneu;
-      const voltas = k === 'chuva' ? '' : `<small>~${Math.floor(Engine.PNEUS[k].vida / ritmo)} voltas</small>`;
-      return `<button class="box-comp ${tela.box.escolha === k ? 'sel' : ''}" data-acao="box-escolher" data-id="${k}" ${n && !igual ? '' : 'disabled'}>
-        <span class="composto-bola mini" style="--cor:${cor}"></span><b>${nome}</b>${voltas}<small>${n ? `×${n}` : 'sem jogo'}${igual && n ? ' · repete' : ''}${k === sug && n ? ' · indicado' : ''}</small></button>`;
-    }).join('');
-    const faltando = restantes;
-    el.innerHTML = `<div class="folha-fundo folha-box-fundo"><div class="folha folha-box" role="dialog" aria-modal="true" aria-labelledby="box-titulo">
-      <span class="box-pre">${ic('radio')}Rádio da equipe · volta ${corrida.volta}/${corrida.totalVoltas}</span>
-      <h3 id="box-titulo">${tela.box.motivo === 'manual' ? 'Box' : 'BOX, BOX!'}</h3>
-      <p class="box-radio">“${RADIO_BOX[tela.box.motivo]}”</p>
-      ${molhado ? '' : indicadorPneu(eu)}
-      <span class="subtitulo">${molhado ? 'Pneu de chuva' : 'Escolha o pneu'}</span>
-      <div class="box-compostos ${molhado ? 'uma' : ''}">${botoes}</div>
-      <p class="fraco mini">${molhado ? '' : `Faltam ${faltando} voltas. ${pendente ? 'A parada obrigatória exige trocar de composto. ' : ''}`}A parada custa cerca de ${corrida.pista.perdaBox} s e o jogo novo sai do estoque.</p>
-      <div class="botoes-2"><button class="principal" data-acao="box-entrar" ${tela.box.escolha ? '' : 'disabled'}>${ic('pneu')}Entrar nos boxes</button><button data-acao="box-seguir">Seguir na pista</button></div>
-    </div></div>`;
-    travarFundo();
-  }
-  function fecharBox() {
-    const b = tela.box;
-    tela.box = null;
-    const el = document.getElementById('folha-box');
-    if (el) el.innerHTML = '';
-    travarFundo();
-    if (b && !b.pausadoAntes && corrida && !corrida.terminou) { tela.pausado = false; iniciarTimer(); }
-    atualizarCorrida();
-  }
-
   // Resumo do pneu no alto da corrida (a lista de pilotos é longa e o cartão completo fica lá embaixo).
   function chipPneuTopo() {
     const eu = corrida.carros.find((c) => c.jogador);
     if (!eu || eu.fora || corrida.terminou || !corrida.compostos || corrida.molhado || !Engine.PNEUS[eu.pneu]) return '';
     const e = estadoPneu(eu);
-    return `<span class="chip chip-pneu ${e.nivel}"><span class="composto-bola mini" style="--cor:${e.p.cor}"></span>${e.pct}%${e.nivel === 'critico' ? ' · BOX!' : ''}</span>`;
+    return `<span class="chip chip-pneu ${e.nivel}"><span class="composto-bola mini" style="--cor:${e.p.cor}"></span>${e.pct}%${e.box ? ' · BOX' : ''}</span>`;
   }
   const TRACO_COMPOSTO = { M: 'Mais rápido, mas gasta mais depressa.', Md: 'O meio-termo: dura um pouco mais.', D: 'Dura mais na pista, mas é mais lento.' };
   // Estado do pneu do jogador: quanto resta, quantas voltas ele ainda aguenta (no ritmo de desgaste que ele realmente tem,
-  // que já leva em conta a pista, o acerto e o ritmo) e se precisa parar nos boxes.
+  // que já leva em conta a pista, o acerto e o ritmo) e quando a equipe deve chamar o carro para a parada automática.
   function estadoPneu(eu) {
     const p = Engine.PNEUS[eu.pneu];
     const restantes = Math.max(0, corrida.totalVoltas - corrida.volta);
     const ritmo = Math.max(0.3, eu.idadePneu >= 2 ? eu.uso / eu.idadePneu : corrida.pista.desgaste);
     const pct = Math.max(0, Math.round(100 - (eu.uso / p.vida) * 100));
     const voltasPneu = Math.max(0, Math.floor((p.vida - eu.uso) / ritmo));
+    // A equipe chama o box quando o pneu passa de uma fração da vida (cerca de 82% a 97%), ou nas últimas voltas se ainda falta a parada obrigatória.
     const pendente = !!corrida.regraCompostos && eu.usados.length < 2;
+    const ateParar = Math.max(0, Math.floor((p.vida * (eu.limiteStint || 0.9) - eu.uso) / ritmo));
     const naoChega = voltasPneu < restantes;
-    let nivel = 'ok', msg = 'Pneu dá até o fim da corrida.';
-    if (corrida.sprint) { if (naoChega) { nivel = 'atencao'; msg = 'Sem parada na sprint: poupe o pneu até a bandeirada.'; } }
-    else if (eu.boxPedido) { nivel = 'atencao'; msg = 'Box pedido: o carro entra na próxima volta.'; }
-    else if (naoChega && voltasPneu <= 3) { nivel = 'critico'; msg = 'Pneu no limite: chame o box agora.'; }
-    else if (pendente && restantes <= 10) { nivel = 'critico'; msg = `Faltam ${restantes} voltas e a parada obrigatória ainda não foi feita. Chame o box!`; }
-    else if (pendente) { nivel = 'atencao'; msg = `Parada obrigatória pendente · o pneu aguenta cerca de ${voltasPneu} voltas.`; }
-    else if (naoChega) { nivel = 'atencao'; msg = `O pneu não chega ao fim: pare em até ${voltasPneu} voltas.`; }
-    return { p, pct, nivel, msg, voltasPneu };
+    const temJogo = !corrida.jogosLivres || Engine.ORDEM_PNEUS.some((k) => corrida.jogosLivres(C.TIPO_DO_COMPOSTO[k]) > 0);
+    let nivel = 'ok', msg = 'Pneu dá até o fim da corrida.', box = false;
+    if (corrida.sprint || !corrida.regraCompostos) { if (naoChega) { nivel = 'atencao'; msg = 'Sem parada nesta corrida: poupe o pneu até a bandeirada.'; } }
+    else if (!temJogo && (pendente || naoChega)) { nivel = 'atencao'; msg = 'Sem jogo novo no estoque: o pneu vai até o fim, e isso custa tempo.'; }
+    else if (pendente || naoChega) {
+      const quando = Math.min(ateParar, pendente ? Math.max(0, restantes - 4) : ateParar);
+      box = quando <= 1;
+      nivel = box ? 'critico' : 'atencao';
+      msg = box ? 'A equipe vai chamar o carro para o box agora.' : `A equipe chama o box em cerca de ${quando} voltas${pendente ? ' (parada obrigatória)' : ''}.`;
+    }
+    return { p, pct, nivel, msg, voltasPneu, box };
   }
   function indicadorPneu(eu) {
     const e = estadoPneu(eu);
@@ -2581,16 +2491,10 @@
     const sc = corrida.safetyCar > 0;
     if (sc && !memo.sc) aviso('Safety car na pista!', 'alerta');
     else if (!sc && memo.sc) aviso('Relargada!', 'bandeira');
-    else if (corrida.molhado && !memo.molhado) { aviso('Começou a chover!', 'chuva'); if (corrida.regraCompostos && eu.tipoPneu !== 'chuva' && corrida.jogosLivres && corrida.jogosLivres('chuva') > 0) abrirBox('chuva'); }
-    else if (!eu.fora && corrida.regraCompostos && !corrida.molhado && Engine.PNEUS[eu.pneu] && estadoPneu(eu).nivel === 'critico' && !memo.pneuCritico) {
-      memo.pneuCritico = true;
-      abrirBox(eu.usados.length < 2 && corrida.totalVoltas - corrida.volta <= 10 && estadoPneu(eu).voltasPneu > 3 ? 'obrigatoria' : 'pneu');
-    }
+    else if (corrida.molhado && !memo.molhado) aviso('Começou a chover!', 'chuva');
     else if (!eu.fora && eu.pos !== memo.pos) aviso(eu.pos < memo.pos ? `▲ Você subiu para P${eu.pos}` : `▼ Você caiu para P${eu.pos}`);
     const rival = estado.seguindo && corrida.carros.find((c) => c.id === estado.seguindo);
     if (rival && rival.fora && !memo.rivalFora) aviso(`${sigla(rival.piloto.nome)} está fora: ${statusFora(rival.motivoFora).toLowerCase()}`, 'estrela');
-    if (!eu.fora && corrida.compostos && Engine.PNEUS[eu.pneu] && eu.idadePneu <= 1) memo.pneuCritico = false;
-    if (memo.reabrirNaVolta && corrida.volta >= memo.reabrirNaVolta) { memo.pneuCritico = false; memo.reabrirNaVolta = null; }
     memo.pos = eu.pos;
     memo.molhado = !!corrida.molhado;
     memo.sc = sc;
@@ -3160,9 +3064,6 @@
         if (erro(r)) { salvar(); ir(telaDaFase()); if (r.f4) aviso('Bem-vindo à Fórmula 4! O carro é outro: asas, suspensão e box.'); else if (estado.fase === 'paddock') aviso(`Bem-vindo à ${C.campeonato(estado.campeonato).curto}!`); }
         break;
       }
-      case 'box-chuva':
-        if (corrida && !corrida.terminou) { corrida.boxJogador = true; atualizarCorrida(); }
-        break;
       case 'preparar':
         if (erro(C.prepararPiloto(estado, id))) { salvar(); render(); rolarPara('.cartao-preparacao', 'center'); aviso(`${C.PREPARACAO[id].nome}: teto +1.`, 'subir'); }
         break;
@@ -3301,28 +3202,6 @@
       case 'composto':
         if (erro(C.escolherComposto(estado, id))) { salvar(); render(); }
         break;
-      case 'box-chamar': abrirBox('manual'); break;
-      case 'box-escolher': if (tela.box) { tela.box.escolha = id; const y = document.querySelector('.folha-box'); const t = y ? y.scrollTop : 0; desenharBox(); const n = document.querySelector('.folha-box'); if (n) n.scrollTop = t; } break;
-      case 'box-entrar': {
-        const eu = corrida && corrida.carros.find((c) => c.jogador);
-        if (eu && tela.box && tela.box.escolha) {
-          if (tela.box.escolha === 'chuva') corrida.boxJogador = true; else eu.boxPedido = tela.box.escolha;
-          aviso('Box confirmado: o carro entra na próxima volta.', 'bandeira');
-        }
-        fecharBox();
-        break;
-      }
-      case 'box-seguir': {
-        const memo = tela.memoCorrida;
-        if (memo) memo.reabrirNaVolta = corrida.volta + 4;
-        fecharBox();
-        break;
-      }
-      case 'box-composto': {
-        const eu = corrida && corrida.carros.find((c) => c.jogador);
-        if (eu && !eu.fora && !corrida.terminou) { eu.boxPedido = id; atualizarCorrida(); }
-        break;
-      }
       case 'desfazer-grid':
         estado.fds.setup = { ...(estado.fds.setupQuali || estado.fds.setupCorrida) };
         estado.fds.pneuId = estado.fds.pneuCorrida;
