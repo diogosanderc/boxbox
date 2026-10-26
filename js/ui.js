@@ -1320,7 +1320,7 @@
     const atual = C.equipeBase(estado.equipeId);
     const nova = C.equipeBase(pr.equipe);
     const tipo = { fabrica: 'Piloto de fábrica', desconto: 'Vaga com desconto', furada: 'Vaga com desconto' }[pr.tipo];
-    return `<div class="item" style="border-left:4px solid ${nova.cor}">
+    return `<div class="item proposta" data-proposta="${pr.id}" style="border-left:4px solid ${nova.cor}">
       <div class="item-topo"><b>${esc(pr.nome)}</b>${chip(tipo)}</div>
       <div class="tiles">${tile('Kart', `${pr.materialPrometido} <span class="fraco">vs ${atual.material}</span>`)}${tile('Por etapa', pr.custoEtapa ? reais(pr.custoEtapa) : 'Grátis', 'dinheiro')}${tile('Multa', reais(pr.multa), 'aviso')}</div>
       ${pr.segundoPiloto ? chip(`${ic('alerta')}Segundo piloto`, 'chip-amarelo') : ''}
@@ -1332,7 +1332,7 @@
     const olheiros = estado.olheiros || [];
     return cartao('Olheiros', `
       ${olheiros.length ? `<div class="chips">${olheiros.map((o) => chip(esc(o.nome))).join('')}</div>` : '<p class="vazio">Ninguém importante hoje.</p>'}
-      ${estado.propostas.map(cartaoProposta).join('')}`, { ajuda: 'olheiros' });
+      ${estado.propostas.map(cartaoProposta).join('')}`, { ajuda: 'olheiros', classe: 'cartao-olheiros' });
   }
 
   const semAcento = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -1727,6 +1727,11 @@
     [/termina \d{4} em P|estreia na|disputa a /i, 'campeonato', '.grade'],
   ];
   function destinoNoticia(texto) {
+    // Proposta de outra equipe: leva até o cartão dela (nos olheiros, na aba Piloto).
+    if (/faz uma proposta/i.test(texto)) {
+      const pr = (estado.propostas || []).find((p) => texto.includes(p.nome));
+      return { aba: 'piloto', sel: pr ? `[data-proposta=${pr.id}]` : '.cartao-olheiros' };
+    }
     const d = DESTINOS_NOTICIA.find(([re]) => re.test(texto));
     return d ? { aba: d[1], sel: d[2] } : null;
   }
