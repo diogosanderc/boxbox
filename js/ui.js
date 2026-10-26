@@ -2701,9 +2701,20 @@
               <b>${esc(c.curto)}</b><span class="chips">${chip(id === r.campeonato ? `${ic('repetir')}Repetir` : `${ic('subir')}Subir`, id === r.campeonato ? '' : 'chip-dinheiro')}${chip(`${ic('carteira')}×${c.custo}`)}${c.regiao === 'eu' ? chip(`${ic('globo')}Europa`) : ''}</span></button>`;
           }).join('')}</div>`}
           ${r.aposentadoria ? `<p class="fraco">Aos ${C.IDADE_APOSENTADORIA} anos é hora de pendurar o capacete.</p>` : `${escolhaEquipeAno(escolha)}
-          <button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`}
+          ${botaoNovaTemporada()}`}
           ${C.podeEncerrar(estado) ? `<button class="${r.aposentadoria ? 'principal ' : ''}grande" data-acao="aposentar" data-confirmar="Confirmar: encerrar a carreira">${ic('trofeu')}Encerrar carreira</button>` : ''}`, { ajuda: 'temporada' })}
       </div>`;
+  }
+
+  // Sem o Premium, a próxima temporada só abre 24 h depois do fim da anterior (ou assistindo a um anúncio premiado).
+  function botaoNovaTemporada() {
+    const falta = C.esperaTemporada(estado);
+    if (!falta) return `<button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`;
+    const ate = Date.now() + falta;
+    const anuncio = BoxAnuncios.nativo || modoDev() ? '<button class="grande" data-acao="pular-espera">Assistir a um anúncio e começar agora</button>' : '';
+    return `<div class="espera-temporada"><div class="espera-topo">${ic('cadeado')}<b>Próxima temporada em</b><span class="espera-tempo" data-reabre="${ate}">${contagem(ate)}</span></div>
+      <p class="fraco mini">Sem o Premium, é uma temporada a cada 24 horas. Com o Premium você joga a qualquer hora.</p>
+      <button class="principal grande premium-trancado" data-acao="premium" data-motivo="Com o Premium não há espera entre as temporadas: você joga a qualquer hora.">${ic('cadeado')}Premium: jogar agora</button>${anuncio}</div>`;
   }
 
   // ---------- fim de temporada: suspense e resumo visual ----------
@@ -3296,7 +3307,15 @@
         render();
         rolarPara('[data-acao="nova-temporada"]', 'center');
         break;
+      case 'pular-espera':
+        if (!BoxAnuncios.nativo) { C.liberarEspera(estado); salvar(); render(); break; } // navegador (modo dev): sem anúncio
+        alvo.disabled = true;
+        BoxAnuncios.premiado().then((ok) => {
+          if (ok) { C.liberarEspera(estado); salvar(); render(); aviso('Temporada liberada!', 'certo'); } else { alvo.disabled = false; aviso('Anúncio indisponível agora. Tente de novo em instantes.'); }
+        });
+        break;
       case 'nova-temporada':
+        if (C.esperaTemporada(estado) > 0) { render(); break; }
         if (erro(C.proximaTemporada(estado, tela.proximo || estado.relatorio.opcoes[estado.relatorio.opcoes.length - 1], tela.proximaEquipe || estado.equipeId))) { salvar(); ir(telaDaFase()); }
         break;
     }

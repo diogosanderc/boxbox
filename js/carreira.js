@@ -41,6 +41,21 @@
   // A carreira inteira é grátis; o Premium só amplia o que dá para fazer nela.
   let premium = false;
   const definirPremium = (v) => { premium = !!v; };
+
+  // ---------- espera entre temporadas (quem não tem o Premium) ----------
+  // A temporada inteira é livre; ao terminar, a próxima só abre depois de 24 h. O Premium joga a qualquer hora.
+  // O relógio guardado nunca anda para trás: voltar a hora do aparelho não alonga nem encurta a espera.
+  const ESPERA_TEMPORADA_MS = 24 * 60 * 60 * 1000;
+  function relogio(estado, agora = Date.now()) {
+    estado.relogioMax = Math.max(estado.relogioMax || 0, agora);
+    return estado.relogioMax;
+  }
+  // Milissegundos que faltam para a próxima temporada abrir (0 = liberada ou Premium).
+  function esperaTemporada(estado, agora = Date.now()) {
+    if (premium || !estado.espera) return 0;
+    return Math.max(0, estado.espera.ate - relogio(estado, agora));
+  }
+  const liberarEspera = (estado) => { estado.espera = null; };
   const ehPremium = () => premium;
   const MAX_PATROCINIOS = 5;
   const PATROCINIOS_GRATIS = 2;
@@ -2061,6 +2076,7 @@
     const lista = equipesDaCategoria(estado);
     const custoMinimo = Math.round(lista[lista.length - 1].custoEtapa * camp.custo);
     estado.relatorio = rel;
+    estado.espera = { ate: relogio(estado) + ESPERA_TEMPORADA_MS };
     estado.temporadas.push({ ano: rel.ano, campeonato: rel.campeonato, pos: rel.pos, pontos: rel.pontos, idade: estado.piloto.idade - 1,
       dueloVenci: rel.duelo ? rel.duelo.corrida[0] > rel.duelo.corrida[1] : null });
     estado.ano += 1;
@@ -2248,7 +2264,7 @@
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
     campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
-    pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
+    esperaTemporada, liberarEspera, ESPERA_TEMPORADA_MS, pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
     classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, nomeDoPiloto, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };

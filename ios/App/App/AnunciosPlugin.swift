@@ -13,10 +13,14 @@ public class AnunciosPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "Anuncios"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "initAds", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "showInterstitialAd", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "showInterstitialAd", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showRewardedAd", returnType: CAPPluginReturnPromise)
     ]
 
     private var interstitialAd: InterstitialAd?
+    private var rewardedAd: RewardedAd?
+    private var chamadaPremiado: CAPPluginCall?
+    private var ganhouRecompensa = false
 
     // O formulário de consentimento do Google (UMP) é obrigatório pela política do AdMob antes de
     // pedir anúncios: ele decide se o jogador (Europa, Reino Unido, Suíça) precisa ver a mensagem.
@@ -78,5 +82,61 @@ public class AnunciosPlugin: CAPPlugin, CAPBridgedPlugin {
                 call.resolve()
             }
         }
+    }
+
+    // Anúncio premiado (pular a espera entre temporadas). Resolve com { rewarded: true } só se o jogador assistiu até o fim;
+    // se fechar antes, resolve com { rewarded: false }.
+    @objc func showRewardedAd(_ call: CAPPluginCall) {
+        guard let adId = call.getString("adId") else {
+            call.reject("adId é obrigatório")
+            return
+        }
+        let request = Request()
+        if call.getBool("npa") == true {
+            let extras = Extras()
+            extras.additionalParameters = ["npa": "1"]
+            request.register(extras)
+        }
+        RewardedAd.load(with: adId, request: request) { [weak self] ad, error in
+            guard let self = self else { return }
+            if let error = error {
+                call.reject("Falha ao carregar o anúncio: \(error.localizedDescription)")
+                return
+            }
+            guard let ad = ad else {
+                call.reject("Falha ao carregar o anúncio")
+                return
+            }
+            self.rewardedAd = ad
+            ad.fullScreenContentDelegate = self
+            DispatchQueue.main.async {
+                guard let vc = self.bridge?.viewController else {
+                    self.rewardedAd = nil
+                    call.reject("Sem tela para mostrar o anúncio")
+                    return
+                }
+                self.chamadaPremiado = call
+                self.ganhouRecompensa = false
+                ad.present(from: vc) {
+                    self.ganhouRecompensa = true
+                }
+            }
+        }
+    }
+}
+
+extension AnunciosPlugin: FullScreenContentDelegate {
+    public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        guard let call = chamadaPremiado else { return }
+        chamadaPremiado = nil
+        rewardedAd = nil
+        call.resolve(["rewarded": ganhouRecompensa])
+    }
+
+    public func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+        guard let call = chamadaPremiado else { return }
+        chamadaPremiado = nil
+        rewardedAd = nil
+        call.reject("Falha ao mostrar o anúncio: \(error.localizedDescription)")
     }
 }

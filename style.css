@@ -1586,3 +1586,7 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .dica-3d[data-alto="1"] .a-ader u { width: 92%; }
 .dica-3d[data-alto="0"] .a-vel u { width: 92%; }
 .dica-3d[data-alto="1"] .a-vel u { width: 44%; }
+
+.espera-temporada { display: grid; gap: 8px; padding: 12px; border-radius: 16px; background: var(--painel-2); border: 1px solid var(--borda); }
+.espera-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.espera-tempo { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 20px; color: var(--alerta); }

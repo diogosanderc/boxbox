@@ -3,6 +3,13 @@
   'use strict';
   if (typeof BoxI18n === 'undefined') return;
   BoxI18n.registrar({
+    "Próxima temporada em": "Next season in",
+    "Sem o Premium, é uma temporada a cada 24 horas. Com o Premium você joga a qualquer hora.": "Without Premium, you get one season every 24 hours. With Premium you can play any time.",
+    "Premium: jogar agora": "Premium: play now",
+    "Assistir a um anúncio e começar agora": "Watch an ad and start now",
+    "Temporada liberada!": "Season unlocked!",
+    "Anúncio indisponível agora. Tente de novo em instantes.": "No ad available right now. Try again shortly.",
+    "Com o Premium não há espera entre as temporadas: você joga a qualquer hora.": "With Premium there is no wait between seasons: you can play any time.",
     "Travada": "Twisty",
     "Mista": "Mixed",
     "Veloz": "Fast",
