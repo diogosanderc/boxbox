@@ -110,8 +110,8 @@
         return {
           asaTraseira: limitarK(asaT, 1, 9),
           asaDianteira: limitarK(asaT - 0.5 + (cond.tempPista - 30) / 15, 1, 9),
-          suspensao: limitarK(1 + 0.5 * tipo - (pista.zebras === 'altas' ? 0.6 : 0) + (pista.zebras === 'sem' ? 0.3 : 0) - (cond.molhado ? 0.8 : 0) + cond.borracha * 0.3, 0, 2),
-          altura: limitarK(1 - 0.4 * tipo + (cond.molhado ? 0.7 : 0) + (ondulada ? 0.4 : 0), 0, 2),
+          suspensao: limitarK(1 + 0.7 * tipo - (pista.zebras === 'altas' ? 0.6 : 0) + (pista.zebras === 'sem' ? 0.3 : 0) - (cond.molhado ? 0.8 : 0) + cond.borracha * 0.3, 0, 2),
+          altura: limitarK(1 - 0.6 * tipo + (cond.molhado ? 0.7 : 0) + (ondulada ? 0.4 : 0), 0, 2),
           pressao: limitarK(pneu === 'chuva' ? 25 : 23.5 - (cond.tempPista - 30) / 8, 19, 27),
           relacao: limitarK(1 + 0.7 * tipo - pista.altitude / 1500 - (cond.molhado ? 0.3 : 0), 0, 2),
         };
@@ -181,7 +181,7 @@
   // Diferencial: pista travada pede travado (tração na saída); veloz e chuva pedem mais aberto.
   const idealF2 = (pista, cond) => ({
     freio: limitarK(55.5 + Math.min(3, pista.grampos || 0) * 0.8 - (cond.molhado ? 2.5 : 0) + (cond.tempPista - 30) / 20, 50, 62),
-    diferencial: limitarK(1 - 0.6 * tipoNum(pista) - (cond.molhado ? 0.7 : 0), 0, 2),
+    diferencial: limitarK(1 - 0.8 * tipoNum(pista) - (cond.molhado ? 0.7 : 0), 0, 2),
     // Mapa do motor: a potência extra só rende onde há muito acelerador a fundo (Monza); em pista cheia de curvas lentas
     // (Mônaco) o mapa forte gasta e esquenta o motor sem render tempo. Calor e chuva pedem entrega mais suave.
     mapa: limitarK(0.25 + 1.6 * perfilEnergia(pista).demanda - (cond.molhado ? 0.5 : 0) - (cond.tempAr > 32 ? 0.3 : 0), 0, 2),
@@ -199,8 +199,8 @@
       pressao: limitarK(26 - (cond.tempPista - 30) / 8, 23, 29),
       camber: limitarK(-3 - 0.2 * t + (abrasivo ? 0.2 : 0) + (cond.tempPista - 30) / 80 + (cond.molhado ? 0.2 : 0), -3.5, -2.5),
       ers: limitarK(1 + 1.6 * (e.escassez - 0.5) - (cond.molhado ? 0.4 : 0), 0, 2),
-      arrefecimento: limitarK(0.7 + (pista.altitude || 0) / 1400 + (cond.tempAr - 24) / 12 + 0.6 * e.demanda - (cond.molhado ? 0.5 : 0), 0, 2),
-      rake: limitarK(1.2 - 0.9 * e.demanda, 0, 2),
+      arrefecimento: limitarK(0.7 + (pista.altitude || 0) / 1400 + (cond.tempAr - 24) / 18 + 0.5 * e.demanda - (cond.molhado ? 0.5 : 0), 0, 2),
+      rake: limitarK(1.8 - 1.6 * e.demanda, 0, 2),
     };
   };
   const F4 = MODELOS.f4;
