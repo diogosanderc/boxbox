@@ -206,10 +206,40 @@
     balao.querySelector('h3').textContent = titulo;
     balao.querySelector('p').textContent = texto;
     // Knobs do acerto: régua, condições e sintomas (dicas visuais), e um atalho para ver a peça no carro 3D.
-    const rica = BoxDicas.html(chave, Kart.dicaAjuste(chave));
-    balao.querySelector('[data-rica]').innerHTML = rica + (rica && document.querySelector('[data-carro3d]') ? `<button class="dica-ver" data-ver-carro="${chave}">Ver no carro</button>` : '');
+    // Na altura, o próprio carro 3D do jogo entra no balão e o ajuste vai e volta sozinho entre baixo e alto.
+    const kn = document.querySelector('.setup-knobs');
+    const host3d = chave === 'altura' && kn && Kart.monoposto() && !menosMovimento() ? BoxCarro3D.html('f1') : '';
+    const rica = BoxDicas.html(chave, Kart.dicaAjuste(chave), host3d);
+    balao.querySelector('[data-rica]').innerHTML = rica + (rica && !host3d && document.querySelector('[data-carro3d]') ? `<button class="dica-ver" data-ver-carro="${chave}">Ver no carro</button>` : '');
+    if (host3d) iniciar3dAltura(kn.dataset.acaoSetup);
     balao.hidden = false;
     balao.querySelector('[data-fechar]').focus();
+  }
+  // Altura no balão: o carro 3D sai da tela de acerto, vai para o balão e volta ao fechar.
+  let anim3d = null;
+  function iniciar3dAltura(acao) {
+    BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, 'f1');
+    BoxCarro3D.foco('altura');
+    let alto = false;
+    const passo = () => {
+      alto = !alto;
+      BoxCarro3D.previa('altura', alto ? 2 : 0);
+      const painel = balao.querySelector('.dica-3d');
+      if (painel) painel.dataset.alto = alto ? '1' : '0';
+    };
+    clearInterval(anim3d);
+    passo();
+    anim3d = setInterval(passo, 2400);
+  }
+  function fecharBalao() {
+    balao.hidden = true;
+    if (anim3d === null) return;
+    clearInterval(anim3d);
+    anim3d = null;
+    balao.querySelector('[data-rica]').innerHTML = '';
+    const kn = document.querySelector('.setup-knobs');
+    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
+    BoxCarro3D.foco('geral');
   }
   // Balão com várias falas (uma por parágrafo).
   function abrirBalaoFalas(titulo, falas) {
@@ -221,10 +251,10 @@
   }
   balao.addEventListener('click', (ev) => {
     const ver = ev.target.closest('[data-ver-carro]');
-    if (ver) { BoxCarro3D.foco(ver.dataset.verCarro); BoxCarro3D.soltar(); balao.hidden = true; return; }
-    if (ev.target === balao || ev.target.closest('[data-fechar]')) balao.hidden = true;
+    if (ver) { fecharBalao(); BoxCarro3D.foco(ver.dataset.verCarro); BoxCarro3D.soltar(); return; }
+    if (ev.target === balao || ev.target.closest('[data-fechar]')) fecharBalao();
   });
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') balao.hidden = true; });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fecharBalao(); });
 
   // ---------- "na pista": barra animada enquanto o treino ou a volta lançada acontece ----------
   const naPista = document.createElement('div');

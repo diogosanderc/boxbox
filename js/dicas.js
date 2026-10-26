@@ -210,13 +210,25 @@
     ]);
   }
 
+
+  // Altura com o carro 3D do jogo: o ajuste vai e volta sozinho entre baixo e alto (feito em ui.js), e a régua e as barras
+  // acompanham pelo atributo data-alto. host3d é a marcação do carro 3D (BoxCarro3D.html).
+  function visual3dAltura(host3d) {
+    const barra = (r, cls, cor) => `<div class="dica-barra ${cls}"><span>${esc(r)}</span><i><u style="background:${cor}"></u></i></div>`;
+    return `<div class="dica-sec">Onde o ajuste mexe</div>
+      <div class="dica-3d" data-alto="0">${host3d}
+        <div class="dica-3d-regua"><i></i><u></u><span class="dica-3d-baixo">Carro baixo · rente ao chão</span><span class="dica-3d-alto">Carro alto · longe do chão</span></div>
+        <div class="dica-barras">${barra('Aderência (efeito solo)', 'b-ader', BAR.ouro)}${barra('Risco de bater no chão', 'b-bate', BAR.vermelho)}</div></div>`;
+  }
+  const VISUAL3D = { altura: visual3dAltura };
+
   const VISUAL = { pressao: visualPressao, coroa: visualRelacao, relacao: visualRelacao, asaDianteira: visualAsa, asaTraseira: visualAsa, altura: visualAltura, suspensao: visualSuspensao, diferencial: visualDiferencial, freio: visualFreio, arrefecimento: visualArrefecimento };
 
   // dica: { sintomas: [valor baixo demais, valor alto demais], direcao: [o que fazer, o que fazer] } do modelo atual (ou null).
-  function html(chave, dica) {
+  function html(chave, dica, host3d) {
     const d = DICAS[chave];
     if (!d) return '';
-    const regua = VISUAL[chave] ? VISUAL[chave](chave) : `<div class="dica-sec">Onde fica o ponto</div>
+    const regua = host3d && VISUAL3D[chave] ? VISUAL3D[chave](host3d) : VISUAL[chave] ? VISUAL[chave](chave) : `<div class="dica-sec">Onde fica o ponto</div>
       <div class="dica-regua"><i></i></div>
       <div class="dica-extremos"><b>◄ ${esc(d.extremos[0])}</b><b>${esc(d.extremos[1])} ►</b></div>`;
     const quando = `<div class="dica-sec">Quando mexer</div><div class="dica-grade">${d.quando.map(([c, s]) => {

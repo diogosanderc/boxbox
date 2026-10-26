@@ -1557,3 +1557,18 @@ path.dica-vento { stroke: #8ab4ff; stroke-width: 1.6; stroke-linecap: round; fil
 path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: round; animation: dica-calor 1.4s ease-in-out infinite; }
 @keyframes dica-calor { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .dica-roda, path.dica-calor { animation: none; } }
+
+/* altura com o carro 3D no balão */
+.dica-3d { background: var(--painel-2); border: 1px solid var(--borda); border-radius: 16px; padding: 10px; display: grid; gap: 8px; }
+.dica-3d .carro3d { margin-bottom: 0; height: 200px; }
+.dica-3d-regua { position: relative; height: 38px; }
+.dica-3d-regua i { position: absolute; left: 4px; right: 4px; top: 6px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, #8ab4ff, #ffb020); }
+.dica-3d-regua u { position: absolute; top: 0; left: 4%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.25); transition: left 1.4s cubic-bezier(.4,0,.2,1); }
+.dica-3d[data-alto="1"] .dica-3d-regua u { left: 96%; }
+.dica-3d-regua span { position: absolute; top: 20px; font-size: 12px; color: var(--fraco); transition: color .4s; }
+.dica-3d-baixo { left: 0; } .dica-3d-alto { right: 0; }
+.dica-3d[data-alto="0"] .dica-3d-baixo, .dica-3d[data-alto="1"] .dica-3d-alto { color: var(--texto); font-weight: 700; }
+.dica-3d .dica-barra u { width: 92%; animation: none; transition: width 1.4s cubic-bezier(.4,0,.2,1); }
+.dica-3d[data-alto="1"] .b-ader u { width: 38%; }
+.dica-3d[data-alto="0"] .b-bate u { width: 84%; }
+.dica-3d[data-alto="1"] .b-bate u { width: 8%; }

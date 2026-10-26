@@ -54,6 +54,8 @@
     "entradas de ar grandes": "large air intakes",
     "Temperatura do motor": "Engine temperature",
     "movimento": "movement",
+    "Carro baixo · rente ao chão": "Low car · close to the ground",
+    "Carro alto · longe do chão": "High car · far from the ground",
     "Onde fica o ponto": "Where the sweet spot is",
     "Quando mexer": "When to change it",
     "O piloto reclama de…": "The driver complains about…",
