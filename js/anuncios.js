@@ -5,9 +5,9 @@
   // Bloco intersticial do Superlicença no AdMob (o App ID fica no Info.plist, GADApplicationIdentifier).
   // Para testar sem gerar impressão real, dá para usar o bloco de teste do Google: ca-app-pub-3940256099942544/4411468910
   const ID_INTERSTICIAL_IOS = 'ca-app-pub-9207064721204036/9790838410';
-  // Bloco de anúncio PREMIADO (para pular a espera entre temporadas). Troque pelo ID do bloco "Premiado" criado no AdMob;
-  // este é o bloco de teste do Google (mostra anúncio de teste e não gera receita).
-  const ID_PREMIADO_IOS = 'ca-app-pub-3940256099942544/1712485313';
+  // Bloco de anúncio PREMIADO (para pular a espera entre temporadas), superlicenca_premiada no AdMob.
+  // Para testar sem gerar impressão real, dá para usar o bloco de teste do Google: ca-app-pub-3940256099942544/1712485313
+  const ID_PREMIADO_IOS = 'ca-app-pub-9207064721204036/6479567763';
   const CORRIDAS_ENTRE_ANUNCIOS = 3;
 
   const cap = raiz.Capacitor;
