@@ -150,7 +150,7 @@ pela App Store, produto `com.diogosander.superlicenca.premium` (R$ 9,90 no Brasi
 - **anotações no caderno** depois de cada corrida;
 - **equipe de box até 3/3** nos monopostos (oficina): pit stop alguns centésimos mais rápido, mais regular e com
   menos chance de dar problema (custa dinheiro a cada nível).
-- **sem anúncios**: sem o Premium, aparece um anúncio de tela cheia (AdMob, não personalizado) a cada 2 corridas,
+- **sem anúncios**: sem o Premium, aparece um anúncio de tela cheia (AdMob, não personalizado) a cada 3 corridas,
   sempre ao voltar para o paddock, nunca no meio do fim de semana (`js/anuncios.js` e `AnunciosPlugin.swift`).
   App ID do AdMob `ca-app-pub-9207064721204036~9459665923` e bloco intersticial `ca-app-pub-9207064721204036/9790838410`.
 

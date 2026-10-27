@@ -1,5 +1,5 @@
 // Anúncios de tela cheia (AdMob) para quem não tem o Premium, como no GOLAÇO:
-// um a cada 2 corridas, sempre depois do resultado (ao voltar para o paddock), nunca no meio do fim de semana.
+// um a cada 3 corridas, sempre depois do resultado (ao voltar para o paddock), nunca no meio do fim de semana.
 // No navegador não há anúncio. O plugin nativo é ios/App/App/AnunciosPlugin.swift.
 (function (raiz) {
   // Bloco intersticial do Superlicença no AdMob (o App ID fica no Info.plist, GADApplicationIdentifier).
@@ -8,7 +8,7 @@
   // Bloco de anúncio PREMIADO (para pular a espera entre temporadas), superlicenca_premiada no AdMob.
   // Para testar sem gerar impressão real, dá para usar o bloco de teste do Google: ca-app-pub-3940256099942544/1712485313
   const ID_PREMIADO_IOS = 'ca-app-pub-9207064721204036/6479567763';
-  const CORRIDAS_ENTRE_ANUNCIOS = 2;
+  const CORRIDAS_ENTRE_ANUNCIOS = 3;
 
   const cap = raiz.Capacitor;
   const nativo = !!(cap && cap.isNativePlatform && cap.isNativePlatform());

@@ -1,4 +1,4 @@
-// Anúncios: um a cada 2 corridas, nunca para quem tem o Premium (plugin nativo de mentira).
+// Anúncios: um a cada 3 corridas, nunca para quem tem o Premium (plugin nativo de mentira).
 const test = require('node:test');
 const assert = require('node:assert');
 
@@ -17,11 +17,11 @@ function abrirApp(falhar = false) {
   return { A: globalThis.BoxAnuncios, chamadas };
 }
 
-test('um anúncio a cada 2 corridas, não personalizado', async () => {
+test('um anúncio a cada 3 corridas, não personalizado', async () => {
   const { A, chamadas } = abrirApp();
   const mostrados = [];
   for (let i = 0; i < 6; i++) mostrados.push(await A.depoisDaCorrida(false));
-  assert.deepStrictEqual(mostrados, [false, true, false, true, false, true]);
+  assert.deepStrictEqual(mostrados, [false, false, true, false, false, true]);
   assert.ok(chamadas.filter((c) => c.adId).every((c) => c.npa === true));
 });
 
