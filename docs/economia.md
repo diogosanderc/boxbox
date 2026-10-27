@@ -23,7 +23,7 @@ motorsportmagazine). Tratamos tudo como **ordem de grandeza realista**, não com
 
 ## Itens
 
-- **Caixa inicial no kart:** US$ 10–19 mil (média ~US$ 15 mil), conforme a equipe.
+- **Caixa inicial no kart:** US$ 13–24 mil (média ~US$ 19 mil), conforme a equipe.
 - **jogo de pneus (4):** US$ 300 no regional, US$ 1.650 na F4, US$ 4.800 na F3, US$ 10.800 na F2 (≈US$ 2.700 cada pneu), US$ 12.000 na F1.
 - **Mecânico (fim de semana, kart regional):** iniciante US$ 400, experiente US$ 800, profissional US$ 2.000
   (sobe com a categoria até 6×; hora extra de US$ 300 / 800).
