@@ -1248,7 +1248,7 @@
     const podeNormal = estado.dinheiro >= normal;
     return `<div class="retifica">
       <b>${ic('pare')}Motor engripado</b>
-      <p class="fraco">Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa.</p>
+      <p class="fraco">Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa. Quanto mais gasto o motor, mais cara a retífica.</p>
       <button class="compra principal" data-acao="retificar" data-tipo="expressa" data-confirmar="Confirmar: −${reais(expressa)}" ${podeExpressa ? '' : 'disabled'}><b>Retífica expressa</b><span>−${reais(expressa)} · corre esta etapa</span></button>
       <button class="compra" data-acao="retificar" data-tipo="normal" data-confirmar="Confirmar: −${reais(normal)}" ${podeNormal ? '' : 'disabled'}><b>Retífica normal</b><span>−${reais(normal)} · fica fora desta etapa</span></button>
       ${podeNormal ? '' : '<button class="grande" data-acao="pular-etapa" data-confirmar="Confirmar: ficar fora">Ficar fora da etapa</button>'}

@@ -316,7 +316,7 @@
     "Ver pista": "View track",
     "Retas, curvas, zebras e asfalto": "Straights, corners, kerbs and asphalt",
     "Motor engripado": "Engine seized",
-    "Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa.": "You cannot race without a rebuild. The express rebuild gets the engine ready for this round; the standard one is cheaper, but the driver misses this round.",
+    "Sem retífica não dá para correr. A expressa deixa o motor pronto para esta etapa; a normal é mais barata, mas o piloto fica fora desta etapa. Quanto mais gasto o motor, mais cara a retífica.": "You cannot race without a rebuild. The express rebuild gets the engine ready for this round; the standard one is cheaper, but the driver misses this round. The more worn the engine, the more the rebuild costs.",
     "Retífica expressa": "Express rebuild",
     "−{4} · corre esta etapa": "−{4} · race this round",
     "Retífica normal": "Standard rebuild",

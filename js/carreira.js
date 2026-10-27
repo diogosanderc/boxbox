@@ -900,7 +900,12 @@
   }
 
   const precoPneu = (estado, tipo) => Math.round(Kart.PNEUS_KART[tipo].preco * custoPneu(estado));
-  const precoRetifica = (estado, tipo) => Math.round(CUSTO_RETIFICA[tipo] * campeonato(estado.campeonato).custo);
+  // A retífica também sobe com o desgaste: o motor que engripou depois de muitas horas sem revisão está mais danificado.
+  // Preço de referência na hora da revisão (~2,6 h), cerca de 1,3 vezes isso no limite (3,5 h) e mais que o dobro bem depois dele.
+  const precoRetifica = (estado, tipo) => {
+    const uso = Math.min(1.6, Math.max(0, estado.motorHoras || 0) / HORAS_REVISAO);
+    return Math.round(CUSTO_RETIFICA[tipo] * campeonato(estado.campeonato).custo * (0.7 + 0.9 * Math.pow(uso, 1.5)) / 10) * 10;
+  };
 
   // Conserta o motor engripado. Expressa: fica pronto para esta etapa. Normal: o motor fica na oficina e o piloto perde a etapa.
   function retificarMotor(estado, tipo) {
