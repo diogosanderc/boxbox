@@ -1035,6 +1035,9 @@
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     return 0.299 * r + 0.587 * g + 0.114 * b > 160;
   }
+  // Capacete do piloto: bolinha (ou avatar) na cor escolhida na Garagem, nas telas em que ele aparece.
+  function capaceteMini() { const c = coresPiloto().capacete; return `<i class="capa-mini" style="background:${c}" aria-hidden="true"></i>`; }
+  function avatarCapacete(extra = '') { const c = coresPiloto().capacete; return `<span class="avatar avatar-fim ${corClara(c) ? 'avatar-claro' : ''} ${extra}" style="background:${c}" aria-hidden="true">${esc(estado.piloto.nome.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase())}</span>`; }
 
   const kmil = (x) => (Math.abs(x) >= 1e6 ? `${(x / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : `${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`);
 
@@ -2461,7 +2464,7 @@
         ${ordem.map((q, i) => {
           const eqId = q.id === 'jogador' ? estado.equipeId : estado.rivais.find((r) => r.id === q.id).equipe;
           const eq = C.equipeBase(eqId);
-          return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}</td>
+          return `<tr class="${q.id === 'jogador' ? 'jogador' : ''}"><td>${i + 1}</td><td class="nome"><span class="cor" style="background:${eq.cor}"></span>${esc(C.nomeDe(estado, q.id))}${q.id === 'jogador' ? capaceteMini() : ''}</td>
             <td class="num opc">${tempoVolta(q.tempo)}</td><td class="num">${q.tempo > pole ? '+' + (q.tempo - pole).toFixed(3) : ''}</td></tr>`;
         }).join('')}</table></div>`)}
     </div>`;
@@ -2515,7 +2518,7 @@
       if (corrida.terminou && !c.fora) dir += `<i class="bandeirinha" style="--d:${Math.min(3.2, 0.2 + Math.max(0, c.tempo - lider.tempo) * 0.09).toFixed(2)}s" aria-label="Chegou"></i>`;
       return `<div class="vivo-linha ${c.jogador ? 'jogador' : ''} ${c.fora ? 'fora' : ''} ${estado.seguindo === c.id ? 'seguido' : ''}">
         <b class="vivo-pos">${c.pos}</b><i class="camp-cor" style="background:${c.equipe.cor}"></i>
-        <b class="vivo-sigla">${sigla(c.piloto.nome)}</b>
+        <b class="vivo-sigla" ${c.jogador ? `style="background:${coresPiloto().capacete};color:${corClara(coresPiloto().capacete) ? '#111' : '#fff'}"` : ''}>${sigla(c.piloto.nome)}</b>
         <span class="vivo-nome">${esc(c.piloto.nome)}</span>
         ${bolaPneu(c)}<span class="vivo-tempo ${c.ultimaVolta && c.ultimaVolta === melhorDaCorrida ? 'roxo' : ''}">${c.fora || !c.ultimaVolta ? '' : tempoVolta(c.ultimaVolta)}</span>
         <span class="vivo-ganho ${ganho > 0 ? 'dinheiro' : 'negativo'}">${ganho > 0 ? '▲' + ganho : ganho < 0 ? '▼' + -ganho : ''}</span>
@@ -2647,7 +2650,7 @@
       </div>
       ${cartao('Resultado', `<div class="tabela-ajustada"><table><tr><th>Pos</th><th>Piloto</th><th class="num">Dif.</th><th class="num">Pts</th></tr>
         ${fds.classificacao.map((x) => `<tr class="${x.id === 'jogador' ? 'jogador' : ''} ${x.fora ? 'fora' : ''}">
-          <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}${x.pole ? ` <span class="marca-pv" title="Pole">P</span>` : ''}${x.voltaRapida ? ` <span class="marca-pv vr" title="Volta mais rápida">VR</span>` : ''}</td>
+          <td>${x.fora ? 'NC' : x.pos}</td><td class="nome"><span class="cor" style="background:${C.equipeBase(x.equipe).cor}"></span>${esc(C.nomeDe(estado, x.id))}${x.id === 'jogador' ? capaceteMini() : ''}${x.pole ? ` <span class="marca-pv" title="Pole">P</span>` : ''}${x.voltaRapida ? ` <span class="marca-pv vr" title="Volta mais rápida">VR</span>` : ''}</td>
           <td class="num">${x.fora ? 'Fora' : x.pos === 1 ? ic('bandeira') : '+' + x.dif.toFixed(1)}</td><td class="num"><b>${x.pontos || ''}</b></td></tr>`).join('')}
         </table></div>`)}
     </div>`;
@@ -2825,7 +2828,7 @@
         <section class="fim-hero ${r.pos === 1 ? 'campeao' : r.pos <= 3 ? 'podio' : ''}">
           ${r.pos === 1 ? `<div class="confete" aria-hidden="true">${confete(32)}</div>` : ''}
           <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
-          <span class="fim-voce">Você terminou em</span>
+          ${avatarCapacete()}<span class="fim-voce">Você terminou em</span>
           <b class="fim-pos">${r.pos <= 3 ? icone('trofeu', `medalha-${r.pos}`) : ''}P<span data-contagem>${menosMovimento() ? r.pos : 20}</span></b>
           <span class="fim-frase">${frase}</span>
           ${r.pos > 1 ? `<span class="fim-campeao">Campeão: ${esc(r.campeao)}</span>` : ''}
@@ -2879,7 +2882,7 @@
     app.innerHTML = `<section class="fim-hero campeao revelado superlicenca">
         <div class="confete" aria-hidden="true">${confete(32)}</div>
         <span class="campeao-ano">Superlicença conquistada</span>
-        <span class="fim-voce">${esc(estado.piloto.nome)}, ${f.idade} anos</span>
+        ${avatarCapacete()}<span class="fim-voce">${esc(estado.piloto.nome)}, ${f.idade} anos</span>
         <b class="fim-pos">F1</b>
         <span class="fim-frase">Você chegou à Fórmula 1</span>
         <span class="fim-campeao">Piloto titular da ${esc(f.equipe)} em ${f.ano}</span>
@@ -2898,7 +2901,7 @@
         ${titulosF1 ? `<div class="confete" aria-hidden="true">${confete(24)}</div>` : ''}
         <span class="campeao-ano">Galeria da fama</span>
         ${titulosF1 ? `<div class="galeria-trofeu">${BoxTrofeu3D.html()}</div>` : ''}
-        <span class="fim-voce">${esc(g.nome)} · ${g.temporadas} temporadas · aposentado aos ${g.idade}</span>
+        ${avatarCapacete()}<span class="fim-voce">${esc(g.nome)} · ${g.temporadas} temporadas · aposentado aos ${g.idade}</span>
         <b class="fim-pos">${titulosF1 ? `${titulosF1}×` : g.titulos.length}</b>
         <span class="fim-frase">${frase}</span>
       </section>
@@ -2964,7 +2967,7 @@
       const eu = x.id === 'jogador', eq = C.equipeBase(x.equipe);
       return `<div class="tm-lugar ${classe} ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
         <b class="tm-pos">${i + 1}º</b>
-        <span class="tm-nome">${esc(curto(x.nome))}</span>
+        <span class="tm-nome">${esc(curto(x.nome))}${eu ? capaceteMini() : ""}</span>
         <span class="tm-equipe"><i></i><em>${esc(eq ? eq.nome : '')}</em></span>
       </div>`;
     };

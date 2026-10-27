@@ -1707,3 +1707,7 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .gar-cor { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: var(--c); border: 2px solid rgba(255, 255, 255, 0.18); }
 .gar-cor.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 12px var(--c); transform: scale(1.08); }
 .gar-acoes { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-top: 12px; }
+
+/* Capacete do piloto nas tabelas e nas telas de fim de temporada */
+.capa-mini { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: 1px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.avatar-fim { width: 40px; height: 40px; margin: 2px auto 4px; font-size: 14px; }
