@@ -267,9 +267,11 @@
     RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
     CARROCERIA: [4, 27, 30, 20],
     // flaps: os elementos de trás da asa dianteira e o elemento de cima da asa traseira (sem as placas laterais)
-    partes: [{ id: 'asaF', no: 22, teste: (x, y, z) => z < 3.22 && Math.abs(x) < 0.8 }, { id: 'asaT', no: 63, teste: (x, y, z) => y > 0.66 && Math.abs(x) < 0.47 }],
-    pintar(m, cor, cor2) {
-      const PNEU = hex('#13161c'), CARB = hex('#232c3d'), DETALHE = hex(cor2 || '#2b3550');
+    partes: [{ id: 'asaF', no: 22, teste: (x, y, z) => z < 3.22 && Math.abs(x) < 0.8 }, { id: 'asaT', no: 63, teste: (x, y, z) => y > 0.66 && Math.abs(x) < 0.47 },
+      // halo: a parte alta e da frente da cobertura (acima da borda do cockpit)
+      { id: 'halo', no: 20, teste: (x, y, z) => z > 1.3 && y > 0.58 }],
+    pintar(m, cor, ex = {}) {
+      const PNEU = hex('#13161c'), CARB = hex('#232c3d'), DETALHE = hex(ex.asas || '#2b3550');
       for (const n of m.nos) {
         if (n.malha == null) continue;
         const orig = m.malhas[n.malha][0].cor;
@@ -278,16 +280,18 @@
         else if (this.RODAS[n.i]) n.cor = PNEU;
         else if (claro(orig)) n.cor = CARB;
       }
+      if (m.partes.halo != null) { m.nos[m.partes.halo].cor = hex(ex.halo || cor); m.nos[m.partes.halo].mr = [0.3, 0.35]; }
       // nós-raiz que não são rodas: sobem e descem juntos com a altura e balançam com a suspensão
       const tem = (i) => !!this.RODAS[i] || m.nos[i].filhos.some(tem);
       let n = m.nos[m.raizes[0]];
       while (n.filhos.length === 1) n = m.nos[n.filhos[0]];
       this.corpo = n.filhos.filter((c) => !tem(c));
     },
-    // corpo e detalhes (as duas asas) com as cores do jogador
-    cores(m, cor, cor2) {
+    // corpo, asas e halo com as cores do jogador (halo sem cor própria segue o corpo)
+    cores(m, cor, ex = {}) {
       for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor);
-      for (const i of [22, 63, m.partes.asaF, m.partes.asaT]) if (m.nos[i]) m.nos[i].cor = hex(cor2 || '#2b3550');
+      for (const i of [22, 63, m.partes.asaF, m.partes.asaT]) if (m.nos[i]) m.nos[i].cor = hex(ex.asas || '#2b3550');
+      if (m.partes.halo != null) m.nos[m.partes.halo].cor = hex(ex.halo || cor);
     },
     iniciarAng(al) { return { asaF: (al.asaDianteira - 5) * 4 * deg, asaT: (al.asaTraseira - 5) * 4.5 * deg, fRel: 0, fMapa: 0, fArr: 0, rake: al.rake == null ? 1 : al.rake, g: { 6: 0, 33: 0, 83: 0, 89: 0 }, y: (al.altura - 1) * 0.075, psi: al.pressao, camb: al.camber == null ? -3 : al.camber }; },
     aplicar(m, t, dt, al, a, foco) {
@@ -385,8 +389,8 @@
       carburacao: { yaw: -1.2, pitch: 0.35, dist: 170, t: [-40, 25, -195] },
       caster: { yaw: 0.6, pitch: 0.3, dist: 150, t: [-74, 22, -72] },
     },
-    pintar(m, cor, cor2) {
-      const QUADRO = hex('#3b4357'), PNEU = hex('#14171d'), MOTOR = hex('#9aa3b5'), BANCO = hex(cor2 || '#1b2030');
+    pintar(m, cor, ex = {}) {
+      const QUADRO = hex('#3b4357'), PNEU = hex('#14171d'), MOTOR = hex('#9aa3b5'), BANCO = hex(ex.asas || '#1b2030');
       for (const n of m.nos) {
         if (n.malha == null) continue;
         if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.2, 0.4]; }
@@ -397,9 +401,9 @@
         else { n.cor = QUADRO; n.mr = [0.6, 0.4]; }
       }
     },
-    cores(m, cor, cor2) {
+    cores(m, cor, ex = {}) {
       for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor);
-      for (const i of this.BANCO) if (m.nos[i]) m.nos[i].cor = hex(cor2 || '#1b2030');
+      for (const i of this.BANCO) if (m.nos[i]) m.nos[i].cor = hex(ex.asas || '#1b2030');
     },
     iniciarAng(al) { return { psi: al.pressao, bt: al.bitolaTraseira - 1, bf: al.bitola - 1, banco: al.alturaBanco - 1, caster: al.caster, coroa: al.coroa, carb: al.carburacao, fCaster: 0, fCoroa: 0, fCarb: 0, giro: 0 }; },
     aplicar(m, t, dt, al, a, foco) {
@@ -520,24 +524,26 @@
     iniciar();
   }
   // Depois de desenhar a tela: coloca o canvas no espaço e liga o carro ao acerto atual.
-  function ligar(raiz, setup, cor, tipo, cor2) {
+  function ligar(raiz, setup, cor, tipo, extra) {
     const host = raiz.querySelector('[data-carro3d]');
     if (!host) { S.host = null; return; }
     if (!suporta() || !MODELOS[tipo || 'f1']) return;
     tipo = tipo || 'f1';
     if (tipo !== S.tipo) { S.tipo = tipo; S.cam = null; S.foco = 'geral'; S.alvo = {}; S.arrasto = 0; }
     S.host = host;
-    const corNova = (cor && cor !== S.cor) || (cor2 !== undefined && (cor2 || null) !== (S.cor2 || null));
+    // extra: { asas, halo } (asas = banco no kart); omitido, mantém o anterior
+    const extraNovo = extra !== undefined && JSON.stringify(extra || {}) !== JSON.stringify(S.extra || {});
+    const corNova = (cor && cor !== S.cor) || extraNovo;
     if (cor) S.cor = cor;
-    if (cor2 !== undefined) S.cor2 = cor2 || null;
+    if (extra !== undefined) S.extra = extra || {};
     if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) };
     if (!S.cam) { const g = def().focos.geral; S.cam = { yaw: g.yaw, pitch: g.pitch, dist: g.dist, t: g.t.slice() }; }
     const ent = S.mods[tipo] || (S.mods[tipo] = { modelo: null, carregando: false, ang: null });
-    if (ent.modelo) { if (corNova) def().cores(ent.modelo, S.cor, S.cor2); mostrar(host); return; }
+    if (ent.modelo) { if (corNova) def().cores(ent.modelo, S.cor, S.extra || {}); mostrar(host); return; }
     if (ent.carregando) return;
     ent.carregando = true;
     carregarModelo(S.gl, def()).then((m) => {
-      ent.modelo = m; ent.carregando = false; def().pintar(m, S.cor, S.cor2); ent.ang = def().iniciarAng(S.alvo);
+      ent.modelo = m; ent.carregando = false; def().pintar(m, S.cor, S.extra || {}); ent.ang = def().iniciarAng(S.alvo);
       if (S.host && S.host.isConnected && S.tipo === tipo) mostrar(S.host);
     }).catch(() => { S.erro = true; ent.carregando = false; if (S.host) S.host.remove(); });
   }

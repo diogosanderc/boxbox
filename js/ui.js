@@ -220,6 +220,7 @@
   let anim3d = null;
   const tipo3d = () => (Kart.monoposto() ? 'f1' : 'kart');
   const coresPiloto = () => C.coresDoPiloto(estado);
+  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo });
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
@@ -227,7 +228,7 @@
   // Cada ajuste usa a câmera de mesmo nome (a mesma de quando o jogador mexe no knob), salvo os listados acima.
   const cena3d = (chave) => CENA3D[chave] || { foco: chave, periodo: 3200 };
   function iniciar3d(chave, acao) {
-    BoxCarro3D.ligar(balao, setupDaAcao(acao), coresPiloto().carro, tipo3d(), coresPiloto().detalhe);
+    BoxCarro3D.ligar(balao, setupDaAcao(acao), coresPiloto().carro, tipo3d(), extraCores());
     BoxCarro3D.modoDica(true);
     BoxCarro3D.foco(cena3d(chave).foco);
     const a = Kart.AJUSTES[chave];
@@ -252,7 +253,7 @@
     BoxCarro3D.modoDica(false);
     balao.querySelector('[data-rica]').innerHTML = '';
     const kn = document.querySelector('.setup-knobs');
-    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), coresPiloto().carro, tipo3d(), coresPiloto().detalhe);
+    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), coresPiloto().carro, tipo3d(), extraCores());
     BoxCarro3D.foco('geral');
   }
   // Balão com várias falas (uma por parágrafo).
@@ -658,7 +659,7 @@
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     const knobs = app.querySelector('.setup-knobs');
-    if (knobs) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), coresPiloto().carro, Kart.monoposto() ? 'f1' : 'kart', coresPiloto().detalhe);
+    if (knobs) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), coresPiloto().carro, Kart.monoposto() ? 'f1' : 'kart', extraCores());
     else if (app.querySelector('.garagem [data-carro3d]')) ligarGaragem();
     deslizarSegmentos();
     talvezTutorial();
@@ -1730,7 +1731,7 @@
     const salvo = JSON.stringify(atual) === JSON.stringify(C.coresDoPiloto(estado));
     return cartao('Garagem', `${BoxCarro3D.html(tipo3d())}
       <div class="gar-capacete"><span class="avatar ${corClara(atual.capacete) ? 'avatar-claro' : ''}" data-gar-avatar style="background:${atual.capacete}" aria-hidden="true">${esc(iniciais)}</span><span class="fraco">Capacete e carro do ${esc(estado.piloto.nome.split(' ')[0])}</span>${BoxPremium.ativo ? '' : `<span class="chip">${ic('cadeado')}Premium</span>`}</div>
-      ${linha('carro', 'Carro')}${linha('detalhe', 'Detalhes')}${linha('capacete', 'Capacete')}
+      ${linha('carro', 'Carro')}${linha('detalhe', Kart.monoposto() ? 'Asas' : 'Banco')}${Kart.monoposto() ? linha('halo', 'Halo') : ''}${linha('capacete', 'Capacete')}
       <div class="gar-acoes"><button class="grande" data-acao="garagem-padrao">Cor da equipe</button>
         <button class="principal grande" data-acao="garagem-salvar" ${salvo ? 'disabled' : ''}>${BoxPremium.ativo ? 'Salvar cores' : `${ic('cadeado')}Salvar · Premium`}</button></div>`, { classe: 'cartao-garagem garagem' });
   }
@@ -1738,7 +1739,7 @@
     const g = tela.garagem || C.coresDoPiloto(estado);
     const setup = (estado.fds && estado.fds.setup) || (estado.ultimoFds && estado.ultimoFds.setup) || Kart.setupPadrao();
     BoxCarro3D.modoDica(false);
-    BoxCarro3D.ligar(app, setup, g.carro, tipo3d(), g.detalhe || null);
+    BoxCarro3D.ligar(app, setup, g.carro, tipo3d(), extraCores(g));
     BoxCarro3D.foco('geral');
   }
 

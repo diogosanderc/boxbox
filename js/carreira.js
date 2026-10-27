@@ -1408,14 +1408,14 @@
   // Cores do jogador; sem escolha, o carro e o capacete usam a cor da equipe e os detalhes ficam no padrão do modelo.
   function coresDoPiloto(estado) {
     const eq = equipeBase(estado.equipeId), c = estado.cores || {};
-    return { carro: c.carro || eq.cor, detalhe: c.detalhe || null, capacete: c.capacete || eq.cor };
+    return { carro: c.carro || eq.cor, detalhe: c.detalhe || null, halo: c.halo || null, capacete: c.capacete || eq.cor };
   }
   function definirCores(estado, cores) {
     if (!premium) return pedePremium('Escolher as cores do carro, dos detalhes e do capacete é do Premium.');
     const eq = equipeBase(estado.equipeId);
     const ok = (v, pad) => v == null || v === pad || HEX_VALIDOS.has(v);
-    if (!ok(cores.carro, eq.cor) || !ok(cores.detalhe, null) || !ok(cores.capacete, eq.cor)) return { ok: false, erro: 'Cor inválida.' };
-    estado.cores = { carro: cores.carro === eq.cor ? null : cores.carro || null, detalhe: cores.detalhe || null, capacete: cores.capacete === eq.cor ? null : cores.capacete || null };
+    if (!ok(cores.carro, eq.cor) || !ok(cores.detalhe, null) || !ok(cores.halo, null) || !ok(cores.capacete, eq.cor)) return { ok: false, erro: 'Cor inválida.' };
+    estado.cores = { carro: cores.carro === eq.cor ? null : cores.carro || null, detalhe: cores.detalhe || null, halo: cores.halo || null, capacete: cores.capacete === eq.cor ? null : cores.capacete || null };
     return { ok: true };
   }
 
