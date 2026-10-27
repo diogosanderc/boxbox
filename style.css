@@ -1694,3 +1694,5 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .acoes-linha { grid-template-columns: auto minmax(0, 1fr); align-items: stretch; }
 .acoes-linha .premium-trancado { grid-column: 1 / -1; }
 .acoes-linha .mini-acao { white-space: nowrap; padding-inline: 16px; }
+.acoes-linha .mini-acao { background: var(--alerta); border-color: var(--alerta); color: #1a1405; font-weight: 700; }
+@media (hover: hover) { .acoes-linha .mini-acao:hover:not(:disabled) { border-color: #fff; } }
