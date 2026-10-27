@@ -1900,7 +1900,7 @@
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
-        <p class="fraco mini rodape-nota">Carros em 3D: “F1 2022 {FREE!!}”, de 3dblenderlol, e “Racing Kart 125cc (low poly)”, de sceeth, ambos CC BY 4.0.</p>
+        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, e “Gold Trophy”, de urbanmasque, todos CC BY 4.0.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }
@@ -2739,6 +2739,8 @@
   function telaFimTemporada() {
     const r = estado.relatorio;
     const camp = C.campeonato(r.campeonato);
+    const tituloMundial = r.pos === 1 && camp.id === 'f1';
+    if (tela.passo === 'titulo' && tituloMundial) { telaTituloMundial(r, camp); return; }
     if (tela.passo !== 'resumo') {
       app.innerHTML = `
         <div class="abertura carregando fim-carregando">
@@ -2761,7 +2763,7 @@
         app.querySelector('[data-barra]').style.width = `${t * 100}%`;
         app.querySelector('[data-passo]').textContent = PASSOS_FIM[Math.min(PASSOS_FIM.length - 1, Math.floor(t * PASSOS_FIM.length))];
         if (t < 1) requestAnimationFrame(quadro);
-        else setTimeout(() => { if (tela === minha) { tela.passo = 'resumo'; render(); } }, 300);
+        else setTimeout(() => { if (tela === minha) { tela.passo = tituloMundial ? 'titulo' : 'resumo'; render(); } }, 300);
       };
       requestAnimationFrame(quadro);
       return;
@@ -2858,6 +2860,7 @@
     app.innerHTML = `<section class="fim-hero ${titulosF1 ? 'campeao' : 'podio'} revelado galeria">
         ${titulosF1 ? `<div class="confete" aria-hidden="true">${confete(24)}</div>` : ''}
         <span class="campeao-ano">Galeria da fama</span>
+        ${titulosF1 ? `<div class="galeria-trofeu">${BoxTrofeu3D.html()}</div>` : ''}
         <span class="fim-voce">${esc(g.nome)} · ${g.temporadas} temporadas · aposentado aos ${g.idade}</span>
         <b class="fim-pos">${titulosF1 ? `${titulosF1}×` : g.titulos.length}</b>
         <span class="fim-frase">${frase}</span>
@@ -2875,6 +2878,40 @@
         ${cartao('Conquistas', `<p><b>${g.conquistas}</b> de ${g.totalConquistas} conquistas.</p>`)}
       </div>
       <button class="principal grande" data-acao="abandonar" data-confirmar="Confirmar: começar do zero">Nova carreira</button>`;
+    const cv = app.querySelector('.galeria-trofeu [data-trofeu3d]');
+    if (cv) BoxTrofeu3D.ligar(cv).then((ok) => { if (!ok && cv.isConnected) cv.remove(); });
+  }
+
+  // Título mundial: revelação com o pódio do campeonato e o troféu girando, antes do resumo da temporada.
+  function telaTituloMundial(r, camp) {
+    const titulos = estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length;
+    const manchete = titulos <= 1 ? 'Campeão mundial' : titulos === 2 ? 'Bicampeão mundial' : titulos === 3 ? 'Tricampeão mundial' : `${titulos}× campeão mundial`;
+    const curto = (nome) => { const p = String(nome).split(' '); return p.length > 1 ? `${p[0][0]}. ${p.slice(1).join(' ')}` : nome; };
+    const podio = r.podio || [];
+    const degrau = (i, classe) => {
+      const x = podio[i];
+      if (!x) return '';
+      const eu = x.id === 'jogador', eq = C.equipeBase(x.equipe);
+      return `<div class="tm-degrau ${classe} ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
+        <span class="tm-nome">${esc(curto(x.nome))}</span>
+        <span class="tm-equipe">${eu ? 'Você' : esc(eq ? eq.nome : '')}</span>
+        <b class="tm-pos">${i + 1}</b>
+      </div>`;
+    };
+    app.innerHTML = `<section class="titulo-mundial">
+        <div class="tm-holofote" aria-hidden="true"></div>
+        <div class="confete" aria-hidden="true">${confete(40)}</div>
+        <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
+        <h1 class="tm-titulo">${manchete}</h1>
+        <div class="tm-palco">
+          <div class="tm-trofeu">${BoxTrofeu3D.html()}<span class="tm-trofeu-ico">${icone('trofeu', 'medalha-1')}</span></div>
+          <div class="tm-podio">${degrau(1, 'p2')}${degrau(0, 'p1')}${degrau(2, 'p3')}</div>
+        </div>
+        <span class="fim-frase tm-frase">${esc(estado.piloto.nome)} · ${r.pontos} pontos</span>
+        <button class="principal grande tm-botao" data-acao="ver-resumo">Ver o resumo da temporada</button>
+      </section>`;
+    const cv = app.querySelector('[data-trofeu3d]');
+    if (cv) BoxTrofeu3D.ligar(cv).then((ok) => { if (ok) { const ico = app.querySelector('.tm-trofeu-ico'); if (ico) ico.remove(); } else if (cv.isConnected) cv.remove(); });
   }
 
   function telaFalencia() {
@@ -3296,6 +3333,11 @@
         estado.fase = 'paddock';
         salvar();
         ir(telaDaFase());
+        window.scrollTo(0, 0);
+        break;
+      case 'ver-resumo':
+        tela.passo = 'resumo';
+        render();
         window.scrollTo(0, 0);
         break;
       case 'ver-relatorio':

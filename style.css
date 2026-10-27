@@ -1626,3 +1626,38 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .dica-3d[data-alto="0"] .x-vel u { width: 30%; } .dica-3d[data-alto="1"] .x-vel u { width: 92%; }
 .dica-3d[data-alto="0"] .g-engripa u { width: 92%; } .dica-3d[data-alto="1"] .g-engripa u { width: 8%; }
 .dica-3d[data-alto="0"] .g-afoga u { width: 8%; } .dica-3d[data-alto="1"] .g-afoga u { width: 85%; }
+
+/* Título mundial: revelação com pódio e troféu 3D */
+.titulo-mundial { position: relative; overflow: hidden; display: grid; justify-items: center; align-content: center; gap: 6px; text-align: center; padding: 26px 14px 24px; min-height: calc(100dvh - 130px); border-radius: 20px;
+  background: radial-gradient(120% 70% at 50% 28%, #3b2a08 0%, #130f08 46%, #07090f 100%); border: 1px solid rgba(255, 210, 74, 0.45); }
+.tm-holofote { position: absolute; left: 50%; top: -10%; width: 150%; height: 70%; transform: translateX(-50%); background: conic-gradient(from 180deg at 50% 0%, transparent 38%, rgba(255, 214, 102, 0.22) 46%, transparent 50%, rgba(255, 214, 102, 0.16) 54%, transparent 62%);
+  opacity: 0; animation: tm-fade 1.2s ease-out 0.2s forwards, tm-balanca 7s ease-in-out 1.4s infinite alternate; pointer-events: none; }
+.tm-titulo { position: relative; margin: 2px 0 0; font-size: 38px; line-height: 1; text-transform: uppercase; font-style: italic; color: #ffd24a; letter-spacing: 0.01em; text-shadow: 0 0 22px rgba(255, 190, 40, 0.55), 0 3px 0 rgba(0, 0, 0, 0.5);
+  animation: tm-titulo 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.25) 0.3s both; }
+.tm-palco { position: relative; width: min(100%, 360px); margin-top: 2px; }
+.tm-trofeu { position: relative; height: 252px; margin-bottom: -26px; animation: tm-trofeu 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1.8s both; }
+.trofeu3d { display: block; width: 100%; height: 100%; }
+.tm-trofeu-ico { position: absolute; inset: 0; display: grid; place-items: center; }
+.tm-trofeu-ico svg { width: 110px; height: 110px; }
+.tm-podio { position: relative; display: grid; grid-template-columns: 1fr 1.08fr 1fr; align-items: end; gap: 6px; }
+.tm-degrau { position: relative; display: grid; align-content: space-between; justify-items: center; gap: 2px; padding: 10px 4px 8px; border-radius: 10px 10px 0 0; transform-origin: bottom; min-width: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cor-equipe) 38%, #1b2234), #0f1422 85%); border: 1px solid rgba(255, 255, 255, 0.14); border-top: 4px solid var(--cor-equipe); animation: tm-sobe 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+.tm-degrau.p1 { height: 158px; animation-delay: 1.2s; border-color: rgba(255, 210, 74, 0.7); box-shadow: 0 0 26px rgba(255, 200, 60, 0.35); }
+.tm-degrau.p2 { height: 118px; animation-delay: 0.8s; }
+.tm-degrau.p3 { height: 90px; animation-delay: 0.4s; }
+.tm-nome { font-weight: 800; font-size: 13px; line-height: 1.15; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-equipe { font-size: 10.5px; color: var(--fraco, #9aa6bd); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-degrau.eu .tm-equipe { color: #ffd24a; font-weight: 800; }
+.tm-pos { font-size: 34px; line-height: 1; font-style: italic; color: rgba(255, 255, 255, 0.9); }
+.tm-degrau.p1 .tm-pos { color: #ffd24a; font-size: 44px; }
+.tm-frase { margin-top: 10px; font-size: 15px; font-style: normal; text-transform: none; letter-spacing: 0; color: #d9dfec; animation: tm-fade 0.6s ease-out 2.6s both; }
+.tm-botao { margin-top: 8px; animation: tm-fade 0.6s ease-out 3s both; }
+.galeria-trofeu { width: 150px; height: 180px; margin: -4px 0 -6px; }
+@keyframes tm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tm-balanca { from { transform: translateX(-50%) rotate(-5deg); } to { transform: translateX(-50%) rotate(5deg); } }
+@keyframes tm-titulo { from { opacity: 0; transform: scale(0.55); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes tm-trofeu { from { opacity: 0; transform: translateY(-40px) scale(0.7); } to { opacity: 1; transform: none; } }
+@keyframes tm-sobe { from { opacity: 0; transform: scaleY(0.05); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .tm-holofote, .tm-titulo, .tm-trofeu, .tm-degrau, .tm-frase, .tm-botao { animation: none; opacity: 1; }
+}

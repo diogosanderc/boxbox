@@ -1992,6 +1992,7 @@
       vitorias: estado.vitorias.jogador || 0, podios: estado.podios.jogador || 0,
       duelo: estado.duelo && companheiro(estado) ? { ...estado.duelo, nome: companheiro(estado).nome, pontosEle: estado.pontos[estado.duelo.id] || 0 } : null };
 
+    rel.podio = tabela.slice(0, 3).map((t) => ({ id: t.id, nome: t.nome, equipe: t.equipe }));
     if (pos <= VAGAS_SUBIDA) {
       const premio = Math.round(camp.premioCampeao / 2 ** (pos - 1));
       estado.dinheiro += premio;
