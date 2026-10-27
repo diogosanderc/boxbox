@@ -219,6 +219,7 @@
   // entre o mínimo e o máximo (a câmera das asas olha de lado, onde o ângulo do flap aparece).
   let anim3d = null;
   const tipo3d = () => (Kart.monoposto() ? 'f1' : 'kart');
+  const coresPiloto = () => C.coresDoPiloto(estado);
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
@@ -226,7 +227,7 @@
   // Cada ajuste usa a câmera de mesmo nome (a mesma de quando o jogador mexe no knob), salvo os listados acima.
   const cena3d = (chave) => CENA3D[chave] || { foco: chave, periodo: 3200 };
   function iniciar3d(chave, acao) {
-    BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, tipo3d());
+    BoxCarro3D.ligar(balao, setupDaAcao(acao), coresPiloto().carro, tipo3d(), coresPiloto().detalhe);
     BoxCarro3D.modoDica(true);
     BoxCarro3D.foco(cena3d(chave).foco);
     const a = Kart.AJUSTES[chave];
@@ -251,7 +252,7 @@
     BoxCarro3D.modoDica(false);
     balao.querySelector('[data-rica]').innerHTML = '';
     const kn = document.querySelector('.setup-knobs');
-    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, tipo3d());
+    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), coresPiloto().carro, tipo3d(), coresPiloto().detalhe);
     BoxCarro3D.foco('geral');
   }
   // Balão com várias falas (uma por parágrafo).
@@ -614,7 +615,7 @@
       <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>
       <button class="sair-topo" data-sair>Sair</button>`;
     statusEl.innerHTML = `<div class="perfil">
-        <span class="avatar ${corClara(eq.cor) ? 'avatar-claro' : ''}" style="background:${eq.cor}" aria-hidden="true">${esc(iniciais)}</span>
+        <span class="avatar ${corClara(coresPiloto().capacete) ? 'avatar-claro' : ''}" style="background:${coresPiloto().capacete}" aria-hidden="true">${esc(iniciais)}</span>
         <span class="perfil-texto"><b>${esc(p.nome)}</b><small>${p.idade} anos · ${esc(eq.nome)}</small></span>
         <span class="perfil-camp"><small>${estado.ano}</small><b>${esc(camp.curto)}</b></span>
         <button class="perfil-tutorial" data-acao="rever-tutorial" aria-label="Rever tutorial">${icone('sentido')}<small>Tutorial</small></button>
@@ -657,7 +658,8 @@
     const telas = { abertura: telaAbertura, inicio: telaInicio, carregando: telaCarregando, equipe: telaEquipe, paddock: telaPaddock, pista: telaPista, fds: telaFimDeSemana, relatorio: telaRelatorio, fimTemporada: telaFimTemporada, superlicenca: telaSuperlicenca, falencia: telaFalencia, aposentado: telaAposentado, desafio: telaDesafio };
     telas[tela.nome]();
     const knobs = app.querySelector('.setup-knobs');
-    if (knobs) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
+    if (knobs) BoxCarro3D.ligar(app, setupDaAcao(knobs.dataset.acaoSetup), coresPiloto().carro, Kart.monoposto() ? 'f1' : 'kart', coresPiloto().detalhe);
+    else if (app.querySelector('.garagem [data-carro3d]')) ligarGaragem();
     deslizarSegmentos();
     talvezTutorial();
   }
@@ -798,6 +800,7 @@
   // ---------- Premium ----------
   const BENEFICIOS_PREMIUM = [
     ['carteira', `Até ${5} patrocinadores no macacão`, `Sem o Premium: ${2}.`],
+    ['estrela', 'Cores do carro e do capacete', 'Monte a sua pintura, com cores nos detalhes.'],
     ['pneu', 'Mais pneus no estoque', 'Até 8 no kart e até 16 na F1.'],
     ['lapis', 'Anotações no caderno', 'O que o carro pedia em cada pista.'],
     ['chave', 'Equipe de box 3/3', 'Pit stops mais rápidos e com menos erro.'],
@@ -1717,10 +1720,33 @@
       <p class="fraco mini">Cada +1 custa 1 ponto, até o teto da categoria. O − tira 1 ponto do atributo e devolve para você pôr em outro: o que sobe de um lado cai do outro (ultrapassagem sobe, defesa perde). Dá para mexer entre as etapas; o que sobrar fica guardado.</p>`, { classe: 'cartao-evolucao destaque', ajuda: 'evolucao' });
   }
 
+  // Garagem: cores do carro, dos detalhes (asas) e do capacete. Qualquer um experimenta; salvar é do Premium.
+  function cartaoGaragem() {
+    const eq = C.equipeBase(estado.equipeId);
+    const atual = tela.garagem = tela.garagem || { ...C.coresDoPiloto(estado) };
+    const iniciais = estado.piloto.nome.split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
+    const linha = (parte, rotulo) => `<div class="gar-linha"><span class="gar-rotulo">${rotulo}</span><div class="gar-cores">${C.PALETA_CORES.map((c) =>
+      `<button class="gar-cor ${atual[parte] === c.hex ? 'sel' : ''}" style="--c:${c.hex}" data-acao="garagem-cor" data-parte="${parte}" data-cor="${c.hex}" aria-label="${rotulo}: ${c.nome}" aria-pressed="${atual[parte] === c.hex}"></button>`).join('')}</div></div>`;
+    const salvo = JSON.stringify(atual) === JSON.stringify(C.coresDoPiloto(estado));
+    return cartao('Garagem', `${BoxCarro3D.html(tipo3d())}
+      <div class="gar-capacete"><span class="avatar ${corClara(atual.capacete) ? 'avatar-claro' : ''}" data-gar-avatar style="background:${atual.capacete}" aria-hidden="true">${esc(iniciais)}</span><span class="fraco">Capacete e carro do ${esc(estado.piloto.nome.split(' ')[0])}</span>${BoxPremium.ativo ? '' : `<span class="chip">${ic('cadeado')}Premium</span>`}</div>
+      ${linha('carro', 'Carro')}${linha('detalhe', 'Detalhes')}${linha('capacete', 'Capacete')}
+      <div class="gar-acoes"><button class="grande" data-acao="garagem-padrao">Cor da equipe</button>
+        <button class="principal grande" data-acao="garagem-salvar" ${salvo ? 'disabled' : ''}>${BoxPremium.ativo ? 'Salvar cores' : `${ic('cadeado')}Salvar · Premium`}</button></div>`, { classe: 'cartao-garagem garagem' });
+  }
+  function ligarGaragem() {
+    const g = tela.garagem || C.coresDoPiloto(estado);
+    const setup = (estado.fds && estado.fds.setup) || (estado.ultimoFds && estado.ultimoFds.setup) || Kart.setupPadrao();
+    BoxCarro3D.modoDica(false);
+    BoxCarro3D.ligar(app, setup, g.carro, tipo3d(), g.detalhe || null);
+    BoxCarro3D.foco('geral');
+  }
+
   function painelPiloto() {
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
+      ${cartaoGaragem()}
       ${cartaoPontosEvolucao()}
       ${cartao(esc(p.nome), C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join(''))}
       ${cartaoCabeca()}
@@ -3082,6 +3108,24 @@
         Tutorial.reiniciar();
         tela.aba = 'resumo';
         render();
+        break;
+      case 'garagem-cor': {
+        const g = tela.garagem = tela.garagem || { ...C.coresDoPiloto(estado) };
+        g[alvo.dataset.parte] = alvo.dataset.cor;
+        alvo.parentElement.querySelectorAll('.gar-cor').forEach((b) => { const on = b === alvo; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); });
+        const av = app.querySelector('[data-gar-avatar]'); if (av) { av.style.background = g.capacete; av.classList.toggle('avatar-claro', corClara(g.capacete)); }
+        const salvar0 = app.querySelector('[data-acao="garagem-salvar"]'); if (salvar0) salvar0.disabled = false;
+        ligarGaragem();
+        break;
+      }
+      case 'garagem-padrao': {
+        const eq = C.equipeBase(estado.equipeId);
+        tela.garagem = { carro: eq.cor, detalhe: null, capacete: eq.cor };
+        render();
+        break;
+      }
+      case 'garagem-salvar':
+        if (erro(C.definirCores(estado, tela.garagem))) { salvar(); tela.garagem = null; render(); aviso('Cores salvas.', 'check'); }
         break;
       case 'aposentar':
         if (erro(C.encerrarCarreira(estado))) { salvar(); ir({ nome: 'aposentado' }); }

@@ -1696,3 +1696,14 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .acoes-linha .mini-acao { white-space: nowrap; padding-inline: 16px; }
 .acoes-linha .mini-acao { background: rgba(7, 14, 28, 0.92); border: 1.5px solid var(--alerta); color: var(--alerta); font-weight: 700; }
 @media (hover: hover) { .acoes-linha .mini-acao:hover:not(:disabled) { border-color: #ffd36b; color: #ffd36b; } }
+
+/* Garagem: cores do carro, dos detalhes e do capacete */
+.cartao-garagem .carro3d { height: 190px; margin-bottom: 10px; }
+.gar-capacete { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.gar-capacete .avatar { flex: none; }
+.gar-linha { display: grid; gap: 6px; margin-top: 8px; }
+.gar-rotulo { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fraco); font-weight: 700; }
+.gar-cores { display: flex; flex-wrap: wrap; gap: 8px; }
+.gar-cor { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: var(--c); border: 2px solid rgba(255, 255, 255, 0.18); }
+.gar-cor.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 12px var(--c); transform: scale(1.08); }
+.gar-acoes { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-top: 12px; }

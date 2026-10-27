@@ -1397,9 +1397,31 @@
     return { tempo: melhor, efeito: ef };
   }
 
+  // ---------- cores do carro e do capacete (Premium) ----------
+  const PALETA_CORES = [
+    { nome: 'Vermelho', hex: '#e10600' }, { nome: 'Laranja', hex: '#ff7a00' }, { nome: 'Amarelo', hex: '#ffd400' }, { nome: 'Verde', hex: '#1fb95a' },
+    { nome: 'Água', hex: '#00b3a4' }, { nome: 'Azul', hex: '#1e5bc6' }, { nome: 'Marinho', hex: '#12307a' }, { nome: 'Roxo', hex: '#7a5cff' },
+    { nome: 'Rosa', hex: '#ff4f9a' }, { nome: 'Vinho', hex: '#8a1230' }, { nome: 'Dourado', hex: '#c9a227' }, { nome: 'Branco', hex: '#f2f2f2' },
+    { nome: 'Cinza', hex: '#8a93a6' }, { nome: 'Preto', hex: '#15171c' },
+  ];
+  const HEX_VALIDOS = new Set(PALETA_CORES.map((c) => c.hex));
+  // Cores do jogador; sem escolha, o carro e o capacete usam a cor da equipe e os detalhes ficam no padrão do modelo.
+  function coresDoPiloto(estado) {
+    const eq = equipeBase(estado.equipeId), c = estado.cores || {};
+    return { carro: c.carro || eq.cor, detalhe: c.detalhe || null, capacete: c.capacete || eq.cor };
+  }
+  function definirCores(estado, cores) {
+    if (!premium) return pedePremium('Escolher as cores do carro, dos detalhes e do capacete é do Premium.');
+    const eq = equipeBase(estado.equipeId);
+    const ok = (v, pad) => v == null || v === pad || HEX_VALIDOS.has(v);
+    if (!ok(cores.carro, eq.cor) || !ok(cores.detalhe, null) || !ok(cores.capacete, eq.cor)) return { ok: false, erro: 'Cor inválida.' };
+    estado.cores = { carro: cores.carro === eq.cor ? null : cores.carro || null, detalhe: cores.detalhe || null, capacete: cores.capacete === eq.cor ? null : cores.capacete || null };
+    return { ok: true };
+  }
+
   function entradaJogador(estado) {
     const e = equipeBase(estado.equipeId);
-    return { id: 'jogador', piloto: estado.piloto, carro: carroDe(estado, e.id, true), equipe: { id: e.id, nome: e.nome, cor: e.cor }, jogador: true };
+    return { id: 'jogador', piloto: estado.piloto, carro: carroDe(estado, e.id, true), equipe: { id: e.id, nome: e.nome, cor: coresDoPiloto(estado).carro }, jogador: true };
   }
 
   function entradaRival(estado, r) {
@@ -2286,6 +2308,7 @@
     PONTOS_BASE_EVOLUCAO, BONUS_EVOLUCAO, BONUS_ATE_P10, MAX_BONUS_VITORIAS, bonusPosicao, bonusVitorias,
     limiteEmprestimo, simularEmprestimo, pegarEmprestimo, quitarEmprestimo, valorQuitacao, PRAZOS_EMPRESTIMO, MULTA_ATRASO,
     definirPremium, ehPremium, maxPatrocinios, PATROCINIOS_GRATIS, EQUIPE_BOX, NIVEL_BOX_MAX, nivelBox, precoBox, melhorarBox,
+    PALETA_CORES, coresDoPiloto, definirCores,
     campeonato, condicaoSessao, equipeBase, nota, novoJogo, comecarNaF4, comecarEm, custoEtapa, custoTemporada, salarioEtapa, AREAS_DEV, NIVEL_DEV_MAX, GANHO_DEV, nivelDev, precoDev, desenvolverCarro, PREPARACAO, NIVEL_PREP_MAX, nivelPrep, precoPrep, prepararPiloto, tetoEstimado, PROXIMA_CATEGORIA, carroDe, comprarPneu, reporEstoque, descartarPneu, espacoPneus, limiteEspaco, precoEspaco, comprarEspaco, revisarMotor, retificarMotor, MECANICOS, precoMecanico, precoHoraExtra, mecanicoDoFds, mecanicoAtivo, contratarMecanico, pagarHoraExtra, venderPneu, valorVendaPneu, doarPneu, pneuNoFim, GASTO_PARA_SAIR, amaciarPneu, pneuNovo, pneuAmaciado, MAX_PNEUS, precoRetifica, precoPneu, precoRevisao,
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     esperaTemporada, liberarEspera, ESPERA_TEMPORADA_MS, pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
