@@ -2470,7 +2470,14 @@
       + chipPneuTopo();
     document.getElementById('btn-play').innerHTML = corrida.terminou ? 'Ver resultado' : icone(tela.pausado ? 'play' : 'pausa', 'ico-cheio');
     document.getElementById('btn-play').classList.toggle('principal', corrida.terminou);
-    document.getElementById('tabela').innerHTML = `<div class="ao-vivo">${ordem.map((c) => {
+    // Com compostos (F2 e F1) ou pista molhada, cada linha mostra o pneu do carro: vermelho macio, amarelo médio, branco duro, azul chuva.
+    const mostraPneu = !!corrida.compostos || !!corrida.molhado;
+    const bolaPneu = (c) => {
+      if (!mostraPneu) return '';
+      const cor = c.fora ? null : corrida.molhado ? '#2f8cff' : Engine.PNEUS[c.pneu] ? Engine.PNEUS[c.pneu].cor : null;
+      return `<span class="vivo-pneu">${cor ? `<span class="composto-bola micro" style="--cor:${cor}"></span>` : ''}</span>`;
+    };
+    document.getElementById('tabela').innerHTML = `<div class="ao-vivo ${mostraPneu ? 'com-pneu' : ''}">${ordem.map((c) => {
       const ganho = c.largada - c.pos;
       let dir;
       if (c.fora) dir = `<span class="status-fora">${statusFora(c.motivoFora)}</span>`;
@@ -2480,7 +2487,7 @@
         <b class="vivo-pos">${c.pos}</b><i class="camp-cor" style="background:${c.equipe.cor}"></i>
         <b class="vivo-sigla">${sigla(c.piloto.nome)}</b>
         <span class="vivo-nome">${esc(c.piloto.nome)}</span>
-        <span class="vivo-tempo ${c.ultimaVolta && c.ultimaVolta === melhorDaCorrida ? 'roxo' : ''}">${c.fora || !c.ultimaVolta ? '' : tempoVolta(c.ultimaVolta)}</span>
+        ${bolaPneu(c)}<span class="vivo-tempo ${c.ultimaVolta && c.ultimaVolta === melhorDaCorrida ? 'roxo' : ''}">${c.fora || !c.ultimaVolta ? '' : tempoVolta(c.ultimaVolta)}</span>
         <span class="vivo-ganho ${ganho > 0 ? 'dinheiro' : 'negativo'}">${ganho > 0 ? '▲' + ganho : ganho < 0 ? '▼' + -ganho : ''}</span>
         <span class="vivo-dif">${dir}</span>
       </div>`;

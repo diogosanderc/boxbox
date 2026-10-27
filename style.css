@@ -572,6 +572,9 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .vivo-linha.seguido { box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.6) inset; }
 .vivo-linha.fora { opacity: 0.55; }
 .vivo-linha .camp-cor { height: 18px; }
+.ao-vivo.com-pneu .vivo-linha { grid-template-columns: 26px 4px 44px minmax(0, 1fr) 16px 62px 30px auto; gap: 7px; }
+.vivo-pneu { display: grid; place-items: center; }
+.composto-bola.micro { width: 14px; height: 14px; border-width: 3px; margin: 0; }
 .vivo-pos { text-align: right; font-variant-numeric: tabular-nums; }
 .vivo-sigla { letter-spacing: 0.6px; }
 .vivo-nome { color: var(--fraco); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -584,6 +587,7 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 @media (max-width: 400px) {
   .vivo-nome { display: none; }
   .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 60px 26px auto; gap: 6px; }
+  .ao-vivo.com-pneu .vivo-linha { grid-template-columns: 24px 4px minmax(0, 1fr) 16px 60px 26px auto; gap: 6px; }
 }
 
 /* ---------- checklist de pneus e motor ---------- */
