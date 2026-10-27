@@ -29,7 +29,7 @@
   const IDADE_F4 = 15;
   const CUSTO_REVISAO = 2500;
   // Motor engripado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
-  const CUSTO_RETIFICA = { expressa: 15000, normal: 6000 };
+  const CUSTO_RETIFICA = { expressa: 6000, normal: 2500 };
   // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
   const PONTOS_SPRINT = [8, 7, 6, 5, 4, 3, 2, 1];
   const PONTO_POLE = 1;
@@ -422,11 +422,11 @@
   // Empréstimo para investir no carro e na carreira: um por vez, pago em parcelas descontadas a cada
   // etapa. Parcela que o caixa não cobre atrasa: multa de 10% no saldo, moral e popularidade caem.
   // Quitar antes do prazo dá desconto de metade dos juros que ainda não venceram.
-  const LIMITE_EMPRESTIMO = { regional: 20000, nacional: 40000, internacional: 80000, f4: 200000, f3: 400000, f2: 1000000, f1: 10000000 };
+  const LIMITE_EMPRESTIMO = { regional: 7000, nacional: 14000, internacional: 29000, f4: 135000, f3: 900000, f2: 2800000, f1: 10000000 };
   const PRAZOS_EMPRESTIMO = { 4: 0.08, 8: 0.15, 12: 0.25 }; // etapas: juros totais
   const MULTA_ATRASO = 0.1;
   // Popularidade alta aumenta o crédito (até +50%).
-  const limiteEmprestimo = (estado) => Math.round((LIMITE_EMPRESTIMO[estado.campeonato] || 20000) * (1 + Math.min(100, estado.piloto.popularidade) / 200) / 1000) * 1000;
+  const limiteEmprestimo = (estado) => Math.round((LIMITE_EMPRESTIMO[estado.campeonato] || 7000) * (1 + Math.min(100, estado.piloto.popularidade) / 200) / 1000) * 1000;
   function simularEmprestimo(valor, prazo) {
     const juros = Math.round(valor * PRAZOS_EMPRESTIMO[prazo]);
     return { valor, prazo, juros, total: valor + juros, parcela: Math.ceil((valor + juros) / prazo) };
@@ -553,7 +553,7 @@
   };
   const NIVEL_PREP_MAX = 2;
   const nivelPrep = (estado, tipo) => (estado.preparacao && estado.preparacao[tipo]) || 0;
-  const precoPrep = (estado, tipo) => Math.round(15000 * Math.max(1, campeonato(estado.campeonato).custo) * (nivelPrep(estado, tipo) + 1) / 1000) * 1000;
+  const precoPrep = (estado, tipo) => Math.round(15000 * campeonato(estado.campeonato).custo * (nivelPrep(estado, tipo) + 1) / 1000) * 1000;
   function prepararPiloto(estado, tipo) {
     const info = PREPARACAO[tipo];
     if (!info) return { ok: false, erro: 'Preparação inválida.' };
@@ -589,7 +589,7 @@
   };
   const NIVEL_BOX_MAX = 3;
   const nivelBox = (estado) => Math.min(NIVEL_BOX_MAX, Math.max(1, estado.nivelBox || 1));
-  const precoBox = (estado) => Math.round(30000 * Math.max(1, campeonato(estado.campeonato).custo) * nivelBox(estado) / 1000) * 1000;
+  const precoBox = (estado) => Math.round(30000 * campeonato(estado.campeonato).custo * nivelBox(estado) / 1000) * 1000;
   function melhorarBox(estado) {
     if (categoriaDe(estado) === 'kart') return { ok: false, erro: 'No kart não tem pit stop.' };
     if (nivelBox(estado) >= NIVEL_BOX_MAX) return { ok: false, erro: 'A equipe de box já está no nível máximo.' };
@@ -608,7 +608,7 @@
   const PRECO_ESPACO = 2500; // por vaga, multiplicado pelo custo do campeonato e encarecendo a cada vaga
   const espacoPneus = (estado) => MAX_PNEUS + (estado.espacoExtra || 0);
   const limiteEspaco = (estado) => LIMITE_ESPACO[estado.campeonato] || LIMITE_ESPACO.kart;
-  const precoEspaco = (estado) => Math.round(PRECO_ESPACO * Math.max(1, campeonato(estado.campeonato).custo) * (1 + 0.25 * (estado.espacoExtra || 0)) / 100) * 100;
+  const precoEspaco = (estado) => Math.round(PRECO_ESPACO * campeonato(estado.campeonato).custo * (1 + 0.25 * (estado.espacoExtra || 0)) / 100) * 100;
   function comprarEspaco(estado) {
     if (!premium) return pedePremium('Mais espaço no estoque de pneus é do Premium.');
     if (espacoPneus(estado) >= limiteEspaco(estado)) return { ok: false, erro: `O estoque já está no máximo desta categoria (${limiteEspaco(estado)} jogos).` };
@@ -679,7 +679,8 @@
     : (compostoUnico(estado) ? [compostoDaEtapa(estado), 'chuva'] : TIPOS_F3).filter((t) => !estado.pneus.some((p) => p.tipo === t)));
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
-  const custoPneu = (estado) => Math.min(6, campeonato(estado.campeonato).custo);
+  const FATOR_PNEU = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 3.5, f3: 9, f2: 12, f1: 28 };
+  const custoPneu = (estado) => FATOR_PNEU[estado.campeonato] || 1;
 
   const pneuNovo = (p) => p.uso < 1;
   const pneuAmaciado = (p) => p.uso >= 1 && p.uso <= 4;
@@ -812,19 +813,20 @@
   // - experiente: análise técnica (o que mudar e quanto); fora da sessão em que foi contratado, cobra hora extra.
   // - profissional: monta o kart para você; muito caro, e também cobra hora extra.
   const MECANICOS = {
-    iniciante: { nome: 'Mecânico iniciante', icone: 'chave', preco: 3000, extra: 0, qualidade: 60, faz: 'palpite',
+    iniciante: { nome: 'Mecânico iniciante', icone: 'chave', preco: 400, extra: 0, qualidade: 60, faz: 'palpite',
       descricao: 'Dá palpites sobre o que mexer. Fica o fim de semana todo.' },
-    experiente: { nome: 'Mecânico experiente', icone: 'ajustes', preco: 6000, extra: 2500, qualidade: 82, faz: 'tecnica',
+    experiente: { nome: 'Mecânico experiente', icone: 'ajustes', preco: 800, extra: 300, qualidade: 82, faz: 'tecnica',
       descricao: 'Anos de pista: diz o que mudar e quanto. Cobra hora extra a cada sessão a mais.' },
-    pro: { nome: 'Técnico profissional', icone: 'trofeu', preco: 16000, extra: 6000, qualidade: 96, faz: 'monta',
+    pro: { nome: 'Técnico profissional', icone: 'trofeu', preco: 2000, extra: 800, qualidade: 96, faz: 'monta',
       descricao: 'Monta o acerto para você. Muito caro, e cobra hora extra a cada sessão a mais.' },
   };
   const SESSOES_MECANICO = ['treino', 'quali', 'grid'];
 
   // Na F2 e na F1 a equipe já tem engenheiros: o mecânico contratado à parte não acompanha o custo da categoria.
-  const custoMecanico = (estado) => Math.min(6, campeonato(estado.campeonato).custo);
-  const precoMecanico = (estado, tipo) => Math.round(MECANICOS[tipo].preco * custoMecanico(estado) / 100) * 100;
-  const precoHoraExtra = (estado, tipo) => Math.round(MECANICOS[tipo].extra * custoMecanico(estado) / 100) * 100;
+  const FATOR_MECANICO = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 3, f3: 5, f2: 6, f1: 6 };
+  const custoMecanico = (estado) => FATOR_MECANICO[estado.campeonato] || 1;
+  const precoMecanico = (estado, tipo) => Math.round(MECANICOS[tipo].preco * custoMecanico(estado) / 50) * 50;
+  const precoHoraExtra = (estado, tipo) => Math.round(MECANICOS[tipo].extra * custoMecanico(estado) / 50) * 50;
 
   // O mecânico contratado (ou null). Carreiras antigas guardavam só true.
   function mecanicoDoFds(fds) {
@@ -921,7 +923,7 @@
     for (let i = 0; i < quantidade; i++) {
       const empresa = sortear(rnd, Dados.PATROCINADORES[porte]);
       if (estado.patrocinios.some((p) => p.empresa === empresa) || estado.ofertasPatrocinio.some((p) => p.empresa === empresa)) continue;
-      const porEtapa = Math.round((1300 + Math.min(pop, 80) * 30) * [1, 1.3, 1.6][porte] * Math.sqrt(camp.custo) * (0.7 + rnd() * 0.6) / 100) * 100;
+      const porEtapa = Math.round((1300 + Math.min(pop, 80) * 30) * [1, 1.3, 1.6][porte] * camp.patroc * (0.7 + rnd() * 0.6) / 100) * 100;
       const meta = rnd() < 0.5
         ? { tipo: 'posicao', alvo: Math.round(limitar(10 - porte * 3 + Math.floor(rnd() * 5) - 2, 1, 15)) }
         : { tipo: 'podios', alvo: 1 + porte + Math.floor(rnd() * 2) };
@@ -1080,7 +1082,7 @@
     p.idade = ini.idade;
     for (const a of ATRIBUTOS) p[a] = Math.min(tetoDe(estado, campId), p[a] + ini.ganho);
     p.popularidade = ini.popularidade;
-    estado.dinheiro = 120000;
+    estado.dinheiro = Math.round(120000 * campeonato(campId).custo / 4 / 1000) * 1000;
     estado.noticias = [];
     // Atalho de teste: chega com o estoque da categoria (o do kart fica para trás).
     estado.pneus = [];

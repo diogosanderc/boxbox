@@ -7,25 +7,25 @@
   // caixa: dinheiro inicial do seu projeto com a equipe. custoEtapa: quanto a equipe cobra por etapa (US$).
   // organizacao: oculto para o jogador; equipes desorganizadas prometem mais do que entregam.
   const EQUIPES = [
-    { id: 'fulmine', nome: 'Fulmine Kart', cor: '#e10600', material: 90, mecanico: 92, caixa: 97000, custoEtapa: 9000, organizacao: 90,
+    { id: 'fulmine', nome: 'Fulmine Kart', cor: '#e10600', material: 90, mecanico: 92, caixa: 19400, custoEtapa: 9000, organizacao: 90,
       descricao: 'Equipe campeã, material de ponta e estrutura enorme. Cara.' },
-    { id: 'orbital', nome: 'Orbital Karting', cor: '#1e5bc6', material: 88, mecanico: 80, caixa: 88000, custoEtapa: 8000, organizacao: 85,
+    { id: 'orbital', nome: 'Orbital Karting', cor: '#1e5bc6', material: 88, mecanico: 80, caixa: 17600, custoEtapa: 8000, organizacao: 85,
       descricao: 'Estrutura grande e organizada. Kart rápido e bem cuidado.' },
-    { id: 'velox', nome: 'Velox Junior', cor: '#00b3a4', material: 86, mecanico: 86, caixa: 82000, custoEtapa: 7200, organizacao: 80,
+    { id: 'velox', nome: 'Velox Junior', cor: '#00b3a4', material: 86, mecanico: 86, caixa: 16400, custoEtapa: 7200, organizacao: 80,
       descricao: 'Especialista em formar pilotos jovens. Paciente com quem está começando.' },
-    { id: 'rapido', nome: 'Rapido Corse', cor: '#ff8700', material: 87, mecanico: 64, caixa: 79000, custoEtapa: 6800, organizacao: 55,
+    { id: 'rapido', nome: 'Rapido Corse', cor: '#ff8700', material: 87, mecanico: 64, caixa: 15800, custoEtapa: 6800, organizacao: 55,
       descricao: 'Chassi italiano muito rápido, mas a equipe é bagunçada.' },
-    { id: 'tempesta', nome: 'Tempesta KR', cor: '#7a5cff', material: 83, mecanico: 75, caixa: 72000, custoEtapa: 5800, organizacao: 75,
+    { id: 'tempesta', nome: 'Tempesta KR', cor: '#7a5cff', material: 83, mecanico: 75, caixa: 14400, custoEtapa: 5800, organizacao: 75,
       descricao: 'Boa no molhado. Estrutura média e honesta.' },
-    { id: 'faisca', nome: 'Faísca Kart', cor: '#f2c200', material: 81, mecanico: 70, caixa: 68000, custoEtapa: 5200, organizacao: 70,
+    { id: 'faisca', nome: 'Faísca Kart', cor: '#f2c200', material: 81, mecanico: 70, caixa: 13600, custoEtapa: 5200, organizacao: 70,
       descricao: 'Equipe familiar, que conhece todo kartódromo do Brasil.' },
-    { id: 'piccolo', nome: 'Piccolo Team', cor: '#2fbf71', material: 79, mecanico: 78, caixa: 63000, custoEtapa: 4600, organizacao: 82,
+    { id: 'piccolo', nome: 'Piccolo Team', cor: '#2fbf71', material: 79, mecanico: 78, caixa: 12600, custoEtapa: 4600, organizacao: 82,
       descricao: 'Kart simples, mas a equipe ensina muito sobre acerto.' },
-    { id: 'ninja', nome: 'Ninja Kart', cor: '#9aa0a6', material: 80, mecanico: 52, caixa: 58000, custoEtapa: 4000, organizacao: 50,
+    { id: 'ninja', nome: 'Ninja Kart', cor: '#9aa0a6', material: 80, mecanico: 52, caixa: 11600, custoEtapa: 4000, organizacao: 50,
       descricao: 'Promete muito e cobra pouco. Ninguém sabe bem como funciona.' },
-    { id: 'formiga', nome: 'Formiga Racing', cor: '#b5651d', material: 76, mecanico: 60, caixa: 54000, custoEtapa: 3400, organizacao: 72,
+    { id: 'formiga', nome: 'Formiga Racing', cor: '#b5651d', material: 76, mecanico: 60, caixa: 10800, custoEtapa: 3400, organizacao: 72,
       descricao: 'Garagem pequena, motores usados. Para quem tem garra.' },
-    { id: 'garagem', nome: 'Garagem do Zé', cor: '#5b8c5a', material: 73, mecanico: 66, caixa: 48000, custoEtapa: 2800, organizacao: 78,
+    { id: 'garagem', nome: 'Garagem do Zé', cor: '#5b8c5a', material: 73, mecanico: 66, caixa: 9600, custoEtapa: 2800, organizacao: 78,
       descricao: 'O dono monta tudo sozinho. Barato, honesto e lento.' },
   ];
 
@@ -102,25 +102,25 @@
         descricao: 'A caçula do grid, com orçamento curto.' },
   ];
   const EQUIPES_F1 = [
-      { id: 'f1-rossa', nome: 'Scuderia Rossa', cor: '#dc0000', material: 96, mecanico: 94, caixa: 0, custoEtapa: 9500, organizacao: 88, porte: 'ponta', salario: 900000,
+      { id: 'f1-rossa', nome: 'Scuderia Rossa', cor: '#dc0000', material: 96, mecanico: 94, caixa: 0, custoEtapa: 9500, organizacao: 88, porte: 'ponta', salario: 1800000,
         descricao: 'A equipe mais tradicional do mundo. Pressão enorme e torcida apaixonada.' },
-      { id: 'f1-argento', nome: 'Argento Grand Prix', cor: '#00d2be', material: 96, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 92, porte: 'ponta', salario: 850000,
+      { id: 'f1-argento', nome: 'Argento Grand Prix', cor: '#00d2be', material: 96, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 92, porte: 'ponta', salario: 1500000,
         descricao: 'Flechas de prata: estrutura gigante e engenharia impecável.' },
-      { id: 'f1-toro', nome: 'Taurus Energy Racing', cor: '#1e41ff', material: 97, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 90, porte: 'ponta', salario: 850000,
+      { id: 'f1-toro', nome: 'Taurus Energy Racing', cor: '#1e41ff', material: 97, mecanico: 95, caixa: 0, custoEtapa: 9500, organizacao: 90, porte: 'ponta', salario: 1300000,
         descricao: 'Bebida energética, carro agressivo e um time obcecado por vencer.' },
-      { id: 'f1-papaya', nome: 'Papaya Racing', cor: '#ff8000', material: 97, mecanico: 93, caixa: 0, custoEtapa: 9300, organizacao: 90, porte: 'ponta', salario: 750000,
+      { id: 'f1-papaya', nome: 'Papaya Racing', cor: '#ff8000', material: 97, mecanico: 93, caixa: 0, custoEtapa: 9300, organizacao: 90, porte: 'ponta', salario: 1000000,
         descricao: 'Laranja de Woking, de volta ao topo com um carro rapidíssimo.' },
-      { id: 'f1-verde', nome: 'Verde Britannia', cor: '#006f62', material: 90, mecanico: 88, caixa: 0, custoEtapa: 8600, organizacao: 84, porte: 'media', salario: 500000,
+      { id: 'f1-verde', nome: 'Verde Britannia', cor: '#006f62', material: 90, mecanico: 88, caixa: 0, custoEtapa: 8600, organizacao: 84, porte: 'media', salario: 450000,
         descricao: 'Verde inglês, muito dinheiro e vontade de virar equipe grande.' },
-      { id: 'f1-grove', nome: 'Grove Racing', cor: '#005aff', material: 89, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 82, porte: 'media', salario: 400000,
+      { id: 'f1-grove', nome: 'Grove Racing', cor: '#005aff', material: 89, mecanico: 86, caixa: 0, custoEtapa: 8200, organizacao: 82, porte: 'media', salario: 300000,
         descricao: 'Equipe histórica de Grove, reconstruindo para voltar a vencer.' },
-      { id: 'f1-alpes', nome: 'Alpes Bleu', cor: '#0090ff', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 80, porte: 'media', salario: 350000,
+      { id: 'f1-alpes', nome: 'Alpes Bleu', cor: '#0090ff', material: 88, mecanico: 85, caixa: 0, custoEtapa: 8000, organizacao: 80, porte: 'media', salario: 220000,
         descricao: 'Azul francês com motor próprio, ora brilha, ora some.' },
-      { id: 'f1-faenza', nome: 'Faenza Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 300000,
+      { id: 'f1-faenza', nome: 'Faenza Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 160000,
         descricao: 'Equipe irmã de uma grande: trampolim para pilotos jovens.' },
-      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 250000,
+      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 100000,
         descricao: 'Americana e enxuta. Compra peças de quem pode.' },
-      { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 250000,
+      { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 60000,
         descricao: 'Suíça, em transição para virar equipe de fábrica.' },
   ];
   const EQUIPES_MONO = { f4: EQUIPES_F4, f3: EQUIPES_F3, f2: EQUIPES_F2, f1: EQUIPES_F1 };
@@ -341,25 +341,25 @@
 
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
   const CAMPEONATOS = [
-    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 47, custo: 1, regiao: 'br', voltas: 16,
-      chuva: 0.25, premioCampeao: 20000, popularidade: 1 },
-    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 55, custo: 1.8, regiao: 'br', voltas: 18,
-      chuva: 0.25, premioCampeao: 50000, popularidade: 1.8 },
-    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 63, custo: 3.2, regiao: 'eu', voltas: 20,
-      chuva: 0.3, premioCampeao: 120000, popularidade: 3 },
+    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 47, custo: 0.36, patroc: 0.36, regiao: 'br', voltas: 16,
+      chuva: 0.25, premioCampeao: 7000, popularidade: 1 },
+    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 55, custo: 0.65, patroc: 0.48, regiao: 'br', voltas: 18,
+      chuva: 0.25, premioCampeao: 18000, popularidade: 1.8 },
+    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 63, custo: 1.15, patroc: 0.64, regiao: 'eu', voltas: 20,
+      chuva: 0.3, premioCampeao: 43000, popularidade: 3 },
     // Monopostos: só se entra por proposta de uma equipe de F4.
-    { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 4, premios: 1.5, regiao: 'f4', voltas: 14,
-      chuva: 0.3, premioCampeao: 80000, popularidade: 4, categoria: 'f4' },
+    { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 2.7, patroc: 1.35, premios: 1, regiao: 'f4', voltas: 14,
+      chuva: 0.3, premioCampeao: 54000, popularidade: 4, categoria: 'f4' },
     // safetyCar: acidentes e quebras podem colocar o carro de segurança na pista (F2 e F1).
     // compostos: pneus macio, médio e duro, com parada obrigatória na corrida principal (F2 e F1).
     // sprint: corrida curta no sábado (F2 em toda etapa; F1 em seis GPs, como no calendário real).
     // categoria: modelo do carro ('f4' vale também para a F3; a F2 e a F1 têm carros mais complexos).
     // Depois da F4, sobe-se por proposta: os 4 primeiros de cada categoria são chamados pela seguinte.
-    { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, etapas: 10, nivel: 79, custo: 6, premios: 2, regiao: 'f3', voltas: 16,
-      chuva: 0.25, premioCampeao: 150000, popularidade: 6, categoria: 'f4' },
-    { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 82, custo: 9, premios: 3, regiao: 'f2', voltas: 30, desgasteComposto: 1.23, sprint: true, compostos: true, safetyCar: true,
-      chuva: 0.25, premioCampeao: 300000, popularidade: 8, categoria: 'f2' },
-    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 12, premios: 40, regiao: 'f1', voltas: 40, desgasteComposto: 1.23, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
+    { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, etapas: 10, nivel: 79, custo: 13.5, patroc: 5.5, premios: 4.5, regiao: 'f3', voltas: 16,
+      chuva: 0.25, premioCampeao: 340000, popularidade: 6, categoria: 'f4' },
+    { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 82, custo: 25, patroc: 8.3, premios: 8.3, regiao: 'f2', voltas: 30, desgasteComposto: 1.23, sprint: true, compostos: true, safetyCar: true,
+      chuva: 0.25, premioCampeao: 830000, popularidade: 8, categoria: 'f2' },
+    { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 40, patroc: 11.5, premios: 40, regiao: 'f1', voltas: 40, desgasteComposto: 1.23, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
       chuva: 0.2, premioCampeao: 5000000, popularidade: 12, categoria: 'f1' },
   ];
 

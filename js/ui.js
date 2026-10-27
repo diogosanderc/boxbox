@@ -1056,7 +1056,7 @@
           ${tela.opcoes.map((id) => {
             const e = C.equipeBase(id);
             const porte = C.porteDe(id);
-            const sobra = e.caixa - e.custoEtapa * C.ETAPAS;
+            const sobra = e.caixa - e.custoEtapa * C.campeonato('regional').custo * C.ETAPAS;
             const sel = tela.escolhida === id;
             return `<button class="equipe-card ${sel ? 'selecionada' : ''} ${corClara(e.cor) ? 'topo-claro' : ''}" style="--cor-equipe:${e.cor}" data-acao="selecionar-equipe" data-id="${id}" aria-pressed="${sel}">
               <span class="equipe-topo"><span class="etiqueta">${C.PORTES[porte].nome}</span><span class="equipe-check" aria-hidden="true">${sel ? ic('check') : ''}</span><b class="equipe-nome">${esc(e.nome)}</b></span>

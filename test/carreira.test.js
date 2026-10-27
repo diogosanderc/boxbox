@@ -604,7 +604,7 @@ test('F4: proposta leva aos monopostos, com carro, pistas e equipes próprias', 
   assert.ok(Dados.KARTODROMOS.f4.some((p) => p.id === Carreira.pistaAtual(e).id));
   assert.ok(e.rivais.every((x) => x.equipe.startsWith('f4-')));
   // contrato: paga 60% do orçamento da equipe
-  assert.strictEqual(Carreira.custoEtapa(e), Math.round(Carreira.equipeBase('f4-apex').custoEtapa * 4 * 0.6 / 100) * 100);
+  assert.strictEqual(Carreira.custoEtapa(e), Math.round(Carreira.equipeBase('f4-apex').custoEtapa * Carreira.campeonato('f4').custo * 0.6 / 100) * 100);
   // o fim de semana começa com o acerto padrão do F4 (não herda o do kart)
   Carreira.iniciarFimDeSemana(e);
   assert.deepStrictEqual(Object.keys(e.fds.setup).sort(), Kart.ORDEM_AJUSTES.slice().sort());
@@ -1323,19 +1323,19 @@ test('banco: só com o Premium, parcela por etapa, atraso com multa e quitação
   assert.ok(!r0.ok && r0.premium, 'sem Premium não tem banco');
   Carreira.definirPremium(true);
   const limite = Carreira.limiteEmprestimo(e);
-  assert.ok(limite >= 20000);
+  assert.ok(limite >= 7000);
   assert.ok(!Carreira.pegarEmprestimo(e, limite + 1000, 8).ok, 'acima do limite');
   const antes = e.dinheiro;
-  const r = Carreira.pegarEmprestimo(e, 20000, 8);
+  const r = Carreira.pegarEmprestimo(e, 5000, 8);
   assert.ok(r.ok);
-  assert.strictEqual(e.dinheiro, antes + 20000);
-  assert.strictEqual(r.total, 23000);
-  assert.strictEqual(r.parcela, 2875);
+  assert.strictEqual(e.dinheiro, antes + 5000);
+  assert.strictEqual(r.total, 5750);
+  assert.strictEqual(r.parcela, 719);
   assert.ok(!Carreira.pegarEmprestimo(e, 1000, 4).ok, 'um por vez');
   // Uma etapa: paga a parcela.
   jogarFimDeSemana(e, 'ideal');
   assert.strictEqual(e.emprestimo.restantes, 7);
-  assert.strictEqual(e.emprestimo.saldo, 23000 - 2875);
+  assert.strictEqual(e.emprestimo.saldo, 5750 - 719);
   // Sem dinheiro: atrasa, multa e moral cai.
   e.fase = 'paddock';
   const saldo = e.emprestimo.saldo;
@@ -1343,7 +1343,7 @@ test('banco: só com o Premium, parcela por etapa, atraso com multa e quitação
   const moral = e.piloto.moral;
   Carreira.concluirEtapa(e);
   assert.strictEqual(e.emprestimo.restantes, 7);
-  assert.strictEqual(e.emprestimo.saldo, saldo + Math.round(2875 * 0.1));
+  assert.strictEqual(e.emprestimo.saldo, saldo + Math.round(719 * 0.1));
   assert.ok(e.piloto.moral < moral);
   // Quitar antes: paga menos que o saldo.
   e.fase = 'paddock';
