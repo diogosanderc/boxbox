@@ -67,7 +67,7 @@ Configurado no projeto (ios/App/App/en.lproj e pt-BR.lproj/InfoPlist.strings): "
 ## App Store Connect: o que preencher
 
 **URL da política de privacidade:** publique `docs/privacidade.html` (por exemplo com o GitHub Pages do repositório: Settings → Pages →
-branch `main`, pasta `/docs`; a URL fica `https://<usuario>.github.io/<repositorio>/privacidade.html`). O e-mail de contato já está na página.
+branch `main`, pasta `/docs`; a URL fica `https://diogosanderc.github.io/superlicenca/privacidade.html`). O e-mail de contato já está na página.
 A mesma URL serve de "URL de suporte" se você não tiver outra página.
 
 **App Privacy (rótulo de privacidade).** O app não tem servidor, conta nem análise própria. Quem coleta dados é o SDK do Google Mobile Ads
