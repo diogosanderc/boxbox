@@ -38,3 +38,14 @@ motorsportmagazine). Tratamos tudo como **ordem de grandeza realista**, não com
 
 Para recalibrar, mude `custo`, `patroc` e `premios` em `CAMPEONATOS` e rode `node carreira-sim.js <seed> ideal|padrao 0`
 (o fluxo de caixa de cada categoria mantém a mesma proporção entre receita e custo).
+
+## Peças de F1 e F2 (referência de custo de peça nova)
+
+F1 (estimativas): unidade de potência híbrida US$ 8–11 mi; monocoque 0,63–1,2 mi; câmbio 0,31–0,6 mi; asa dianteira
+0,13–0,3 mi; asa traseira com DRS 75–150 mil; assoalho 78–250 mil; hidráulica 155–170 mil; volante 44–100 mil;
+halo 15–20 mil; tanque 28–31 mil; eletrônica 50–80 mil; freios 2–69 mil. F2 (estimativas): monocoque 250–500 mil;
+motor V6 70–120 mil; câmbio 80–180 mil; asa dianteira 25–60 mil; asa traseira 20–50 mil; assoalho 25–70 mil;
+volante 15–35 mil; rodas 4–8 mil; freios 5–15 mil.
+
+No jogo, o desenvolvimento do carro de F1 (1º nível, cada nível seguinte soma mais um pacote): **Aerodinâmica US$ 500 mil**
+(asas + assoalho), **Chassi US$ 1,4 mi** (monocoque + câmbio), **Motor US$ 9,5 mi** (unidade de potência).

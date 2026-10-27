@@ -529,9 +529,11 @@
   const AREAS_DEV = { aero: 'Aerodinâmica', motor: 'Motor', chassi: 'Chassi' };
   const NIVEL_DEV_MAX = 3;
   const GANHO_DEV = 2;
-  const PRECO_DEV = 4000000;
+  // Peças novas (US$, 1º nível; cada nível seguinte custa mais um pacote): aero = asas + assoalho,
+  // motor = unidade de potência híbrida, chassi = monocoque + câmbio.
+  const PRECO_DEV = { aero: 500000, motor: 9500000, chassi: 1400000 };
   const nivelDev = (estado, area) => (estado.desenvolvimento && estado.desenvolvimento[area]) || 0;
-  const precoDev = (estado, area) => PRECO_DEV * (nivelDev(estado, area) + 1);
+  const precoDev = (estado, area) => PRECO_DEV[area] * (nivelDev(estado, area) + 1);
   function desenvolverCarro(estado, area) {
     if (estado.campeonato !== 'f1') return { ok: false, erro: 'O desenvolvimento do carro é da F1.' };
     if (!AREAS_DEV[area]) return { ok: false, erro: 'Área inválida.' };
@@ -679,7 +681,7 @@
     : (compostoUnico(estado) ? [compostoDaEtapa(estado), 'chuva'] : TIPOS_F3).filter((t) => !estado.pneus.some((p) => p.tipo === t)));
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
-  const FATOR_PNEU = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 5.5, f3: 16, f2: 36, f1: 40 };
+  const FATOR_PNEU = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 3, f3: 6, f2: 10, f1: 12 };
   const custoPneu = (estado) => FATOR_PNEU[estado.campeonato] || 1;
 
   const pneuNovo = (p) => p.uso < 1;
