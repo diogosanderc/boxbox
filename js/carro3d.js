@@ -313,6 +313,7 @@
         alvoBr.t = (1 - cic(Math.min(1.3, 0.28 / (1 - fr)))) * Math.min(1.3, ((1 - fr) / 0.44) * 0.9);
       }
       if (S.dica && foco === 'mapa') alvoBr.m = [0.18, 0.55, 1][al.mapa == null ? 1 : al.mapa] * (0.8 + 0.2 * Math.sin(t * 9));
+      if (S.dica && foco === 'arrefecimento') alvoBr.m = [1, 0.5, 0.12][al.arrefecimento == null ? 1 : al.arrefecimento] * (0.85 + 0.15 * Math.sin(t * 5));
       a.br = a.br || { f: 0, t: 0, m: 0 };
       for (const q of ['f', 't', 'm']) a.br[q] += (alvoBr[q] - a.br[q]) * (1 - Math.exp(-dt * 8));
       for (const i in vel) a.g[i] += dt * vel[i] * a.fRel;
@@ -533,6 +534,6 @@
   function previa(chave, valor) { if (chave in S.alvo && Number.isFinite(valor)) S.alvo[chave] = valor; }
   function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) }; }
 
-  const api = { html, ligar, foco, soltar, previa, definir, modoDica: (v) => { S.dica = !!v; } };
+  const api = { html, ligar, foco, soltar, previa, definir, modoDica: (v) => { S.dica = !!v; }, temFoco: (tipo, chave) => !!(MODELOS[tipo] && MODELOS[tipo].focos[chave]) };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxCarro3D = api;
 })(typeof window !== 'undefined' ? window : globalThis);

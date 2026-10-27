@@ -1613,3 +1613,14 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .dica-3d[data-alto="0"] .m-pot u { width: 38%; } .dica-3d[data-alto="1"] .m-pot u { width: 95%; }
 .dica-3d[data-alto="0"] .m-calor u { width: 20%; } .dica-3d[data-alto="1"] .m-calor u { width: 92%; }
 .balao .dica-3d .carro3d { height: 190px; }
+
+.dica-3d[data-alto="0"] .p-frio u { width: 88%; } .dica-3d[data-alto="1"] .p-frio u { width: 10%; }
+.dica-3d[data-alto="0"] .p-quente u { width: 10%; } .dica-3d[data-alto="1"] .p-quente u { width: 90%; }
+.dica-3d[data-alto="0"] .r-forca u { width: 92%; } .dica-3d[data-alto="1"] .r-forca u { width: 34%; }
+.dica-3d[data-alto="0"] .r-vel u { width: 44%; } .dica-3d[data-alto="1"] .r-vel u { width: 92%; }
+.dica-3d[data-alto="0"] .c-forca u { width: 34%; } .dica-3d[data-alto="1"] .c-forca u { width: 92%; }
+.dica-3d[data-alto="0"] .c-vel u { width: 92%; } .dica-3d[data-alto="1"] .c-vel u { width: 44%; }
+.dica-3d[data-alto="0"] .e-temp u { width: 90%; } .dica-3d[data-alto="1"] .e-temp u { width: 30%; }
+.dica-3d[data-alto="0"] .e-vel u { width: 92%; } .dica-3d[data-alto="1"] .e-vel u { width: 56%; }
+.dica-3d[data-alto="0"] .g-engripa u { width: 92%; } .dica-3d[data-alto="1"] .g-engripa u { width: 8%; }
+.dica-3d[data-alto="0"] .g-afoga u { width: 8%; } .dica-3d[data-alto="1"] .g-afoga u { width: 85%; }

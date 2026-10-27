@@ -254,13 +254,21 @@
     freio: { extremos: ['Mais atrás', 'Mais à frente'], barras: [['Risco de travar a traseira', 'f-tras', 'vermelho'], ['Risco de travar a frente', 'f-frente', 'vermelho']] },
     diferencial: { extremos: ['Aberto', 'Travado'], barras: [['Tração na saída', 'd-traf', 'ouro'], ['Giro na entrada', 'd-giro', 'azul']] },
     mapa: { extremos: ['Econômico', 'Potente'], barras: [['Potência', 'm-pot', 'ouro'], ['Calor e desgaste do motor', 'm-calor', 'vermelho']] },
+    pressao: { extremos: ['Pressão baixa', 'Pressão alta'], barras: [['Demora a aquecer', 'p-frio', 'azul'], ['Risco de superaquecer', 'p-quente', 'vermelho']] },
+    relacao: { extremos: ['Curta', 'Longa'], barras: [['Força na saída', 'r-forca', 'ouro'], ['Velocidade final', 'r-vel', 'azul']] },
+    coroa: { extremos: ['Menos dentes', 'Mais dentes'], barras: [['Força na saída', 'c-forca', 'ouro'], ['Velocidade final', 'c-vel', 'azul']] },
+    arrefecimento: { extremos: ['Fechado', 'Aberto'], barras: [['Temperatura do motor', 'e-temp', 'vermelho'], ['Velocidade na reta', 'e-vel', 'azul']] },
+    carburacao: { extremos: ['Pobre', 'Rica'], barras: [['Risco de engripar', 'g-engripa', 'vermelho'], ['Motor afogando', 'g-afoga', 'azul']] },
+    eixo: { extremos: ['Eixo mole', 'Eixo duro'], barras: [] },
+    bitolaTraseira: { extremos: ['Estreita', 'Larga'], barras: [] },
+    bitola: { extremos: ['Estreita', 'Larga'], barras: [] },
   };
   function visual3d(chave, host3d) {
     const c = REGUA3D[chave];
     return `<div class="dica-sec">Onde o ajuste mexe</div>
       <div class="dica-3d" data-alto="0">${host3d}
         <div class="dica-3d-regua"><i></i><u></u><span class="dica-3d-baixo">${esc(c.extremos[0])}</span><span class="dica-3d-alto">${esc(c.extremos[1])}</span></div>
-        <div class="dica-barras">${c.barras.map(([r, cls, cor]) => `<div class="dica-barra ${cls}"><span>${esc(r)}</span><i><u style="background:${BAR[cor]}"></u></i></div>`).join('')}</div></div>`;
+        ${c.barras.length ? `<div class="dica-barras">${c.barras.map(([r, cls, cor]) => `<div class="dica-barra ${cls}"><span>${esc(r)}</span><i><u style="background:${BAR[cor]}"></u></i></div>`).join('')}</div>` : ''}</div>`;
   }
   const tem3d = (chave) => !!REGUA3D[chave];
 

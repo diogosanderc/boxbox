@@ -208,7 +208,7 @@
     // Knobs do acerto: régua, condições e sintomas (dicas visuais), e um atalho para ver a peça no carro 3D.
     // Na altura, o próprio carro 3D do jogo entra no balão e o ajuste vai e volta sozinho entre baixo e alto.
     const kn = document.querySelector('.setup-knobs');
-    const host3d = BoxDicas.tem3d(chave) && kn && Kart.monoposto() && !menosMovimento() ? BoxCarro3D.html('f1') : '';
+    const host3d = BoxDicas.tem3d(chave) && kn && BoxCarro3D.temFoco(tipo3d(), cena3d(chave).foco) && !menosMovimento() ? BoxCarro3D.html(tipo3d()) : '';
     const rica = BoxDicas.html(chave, Kart.dicaAjuste(chave), host3d);
     balao.querySelector('[data-rica]').innerHTML = rica + (rica && !host3d && document.querySelector('[data-carro3d]') ? `<button class="dica-ver" data-ver-carro="${chave}">Ver no carro</button>` : '');
     if (host3d) iniciar3d(chave, kn.dataset.acaoSetup);
@@ -218,14 +218,17 @@
   // Altura e asas no balão: o carro 3D sai da tela de acerto, vai para o balão e volta ao fechar. O ajuste vai e volta sozinho
   // entre o mínimo e o máximo (a câmera das asas olha de lado, onde o ângulo do flap aparece).
   let anim3d = null;
+  const tipo3d = () => (Kart.monoposto() ? 'f1' : 'kart');
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 },
   };
+  // Cada ajuste usa a câmera de mesmo nome (a mesma de quando o jogador mexe no knob), salvo os listados acima.
+  const cena3d = (chave) => CENA3D[chave] || { foco: chave, periodo: 3200 };
   function iniciar3d(chave, acao) {
-    BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, 'f1');
+    BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, tipo3d());
     BoxCarro3D.modoDica(true);
-    BoxCarro3D.foco(CENA3D[chave].foco);
+    BoxCarro3D.foco(cena3d(chave).foco);
     const a = Kart.AJUSTES[chave];
     // Knobs de opções (altura) vão do primeiro ao último índice; os numéricos (asas), do mínimo ao máximo.
     const [minimo, maximo] = a.tipo === 'opcoes' ? [0, a.opcoes.length - 1] : [a.min, a.max];
@@ -238,7 +241,7 @@
     };
     clearInterval(anim3d);
     passo();
-    anim3d = setInterval(passo, CENA3D[chave].periodo);
+    anim3d = setInterval(passo, cena3d(chave).periodo);
   }
   function fecharBalao() {
     balao.hidden = true;
@@ -248,7 +251,7 @@
     BoxCarro3D.modoDica(false);
     balao.querySelector('[data-rica]').innerHTML = '';
     const kn = document.querySelector('.setup-knobs');
-    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
+    if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, tipo3d());
     BoxCarro3D.foco('geral');
   }
   // Balão com várias falas (uma por parágrafo).
