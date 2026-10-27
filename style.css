@@ -1602,3 +1602,14 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .dica-chama { transform-box: fill-box; animation: dica-chama .14s ease-in-out infinite alternate; }
 @keyframes dica-chama { from { transform: scaleX(.8) scaleY(.92); } to { transform: scaleX(1.05) scaleY(1.08); } }
 @media (prefers-reduced-motion: reduce) { .dica-chama { animation: none; } }
+
+/* barras do 3D das dicas: valor em cada extremo (0 = primeiro, 1 = segundo) */
+.dica-3d[data-alto="0"] .s-abs u { width: 90%; } .dica-3d[data-alto="1"] .s-abs u { width: 30%; }
+.dica-3d[data-alto="0"] .s-resp u { width: 34%; } .dica-3d[data-alto="1"] .s-resp u { width: 92%; }
+.dica-3d[data-alto="0"] .f-tras u { width: 88%; } .dica-3d[data-alto="1"] .f-tras u { width: 12%; }
+.dica-3d[data-alto="0"] .f-frente u { width: 12%; } .dica-3d[data-alto="1"] .f-frente u { width: 88%; }
+.dica-3d[data-alto="0"] .d-traf u { width: 34%; } .dica-3d[data-alto="1"] .d-traf u { width: 92%; }
+.dica-3d[data-alto="0"] .d-giro u { width: 90%; } .dica-3d[data-alto="1"] .d-giro u { width: 40%; }
+.dica-3d[data-alto="0"] .m-pot u { width: 38%; } .dica-3d[data-alto="1"] .m-pot u { width: 95%; }
+.dica-3d[data-alto="0"] .m-calor u { width: 20%; } .dica-3d[data-alto="1"] .m-calor u { width: 92%; }
+.balao .dica-3d .carro3d { height: 190px; }

@@ -250,6 +250,10 @@
     altura: { extremos: ['Carro baixo · rente ao chão', 'Carro alto · longe do chão'], barras: [['Aderência (efeito solo)', 'b-ader', 'ouro'], ['Risco de bater no chão', 'b-bate', 'vermelho']] },
     asaTraseira: { extremos: ['Pouca asa', 'Muita asa'], barras: [['Aderência nas curvas', 'a-ader', 'ouro'], ['Velocidade na reta', 'a-vel', 'azul']] },
     asaDianteira: { extremos: ['Pouca asa', 'Muita asa'], barras: [['Aderência nas curvas', 'a-ader', 'ouro'], ['Velocidade na reta', 'a-vel', 'azul']] },
+    suspensao: { extremos: ['Suspensão macia', 'Suspensão dura'], barras: [['Absorve as zebras', 's-abs', 'azul'], ['Resposta nas curvas', 's-resp', 'ouro']] },
+    freio: { extremos: ['Mais atrás', 'Mais à frente'], barras: [['Risco de travar a traseira', 'f-tras', 'vermelho'], ['Risco de travar a frente', 'f-frente', 'vermelho']] },
+    diferencial: { extremos: ['Aberto', 'Travado'], barras: [['Tração na saída', 'd-traf', 'ouro'], ['Giro na entrada', 'd-giro', 'azul']] },
+    mapa: { extremos: ['Econômico', 'Potente'], barras: [['Potência', 'm-pot', 'ouro'], ['Calor e desgaste do motor', 'm-calor', 'vermelho']] },
   };
   function visual3d(chave, host3d) {
     const c = REGUA3D[chave];

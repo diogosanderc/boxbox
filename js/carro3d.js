@@ -194,6 +194,43 @@
     for (const r of mod.raizes) visita(r, ident());
   }
 
+
+  // ---------- brilhos (modo dica): discos de freio e motor ----------
+  const VS_B = `#version 300 es
+  in vec3 p; uniform mat4 mvp; uniform vec3 c; uniform float r; uniform vec2 esc; out vec2 q;
+  void main(){ q = p.xy; vec4 g = mvp*vec4(c, 1.); g.xy += p.xy * r * esc; gl_Position = g; }`;
+  const FS_B = `#version 300 es
+  precision mediump float; in vec2 q; uniform vec4 cor; out vec4 o; void main(){ float d = max(0., 1.-length(q)); o = vec4(cor.rgb, cor.a*d*d); }`;
+  // Brilho = quadro virado para a câmera com um degradê radial (raio r em unidades do mundo).
+  function prepararBrilho(gl) {
+    const sh = (t, src) => { const x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS_B)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS_B)); gl.linkProgram(prog);
+    const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+    const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]), gl.STATIC_DRAW);
+    const lp = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 3, gl.FLOAT, false, 0, 0);
+    const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
+    return { prog, vao, n: 6, mvp: gl.getUniformLocation(prog, 'mvp'), c: gl.getUniformLocation(prog, 'c'), r: gl.getUniformLocation(prog, 'r'), esc: gl.getUniformLocation(prog, 'esc'), cor: gl.getUniformLocation(prog, 'cor') };
+  }
+  function desenharBrilhos(gl, vp, br) {
+    if (!br || !(br.f > 0.02 || br.t > 0.02 || br.m > 0.02)) return;
+    if (!S.brilho) S.brilho = prepararBrilho(gl);
+    const b = S.brilho, rodas = F1.RODAS;
+    gl.useProgram(b.prog); gl.bindVertexArray(b.vao);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE); gl.depthMask(false); gl.disable(gl.DEPTH_TEST);
+    gl.uniformMatrix4fv(b.mvp, false, vp);
+    gl.uniform2f(b.esc, (1 / Math.tan(0.31)) / (gl.drawingBufferWidth / gl.drawingBufferHeight), 1 / Math.tan(0.31));
+    const bola = (c, r, cor, a) => { gl.uniform3f(b.c, c[0], c[1], c[2]); gl.uniform1f(b.r, r); gl.uniform4f(b.cor, cor[0], cor[1], cor[2], a); gl.drawElements(gl.TRIANGLES, b.n, gl.UNSIGNED_SHORT, 0); };
+    // os centros das rodas já estão em coordenadas do mundo (é nelas que o carro anima as rodas)
+    for (const c of Object.values(rodas)) {
+      const g = c[2] > 1 ? br.f : br.t;
+      if (g > 0.02) bola([c[0] + (c[0] > 0 ? 0.05 : -0.05), c[1], c[2]], 0.62 + 0.25 * g, [1, 0.3, 0.08], Math.min(1, g) * 1.4);
+    }
+    if (br.m > 0.02) bola([0, 0.55, -0.4], 0.9 + 0.5 * br.m, [1, 0.45, 0.1], Math.min(1, br.m) * 1.3);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.bindVertexArray(null);
+  }
+
   // ---------- os carros ----------
   // Cada modelo diz onde estão as peças (números de nós do arquivo glTF), como pintar e como mexer em cada ajuste.
   // Frente do carro em +z, y para cima. Posições em unidades do próprio modelo.
@@ -210,6 +247,7 @@
       asaTraseira: { yaw: 3.5, pitch: 0.22, dist: 4.4, t: [0, 0.65, -1.0] },
       // visões de lado, para o "?" das asas (o ângulo do flap aparece melhor de perfil)
       asaTraseiraLado: { yaw: 1.5708, pitch: 0.12, dist: 3.0, t: [0, 0.62, -1.2] },
+      suspensaoLado: { yaw: 1.25, pitch: 0.12, dist: 6.3, t: [0, 0.35, 1.15] },
       asaDianteiraLado: { yaw: 1.5708, pitch: 0.12, dist: 3.2, t: [0, 0.28, 3.15] },
       altura: { yaw: 1.5708, pitch: 0.03, dist: 7.4, t: [0, 0.3, 1.15] },
       suspensao: { yaw: 0.95, pitch: 0.16, dist: 4, t: [0.7, 0.35, 2.4] },
@@ -266,13 +304,24 @@
         vel[6] = vel[89] = w; vel[83] = w * (1 + k); vel[33] = w * (1 - k);
       }
       a.mergulho = (a.mergulho || 0) + (mergulho * a.fRel - (a.mergulho || 0)) * k;
+      // brilho dos discos (freio) e do motor (mapa): só no modo dica do "?"; frente e traseira esquentam conforme a parcela do freio
+      const alvoBr = { f: 0, t: 0, m: 0 };
+      if (S.dica && foco === 'freio') {
+        const fr = (al.freio == null ? 56 : al.freio) / 100, u = t % 3.6;
+        const cic = (d) => (u < 1.2 ? 1 : u < 1.2 + d ? 1 - (u - 1.2) / d : u < 2.6 ? 0 : u < 3.2 ? (u - 2.6) / 0.6 : 1);
+        alvoBr.f = (1 - cic(Math.min(1.3, 0.28 / fr))) * Math.min(1.3, (fr / 0.56) * 0.9);
+        alvoBr.t = (1 - cic(Math.min(1.3, 0.28 / (1 - fr)))) * Math.min(1.3, ((1 - fr) / 0.44) * 0.9);
+      }
+      if (S.dica && foco === 'mapa') alvoBr.m = [0.18, 0.55, 1][al.mapa == null ? 1 : al.mapa] * (0.8 + 0.2 * Math.sin(t * 9));
+      a.br = a.br || { f: 0, t: 0, m: 0 };
+      for (const q of ['f', 't', 'm']) a.br[q] += (alvoBr[q] - a.br[q]) * (1 - Math.exp(-dt * 8));
       for (const i in vel) a.g[i] += dt * vel[i] * a.fRel;
       a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
       a.asaF += ((al.asaDianteira - 5) * 4 * deg - a.asaF) * k;
       a.asaT += ((al.asaTraseira - 5) * 4.5 * deg - a.asaT) * k;
       a.y += ((al.altura - 1) * 0.075 - a.y) * k;
       a.psi += (al.pressao - a.psi) * k;
-      const freq = [1.6, 2.4, 4.2][al.suspensao], amp = [0.032, 0.016, 0.006][al.suspensao];
+      const freq = [1.6, 2.4, 4.2][al.suspensao], amp = [0.032, 0.016, 0.006][al.suspensao] * (S.dica && foco === 'suspensao' ? 3 : 1);
       const bal = reduzido() ? 0 : Math.sin(t * freq) * amp * (0.6 + 0.4 * Math.sin(t * 0.7));
       const rol = reduzido() ? 0 : Math.sin(t * freq * 0.7 + 1) * amp * 0.5;
       m.nos[m.partes.asaF].mundo = pivoX([0, 0.14, 3.22], a.asaF);
@@ -426,7 +475,9 @@
     def().aplicar(m, S.tempo, dt, S.alvo, S.mods[S.tipo].ang, S.foco);
     const gl = S.gl, esc = S.tipo === 'kart' ? 100 : 1;
     gl.viewport(0, 0, W, H); gl.enable(gl.DEPTH_TEST); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    desenhar(gl, m, mul(persp(0.62, W / H, 0.1 * esc, 80 * esc), olhar(eye, cam.t)));
+    const vpMat = mul(persp(0.62, W / H, 0.1 * esc, 80 * esc), olhar(eye, cam.t));
+    desenhar(gl, m, vpMat);
+    if (S.dica && S.tipo === 'f1') desenharBrilhos(gl, vpMat, S.mods[S.tipo].ang && S.mods[S.tipo].ang.br);
     S.raf = requestAnimationFrame(quadro);
   }
 
@@ -482,6 +533,6 @@
   function previa(chave, valor) { if (chave in S.alvo && Number.isFinite(valor)) S.alvo[chave] = valor; }
   function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) }; }
 
-  const api = { html, ligar, foco, soltar, previa, definir };
+  const api = { html, ligar, foco, soltar, previa, definir, modoDica: (v) => { S.dica = !!v; } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxCarro3D = api;
 })(typeof window !== 'undefined' ? window : globalThis);

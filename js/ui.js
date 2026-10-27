@@ -218,9 +218,13 @@
   // Altura e asas no balão: o carro 3D sai da tela de acerto, vai para o balão e volta ao fechar. O ajuste vai e volta sozinho
   // entre o mínimo e o máximo (a câmera das asas olha de lado, onde o ângulo do flap aparece).
   let anim3d = null;
-  const CENA3D = { altura: { foco: 'altura' }, asaTraseira: { foco: 'asaTraseiraLado' }, asaDianteira: { foco: 'asaDianteiraLado' } };
+  const CENA3D = {
+    altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
+    suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 },
+  };
   function iniciar3d(chave, acao) {
     BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, 'f1');
+    BoxCarro3D.modoDica(true);
     BoxCarro3D.foco(CENA3D[chave].foco);
     const a = Kart.AJUSTES[chave];
     // Knobs de opções (altura) vão do primeiro ao último índice; os numéricos (asas), do mínimo ao máximo.
@@ -234,13 +238,14 @@
     };
     clearInterval(anim3d);
     passo();
-    anim3d = setInterval(passo, 2400);
+    anim3d = setInterval(passo, CENA3D[chave].periodo);
   }
   function fecharBalao() {
     balao.hidden = true;
     if (anim3d === null) return;
     clearInterval(anim3d);
     anim3d = null;
+    BoxCarro3D.modoDica(false);
     balao.querySelector('[data-rica]').innerHTML = '';
     const kn = document.querySelector('.setup-knobs');
     if (kn) BoxCarro3D.ligar(app, setupDaAcao(kn.dataset.acaoSetup), C.equipeBase(estado.equipeId).cor, Kart.monoposto() ? 'f1' : 'kart');
