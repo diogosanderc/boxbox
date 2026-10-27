@@ -41,6 +41,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- iPad: sem Split View nem Slide Over (o jogo ocupa a tela inteira e escala a coluna do jogo). -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>UIStatusBarStyle</key>
