@@ -2477,12 +2477,14 @@
       const cor = c.fora ? null : corrida.molhado ? '#2f8cff' : Engine.PNEUS[c.pneu] ? Engine.PNEUS[c.pneu].cor : null;
       return `<span class="vivo-pneu">${cor ? `<span class="composto-bola micro" style="--cor:${cor}"></span>` : ''}</span>`;
     };
-    document.getElementById('tabela').innerHTML = `<div class="ao-vivo ${mostraPneu ? 'com-pneu' : ''}">${ordem.map((c) => {
+    document.getElementById('tabela').innerHTML = `<div class="ao-vivo ${mostraPneu ? 'com-pneu' : ''} ${corrida.terminou ? 'fim' : ''}">${ordem.map((c) => {
       const ganho = c.largada - c.pos;
       let dir;
       if (c.fora) dir = `<span class="status-fora">${statusFora(c.motivoFora)}</span>`;
       else if (c === lider) dir = '<span class="fraco">Líder</span>';
       else dir = `+${(c.tempo - lider.tempo).toFixed(1)}`;
+      // Bandeirada: quando a corrida acaba, cada carro que terminou ganha a bandeirinha quadriculada, na ordem de chegada.
+      if (corrida.terminou && !c.fora) dir += `<i class="bandeirinha" style="--d:${Math.min(3.2, 0.2 + Math.max(0, c.tempo - lider.tempo) * 0.09).toFixed(2)}s" aria-label="Chegou"></i>`;
       return `<div class="vivo-linha ${c.jogador ? 'jogador' : ''} ${c.fora ? 'fora' : ''} ${estado.seguindo === c.id ? 'seguido' : ''}">
         <b class="vivo-pos">${c.pos}</b><i class="camp-cor" style="background:${c.equipe.cor}"></i>
         <b class="vivo-sigla">${sigla(c.piloto.nome)}</b>

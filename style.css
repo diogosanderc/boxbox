@@ -579,7 +579,12 @@ button.seguir.ativo { color: var(--alerta); border-color: rgba(255, 176, 32, 0.6
 .vivo-sigla { letter-spacing: 0.6px; }
 .vivo-nome { color: var(--fraco); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vivo-ganho { font-size: 11px; font-weight: 700; text-align: right; }
-.vivo-dif { text-align: right; font-variant-numeric: tabular-nums; min-width: 52px; }
+.vivo-dif { text-align: right; font-variant-numeric: tabular-nums; min-width: 52px; white-space: nowrap; }
+.ao-vivo.fim .vivo-dif { min-width: 80px; }
+.bandeirinha { display: inline-block; width: 15px; height: 12px; margin-left: 6px; vertical-align: -1px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.55);
+  background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 6px 6px; animation: bandeirada 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4) var(--d, 0s) both; }
+@keyframes bandeirada { from { opacity: 0; transform: scale(0.2) rotate(-25deg); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bandeirinha { animation: none; } }
 .status-fora { color: var(--azul); font-weight: 700; }
 .tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .tiles-4 .tile { padding: 8px 10px; }
