@@ -5,7 +5,7 @@
   const CHAVE = 'superlicenca-premium';
   // Só aparece se a App Store não responder (ou no navegador); no app vale o preço da loja, na moeda do jogador.
   // Sem o preço da loja (offline, ou antes de o StoreKit responder) não se mostra preço nenhum: ele muda no App Store Connect
-  // (lançamento US$ 1,99, depois US$ 3,99) e um valor fixo aqui ficaria errado.
+  // (hoje US$ 2,99) e um valor fixo aqui ficaria errado.
   const PRECO_PADRAO = '';
 
   const cap = raiz.Capacitor;
