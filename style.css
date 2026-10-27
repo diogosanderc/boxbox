@@ -1689,3 +1689,8 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .cartao-decisao p { margin: 0 0 4px; color: var(--fraco); }
 .decisao-ico { display: grid; place-items: center; }
 .decisao-ico svg { width: 46px; height: 46px; }
+
+/* Barra de ações do treino numa linha só: "Pular treino" (menor) + "Treinar" */
+.acoes-linha { grid-template-columns: auto minmax(0, 1fr); align-items: stretch; }
+.acoes-linha .premium-trancado { grid-column: 1 / -1; }
+.acoes-linha .mini-acao { white-space: nowrap; padding-inline: 16px; }

@@ -333,7 +333,7 @@
       ...PASSOS_KNOBS(),
       { sel: '.cartao-mecanico', titulo: 'Mecânico', texto: 'Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.' },
       { sel: '.pneus', titulo: 'Pneus', texto: 'Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.' },
-      { sel: '[data-acao="saida"]', titulo: 'Sair para a pista', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
+      { sel: '[data-acao="saida"]', titulo: 'Treinar', texto: 'O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.' },
       { sel: '.cartao-radio', titulo: 'Rádio', texto: 'Aqui chegam o tempo, a posição no treino e o que o piloto sentiu. Use isso para corrigir o acerto antes da próxima saída.' },
       { sel: '[data-acao="ir-quali"]', titulo: 'Classificação', texto: 'Quando o acerto estiver bom, siga para a classificação. A tarde costuma ser mais quente: o acerto pode precisar de um ajuste.' },
     ],
@@ -2351,11 +2351,11 @@
         ${cartao(treino ? 'Treino livre' : 'Classificação', `${condicaoChips(treino ? 'treino' : 'quali')}${leitura(fds.sessao)}${editorSetup()}`, { ajuda: treino ? (Kart.monoposto() ? 'setupF4' : 'setup') : 'quali', classe: 'cartao-acerto' })}
         ${cartaoMecanico()}
         ${cartao('Pneu', `${pneusVisuais(true)}${aviseGasto()}${dicaAmaciar()}${botoesComprarPneu()}`)}
-        <div class="acoes">
+        <div class="acoes ${treino ? 'acoes-linha' : ''}">
           ${treino
-            ? `<button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Sair para a pista <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>
-               ${maisSaidas}
-               <button class="grande" data-acao="ir-quali">Ir para a classificação →</button>`
+            ? `${maisSaidas}
+               <button class="grande mini-acao" data-acao="ir-quali">Pular treino</button>
+               <button class="principal grande" data-acao="saida" ${restantes ? '' : 'disabled'}>Treinar <span class="etapas" aria-label="${restantes} saídas restantes">${contador}</span></button>`
             : '<button class="principal grande" data-acao="classificar">Classificar</button>'}
         </div>
       </div>

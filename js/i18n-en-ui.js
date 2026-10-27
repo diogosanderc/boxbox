@@ -119,6 +119,8 @@
     "Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.": "You can hire a mechanic for the race weekend: the junior gives hunches, the experienced one analyses the setup and the professional builds everything for you.",
     "Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.": "Tap a set to use it. Practise on an older tyre and save the new one for qualifying and the race.",
     "Sair para a pista": "Head out on track",
+    "Treinar": "Practice",
+    "Pular treino": "Qualifying",
     "O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.": "The driver does a few laps and tells you what they felt. Each dot is one run in practice.",
     "Aqui chegam o tempo, a posição no treino e o que o piloto sentiu. Use isso para corrigir o acerto antes da próxima saída.": "This is where the lap time, the practice position and what the driver felt arrive. Use it to correct the setup before the next run.",
     "Quando o acerto estiver bom, siga para a classificação. A tarde costuma ser mais quente: o acerto pode precisar de um ajuste.": "When the setup is good, move on to qualifying. The afternoon is usually hotter: the setup may need an adjustment.",

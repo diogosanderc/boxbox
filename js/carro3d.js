@@ -448,6 +448,8 @@
     alvo: {}, foco: 'geral', cam: null, auto: 0, arrasto: 0, volta: 0, ultimo: 0, tempo: 0, arrastando: false, ux: 0 };
   const def = () => MODELOS[S.tipo];
   const modeloAtual = () => (S.mods[S.tipo] || {}).modelo;
+  // focos que mostram o carro de lado, inteiro (a diferença está no corpo todo, não numa peça)
+  const ZOOM_CARRO_INTEIRO = ['altura', 'rake', 'relacao', 'freio', 'suspensaoLado', 'alturaBanco'];
   const reduzido = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function suporta() {
@@ -478,7 +480,9 @@
     // câmera: vai até o foco; no foco geral o carro gira devagar
     const focos = def().focos, alvo = focos[S.foco] || focos.geral, kc = 1 - Math.exp(-dt * 4.2), cam = S.cam;
     let dy = alvo.yaw - cam.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-    cam.yaw += dy * kc; cam.pitch += (alvo.pitch - cam.pitch) * kc; cam.dist += (alvo.dist - cam.dist) * kc;
+    // no acerto (fora do "?"), quando um knob está em foco a câmera chega mais perto da peça; nas visões do carro inteiro, só um pouco
+    const perto = S.foco && S.foco !== 'geral' && !S.dica ? (ZOOM_CARRO_INTEIRO.includes(S.foco) ? 0.8 : 0.68) : 1;
+    cam.yaw += dy * kc; cam.pitch += (alvo.pitch - cam.pitch) * kc; cam.dist += (alvo.dist * perto - cam.dist) * kc;
     for (let i = 0; i < 3; i++) cam.t[i] += (alvo.t[i] - cam.t[i]) * kc;
     if (S.foco === 'geral' && !reduzido() && !S.arrastando) S.auto += dt * 0.18;
     const yaw = cam.yaw + S.arrasto + (S.foco === 'geral' ? S.auto : 0), pit = cam.pitch;
