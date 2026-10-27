@@ -223,10 +223,12 @@
     BoxCarro3D.ligar(balao, setupDaAcao(acao), C.equipeBase(estado.equipeId).cor, 'f1');
     BoxCarro3D.foco(CENA3D[chave].foco);
     const a = Kart.AJUSTES[chave];
+    // Knobs de opções (altura) vão do primeiro ao último índice; os numéricos (asas), do mínimo ao máximo.
+    const [minimo, maximo] = a.tipo === 'opcoes' ? [0, a.opcoes.length - 1] : [a.min, a.max];
     let alto = false;
     const passo = () => {
       alto = !alto;
-      BoxCarro3D.previa(chave, alto ? a.max : a.min);
+      BoxCarro3D.previa(chave, alto ? maximo : minimo);
       const painel = balao.querySelector('.dica-3d');
       if (painel) painel.dataset.alto = alto ? '1' : '0';
     };

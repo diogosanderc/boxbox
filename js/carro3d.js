@@ -479,7 +479,7 @@
     S.volta = setTimeout(() => { S.foco = 'geral'; S.arrasto = 0; }, 2600);
   }
   // Prévia ao vivo, enquanto o knob ainda está sendo arrastado.
-  function previa(chave, valor) { if (chave in S.alvo) S.alvo[chave] = valor; }
+  function previa(chave, valor) { if (chave in S.alvo && Number.isFinite(valor)) S.alvo[chave] = valor; }
   function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) }; }
 
   const api = { html, ligar, foco, soltar, previa, definir };
