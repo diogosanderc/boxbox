@@ -341,23 +341,23 @@
 
   // nivel: força média dos rivais. custo: multiplicador dos custos. chuva: chance média de chuva por etapa.
   const CAMPEONATOS = [
-    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 47, custo: 0.36, patroc: 0.36, regiao: 'br', voltas: 16,
+    { id: 'regional', nome: 'Copa Paulista de Kart', curto: 'Regional', ordem: 0, nivel: 39, custo: 0.36, patroc: 0.36, regiao: 'br', voltas: 16,
       chuva: 0.25, premioCampeao: 7000, popularidade: 1 },
-    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 55, custo: 0.65, patroc: 0.48, regiao: 'br', voltas: 18,
+    { id: 'nacional', nome: 'Campeonato Brasileiro de Kart', curto: 'Brasileiro', ordem: 1, nivel: 45, custo: 0.65, patroc: 0.48, regiao: 'br', voltas: 18,
       chuva: 0.25, premioCampeao: 18000, popularidade: 1.8 },
-    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 63, custo: 1.15, patroc: 0.64, regiao: 'eu', voltas: 20,
+    { id: 'internacional', nome: 'Euro Kart Series', curto: 'Europeu', ordem: 2, nivel: 49, custo: 1.15, patroc: 0.64, regiao: 'eu', voltas: 20,
       chuva: 0.3, premioCampeao: 43000, popularidade: 3 },
     // Monopostos: só se entra por proposta de uma equipe de F4.
-    { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 75, custo: 2.7, patroc: 1.35, premios: 1, regiao: 'f4', voltas: 14,
+    { id: 'f4', nome: 'F4 Europa Series', curto: 'F4', ordem: 3, nivel: 63, custo: 2.7, patroc: 1.35, premios: 1, regiao: 'f4', voltas: 14,
       chuva: 0.3, premioCampeao: 54000, popularidade: 4, categoria: 'f4' },
     // safetyCar: acidentes e quebras podem colocar o carro de segurança na pista (F2 e F1).
     // compostos: pneus macio, médio e duro, com parada obrigatória na corrida principal (F2 e F1).
     // sprint: corrida curta no sábado (F2 em toda etapa; F1 em seis GPs, como no calendário real).
     // categoria: modelo do carro ('f4' vale também para a F3; a F2 e a F1 têm carros mais complexos).
     // Depois da F4, sobe-se por proposta: os 4 primeiros de cada categoria são chamados pela seguinte.
-    { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, etapas: 10, nivel: 79, custo: 13.5, patroc: 5.5, premios: 4.5, regiao: 'f3', voltas: 16,
+    { id: 'f3', nome: 'Fórmula 3 Internacional', curto: 'F3', ordem: 4, etapas: 10, nivel: 69, custo: 13.5, patroc: 5.5, premios: 4.5, regiao: 'f3', voltas: 16,
       chuva: 0.25, premioCampeao: 340000, popularidade: 6, categoria: 'f4' },
-    { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 82, custo: 25, patroc: 8.3, premios: 8.3, regiao: 'f2', voltas: 30, desgasteComposto: 1.23, sprint: true, compostos: true, safetyCar: true,
+    { id: 'f2', nome: 'Fórmula 2 Internacional', curto: 'F2', ordem: 5, etapas: 14, nivel: 78, custo: 25, patroc: 8.3, premios: 8.3, regiao: 'f2', voltas: 30, desgasteComposto: 1.23, sprint: true, compostos: true, safetyCar: true,
       chuva: 0.25, premioCampeao: 830000, popularidade: 8, categoria: 'f2' },
     { id: 'f1', nome: 'Mundial de Fórmula 1', curto: 'F1', ordem: 6, etapas: 24, nivel: 87, custo: 40, patroc: 11.5, premios: 40, regiao: 'f1', voltas: 40, desgasteComposto: 1.23, compostos: true, safetyCar: true, sprint: ['xangai', 'miami', 'spa', 'austin', 'pace', 'lusail'],
       chuva: 0.2, premioCampeao: 5000000, popularidade: 12, categoria: 'f1' },

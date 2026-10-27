@@ -128,7 +128,7 @@
   // Escada dos monopostos: os 4 primeiros de cada um recebem proposta do seguinte.
   const PROXIMA_CATEGORIA = { f4: 'f3', f3: 'f2', f2: 'f1' };
   // O teto dos atributos sobe a cada categoria: 100 só na F1. A preparação (físico e simulador) soma até +4.
-  const TETO_CATEGORIA = { regional: 66, nacional: 76, internacional: 86, f4: 92, f3: 95, f2: 98, f1: 100 };
+  const TETO_CATEGORIA = { regional: 58, nacional: 66, internacional: 72, f4: 80, f3: 87, f2: 92, f1: 100 };
   const POTENCIAL_MAXIMO = 100;
   function tetoDe(estado, campId) {
     const prep = Object.values(estado.preparacao || {}).reduce((t, n) => t + n, 0);
@@ -1936,9 +1936,11 @@
   // O piloto evolui de dois jeitos: sozinho, com a idade e as corridas (a experiência, mais devagar),
   // e com os pontos de evolução que o jogador distribui no fim de cada temporada: 8 por disputar o ano,
   // bônus pela posição no campeonato e +1 por vitória. Cada ponto vale +1 no atributo, até o potencial.
-  // Calibrado em simulações de carreira: a média dos atributos de quem joga bem chega perto do limite do
-  // piloto só depois dos 22 anos (e o ritmo, o atributo que o jogador prioriza, bem antes).
+  // Calibrado em simulações de carreira (jogador que prioriza o ritmo): o piloto sai do kart com ~47 e a média
+  // dos atributos passa de 70 na F4, de 85 na F3 e de 90 na F2; o ritmo acompanha o teto da categoria.
+  // Quem joga bem chega à F1 entre 19 e 21 anos com a média acima de 93. Ver docs/evolucao.md.
   const EVOLUCAO_AUTOMATICA = 0.6;
+  const EVOLUCAO_LENTA = 0.5; // fração da distância até o teto que o piloto anda por etapa (era a taxa cheia)
   const PONTOS_BASE_EVOLUCAO = 8;
   const BONUS_EVOLUCAO = { 1: 10, 2: 8, 3: 6, 4: 5 };
   const BONUS_ATE_P10 = 3;
@@ -1975,7 +1977,7 @@
   }
 
   function evoluir(p, rnd, fator) {
-    const taxa = p.idade <= 14 ? 0.3 : p.idade <= 17 ? 0.22 : 0.12;
+    const taxa = (p.idade <= 14 ? 0.3 : p.idade <= 17 ? 0.22 : 0.12) * EVOLUCAO_LENTA;
     for (const a of ATRIBUTOS) {
       const falta = p.potencial - p[a];
       if (falta <= 0) continue;
