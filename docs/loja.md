@@ -84,6 +84,7 @@ dados de desempenho e registros de falhas. Rascunho das respostas (confira com a
 **Classificação etária:** responder "sim" para anúncios; sem apostas, sem violência, sem conteúdo sexual. Confirmar a faixa que a Apple sugerir.
 
 **Compra no app:** "Superlicença Premium", compra única (não consumível), ID `com.diogosander.superlicenca.premium`.
+Preço: **US$ 1,99 no lançamento** e depois **US$ 3,99** (a Apple converte para cada país). O jogo mostra o preço que a loja devolve; sem ele (offline), não mostra preço.
 
 **Notas para a revisão:** "O app não exige login. A carreira fica no aparelho. Os anúncios aparecem só na versão gratuita; o Premium (compra única) os remove."
 

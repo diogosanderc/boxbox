@@ -827,7 +827,7 @@
     </div>`;
     folhaPremium.hidden = false;
     const el = folhaPremium.querySelector('[data-preco]');
-    if (el) el.textContent = `· ${await BoxPremium.preco()}`;
+    if (el) { const preco = await BoxPremium.preco(); el.textContent = preco ? `· ${preco}` : ''; }
   }
   folhaPremium.addEventListener('click', async (ev) => {
     const b = ev.target.closest('[data-premium]');
