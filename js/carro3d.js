@@ -214,7 +214,7 @@
     return { prog, vao, n: 6, mvp: gl.getUniformLocation(prog, 'mvp'), c: gl.getUniformLocation(prog, 'c'), r: gl.getUniformLocation(prog, 'r'), esc: gl.getUniformLocation(prog, 'esc'), cor: gl.getUniformLocation(prog, 'cor') };
   }
   function desenharBrilhos(gl, vp, br) {
-    if (!br || !(br.f > 0.02 || br.t > 0.02 || br.m > 0.02)) return;
+    if (!br || !(br.f > 0.02 || br.t > 0.02 || br.m > 0.02 || br.b > 0.02 || br.e > 0.02)) return;
     if (!S.brilho) S.brilho = prepararBrilho(gl);
     const b = S.brilho, rodas = F1.RODAS;
     gl.useProgram(b.prog); gl.bindVertexArray(b.vao);
@@ -228,6 +228,9 @@
       if (g > 0.02) bola([c[0] + (c[0] > 0 ? 0.05 : -0.05), c[1], c[2]], 0.62 + 0.25 * g, [1, 0.3, 0.08], Math.min(1, g) * 1.4);
     }
     if (br.m > 0.02) bola([0, 0.55, -0.4], 0.9 + 0.5 * br.m, [1, 0.45, 0.1], Math.min(1, br.m) * 1.3);
+    // ERS: bateria (azul-ciano) sempre acesa e energia indo para as rodas de trás (curvas) ou para o motor (retas)
+    if (br.b > 0.02) bola([0, 0.4, 0.55], 0.7 + 0.2 * br.b, [0.2, 0.75, 1], Math.min(1, br.b) * 1.2);
+    if (br.e > 0.02) for (const c of Object.values(rodas)) if (c[2] < 1) bola([c[0] + (c[0] > 0 ? 0.05 : -0.05), c[1], c[2]], 0.6 + 0.25 * br.e, [0.2, 0.8, 1], Math.min(1, br.e) * 1.4);
     gl.depthMask(true); gl.enable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.bindVertexArray(null);
   }
 
@@ -239,7 +242,7 @@
 
   const F1 = {
     id: 'f1', arquivo: 'modelos/f1/scene.json', binarios: ['modelos/f1/scene.bin', 'modelos/f1/scene.bin.txt'], // a versão .txt (base64) é a da prévia na web
-    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber == null ? -3 : s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa == null ? 1 : s.mapa, rake: s.rake == null ? 1 : s.rake, arrefecimento: s.arrefecimento }),
+    alvo: (s) => ({ asaDianteira: s.asaDianteira, asaTraseira: s.asaTraseira, altura: s.altura, suspensao: s.suspensao, pressao: s.arrefecimento != null ? s.pressao - 2.5 : s.pressao, camber: s.camber == null ? -3 : s.camber, relacao: s.relacao, freio: s.freio, diferencial: s.diferencial, mapa: s.mapa == null ? 1 : s.mapa, ers: s.ers == null ? 1 : s.ers, rake: s.rake == null ? 1 : s.rake, arrefecimento: s.arrefecimento }),
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
@@ -256,6 +259,7 @@
       freio: { yaw: 1.5708, pitch: 0.05, dist: 6.6, t: [0, 0.35, 1.15] },
       mapa: { yaw: 2.5, pitch: 0.3, dist: 4.8, t: [0, 0.6, 0.2] },
       arrefecimento: { yaw: 1.5708, pitch: 0.1, dist: 4.2, t: [0.4, 0.45, 0.4] },
+      ers: { yaw: 1.5708, pitch: 0.1, dist: 5.4, t: [0, 0.4, 0.3] },
       rake: { yaw: 1.5708, pitch: 0.02, dist: 7, t: [0, 0.35, 1.15] },
       diferencial: { yaw: 2.7, pitch: 0.32, dist: 5.2, t: [0, 0.35, -0.5] },
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
@@ -305,7 +309,7 @@
       }
       a.mergulho = (a.mergulho || 0) + (mergulho * a.fRel - (a.mergulho || 0)) * k;
       // brilho dos discos (freio) e do motor (mapa): só no modo dica do "?"; frente e traseira esquentam conforme a parcela do freio
-      const alvoBr = { f: 0, t: 0, m: 0 };
+      const alvoBr = { f: 0, t: 0, m: 0, b: 0, e: 0 };
       if (S.dica && foco === 'freio') {
         const fr = (al.freio == null ? 56 : al.freio) / 100, u = t % 3.6;
         const cic = (d) => (u < 1.2 ? 1 : u < 1.2 + d ? 1 - (u - 1.2) / d : u < 2.6 ? 0 : u < 3.2 ? (u - 2.6) / 0.6 : 1);
@@ -314,8 +318,14 @@
       }
       if (S.dica && foco === 'mapa') alvoBr.m = [0.18, 0.55, 1][al.mapa == null ? 1 : al.mapa] * (0.8 + 0.2 * Math.sin(t * 9));
       if (S.dica && foco === 'arrefecimento') alvoBr.m = [1, 0.5, 0.12][al.arrefecimento == null ? 1 : al.arrefecimento] * (0.85 + 0.15 * Math.sin(t * 5));
-      a.br = a.br || { f: 0, t: 0, m: 0 };
-      for (const q of ['f', 't', 'm']) a.br[q] += (alvoBr[q] - a.br[q]) * (1 - Math.exp(-dt * 8));
+      if (S.dica && foco === 'ers') {
+        const w = (al.ers == null ? 1 : al.ers) / 2, pulso = 0.85 + 0.15 * Math.sin(t * 7);
+        alvoBr.b = (0.5 + 0.5 * (1 - Math.abs(w - 0.5) * 2)) * pulso;
+        alvoBr.m = w * 1.1 * pulso;
+        alvoBr.e = (1 - w) * 1.1 * pulso;
+      }
+      a.br = a.br || { f: 0, t: 0, m: 0, b: 0, e: 0 };
+      for (const q of ['f', 't', 'm', 'b', 'e']) a.br[q] += (alvoBr[q] - a.br[q]) * (1 - Math.exp(-dt * 8));
       for (const i in vel) a.g[i] += dt * vel[i] * a.fRel;
       a.camb += ((al.camber == null ? -3 : al.camber) - a.camb) * k;
       a.asaF += ((al.asaDianteira - 5) * 4 * deg - a.asaF) * k;

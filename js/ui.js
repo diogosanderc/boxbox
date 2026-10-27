@@ -221,7 +221,7 @@
   const tipo3d = () => (Kart.monoposto() ? 'f1' : 'kart');
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
-    suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 },
+    suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
   };
   // Cada ajuste usa a câmera de mesmo nome (a mesma de quando o jogador mexe no knob), salvo os listados acima.
   const cena3d = (chave) => CENA3D[chave] || { foco: chave, periodo: 3200 };

@@ -258,6 +258,7 @@
     relacao: { extremos: ['Curta', 'Longa'], barras: [['Força na saída', 'r-forca', 'ouro'], ['Velocidade final', 'r-vel', 'azul']] },
     coroa: { extremos: ['Menos dentes', 'Mais dentes'], barras: [['Força na saída', 'c-forca', 'ouro'], ['Velocidade final', 'c-vel', 'azul']] },
     arrefecimento: { extremos: ['Fechado', 'Aberto'], barras: [['Temperatura do motor', 'e-temp', 'vermelho'], ['Velocidade na reta', 'e-vel', 'azul']] },
+    ers: { extremos: ['Curvas', 'Retas'], barras: [['Tração na saída das curvas', 'x-trac', 'ouro'], ['Velocidade final na reta', 'x-vel', 'azul']] },
     carburacao: { extremos: ['Pobre', 'Rica'], barras: [['Risco de engripar', 'g-engripa', 'vermelho'], ['Motor afogando', 'g-afoga', 'azul']] },
     eixo: { extremos: ['Eixo mole', 'Eixo duro'], barras: [] },
     bitolaTraseira: { extremos: ['Estreita', 'Larga'], barras: [] },
