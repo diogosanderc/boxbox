@@ -679,7 +679,7 @@
     : (compostoUnico(estado) ? [compostoDaEtapa(estado), 'chuva'] : TIPOS_F3).filter((t) => !estado.pneus.some((p) => p.tipo === t)));
 
   // Preço do pneu sobe com a categoria até a F3; na F2 e na F1 fica no nível da F3 (como o mecânico).
-  const FATOR_PNEU = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 3.5, f3: 9, f2: 12, f1: 28 };
+  const FATOR_PNEU = { regional: 1, nacional: 1.25, internacional: 1.6, f4: 5.5, f3: 16, f2: 36, f1: 40 };
   const custoPneu = (estado) => FATOR_PNEU[estado.campeonato] || 1;
 
   const pneuNovo = (p) => p.uso < 1;
