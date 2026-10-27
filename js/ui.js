@@ -76,7 +76,7 @@
     const el = document.getElementById('aviso');
     el.innerHTML = `${ic('x')}Cansou dos anúncios? <b>Remover com o Premium</b>`;
     el.hidden = false; el.classList.add('toque');
-    el.onclick = () => { el.hidden = true; abrirPremium('Sem o Premium aparece um anúncio a cada 3 corridas.'); };
+    el.onclick = () => { el.hidden = true; abrirPremium('Sem o Premium aparece um anúncio a cada 2 corridas.'); };
     clearTimeout(timerAviso);
     timerAviso = setTimeout(() => { el.hidden = true; }, 6000);
   }
@@ -819,7 +819,7 @@
     ['relogio', 'Desafio do dia', 'Pista nova a cada 24 h, com prêmio.'],
     ['carteira', 'Banco', 'Empréstimo para investir na carreira.'],
     ['regua', 'Telemetria da volta', 'Onde você perde tempo em cada volta.'],
-    ['x', 'Sem anúncios', 'Sem o Premium: um a cada 3 corridas.'],
+    ['x', 'Sem anúncios', 'Sem o Premium: um a cada 2 corridas.'],
   ];
 
   const folhaPremium = document.createElement('div');
@@ -3448,7 +3448,7 @@
         window.scrollTo(0, 0);
         break;
       case 'voltar-paddock':
-        // Sem o Premium, um anúncio a cada 3 corridas, já fora da tela de resultado.
+        // Sem o Premium, um anúncio a cada 2 corridas, já fora da tela de resultado.
         BoxAnuncios.depoisDaCorrida(BoxPremium.ativo).then((viu) => { if (viu) avisoSemAnuncios(); });
         C.concluirEtapa(estado);
         salvar();
