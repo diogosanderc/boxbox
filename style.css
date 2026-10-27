@@ -1578,7 +1578,7 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .balao { max-height: 100%; min-height: 0; padding: 16px 16px 0; gap: 10px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
 .balao > * { min-width: 0; }
 .balao > button.principal { position: sticky; bottom: 0; margin: 4px -16px 0; width: calc(100% + 32px); border-radius: 0 0 var(--raio) var(--raio); padding: 14px; }
-.balao .dica-cena { max-height: 128px; }
+.balao .dica-cena { height: 128px; max-height: none; }
 .balao .dica-3d .carro3d { height: 170px; }
 .balao .dica-topo { max-height: 150px; }
 .balao .dica-sec { margin: 10px 0 6px; }
@@ -1590,3 +1590,15 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .espera-temporada { display: grid; gap: 8px; padding: 12px; border-radius: 16px; background: var(--painel-2); border: 1px solid var(--borda); }
 .espera-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .espera-tempo { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 20px; color: var(--alerta); }
+
+.dica-resultado { margin: 4px 0 2px; font-size: 12px; font-weight: 700; text-align: center; padding: 4px 8px; border-radius: 999px; }
+.dica-resultado.bom { color: #2fbf71; background: rgba(47, 191, 113, .12); }
+.dica-resultado.ruim { color: #ff8a8a; background: rgba(255, 107, 107, .12); }
+.dica-balanco { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin: 2px 0 4px; font-size: 11px; }
+.dica-balanco span { display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
+.dica-bal-f { background: linear-gradient(90deg, #ff9f1c, #ffd166); color: #1b1304; }
+.dica-bal-t { background: linear-gradient(90deg, #4f8cff, #9fd0ff); color: #06122b; }
+.dica-balanco b { font-weight: 800; }
+.dica-chama { transform-box: fill-box; animation: dica-chama .14s ease-in-out infinite alternate; }
+@keyframes dica-chama { from { transform: scaleX(.8) scaleY(.92); } to { transform: scaleX(1.05) scaleY(1.08); } }
+@media (prefers-reduced-motion: reduce) { .dica-chama { animation: none; } }

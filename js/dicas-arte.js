@@ -17,7 +17,7 @@
   // Carro de F1 de lado, de frente para a DIREITA. Chão em y = 70.
   //  gap: distância do assoalho ao chão; flapT / flapD: ângulo da asa traseira / dianteira (graus);
   //  destaque: 'traseira' | 'dianteira' | 'assoalho' | 'sidepod' | null; abertura: tamanho da entrada de ar do motor (0..1).
-  function carroLado({ id = 'cl', gap = 8, flapT = 12, flapD = 8, destaque = null, abertura = 0.5, girando = true, classeCorpo = '' } = {}) {
+  function carroLado({ id = 'cl', gap = 8, flapT = 12, flapD = 8, destaque = null, abertura = 0.5, girando = true, classeCorpo = '', animCorpo = '', animRodaT = '', animRodaF = '', extraCorpo = '' } = {}) {
     const f = 70 - gap; // assoalho
     const hl = (nome) => (destaque === nome ? ` filter="url(#${id}-brilho)"` : '');
     const corpo = `M28 ${f - 2} L176 ${f} Q194 ${f - 1} 198 ${f - 6} L198 ${f - 10} Q190 ${f - 12} 170 ${f - 15} L132 ${f - 21} Q118 ${f - 22} 110 ${f - 23} L98 ${f - 24} Q88 ${f - 32} 78 ${f - 34} Q68 ${f - 34} 60 ${f - 28} L40 ${f - 19} Q30 ${f - 15} 26 ${f - 9} Z`;
@@ -29,7 +29,7 @@
       <filter id="${id}-brilho" x="-30%" y="-40%" width="160%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="b"/><feFlood flood-color="${COR.destaque}" flood-opacity=".95"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </defs>
     <ellipse cx="108" cy="72" rx="96" ry="3.5" fill="rgba(0,0,0,.45)"/>
-    <g class="${classeCorpo}" style="transform-origin:108px ${f - 10}px"><g${hl('assoalho')}><path d="M24 ${f - 1} L180 ${f + 0.5}" stroke="#1a1f29" stroke-width="3" stroke-linecap="round"/><path d="M24 ${f - 1} L30 ${f - 6}" stroke="#1a1f29" stroke-width="3" stroke-linecap="round"/></g>
+    <g class="${classeCorpo}" style="transform-origin:108px ${f - 10}px">${animCorpo}${extraCorpo}<g${hl('assoalho')}><path d="M24 ${f - 1} L180 ${f + 0.5}" stroke="#1a1f29" stroke-width="3" stroke-linecap="round"/><path d="M24 ${f - 1} L30 ${f - 6}" stroke="#1a1f29" stroke-width="3" stroke-linecap="round"/></g>
     <g${hl('dianteira')}><g transform="translate(184 ${f + 1}) rotate(${-flapD})"><path d="M-14 0 H17 Q20 -1.4 17 -3 H-12Z" fill="url(#${id}-asa)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/></g><rect x="196" y="${f - 9}" width="3.4" height="13" rx="1.2" fill="#2b3240" stroke="rgba(255,255,255,.4)" stroke-width=".7"/></g>
     <path d="${corpo}" fill="url(#${id}-corpo)" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
     <path d="M60 ${f - 28} Q78 ${f - 30} 98 ${f - 22} L132 ${f - 19} L170 ${f - 13}" fill="none" stroke="${COR.faixa}" stroke-width="2.2" stroke-linecap="round" opacity=".92"/>
@@ -40,16 +40,24 @@
     <g${hl('traseira')}><path d="M40 ${f - 19} V${f - 33}" stroke="#2a303c" stroke-width="3" stroke-linecap="round"/>
       <g transform="translate(34 ${f - 37}) rotate(${flapT})"><path d="M-16 -1.8 H12 Q16 0 12 1.8 H-16Z" fill="url(#${id}-asa)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/></g>
       <rect x="17" y="${f - 45}" width="2.8" height="17" rx="1" fill="#2b3240" stroke="rgba(255,255,255,.35)" stroke-width=".6"/></g></g>
-    ${roda(id + 't', 52, 57, 13, girando)}${roda(id + 'f', 150, 57, 13, girando)}`;
+    <g>${animRodaT}${roda(id + 't', 52, 57, 13, girando)}</g><g>${animRodaF}${roda(id + 'f', 150, 57, 13, girando)}</g>`;
   }
 
 
   // Carro de F1 visto de cima, de frente para CIMA (viewBox 0 0 100 140). brilho: intensidade (0..1) de cada roda
   // [dianteira esq., dianteira dir., traseira esq., traseira dir.] para mostrar freio ou tração.
-  function carroTopo({ id = 'ct', brilho = [0, 0, 0, 0], destaqueEixo = false, cadeado = '' } = {}) {
-    const rodaT = (x, y, w, h, g) => `<circle cx="${x + w / 2}" cy="${y + h / 2}" r="${(Math.max(w, h) * 0.62 + g * 6).toFixed(1)}" fill="#ff4d4d" opacity="${(g * 0.75).toFixed(2)}" filter="url(#${id}-bl)"/>
-      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4.5" fill="url(#${id}-pneu)" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
-      ${Array.from({ length: Math.floor(h / 5) }, (_, i) => `<line x1="${x + 1.5}" x2="${x + w - 1.5}" y1="${y + 4 + i * 5}" y2="${y + 4 + i * 5}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`).join('')}`;
+  function carroTopo({ id = 'ct', brilho = [0, 0, 0, 0], destaqueEixo = false, cadeado = '', giro = [0, 0, 0, 0], fumaca = [false, false, false, false], pulsa = false } = {}) {
+    const rodaT = (x, y, w, h, g, i) => {
+      const op = g * 0.75, dur = giro[i];
+      const pulso = pulsa && g > 0.3 ? `<animate attributeName="opacity" values="${(op * 0.55).toFixed(2)};${op.toFixed(2)};${(op * 0.55).toFixed(2)}" dur=".8s" repeatCount="indefinite"/>` : '';
+      const linhas = Array.from({ length: Math.floor(h / 5) + 2 }, (_, k) => `<line x1="${x + 1.5}" x2="${x + w - 1.5}" y1="${y - 1 + k * 5}" y2="${y - 1 + k * 5}" stroke="rgba(255,255,255,.16)" stroke-width="1.3"/>`).join('');
+      const movimento = dur ? `<animateTransform attributeName="transform" type="translate" values="0 0;0 5" dur="${dur}s" repeatCount="indefinite"/>` : '';
+      const nuvem = fumaca[i] ? [0, 1, 2].map((n) => `<circle cx="${x + w / 2 + (n - 1) * 3}" cy="${y + h}" r="3" fill="#e8ecf4" opacity="0"><animate attributeName="cy" values="${y + h};${y + h + 22}" dur="1.2s" begin="${n * 0.4}s" repeatCount="indefinite"/><animate attributeName="r" values="3;11" dur="1.2s" begin="${n * 0.4}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="1.2s" begin="${n * 0.4}s" repeatCount="indefinite"/></circle>`).join('') : '';
+      return `<circle cx="${x + w / 2}" cy="${y + h / 2}" r="${(Math.max(w, h) * 0.62 + g * 6).toFixed(1)}" fill="#ff4d4d" opacity="${op.toFixed(2)}" filter="url(#${id}-bl)">${pulso}</circle>${nuvem}
+      <clipPath id="${id}-c${i}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4.5"/></clipPath>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4.5" fill="url(#${id}-pneu)"/><g clip-path="url(#${id}-c${i})"><g>${movimento}${linhas}</g></g>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4.5" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/>`;
+    };
     return `<defs>
       <linearGradient id="${id}-corpo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${COR.corpo[1]}"/><stop offset=".5" stop-color="${COR.corpo[0]}"/><stop offset="1" stop-color="${COR.corpo[1]}"/></linearGradient>
       <linearGradient id="${id}-pneu" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#262c38"/><stop offset=".5" stop-color="#0d1016"/><stop offset="1" stop-color="#262c38"/></linearGradient>
@@ -67,7 +75,7 @@
     <path d="M43 56 Q50 44 57 56" fill="none" stroke="#2a303c" stroke-width="2.4" stroke-linecap="round"/>
     <rect x="12" y="4" width="76" height="8" rx="2.5" fill="url(#${id}-asa)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/><rect x="10" y="2" width="3" height="12" rx="1" fill="#2b3240"/><rect x="87" y="2" width="3" height="12" rx="1" fill="#2b3240"/>
     <rect x="26" y="126" width="48" height="8" rx="2.5" fill="url(#${id}-asa)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/><rect x="24" y="124" width="3" height="12" rx="1" fill="#2b3240"/><rect x="73" y="124" width="3" height="12" rx="1" fill="#2b3240"/>
-    ${rodaT(12, 28, 14, 26, brilho[0])}${rodaT(74, 28, 14, 26, brilho[1])}${rodaT(5, 78, 18, 34, brilho[2])}${rodaT(77, 78, 18, 34, brilho[3])}
+    ${rodaT(12, 28, 14, 26, brilho[0], 0)}${rodaT(74, 28, 14, 26, brilho[1], 1)}${rodaT(5, 78, 18, 34, brilho[2], 2)}${rodaT(77, 78, 18, 34, brilho[3], 3)}
     ${cadeado ? `<g><rect x="39" y="90" width="22" height="14" rx="5" fill="#1b2230" stroke="rgba(255,255,255,.45)"/><text x="50" y="101.5" font-size="11" text-anchor="middle">${cadeado}</text></g>` : ''}`;
   }
 

@@ -130,7 +130,7 @@
 
   // ---------- cenas com o carro desenhado (js/dicas-arte.js) ----------
   const A = () => root.BoxDicasArte || require('./dicas-arte.js');
-  const chao = '<rect x="0" y="70" width="210" height="22" fill="#0e131d"/><line x1="0" y1="70" x2="210" y2="70" stroke="#3d4757" stroke-width="1.2"/>';
+  const chao = '<rect x="-300" y="70" width="800" height="60" fill="#0e131d"/><line x1="-300" y1="70" x2="500" y2="70" stroke="#3d4757" stroke-width="1.2"/>';
   // vento: linhas que correm para a esquerda (o carro vai para a direita); caminhos desenhados da esquerda para a direita.
   const ventoLinhas = (dy = 0) => ['M2 {a} C44 {b} 78 {c} 112 {d} S176 {e} 208 {f}', 'M2 {a2} C44 {b2} 90 {c2} 124 {d2} S178 {e2} 208 {f2}'].map((t, i) => {
     const v = i ? [44, 40, 24, 20, 38, 42] : [34, 30, 12, 6, 20, 30];
@@ -164,14 +164,30 @@
     ]);
   }
 
+  const parado = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ondasCalor = (n, forte, x0 = 68, y0 = 26) => Array.from({ length: n }, (_, i) => `<path class="dica-calor" d="M${x0 + i * 10} ${y0} q4 -5 0 -10 t0 -10 t0 -10" style="animation-delay:-${i * 0.4}s;opacity:${forte}"/>`).join('');
+
+  // Suspensão: o carro passa por uma zebra e a mola aparece em corte (canto): a macia comprime e balança, a dura quase não
+  // comprime e o carro todo sacode. Animação em SMIL (todas no mesmo relógio, para ficarem sincronizadas).
   function visualSuspensao() {
-    const arte = A();
-    const zebra = (x0, n) => Array.from({ length: n }, (_, i) => `<rect x="${x0 + i * 6}" y="70" width="6" height="4" fill="${i % 2 ? '#f4f6fa' : '#e0343d'}"/>`).join('');
-    const cena = (classe, id, mov) => `${chao}${zebra(34, 6)}${zebra(132, 6)}${arte.carroLado({ id, gap: 8, classeCorpo: classe })}
-      ${seta(160, 22, 0, -mov, '#ffb020', 2.4)}${seta(160, 22, 0, mov, '#ffb020', 2.4)}${rotulo(172, 25, 'movimento', '#ffb020')}`;
+    const arte = A(), T = 2.4, mover = !parado();
+    const anim = (vals, tempos) => (mover ? `<animateTransform attributeName="transform" type="translate" values="${vals.join(';')}" keyTimes="${tempos.join(';')}" dur="${T}s" repeatCount="indefinite"/>` : '');
+    const kerb = (c) => `<path d="M${c - 17} 70 L${c - 10} 62.5 H${c + 10} L${c + 17} 70Z" fill="#e0343d"/><path d="M${c - 5} 62.5 H${c + 1} L${c + 5} 70 H${c - 1}Z M${c + 7} 62.5 H${c + 10} L${c + 14} 70 H${c + 11}Z M${c - 15} 66 L${c - 12} 62.5 H${c - 8} L${c - 13} 70 H${c - 17}Z" fill="#f4f6fa"/>`;
+    const estrada = `<rect x="-300" y="70" width="800" height="60" fill="#0e131d"/><g>${mover ? `<animateTransform attributeName="transform" type="translate" values="0 0;-210 0" keyTimes="0;1" dur="${T}s" repeatCount="indefinite"/>` : ''}<line x1="-300" y1="70" x2="600" y2="70" stroke="#3d4757" stroke-width="1.2"/>${kerb(212)}${kerb(422)}</g>`;
+    const mola = (y1, y2) => { let d = `M29 ${y1.toFixed(1)}`; for (let i = 1; i <= 6; i++) d += ` L${i % 2 ? 40 : 18} ${(y1 + ((y2 - y1) * (i - 0.5)) / 6).toFixed(1)}`; return `${d} L29 ${y2.toFixed(1)}`; };
+    const K = [0, 0.2, 0.26, 0.34, 0.4, 0.5, 0.62, 1], hub = [0, 0, -9, -9, 0, 0, 0, 0];
+    const corte = (corpoY, corMola) => `<svg x="146" y="-14" width="58" height="56" viewBox="0 0 58 56" overflow="hidden">
+        <rect width="58" height="56" rx="9" fill="#0c111b" stroke="rgba(255,255,255,.2)"/>
+        <path d="${mola(14, 38)}" fill="none" stroke="${corMola}" stroke-width="2.6" stroke-linejoin="round">${mover ? `<animate attributeName="d" values="${K.map((_, i) => mola(14 + corpoY[i], 38 + hub[i])).join(';')}" keyTimes="${K.join(';')}" dur="${T}s" repeatCount="indefinite"/>` : ''}</path>
+        <g><rect x="8" y="4" width="42" height="10" rx="3" fill="#ff5a52" stroke="rgba(255,255,255,.35)"/>${mover ? `<animateTransform attributeName="transform" type="translate" values="${corpoY.map((y) => `0 ${y}`).join(';')}" keyTimes="${K.join(';')}" dur="${T}s" repeatCount="indefinite"/>` : ''}</g>
+        <g><rect x="12" y="38" width="34" height="9" rx="3" fill="#59627a" stroke="rgba(255,255,255,.35)"/>${mover ? `<animateTransform attributeName="transform" type="translate" values="${hub.map((y) => `0 ${y}`).join(';')}" keyTimes="${K.join(';')}" dur="${T}s" repeatCount="indefinite"/>` : ''}</g>
+        <text x="29" y="54" font-size="6.5" fill="#9aa0aa" text-anchor="middle">mola</text></svg>`;
+    const cena = (id, corpoT, corpoV, cutY, corMola) => `${estrada}${arte.carroLado({ id, gap: 8, animCorpo: anim(corpoV, corpoT), animRodaF: anim(['0 0', '0 0', '0 -7', '0 -7', '0 0', '0 0'], [0, 0.2, 0.25, 0.34, 0.39, 1]), animRodaT: anim(['0 0', '0 0', '0 -7', '0 -7', '0 0', '0 0'], [0, 0.66, 0.71, 0.8, 0.85, 1]) })}${corte(cutY, corMola)}`;
+    const macia = cena('s1', [0, 0.2, 0.3, 0.42, 0.55, 0.66, 0.76, 0.88, 1], ['0 0', '0 0', '0 -1.5', '0 2.5', '0 -1', '0 0', '0 -1.5', '0 2', '0 0'], [0, 0, -2, -3, 3, -1, 0, 0], '#8ab4ff');
+    const dura = cena('s2', [0, 0.2, 0.25, 0.34, 0.39, 0.66, 0.71, 0.8, 0.85, 1], ['0 0', '0 0', '0 -6', '0 -6', '0 0', '0 0', '0 -6', '0 -6', '0 0', '0 0'], [0, 0, -8, -8, 0, 0, 0, 0], '#ffb020');
     return empilha([
-      { titulo: 'Suspensão macia', sub: 'balança, mas absorve', vb: '0 -8 210 96', svg: cena('dica-balanca', 's1', 22), barras: [['Absorve as zebras', 90, BAR.azul], ['Resposta nas curvas', 34, BAR.ouro]] },
-      { titulo: 'Suspensão dura', sub: 'firme, mas quica', vb: '0 -8 210 96', svg: cena('dica-quica', 's2', 8), barras: [['Absorve as zebras', 30, BAR.azul], ['Resposta nas curvas', 92, BAR.ouro]] },
+      { titulo: 'Suspensão macia', sub: 'a mola absorve, o carro balança', vb: '0 -16 210 104', svg: macia, barras: [['Absorve as zebras', 90, BAR.azul], ['Resposta nas curvas', 34, BAR.ouro]] },
+      { titulo: 'Suspensão dura', sub: 'a mola quase não cede, o carro sacode', vb: '0 -16 210 104', svg: dura, barras: [['Absorve as zebras', 30, BAR.azul], ['Resposta nas curvas', 92, BAR.ouro]] },
     ]);
   }
 
@@ -188,28 +204,45 @@
   }
 
   // Cenas vistas de cima (carro de frente para cima), lado a lado.
-  const cartaoTopo = (c) => `<div class="dica-eng"><b>${esc(c.titulo)}</b><small>${esc(c.sub)}</small><svg class="dica-topo" viewBox="-16 0 132 140" aria-hidden="true">${c.svg}</svg>
+  const cartaoTopo = (c) => `<div class="dica-eng"><b>${esc(c.titulo)}</b><small>${esc(c.sub)}</small><svg class="dica-topo" viewBox="${c.vb || '-16 0 132 140'}" aria-hidden="true">${c.svg}</svg>${c.extra || ''}
     ${c.barras.map(([r, v, cor]) => `<div class="dica-barra"><span>${esc(r)}</span><i><u style="--w:${v}%;background:${cor}"></u></i></div>`).join('')}</div>`;
   const paresTopo = (casos) => `<div class="dica-sec">Onde o ajuste mexe</div><div class="dica-pares">${casos.map(cartaoTopo).join('')}</div>`;
 
+  // Diferencial: o carro numa curva à esquerda. Aberto: a roda de dentro gira bem mais rápido e patina, mas o carro vira
+  // limpo; travado: as duas giram juntas, tração boa, mas o carro empurra reto para fora.
   function visualDiferencial() {
-    const arte = A();
-    const cena = (esq, dir, cad, id) => `${arte.carroTopo({ id, destaqueEixo: true, cadeado: cad })}
-      ${seta(-8, 112, 0, -esq, '#ffb020', 3)}${seta(108, 112, 0, -dir, '#ffb020', 3)}${rotulo(-8, 128, 'dentro', '#9aa0aa', 'middle')}${rotulo(108, 128, 'fora', '#9aa0aa', 'middle')}`;
+    const arte = A(), m = !parado();
+    const cena = (giro, fumaca, boa, cad, id) => `
+      <path d="M52 150 C52 108 46 76 -10 46" fill="none" stroke="#141a26" stroke-width="82"/>
+      <path d="M52 150 C52 108 46 76 -10 46" fill="none" stroke="#3a4558" stroke-width="2" stroke-dasharray="9 9"/>
+      <g transform="translate(14 22) scale(.74) rotate(-26 50 70)">${arte.carroTopo({ id, destaqueEixo: true, cadeado: cad, giro: m ? giro : [0, 0, 0, 0], fumaca: m ? fumaca : [false, false, false, false] })}</g>
+      ${boa ? '<path d="M40 22 C28 14 12 8 -6 2" fill="none" stroke="#2fbf71" stroke-width="3" stroke-dasharray="5 4" stroke-linecap="round"/><path d="M-6 2 l9 1 l-3 8z" fill="#2fbf71" stroke="#2fbf71" stroke-linejoin="round"/>' : '<path d="M46 20 L56 -10" fill="none" stroke="#ff6b6b" stroke-width="3" stroke-dasharray="5 4" stroke-linecap="round"/><path d="M57 -13 l-9 6 l10 3z" fill="#ff6b6b" stroke="#ff6b6b" stroke-linejoin="round"/>'}`;
     return paresTopo([
-      { titulo: 'Aberto', sub: 'as rodas giram diferente', svg: cena(34, 14, '🔓', 'd1'), barras: [['Tração na saída', 34, BAR.ouro], ['Giro na entrada', 90, BAR.azul]] },
-      { titulo: 'Travado', sub: 'as rodas giram juntas', svg: cena(22, 22, '🔒', 'd2'), barras: [['Tração na saída', 92, BAR.ouro], ['Giro na entrada', 40, BAR.azul]] },
+      { titulo: 'Aberto', sub: 'a roda de dentro gira mais', vb: '-30 -16 160 170', svg: cena([0.45, 0.45, 0.2, 0.55], [false, false, true, false], true, '🔓', 'd1'), extra: '<p class="dica-resultado bom">Vira limpo · a roda de dentro patina</p>', barras: [['Tração na saída', 34, BAR.ouro], ['Giro na entrada', 90, BAR.azul]] },
+      { titulo: 'Travado', sub: 'as duas rodas giram juntas', vb: '-30 -16 160 170', svg: cena([0.45, 0.45, 0.4, 0.4], [false, false, false, false], false, '🔒', 'd2'), extra: '<p class="dica-resultado ruim">Tração boa · o carro empurra reto</p>', barras: [['Tração na saída', 92, BAR.ouro], ['Giro na entrada', 40, BAR.azul]] },
     ]);
   }
 
+  // Freio: o eixo que trava solta fumaça e o disco brilha mais; a barra mostra a divisão da frenagem (faixa do ajuste: 50% a 62% na frente).
   function visualFreio() {
-    const arte = A();
+    const arte = A(), m = !parado();
+    const divisao = (f) => `<div class="dica-balanco" aria-hidden="true"><span class="dica-bal-f" style="width:${f}%"><b>Frente</b> ${f}%</span><span class="dica-bal-t" style="width:${100 - f}%"><b>Trás</b> ${100 - f}%</span></div>`;
     return paresTopo([
-      { titulo: 'Mais atrás', sub: 'a traseira trava primeiro', svg: arte.carroTopo({ id: 'f1', brilho: [0.12, 0.12, 0.95, 0.95] }), barras: [['Risco de travar a traseira', 88, BAR.vermelho], ['Risco de travar a frente', 12, BAR.vermelho]] },
-      { titulo: 'Mais à frente', sub: 'a frente trava primeiro', svg: arte.carroTopo({ id: 'f2', brilho: [0.95, 0.95, 0.12, 0.12] }), barras: [['Risco de travar a traseira', 12, BAR.vermelho], ['Risco de travar a frente', 88, BAR.vermelho]] },
+      { titulo: 'Mais atrás', sub: 'a traseira trava primeiro', svg: arte.carroTopo({ id: 'f1', brilho: [0.18, 0.18, 1, 1], pulsa: m, fumaca: m ? [false, false, true, true] : [false, false, false, false] }), extra: divisao(50), barras: [['Risco de travar a traseira', 88, BAR.vermelho], ['Risco de travar a frente', 12, BAR.vermelho]] },
+      { titulo: 'Mais à frente', sub: 'a frente trava primeiro', svg: arte.carroTopo({ id: 'f2', brilho: [1, 1, 0.18, 0.18], pulsa: m, fumaca: m ? [true, true, false, false] : [false, false, false, false] }), extra: divisao(62), barras: [['Risco de travar a traseira', 12, BAR.vermelho], ['Risco de travar a frente', 88, BAR.vermelho]] },
     ]);
   }
 
+  // Mapa do motor: chama no escapamento e calor sobre o motor (e barras de potência × desgaste).
+  function visualMapa() {
+    const arte = A();
+    const chama = (len, cor1, cor2, h) => `<g class="dica-chama" style="transform-origin:26px 52px"><path d="M26 ${52 - h} Q${26 - len * 0.6} ${52 - h * 0.6} ${26 - len} 52 Q${26 - len * 0.6} ${52 + h * 0.6} 26 ${52 + h}Z" fill="${cor1}"/><path d="M26 ${52 - h * 0.5} Q${26 - len * 0.45} ${52 - h * 0.3} ${26 - len * 0.7} 52 Q${26 - len * 0.45} ${52 + h * 0.3} 26 ${52 + h * 0.5}Z" fill="${cor2}"/></g>`;
+    const cena = (id, c, ondas, forte) => `<rect x="-300" y="70" width="800" height="60" fill="#0e131d"/><line x1="-300" y1="70" x2="500" y2="70" stroke="#3d4757" stroke-width="1.2"/>${ondasCalor(ondas, forte, 76, 26)}${c}${arte.carroLado({ id, gap: 8, destaque: 'sidepod' })}`;
+    return empilha([
+      { titulo: 'Econômico', sub: 'poupa o motor, esquenta menos', vb: '-30 -16 240 104', svg: cena('m1', chama(10, '#5aa8ff', '#d6ecff', 3), 1, 0.35), barras: [['Potência', 38, BAR.ouro], ['Calor e desgaste do motor', 20, BAR.vermelho]] },
+      { titulo: 'Potente', sub: 'mais força, esquenta e gasta mais', vb: '-30 -16 240 104', svg: cena('m2', chama(44, '#ff5a1f', '#ffd166', 6), 3, 0.95), barras: [['Potência', 95, BAR.ouro], ['Calor e desgaste do motor', 92, BAR.vermelho]] },
+    ]);
+  }
 
   // Altura e asas com o carro 3D do jogo: o ajuste vai e volta sozinho entre os extremos (feito em ui.js), e a régua e as barras
   // acompanham pelo atributo data-alto. host3d é a marcação do carro 3D (BoxCarro3D.html).
@@ -227,7 +260,7 @@
   }
   const tem3d = (chave) => !!REGUA3D[chave];
 
-  const VISUAL = { pressao: visualPressao, coroa: visualRelacao, relacao: visualRelacao, asaDianteira: visualAsa, asaTraseira: visualAsa, altura: visualAltura, suspensao: visualSuspensao, diferencial: visualDiferencial, freio: visualFreio, arrefecimento: visualArrefecimento };
+  const VISUAL = { pressao: visualPressao, coroa: visualRelacao, relacao: visualRelacao, asaDianteira: visualAsa, asaTraseira: visualAsa, altura: visualAltura, suspensao: visualSuspensao, diferencial: visualDiferencial, freio: visualFreio, arrefecimento: visualArrefecimento, mapa: visualMapa };
 
   // dica: { sintomas: [valor baixo demais, valor alto demais], direcao: [o que fazer, o que fazer] } do modelo atual (ou null).
   function html(chave, dica, host3d) {
