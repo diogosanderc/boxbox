@@ -2895,7 +2895,7 @@
       return `<div class="tm-lugar ${classe} ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
         <b class="tm-pos">${i + 1}º</b>
         <span class="tm-nome">${esc(curto(x.nome))}</span>
-        <span class="tm-equipe"><i></i><em>${eu ? 'Você' : esc(eq ? eq.nome : '')}</em></span>
+        <span class="tm-equipe"><i></i><em>${esc(eq ? eq.nome : '')}</em></span>
       </div>`;
     };
     app.innerHTML = `<section class="titulo-mundial">
