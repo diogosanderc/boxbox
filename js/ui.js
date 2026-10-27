@@ -2819,7 +2819,7 @@
           ${destaque('carteira', 'Ganhos no ano', ganhos ? `+US$ ${kmil(ganhos)}` : '—', ganhos ? '' : 'Sem prêmios este ano')}
           ${destaque('estrela', 'Propostas', estado.propostas.length || r.f4Espera ? 'Chegaram!' : '—', estado.propostas.length ? `${estado.propostas.length} na mesa` : r.f4Espera ? 'F4 guardada' : 'Nenhuma este ano')}
         </div>`)}
-        ${bloco('<button class="principal grande" data-acao="ver-relatorio">Continuar</button>')}
+        ${bloco(tituloMundial && C.podeEncerrar(estado) ? cartaoDecisaoTitulo(r) : '<button class="principal grande" data-acao="ver-relatorio">Continuar</button>')}
       </div>`;
 
     // Contagem regressiva da posição: de P20 até a posição final.
@@ -2889,6 +2889,26 @@
       <button class="principal grande" data-acao="abandonar" data-confirmar="Confirmar: começar do zero">Nova carreira</button>`;
     const cv = app.querySelector('.galeria-trofeu [data-trofeu3d]');
     if (cv) BoxTrofeu3D.ligar(cv).then((ok) => { if (!ok && cv.isConnected) cv.remove(); });
+  }
+
+  // Depois de um título mundial: seguir na F1 atrás de mais títulos ou encerrar a carreira (e entrar na Galeria da fama).
+  function cartaoDecisaoTitulo(r) {
+    const n = estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length;
+    const obrigatorio = !!r.aposentadoria;
+    const [titulo, texto] = obrigatorio
+      ? ['Hora de pendurar o capacete', 'Você chegou à idade limite: encerre a carreira no topo e entre para a Galeria da fama.']
+      : n <= 1 ? ['Campeão mundial! E agora?', 'Siga na F1 atrás do bicampeonato ou encerre a carreira aqui, no topo, e entre para a Galeria da fama.']
+        : n === 2 ? ['Bicampeão! E agora?', 'Vá atrás do tri ou pendure o capacete como bicampeão e entre para a Galeria da fama.']
+          : ['Você já é lenda', 'Hora de se aposentar? Encerre a carreira no topo e entre para a Galeria da fama, ou siga em busca de mais títulos.'];
+    const continuar = n <= 1 ? 'Continuar na F1 · buscar o bicampeonato' : n === 2 ? 'Continuar na F1 · buscar o tricampeonato' : 'Continuar na F1 · buscar mais títulos';
+    const destaqueEncerrar = obrigatorio || n >= 3;
+    return `<section class="cartao-decisao">
+      <span class="decisao-ico">${icone('trofeu', 'medalha-1')}</span>
+      <h2>${titulo}</h2>
+      <p>${texto}</p>
+      ${obrigatorio ? '' : `<button class="${destaqueEncerrar ? 'grande' : 'principal grande'}" data-acao="ver-relatorio">${continuar}</button>`}
+      <button class="${destaqueEncerrar ? 'principal grande' : 'grande'}" data-acao="aposentar" data-confirmar="Confirmar: encerrar a carreira">${ic('trofeu')}Encerrar a carreira</button>
+    </section>`;
   }
 
   // Confete do título: chuva pela tela toda e dois canhões que sobem dos cantos quando o troféu dourado cai.

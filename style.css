@@ -1681,3 +1681,11 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .confete.mundial .canhao.dir { left: 95%; }
 @keyframes cm-chuva { 0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--r)); } 6% { opacity: 1; } 100% { opacity: 0.85; transform: translate3d(26px, 105dvh, 0) rotate(calc(var(--r) + 720deg)); } }
 @keyframes cm-canhao { 0% { opacity: 1; transform: translate(0, 0) rotate(var(--r)); } 38% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 300deg)); } 100% { opacity: 0; transform: translate(calc(var(--dx) * 1.3), 40dvh) rotate(calc(var(--r) + 760deg)); } }
+
+/* Cartão de decisão depois do título mundial */
+.cartao-decisao { display: grid; gap: 10px; justify-items: stretch; text-align: center; padding: 20px 16px; border-radius: 18px; border: 1px solid rgba(255, 210, 74, 0.55);
+  background: linear-gradient(180deg, rgba(255, 210, 74, 0.12), rgba(255, 210, 74, 0.03)); box-shadow: 0 0 28px rgba(255, 200, 60, 0.15); }
+.cartao-decisao h2 { margin: 0; font-size: 22px; font-style: italic; color: #ffd24a; }
+.cartao-decisao p { margin: 0 0 4px; color: var(--fraco); }
+.decisao-ico { display: grid; place-items: center; }
+.decisao-ico svg { width: 46px; height: 46px; }
