@@ -39,7 +39,7 @@
 
   // ---------- utilidades ----------
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const reais = (x) => `R$ ${Math.round(x).toLocaleString('pt-BR')}`;
+  const reais = (x) => `US$ ${Math.round(x).toLocaleString('pt-BR')}`;
   const tipoPista = { travada: ['grampo', 'Travada'], mista: ['onda', 'Mista'], veloz: ['vento', 'Veloz'] };
   const chipTipo = (tipo) => chip(`${ic(tipoPista[tipo][0])}${tipoPista[tipo][1]}`);
 
@@ -111,7 +111,7 @@
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
     oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e o seco que a etapa pede: na F3, o composto único da etapa (veja no calendário); na F2 e na F1, dois compostos de seco; o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
-    desafio: ['Desafio do dia', 'Todo dia, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto; à meia-noite sai um desafio novo. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, R$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha do dia: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
+    desafio: ['Desafio do dia', 'Todo dia, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto; à meia-noite sai um desafio novo. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, US$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha do dia: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
@@ -596,8 +596,8 @@
   }
 
   // ---------- topo ----------
-  // No cabeçalho compacto, milhões viram "R$ 13,9 mi" para caber ao lado da moral e da confiança.
-  const caixaCurto = (x) => (Math.abs(x) >= 1e6 ? `${x < 0 ? '−' : ''}R$ ${(Math.abs(x) / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : reais(x));
+  // No cabeçalho compacto, milhões viram "US$ 13,9 mi" para caber ao lado da moral e da confiança.
+  const caixaCurto = (x) => (Math.abs(x) >= 1e6 ? `${x < 0 ? '−' : ''}US$ ${(Math.abs(x) / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : reais(x));
   function atualizarStatus() {
     document.getElementById('sair-topo').hidden = !estado;
     if (!estado) { statusEl.innerHTML = ''; barraMini.innerHTML = ''; return; }
@@ -610,7 +610,7 @@
     const kpi = (nomeIcone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo">${ic(nomeIcone)}${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
     barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
-      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${estado.dinheiroInfinito ? 'R$ ∞' : reais(estado.dinheiro)}</span>
+      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${estado.dinheiroInfinito ? 'US$ ∞' : reais(estado.dinheiro)}</span>
       <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>
       <button class="sair-topo" data-sair>Sair</button>`;
     statusEl.innerHTML = `<div class="perfil">
@@ -620,7 +620,7 @@
         <button class="perfil-tutorial" data-acao="rever-tutorial" aria-label="Rever tutorial">${icone('sentido')}<small>Tutorial</small></button>
       </div>
       <div class="kpis">
-        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'R$ ∞' : caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'US$ ∞' : caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('sorriso', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
@@ -1065,9 +1065,9 @@
                 <span class="tags">${etiquetasEquipe(e, sobra)}</span>
                 <span class="equipe-barras">${barra('Kart', e.material)}${barra('Estrutura', e.organizacao)}</span>
                 <span class="equipe-dinheiro">
-                  <span><small>Caixa</small><b>R$ ${kmil(e.caixa)}</b></span>
-                  <span><small>Por etapa</small><b class="negativo">−R$ ${kmil(e.custoEtapa)}</b></span>
-                  <span><small>Sobra no ano</small><b class="${sobra < 12000 ? 'aviso' : 'dinheiro'}">R$ ${kmil(sobra)}</b></span>
+                  <span><small>Caixa</small><b>US$ ${kmil(e.caixa)}</b></span>
+                  <span><small>Por etapa</small><b class="negativo">−US$ ${kmil(e.custoEtapa)}</b></span>
+                  <span><small>Sobra no ano</small><b class="${sobra < 12000 ? 'aviso' : 'dinheiro'}">US$ ${kmil(sobra)}</b></span>
                 </span>
               </span>
             </button>`;
@@ -2288,7 +2288,7 @@
     if (!m) {
       const NOMES_CURTOS = { iniciante: 'Iniciante', experiente: 'Experiente', pro: 'Técnico' };
       const FAZ = { iniciante: 'Dá palpites sobre o que mexer.', experiente: 'Diz o que mudar e quanto.', pro: 'Monta o acerto para você.' };
-      const mil = (x) => `R$ ${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
+      const mil = (x) => `US$ ${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
       const sel = C.MECANICOS[tela.mecSel] ? tela.mecSel : null;
       const opcoes = Object.entries(C.MECANICOS).map(([tipo, x]) => `<button class="mec-seg mec-${tipo} ${sel === tipo ? 'ativo' : ''}" data-acao="mec-sel" data-tipo="${tipo}" aria-pressed="${sel === tipo}">
           ${ic(x.icone)}<b>${NOMES_CURTOS[tipo]}</b><small>${mil(C.precoMecanico(estado, tipo))}</small></button>`).join('');
@@ -2805,7 +2805,7 @@
           ${melhor ? destaque('bandeira', 'Melhor corrida', `P${melhor.pos}`, esc(nomeCurtoPista(melhor.pista))) : ''}
           ${maiorEvolucao ? destaque('subir', 'Mais evoluiu', `+${maiorEvolucao.depois - maiorEvolucao.antes}`, C.NOMES_ATRIBUTOS[maiorEvolucao.a]) : ''}
           ${r.duelo ? destaque('piloto', 'Contra o companheiro', `${r.duelo.corrida[0]} × ${r.duelo.corrida[1]}`, r.duelo.corrida[0] > r.duelo.corrida[1] ? `Venceu ${esc(r.duelo.nome.split(' ').pop())}` : r.duelo.corrida[0] < r.duelo.corrida[1] ? `Perdeu para ${esc(r.duelo.nome.split(' ').pop())}` : 'Empate') : ''}
-          ${destaque('carteira', 'Ganhos no ano', ganhos ? `+R$ ${kmil(ganhos)}` : '—', ganhos ? '' : 'Sem prêmios este ano')}
+          ${destaque('carteira', 'Ganhos no ano', ganhos ? `+US$ ${kmil(ganhos)}` : '—', ganhos ? '' : 'Sem prêmios este ano')}
           ${destaque('estrela', 'Propostas', estado.propostas.length || r.f4Espera ? 'Chegaram!' : '—', estado.propostas.length ? `${estado.propostas.length} na mesa` : r.f4Espera ? 'F4 guardada' : 'Nenhuma este ano')}
         </div>`)}
         ${bloco('<button class="principal grande" data-acao="ver-relatorio">Continuar</button>')}

@@ -48,10 +48,10 @@
   // Códigos de país em português -> códigos usados na F1.
   const PAISES = { ING: 'GBR', ALE: 'GER', HOL: 'NED', EUA: 'USA', JAP: 'JPN', SUE: 'SWE', EAU: 'UAE', BRN: 'BHR', SAU: 'KSA' };
 
-  // Dinheiro e números no formato inglês: "R$ 74.800" -> "$74,800", "R$ 3 mil" -> "$3k", "0,035 s" -> "0.035 s".
+  // Dinheiro e números no formato inglês: "US$ 74.800" -> "$74,800", "US$ 3 mil" -> "$3k", "0,035 s" -> "0.035 s".
   function formatarNumeros(texto) {
     return texto
-      .replace(/R\$\s?(\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?)(\s?(?:mil|mi)\b)?/g, (m, n, suf) => {
+      .replace(/US\$\s?(\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?)(\s?(?:mil|mi)\b)?/g, (m, n, suf) => {
         const [inteiro, dec] = n.split(',');
         const num = inteiro.replace(/\./g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '\u0001');
         return `$${num}${dec ? `.${dec}` : ''}${suf ? (suf.trim() === 'mil' ? 'k' : 'm') : ''}`;

@@ -4,7 +4,7 @@
   'use strict';
 
   // material: qualidade do kart e do motor. mecanico: qualidade do acerto que a equipe faz nos karts dos rivais.
-  // caixa: dinheiro inicial do seu projeto com a equipe. custoEtapa: quanto a equipe cobra por etapa (R$).
+  // caixa: dinheiro inicial do seu projeto com a equipe. custoEtapa: quanto a equipe cobra por etapa (US$).
   // organizacao: oculto para o jogador; equipes desorganizadas prometem mais do que entregam.
   const EQUIPES = [
     { id: 'fulmine', nome: 'Fulmine Kart', cor: '#e10600', material: 90, mecanico: 92, caixa: 97000, custoEtapa: 9000, organizacao: 90,

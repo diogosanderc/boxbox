@@ -306,7 +306,7 @@
     if ((estado.ano > 2027 || estado.etapa > 0) && camp.id !== 'f1') {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
       estado.dinheiro += apoio;
-      noticia(estado, `A família junta R$ ${apoio.toLocaleString('pt-BR')} para a temporada.`);
+      noticia(estado, `A família junta US$ ${apoio.toLocaleString('pt-BR')} para a temporada.`);
     }
     montarGrid(estado);
     gerarOfertasPatrocinio(estado, rnd, 2);
@@ -441,7 +441,7 @@
     const s = simularEmprestimo(valor, +prazo);
     estado.emprestimo = { valor, prazo: +prazo, juros: s.juros, saldo: s.total, parcela: s.parcela, restantes: +prazo, atrasos: 0 };
     estado.dinheiro += valor;
-    noticia(estado, `${estado.piloto.nome} pega R$ ${valor.toLocaleString('pt-BR')} emprestados no banco, em ${prazo} parcelas de R$ ${s.parcela.toLocaleString('pt-BR')}.`);
+    noticia(estado, `${estado.piloto.nome} pega US$ ${valor.toLocaleString('pt-BR')} emprestados no banco, em ${prazo} parcelas de US$ ${s.parcela.toLocaleString('pt-BR')}.`);
     return { ok: true, ...s };
   }
   // Quanto custa quitar hoje: o saldo menos metade dos juros que ainda não venceram.
@@ -485,7 +485,7 @@
     e.parcela = Math.ceil(e.saldo / Math.max(1, e.restantes));
     mexerCabeca(estado, { moral: -6 });
     estado.piloto.popularidade = Math.max(0, Math.round((estado.piloto.popularidade - 2) * 10) / 10);
-    noticia(estado, `Parcela do banco atrasada: multa de R$ ${multa.toLocaleString('pt-BR')}. Os patrocinadores não gostam de piloto com conta atrasada.`);
+    noticia(estado, `Parcela do banco atrasada: multa de US$ ${multa.toLocaleString('pt-BR')}. Os patrocinadores não gostam de piloto com conta atrasada.`);
   }
 
   // Quanto custa o ano seguinte com esta equipe, para a escolha no relatório. O contrato do monoposto
@@ -1036,7 +1036,7 @@
       const e = lista[Math.min(i, lista.length - 1)];
       const pago = pos <= 2;
       const texto = destino === 'f1'
-        ? `Vaga de piloto titular na ${prox.curto}. Salário de R$ ${e.salario.toLocaleString('pt-BR')} por etapa e luvas de R$ ${(e.salario * LUVAS_F1).toLocaleString('pt-BR')} ao assinar.`
+        ? `Vaga de piloto titular na ${prox.curto}. Salário de US$ ${e.salario.toLocaleString('pt-BR')} por etapa e luvas de US$ ${(e.salario * LUVAS_F1).toLocaleString('pt-BR')} ao assinar.`
         : pago ? `Vaga na ${prox.curto} pelo programa de jovens pilotos: a equipe paga a temporada.`
           : `Vaga na ${prox.curto} para o próximo ano. Você paga 40% do orçamento da equipe.`;
       return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, parte: pago ? 0 : 0.4, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
@@ -1118,7 +1118,7 @@
     if (campId === 'f1') {
       const luvas = base.salario * LUVAS_F1;
       estado.dinheiro += luvas;
-      noticia(estado, `${estado.piloto.nome} recebe R$ ${luvas.toLocaleString('pt-BR')} de luvas da ${base.nome}.`);
+      noticia(estado, `${estado.piloto.nome} recebe US$ ${luvas.toLocaleString('pt-BR')} de luvas da ${base.nome}.`);
       estado.fase = 'superlicenca';
       estado.final = { equipe: base.nome, ano: estado.ano, idade: estado.piloto.idade };
     }
@@ -1284,7 +1284,7 @@
       st.medalhas[nova] = (st.medalhas[nova] || 0) + 1;
       if (nova === 'ouro') estado.piloto.popularidade = Math.min(100, Math.round((estado.piloto.popularidade + 1) * 10) / 10);
     }
-    if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio do dia${premio ? ` e ganha R$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
+    if (nova) noticia(estado, `${estado.piloto.nome} leva a medalha de ${nova} no desafio do dia${premio ? ` e ganha US$ ${premio.toLocaleString('pt-BR')}` : ''}.`);
     const depois = voltasDesafio(estado, agora);
     return { ok: true, tempo, melhor: st.melhor, medalha: st.medalha, nova, premio, restantes: depois.restantes, reabreEm: depois.reabreEm };
   }
