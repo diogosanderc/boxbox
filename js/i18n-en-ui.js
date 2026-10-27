@@ -122,6 +122,7 @@
     "A revisão fica mais cara quanto mais gasto o motor: revisar cedo custa menos.": "The more worn the engine, the more the service costs: servicing early is cheaper.",
     "Treinar": "Practice",
     "Pular treino": "Qualifying",
+    "Capacete e carro do {1}": "{1}'s helmet and car",
     "Cansou dos anúncios?": "Tired of ads?",
     "Remover com o Premium": "Remove them with Premium",
     "Sem o Premium aparece um anúncio a cada 3 corridas.": "Without Premium, an ad shows up every 3 races.",
