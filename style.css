@@ -1711,3 +1711,5 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 /* Capacete do piloto nas tabelas e nas telas de fim de temporada */
 .capa-mini { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-left: 6px; vertical-align: 1px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
 .avatar-fim { width: 40px; height: 40px; margin: 2px auto 4px; font-size: 14px; }
+.toast.toque { cursor: pointer; background: #12161f; color: #fff; box-shadow: 0 0 0 1.5px var(--alerta), 0 4px 16px rgba(0, 0, 0, 0.4); }
+.toast.toque b { color: var(--alerta); }

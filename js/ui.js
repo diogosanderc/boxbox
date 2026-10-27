@@ -66,9 +66,19 @@
   function aviso(texto, nomeIcone) {
     const el = document.getElementById('aviso');
     el.innerHTML = `${nomeIcone ? ic(nomeIcone) : ''}${esc(texto)}`;
+    el.classList.remove('toque'); el.onclick = null;
     el.hidden = false;
     clearTimeout(timerAviso);
     timerAviso = setTimeout(() => { el.hidden = true; }, 3500);
+  }
+  // Depois de um anúncio de tela cheia: um toque no aviso abre o Premium ("Sem anúncios").
+  function avisoSemAnuncios() {
+    const el = document.getElementById('aviso');
+    el.innerHTML = `${ic('x')}Cansou dos anúncios? <b>Remover com o Premium</b>`;
+    el.hidden = false; el.classList.add('toque');
+    el.onclick = () => { el.hidden = true; abrirPremium('Sem o Premium aparece um anúncio a cada 3 corridas.'); };
+    clearTimeout(timerAviso);
+    timerAviso = setTimeout(() => { el.hidden = true; }, 6000);
   }
   // Ação recusada: se for coisa do Premium, abre a tela do Premium em vez do aviso.
   const erro = (r) => {
@@ -2375,7 +2385,7 @@
     const saidas = fds.saidas.slice().reverse();
     // As saídas do Premium aparecem trancadas para quem não tem.
     const contador = Array.from({ length: C.SAIDAS_TREINO }, (_, i) => `<i class="${i < fds.saidas.length ? 'feita' : i >= C.saidasTreino() ? 'trancada' : ''}"></i>`).join('');
-    const maisSaidas = !restantes && !BoxPremium.ativo
+    const maisSaidas = restantes <= 1 && !BoxPremium.ativo
       ? `<button class="grande premium-trancado" data-acao="premium" data-motivo="Sem o Premium são ${C.SAIDAS_GRATIS} saídas no treino livre. Com ele, ${C.SAIDAS_TREINO}.">${ic('cadeado')}Mais ${C.SAIDAS_TREINO - C.SAIDAS_GRATIS} saídas · Premium</button>` : '';
     return `<div class="corrida">
       <div class="coluna">
@@ -3439,7 +3449,7 @@
         break;
       case 'voltar-paddock':
         // Sem o Premium, um anúncio a cada 3 corridas, já fora da tela de resultado.
-        BoxAnuncios.depoisDaCorrida(BoxPremium.ativo);
+        BoxAnuncios.depoisDaCorrida(BoxPremium.ativo).then((viu) => { if (viu) avisoSemAnuncios(); });
         C.concluirEtapa(estado);
         salvar();
         pensar();
