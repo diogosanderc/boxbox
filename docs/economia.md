@@ -95,3 +95,9 @@ jogo de pneus slick 255–279; bateria 50–60; corrente 40–46; pinhão/coroa 
 
 No jogo (regional): slick US$ 270 (médio 255, duro e chuva 240); revisão do motor ≈ US$ 1.400; retífica normal ≈ US$ 1.400
 (motor fica na oficina e perde a etapa) e expressa ≈ US$ 3.060 (motor novo, ≈ o preço do KA100).
+
+## Risco de falência
+
+- Apoio da família: só no kart, US$ 8 mil × custo da categoria por temporada (≈US$ 2,9 mil no regional).
+- A falência é checada a cada etapa: sem dinheiro para pagar a próxima, sem proposta de equipe pendente e sem como pegar
+  empréstimo (Premium), a carreira acaba ("Fim da linha").

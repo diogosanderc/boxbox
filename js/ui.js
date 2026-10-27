@@ -2881,7 +2881,7 @@
     app.innerHTML = `<section class="painel tela-nome">
       <span class="capacete">${icone('bateria', 'sem-carga')}</span>
       <h1>Fim da linha</h1>
-      <p>Sem dinheiro para mais uma temporada, ${esc(estado.piloto.nome)} pendura o capacete aos ${estado.piloto.idade} anos.</p>
+      <p>Sem dinheiro para pagar a equipe, ${esc(estado.piloto.nome)} pendura o capacete aos ${estado.piloto.idade} anos.</p>
       <div class="tiles">${tile('Corridas', estado.historico.length)}${tile('Vitórias', estado.historico.filter((h) => !h.fora && h.pos === 1).length)}</div>
       <button class="principal grande" data-acao="abandonar">Nova carreira</button>
     </section>`;

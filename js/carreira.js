@@ -62,7 +62,7 @@
   const saidasTreino = () => (premium ? SAIDAS_TREINO : SAIDAS_GRATIS);
   const maxPatrocinios = () => (premium ? MAX_PATROCINIOS : PATROCINIOS_GRATIS);
   const pedePremium = (erro) => ({ ok: false, premium: true, erro });
-  const APOIO_FAMILIA = 20000; // por temporada, multiplicado pelo custo do campeonato
+  const APOIO_FAMILIA = 8000; // por temporada (só no kart), multiplicado pelo custo do campeonato
 
   const limitar = (x, min, max) => Math.max(min, Math.min(max, x));
   const sortear = (rnd, lista) => lista[Math.floor(rnd() * lista.length)];
@@ -303,7 +303,7 @@
       for (const t of kit) comprarPneu(estado, t, true);
       noticia(estado, `Temporada nova, pneus novos: a equipe entrega ${listaE(kit.map((t) => nomePneu(estado, t).toLowerCase()).filter((x, i, l) => l.indexOf(x) === i))}${kit.length === 3 ? ' (dois slicks)' : ''}. O estoque do ano passado ficou para trás.`);
     }
-    if ((estado.ano > 2027 || estado.etapa > 0) && camp.id !== 'f1') {
+    if ((estado.ano > 2027 || estado.etapa > 0) && !camp.categoria) {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
       estado.dinheiro += apoio;
       noticia(estado, `A família junta US$ ${apoio.toLocaleString('pt-BR')} para a temporada.`);
@@ -1909,6 +1909,12 @@
     }
     if (p.moral < 20) noticia(estado, `${p.nome} anda desmotivado e já falou em largar as corridas.`);
     if (estado.etapa >= etapasDe(estado)) return fimDeTemporada(estado);
+    // Sem dinheiro para pagar a próxima etapa, sem proposta de equipe nem banco: acabou a carreira.
+    if (estado.dinheiro < custoEtapa(estado) && !estado.propostas.length && !(premium && !estado.emprestimo)) {
+      estado.fase = 'falencia';
+      noticia(estado, `${p.nome} não tem como pagar a próxima etapa.`);
+      return;
+    }
     gerarOlheiros(estado, rnd);
     estado.fase = 'paddock';
   }

@@ -746,7 +746,7 @@
     "Nova carreira": "New career",
     "Corridas": "Races",
     "Fim da linha": "End of the line",
-    "Sem dinheiro para mais uma temporada, {2} pendura o capacete aos {3} anos.": "Out of money for another season, {2} hangs up the helmet at the age of {3}.",
+    "Sem dinheiro para pagar a equipe, {2} pendura o capacete aos {3} anos.": "Out of money to pay the team, {2} hangs up the helmet at the age of {3}.",
     "O piloto sobre a pista": "The driver on track",
     "Escreva o nome do piloto.": "Write the driver's name.",
     "Comprado: {1} (−{2}).": "Bought: {1} (−{2}).",
