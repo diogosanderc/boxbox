@@ -62,7 +62,7 @@ Créditos dos modelos 3D: "F1 2022 {FREE!!}" de 3dblenderlol, "Racing Kart 125cc
 
 ## Nome embaixo do ícone
 
-Configurado no projeto (ios/App/App/en.lproj e pt-BR.lproj/InfoPlist.strings): "SUPER LICENCE" em inglês e "SUPERLICENÇA" em português (maiúsculas).
+Configurado no projeto (ios/App/App/en.lproj e pt-BR.lproj/InfoPlist.strings): "Super Licence" em inglês e "Superlicença" em português.
 
 ## App Store Connect: o que preencher
 
