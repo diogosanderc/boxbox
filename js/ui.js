@@ -1032,7 +1032,7 @@
     return 0.299 * r + 0.587 * g + 0.114 * b > 160;
   }
 
-  const kmil = (x) => `${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
+  const kmil = (x) => (Math.abs(x) >= 1e6 ? `${(x / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi` : `${(x / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`);
 
   // Pontos fortes e fracos de uma equipe, em etiquetas.
   function etiquetasEquipe(e, sobra) {
