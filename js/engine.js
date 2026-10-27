@@ -139,6 +139,7 @@
     return {
       pista, seed, volta: 0, totalVoltas: pista.voltas, carros,
       regraCompostos: opcoes.regraCompostos !== false,
+      efeitoCombustivel: opcoes.efeitoCombustivel || 0.035, // segundos a menos por volta (o carro fica mais leve)
       drs: !!opcoes.drs, drsLiberado: 3,
       semBox: !!opcoes.semBox, semSafetyCar: !!opcoes.semSafetyCar, chanceSafetyCar: opcoes.chanceSafetyCar != null ? opcoes.chanceSafetyCar : 0.004, semModos: !!opcoes.semModos, ajusteVolta: opcoes.ajusteVolta || null,
       safetyCar: 0, eventos: [], terminou: false, _rnd: rnd,
@@ -202,10 +203,13 @@
 
       // Ajuste externo por volta (acerto do carro, clima...): segundos extras e multiplicadores de risco.
       const extra = { ...SEM_AJUSTE, ...(corrida.ajusteVolta ? corrida.ajusteVolta(c, v, corrida) : null) };
+      // F2 e F1 queimam ~1,7 kg por volta (≈0,055 s a menos por volta); os outros ficam com o efeito antigo.
+      // O desconto mantém o tempo médio da corrida igual ao de antes: só a inclinação muda (mais rápido no fim).
+      const kgVolta = corrida.efeitoCombustivel, extraCombustivel = (kgVolta - 0.035) * (corrida.totalVoltas - 1) / 2;
       let volta = ritmoBase(c, pista)
         + PNEUS[c.pneu].ritmo
         + perdaPorDesgaste(c.pneu, c.uso)
-        + (corrida.totalVoltas - v) * 0.035 // combustível
+        + (corrida.totalVoltas - v) * kgVolta - extraCombustivel // combustível: o carro fica mais leve e mais rápido a cada volta
         + modo.ritmo
         + extra.tempo
         + rnd.gauss() * (0.35 - c.piloto.consistencia * 0.0025) * extra.sigma;

@@ -1690,6 +1690,7 @@
       // Safety car só na F2 e na F1 (no kart e nas categorias de base a corrida segue em bandeira verde).
       // DRS da F3 em diante (como na vida real; F4 e kart não têm).
       drs: campeonato(estado.campeonato).ordem >= 4,
+      efeitoCombustivel: campeonato(estado.campeonato).compostos ? 0.055 : 0.035,
       regraCompostos: regra, semBox: !regra, semSafetyCar: !campeonato(estado.campeonato).safetyCar, chanceSafetyCar: 0.02, semModos: true, ajusteVolta,
       ...(compostos ? { pneusIniciais: { jogador: COMPOSTO_DO_TIPO[pneuJogador.tipo] || 'Md' } } : { pneuPadrao: 'Md' }),
       // F3: todo o grid larga com o composto da etapa.
