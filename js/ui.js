@@ -1067,7 +1067,7 @@
                 <span class="equipe-dinheiro">
                   <span><small>Caixa</small><b>US$ ${kmil(e.caixa)}</b></span>
                   <span><small>Por etapa</small><b class="negativo">−US$ ${kmil(e.custoEtapa)}</b></span>
-                  <span><small>Sobra no ano</small><b class="${sobra < 12000 ? 'aviso' : 'dinheiro'}">US$ ${kmil(sobra)}</b></span>
+                  <span><small>Sobra no ano</small><b class="${sobra < 12000 ? 'aviso' : 'dinheiro'}">${sobra < 0 ? '−' : ''}US$ ${kmil(Math.abs(sobra))}</b></span>
                 </span>
               </span>
             </button>`;
