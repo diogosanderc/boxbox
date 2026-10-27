@@ -1635,23 +1635,33 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .tm-titulo { position: relative; margin: 2px 0 0; font-size: 38px; line-height: 1; text-transform: uppercase; font-style: italic; color: #ffd24a; letter-spacing: 0.01em; text-shadow: 0 0 22px rgba(255, 190, 40, 0.55), 0 3px 0 rgba(0, 0, 0, 0.5);
   animation: tm-titulo 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.25) 0.3s both; }
 .tm-palco { position: relative; width: min(100%, 360px); margin-top: 2px; }
-.tm-trofeu { position: relative; height: 252px; margin-bottom: -26px; animation: tm-trofeu 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) 1.8s both; }
+.tm-podio { position: relative; display: grid; grid-template-columns: 1fr 1.16fr 1fr; align-items: end; gap: 6px; }
+.tm-podio::after { content: ""; position: absolute; left: -6%; right: -6%; bottom: -10px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 200, 70, 0.28), transparent); pointer-events: none; }
+.tm-col { --metal: #ffd24a; --metal-escuro: #8a6a12; display: grid; justify-items: stretch; min-width: 0; }
+.tm-col.p2 { --metal: #d4dbe8; --metal-escuro: #6c7689; }
+.tm-col.p3 { --metal: #d9985a; --metal-escuro: #7a4720; }
+.tm-t { position: relative; display: grid; place-items: center; margin-bottom: -2px; z-index: 1; animation: tm-trofeu 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.tm-col.p1 .tm-t { height: 236px; animation-delay: 1.95s; }
+.tm-col.p2 .tm-t { height: 158px; animation-delay: 1.5s; }
+.tm-col.p3 .tm-t { height: 132px; animation-delay: 1.05s; }
 .trofeu3d { display: block; width: 100%; height: 100%; }
-.tm-trofeu-ico { position: absolute; inset: 0; display: grid; place-items: center; }
-.tm-trofeu-ico svg { width: 110px; height: 110px; }
-.tm-podio { position: relative; display: grid; grid-template-columns: 1fr 1.08fr 1fr; align-items: end; gap: 6px; }
-.tm-degrau { position: relative; display: grid; align-content: space-between; justify-items: center; gap: 2px; padding: 10px 4px 8px; border-radius: 10px 10px 0 0; transform-origin: bottom; min-width: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--cor-equipe) 38%, #1b2234), #0f1422 85%); border: 1px solid rgba(255, 255, 255, 0.14); border-top: 4px solid var(--cor-equipe); animation: tm-sobe 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
-.tm-degrau.p1 { height: 158px; animation-delay: 1.2s; border-color: rgba(255, 210, 74, 0.7); box-shadow: 0 0 26px rgba(255, 200, 60, 0.35); }
-.tm-degrau.p2 { height: 118px; animation-delay: 0.8s; }
-.tm-degrau.p3 { height: 90px; animation-delay: 0.4s; }
+.tm-t svg { width: 64px; height: 64px; }
+.tm-degrau { position: relative; display: grid; align-content: start; justify-items: center; gap: 3px; padding: 14px 4px 8px; transform-origin: bottom; min-width: 0; border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--metal) 22%, #1a2133) 0%, #101626 62%, #0a0e19 100%); border: 1px solid color-mix(in srgb, var(--metal) 45%, transparent); border-bottom: 0; animation: tm-sobe 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.12) both; }
+.tm-degrau::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 7px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--metal), var(--metal-escuro)); box-shadow: 0 0 14px color-mix(in srgb, var(--metal) 55%, transparent); }
+.tm-col.p1 .tm-degrau { height: 160px; animation-delay: 1.2s; box-shadow: 0 0 30px rgba(255, 200, 60, 0.28); }
+.tm-col.p2 .tm-degrau { height: 124px; animation-delay: 0.8s; }
+.tm-col.p3 .tm-degrau { height: 108px; animation-delay: 0.4s; }
+.tm-pos { font-size: 40px; line-height: 0.9; font-style: italic; color: var(--metal); text-shadow: 0 0 16px color-mix(in srgb, var(--metal) 50%, transparent); }
+.tm-col.p1 .tm-pos { font-size: 54px; }
 .tm-nome { font-weight: 800; font-size: 13px; line-height: 1.15; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tm-equipe { font-size: 10.5px; color: var(--fraco, #9aa6bd); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-equipe { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--fraco, #9aa6bd); max-width: 100%; }
+.tm-equipe { justify-content: center; min-width: 0; width: 100%; padding: 0 4px; box-sizing: border-box; }
+.tm-equipe em { font-style: normal; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-equipe i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--cor-equipe); box-shadow: 0 0 6px var(--cor-equipe); }
 .tm-degrau.eu .tm-equipe { color: #ffd24a; font-weight: 800; }
-.tm-pos { font-size: 34px; line-height: 1; font-style: italic; color: rgba(255, 255, 255, 0.9); }
-.tm-degrau.p1 .tm-pos { color: #ffd24a; font-size: 44px; }
-.tm-frase { margin-top: 10px; font-size: 15px; font-style: normal; text-transform: none; letter-spacing: 0; color: #d9dfec; animation: tm-fade 0.6s ease-out 2.6s both; }
-.tm-botao { margin-top: 8px; animation: tm-fade 0.6s ease-out 3s both; }
+.tm-frase { margin-top: 14px; font-size: 15px; font-style: normal; text-transform: none; letter-spacing: 0; color: #d9dfec; animation: tm-fade 0.6s ease-out 2.7s both; }
+.tm-botao { margin-top: 8px; animation: tm-fade 0.6s ease-out 3.1s both; }
 .galeria-trofeu { width: 150px; height: 180px; margin: -4px 0 -6px; }
 @keyframes tm-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tm-balanca { from { transform: translateX(-50%) rotate(-5deg); } to { transform: translateX(-50%) rotate(5deg); } }
@@ -1659,5 +1669,5 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 @keyframes tm-trofeu { from { opacity: 0; transform: translateY(-40px) scale(0.7); } to { opacity: 1; transform: none; } }
 @keyframes tm-sobe { from { opacity: 0; transform: scaleY(0.05); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .tm-holofote, .tm-titulo, .tm-trofeu, .tm-degrau, .tm-frase, .tm-botao { animation: none; opacity: 1; }
+  .tm-holofote, .tm-titulo, .tm-t, .tm-degrau, .tm-frase, .tm-botao { animation: none; opacity: 1; }
 }

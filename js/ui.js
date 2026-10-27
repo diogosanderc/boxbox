@@ -2892,10 +2892,13 @@
       const x = podio[i];
       if (!x) return '';
       const eu = x.id === 'jogador', eq = C.equipeBase(x.equipe);
-      return `<div class="tm-degrau ${classe} ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
-        <span class="tm-nome">${esc(curto(x.nome))}</span>
-        <span class="tm-equipe">${eu ? 'Você' : esc(eq ? eq.nome : '')}</span>
-        <b class="tm-pos">${i + 1}</b>
+      return `<div class="tm-col ${classe}">
+        <div class="tm-t">${BoxTrofeu3D.html()}</div>
+        <div class="tm-degrau ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
+          <b class="tm-pos">${i + 1}</b>
+          <span class="tm-nome">${esc(curto(x.nome))}</span>
+          <span class="tm-equipe"><i></i><em>${eu ? 'Você' : esc(eq ? eq.nome : '')}</em></span>
+        </div>
       </div>`;
     };
     app.innerHTML = `<section class="titulo-mundial">
@@ -2904,14 +2907,18 @@
         <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
         <h1 class="tm-titulo">${manchete}</h1>
         <div class="tm-palco">
-          <div class="tm-trofeu">${BoxTrofeu3D.html()}<span class="tm-trofeu-ico">${icone('trofeu', 'medalha-1')}</span></div>
           <div class="tm-podio">${degrau(1, 'p2')}${degrau(0, 'p1')}${degrau(2, 'p3')}</div>
         </div>
         <span class="fim-frase tm-frase">${esc(estado.piloto.nome)} · ${r.pontos} pontos</span>
         <button class="principal grande tm-botao" data-acao="ver-resumo">Ver o resumo da temporada</button>
       </section>`;
-    const cv = app.querySelector('[data-trofeu3d]');
-    if (cv) BoxTrofeu3D.ligar(cv).then((ok) => { if (ok) { const ico = app.querySelector('.tm-trofeu-ico'); if (ico) ico.remove(); } else if (cv.isConnected) cv.remove(); });
+    for (const [classe, metal] of [['p1', 'ouro'], ['p2', 'prata'], ['p3', 'bronze']]) {
+      const cv = app.querySelector(`.tm-col.${classe} [data-trofeu3d]`);
+      if (!cv) continue;
+      BoxTrofeu3D.ligar(cv, { metal, angulo: classe === 'p1' ? 0.5 : classe === 'p2' ? 1.4 : 2.3, velocidade: classe === 'p1' ? 0.7 : 0.55 }).then((ok) => {
+        if (!ok && cv.isConnected) cv.parentElement.innerHTML = icone('trofeu', `medalha-${classe.slice(1)}`);
+      });
+    }
   }
 
   function telaFalencia() {

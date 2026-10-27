@@ -11,17 +11,19 @@
   in vec3 p; in vec3 n; in vec2 t; uniform mat4 mvp; uniform mat4 mdl; out vec3 vn; out vec3 vp; out vec2 vt;
   void main(){ vn = mat3(mdl)*n; vp = (mdl*vec4(p,1.)).xyz; vt = t; gl_Position = mvp*vec4(p,1.); }`;
   const FS = `#version 300 es
-  precision mediump float; in vec3 vn; in vec3 vp; in vec2 vt; uniform sampler2D tx; uniform vec3 cam; uniform float brilho; out vec4 o;
+  precision mediump float; in vec3 vn; in vec3 vp; in vec2 vt; uniform sampler2D tx; uniform vec3 cam; uniform float brilho; uniform vec4 metal; out vec4 o;
   void main(){
     vec3 N = normalize(vn); if(!gl_FrontFacing) N = -N;
-    vec3 al = texture(tx, vt).rgb; al = mix(vec3(.66,.50,.20), al, .5)*1.12;
+    vec3 tc = texture(tx, vt).rgb; vec3 al = mix(vec3(.66,.50,.20), tc, .5)*1.12;
+    if(metal.a > .5){ float lm = dot(tc, vec3(.3,.59,.11)); al = metal.rgb*(.5 + lm*.95); }
     vec3 V = normalize(cam - vp), R = reflect(-V, N);
     vec3 L1 = normalize(vec3(.5,.9,.6)), L2 = normalize(vec3(-.7,.3,-.4));
     float d = max(dot(N,L1),0.)*.55 + max(dot(N,L2),0.)*.2 + .32;
     vec3 amb = mix(vec3(.30,.20,.08), vec3(1.,.92,.72), smoothstep(-.5,.9,R.y));
+    if(metal.a > .5) amb = mix(metal.rgb*.35, vec3(.5)+metal.rgb*.6, smoothstep(-.5,.9,R.y));
     float luz = pow(max(dot(R, normalize(vec3(.4,.6,.7))),0.), 22.)*1.3 + pow(max(dot(R, normalize(vec3(-.8,.25,.35))),0.), 30.)*.8;
     float fr = pow(1.-max(dot(N,V),0.), 3.);
-    vec3 c = al*d*.9 + al*amb*.55 + vec3(1.,.9,.6)*luz*brilho + fr*vec3(1.,.85,.5)*.22;
+    vec3 c = al*d*.9 + al*amb*.55 + (metal.a > .5 ? mix(vec3(1.), metal.rgb, .35) : vec3(1.,.9,.6))*luz*brilho + fr*(metal.a > .5 ? metal.rgb : vec3(1.,.85,.5))*.22;
     o = vec4(c, 1.);
   }`;
 
@@ -50,6 +52,8 @@
   const carregarDados = () => (dadosModelo = dadosModelo || Promise.all([fetch(ARQUIVO).then((r) => r.json()), lerBinario()]).then(([meta, bin]) => ({ meta, bin })));
   const carregarImagem = (url) => new Promise((ok, falha) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => falha(new Error('textura do troféu')); i.src = url; });
 
+  // ouro mantém a textura do modelo; prata e bronze pintam o mesmo relevo com outro metal (o último número liga o modo)
+  const METAIS = { ouro: [1, 1, 1, 0], prata: [0.6, 0.65, 0.76, 1], bronze: [0.78, 0.43, 0.2, 1] };
   const parado = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const html = (classe = '') => `<canvas class="trofeu3d ${classe}" data-trofeu3d aria-hidden="true"></canvas>`;
 
@@ -84,7 +88,8 @@
       gl.generateMipmap(gl.TEXTURE_2D);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       const u = (n) => gl.getUniformLocation(prog, n);
-      const L = { mvp: u('mvp'), mdl: u('mdl'), cam: u('cam'), tx: u('tx'), brilho: u('brilho') };
+      const L = { mvp: u('mvp'), mdl: u('mdl'), cam: u('cam'), tx: u('tx'), brilho: u('brilho'), metal: u('metal') };
+      const metal = METAIS[opcoes.metal] || METAIS.ouro;
       let vivo = true, quadro = 0, anterior = 0, ang = opcoes.angulo == null ? 0.5 : opcoes.angulo;
       const eye = [0, 0.15, 4.6];
       const desenhar = (agora) => {
@@ -101,7 +106,7 @@
         const mvp = matriz.mul(matriz.persp(0.52, w / h, 0.5, 20), matriz.mul(vista, mdl));
         gl.useProgram(prog); gl.bindVertexArray(vao);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(L.tx, 0);
-        gl.uniformMatrix4fv(L.mvp, false, mvp); gl.uniformMatrix4fv(L.mdl, false, mdl); gl.uniform3f(L.cam, eye[0], eye[1], eye[2]); gl.uniform1f(L.brilho, 0.8 + 0.2 * Math.sin(agora / 600));
+        gl.uniformMatrix4fv(L.mvp, false, mvp); gl.uniformMatrix4fv(L.mdl, false, mdl); gl.uniform3f(L.cam, eye[0], eye[1], eye[2]); gl.uniform1f(L.brilho, 0.8 + 0.2 * Math.sin(agora / 600)); gl.uniform4f(L.metal, metal[0], metal[1], metal[2], metal[3]);
         gl.drawElements(gl.TRIANGLES, meta.indices, gl.UNSIGNED_SHORT, 0);
         gl.bindVertexArray(null);
         quadro = requestAnimationFrame(desenhar);
