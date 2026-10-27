@@ -1900,7 +1900,7 @@
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
-        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, e “Gold Trophy”, de urbanmasque, todos CC BY 4.0.</p>
+        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, e “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, todos CC BY 4.0.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }
@@ -2888,17 +2888,14 @@
     const manchete = titulos <= 1 ? 'Campeão mundial' : titulos === 2 ? 'Bicampeão mundial' : titulos === 3 ? 'Tricampeão mundial' : `${titulos}× campeão mundial`;
     const curto = (nome) => { const p = String(nome).split(' '); return p.length > 1 ? `${p[0][0]}. ${p.slice(1).join(' ')}` : nome; };
     const podio = r.podio || [];
-    const degrau = (i, classe) => {
+    const lugar = (i, classe) => {
       const x = podio[i];
       if (!x) return '';
       const eu = x.id === 'jogador', eq = C.equipeBase(x.equipe);
-      return `<div class="tm-col ${classe}">
-        <div class="tm-t">${BoxTrofeu3D.html()}</div>
-        <div class="tm-degrau ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
-          <b class="tm-pos">${i + 1}</b>
-          <span class="tm-nome">${esc(curto(x.nome))}</span>
-          <span class="tm-equipe"><i></i><em>${eu ? 'Você' : esc(eq ? eq.nome : '')}</em></span>
-        </div>
+      return `<div class="tm-lugar ${classe} ${eu ? 'eu' : ''}" style="--cor-equipe:${eq ? eq.cor : '#888'}">
+        <b class="tm-pos">${i + 1}º</b>
+        <span class="tm-nome">${esc(curto(x.nome))}</span>
+        <span class="tm-equipe"><i></i><em>${eu ? 'Você' : esc(eq ? eq.nome : '')}</em></span>
       </div>`;
     };
     app.innerHTML = `<section class="titulo-mundial">
@@ -2907,18 +2904,14 @@
         <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
         <h1 class="tm-titulo">${manchete}</h1>
         <div class="tm-palco">
-          <div class="tm-podio">${degrau(1, 'p2')}${degrau(0, 'p1')}${degrau(2, 'p3')}</div>
+          <div class="tm-podio3d">${BoxTrofeu3D.html()}</div>
+          <div class="tm-lugares">${lugar(2, 'p3')}${lugar(0, 'p1')}${lugar(1, 'p2')}</div>
         </div>
         <span class="fim-frase tm-frase">${esc(estado.piloto.nome)} · ${r.pontos} pontos</span>
         <button class="principal grande tm-botao" data-acao="ver-resumo">Ver o resumo da temporada</button>
       </section>`;
-    for (const [classe, metal] of [['p1', 'ouro'], ['p2', 'prata'], ['p3', 'bronze']]) {
-      const cv = app.querySelector(`.tm-col.${classe} [data-trofeu3d]`);
-      if (!cv) continue;
-      BoxTrofeu3D.ligar(cv, { metal, angulo: classe === 'p1' ? 0.5 : classe === 'p2' ? 1.4 : 2.3, velocidade: classe === 'p1' ? 0.7 : 0.55 }).then((ok) => {
-        if (!ok && cv.isConnected) cv.parentElement.innerHTML = icone('trofeu', `medalha-${classe.slice(1)}`);
-      });
-    }
+    const cv = app.querySelector('.tm-podio3d [data-trofeu3d]');
+    if (cv) BoxTrofeu3D.ligarPodio(cv).then((ok) => { if (!ok && cv.isConnected) cv.parentElement.innerHTML = icone('trofeu', 'medalha-1'); });
   }
 
   function telaFalencia() {
