@@ -119,6 +119,7 @@
     "Dá para contratar um mecânico para o fim de semana: o iniciante dá palpites, o experiente analisa o acerto e o profissional monta tudo para você.": "You can hire a mechanic for the race weekend: the junior gives hunches, the experienced one analyses the setup and the professional builds everything for you.",
     "Toque num jogo para usar. Treine com um pneu mais velho e guarde o novo para a classificação e a corrida.": "Tap a set to use it. Practise on an older tyre and save the new one for qualifying and the race.",
     "Sair para a pista": "Head out on track",
+    "A revisão fica mais cara quanto mais gasto o motor: revisar cedo custa menos.": "The more worn the engine, the more the service costs: servicing early is cheaper.",
     "Treinar": "Practice",
     "Pular treino": "Qualifying",
     "O piloto dá algumas voltas e conta o que sentiu. Cada bolinha é uma saída do treino.": "The driver does a few laps and tells you what they felt. Each dot is one run in practice.",

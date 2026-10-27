@@ -1308,6 +1308,7 @@
         ${estado.motorQuebrado ? '<span class="negativo"><b>Engripado</b></span>'
           : horas > 0 ? `<button data-acao="revisar">Revisar · ${reais(C.precoRevisao(estado))}</button>`
             : `<button disabled>${ic('check')}Motor 100%</button>`}</div>
+      ${horas > 0 && !estado.motorQuebrado ? '<p class="fraco mini">A revisão fica mais cara quanto mais gasto o motor: revisar cedo custa menos.</p>' : ''}
       <div class="linha"><span class="fraco mini">Pneus no estoque</span><span class="espaco"></span><b class="${estado.pneus.length >= C.espacoPneus(estado) ? 'aviso' : ''}">${estado.pneus.length}/${C.espacoPneus(estado)}</b></div>
       ${pneusVisuais(false)}
       ${botoesComprarPneu()}

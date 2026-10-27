@@ -802,7 +802,7 @@
     if (estado.fase === 'fds') return { ok: false, erro: 'Não dá para mexer no motor durante o fim de semana.' };
     if (estado.motorQuebrado) return { ok: false, erro: 'O motor engripou: precisa de retífica, não de revisão.' };
     if (!(estado.motorHoras > 0)) return { ok: false, erro: 'O motor acabou de ser revisado: está 100%.' };
-    const custo = Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
+    const custo = precoRevisao(estado);
     if (estado.dinheiro < custo) return { ok: false, erro: 'Dinheiro insuficiente para a revisão.' };
     estado.dinheiro -= custo;
     estado.motorHoras = 0;
@@ -915,7 +915,12 @@
     return { ok: true };
   }
 
-  const precoRevisao = (estado) => Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo);
+  // Quanto mais gasto o motor, mais cara a revisão: no meio do caminho (na hora da revisão, ~2,6 h) custa o preço de referência;
+  // logo depois de uma corrida sai por menos da metade, e passado o limite chega a mais que o dobro.
+  const precoRevisao = (estado) => {
+    const uso = Math.min(1.6, Math.max(0, estado.motorHoras || 0) / HORAS_REVISAO);
+    return Math.round(CUSTO_REVISAO * campeonato(estado.campeonato).custo * (0.3 + 1.1 * Math.pow(uso, 1.5)) / 10) * 10;
+  };
 
   // ---------- patrocínio ----------
   function gerarOfertasPatrocinio(estado, rnd, quantidade) {
