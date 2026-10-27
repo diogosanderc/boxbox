@@ -86,3 +86,12 @@ A F3 não divulga preços: no jogo vale **10% a mais que a F4**.
 | Troca de marchas por borboletas | 6.131 | 6.744 |
 | Vídeo com dados | 2.297 | 2.527 |
 | Kit de instalação da unidade de potência | 9.193 | 10.112 |
+
+## Kart profissional (2 tempos: KA100, X30, OK)
+
+Preços publicados: chassi sem motor US$ 6.298–7.995; motor IAME KA100 US$ 3.075; banco 405; registrador de dados 659–759;
+jogo de pneus slick 255–279; bateria 50–60; corrente 40–46; pinhão/coroa 31; pastilhas 73; vela 9–13; kit do carburador
+16–36; filtro de ar 46–48; embreagem 78–174; **revisão completa do motor 1.290–1.543**.
+
+No jogo (regional): slick US$ 270 (médio 255, duro e chuva 240); revisão do motor ≈ US$ 1.400; retífica normal ≈ US$ 1.400
+(motor fica na oficina e perde a etapa) e expressa ≈ US$ 3.060 (motor novo, ≈ o preço do KA100).

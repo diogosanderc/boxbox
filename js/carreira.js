@@ -27,9 +27,9 @@
   const motorPedeRevisao = (estado) => estado.motorHoras >= HORAS_REVISAO - 0.9;
   // Idade mínima da FIA para a Fórmula 4.
   const IDADE_F4 = 15;
-  const CUSTO_REVISAO = 2500;
+  const CUSTO_REVISAO = 3900; // revisão completa do motor de kart: US$ 1.290–1.543
   // Motor engripado: retífica expressa (cara, corre a próxima etapa) ou normal (mais barata, perde a etapa).
-  const CUSTO_RETIFICA = { expressa: 6000, normal: 2500 };
+  const CUSTO_RETIFICA = { expressa: 8500, normal: 3900 };
   // Prêmio por etapa para os 10 primeiros, multiplicado pelo custo do campeonato.
   const PONTOS_SPRINT = [8, 7, 6, 5, 4, 3, 2, 1];
   const PONTO_POLE = 1;

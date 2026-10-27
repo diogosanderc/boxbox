@@ -269,10 +269,10 @@
   const categoria = () => M.id;
 
   const PNEUS_KART = {
-    slick: { nome: 'Slick', preco: 320 },
-    medio: { nome: 'Médio', preco: 300 },
-    duro: { nome: 'Duro', preco: 280 },
-    chuva: { nome: 'Chuva', preco: 280 },
+    slick: { nome: 'Slick', preco: 270 },
+    medio: { nome: 'Médio', preco: 255 },
+    duro: { nome: 'Duro', preco: 240 },
+    chuva: { nome: 'Chuva', preco: 240 },
   };
 
   const limitar = (x, min, max) => Math.max(min, Math.min(max, x));
