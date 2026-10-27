@@ -1662,3 +1662,13 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 @media (prefers-reduced-motion: reduce) {
   .tm-holofote, .tm-titulo, .tm-podio3d, .tm-lugar, .tm-frase, .tm-botao { animation: none; opacity: 1; }
 }
+
+/* Confete do título mundial: chuva contínua e canhões dos cantos */
+.confete.mundial { z-index: 3; }
+.confete.mundial i { width: calc(7px * var(--s, 1)); height: calc(12px * var(--s, 1)); opacity: 0; animation: none; }
+.confete.mundial .chuva { top: -16px; left: var(--x); animation: cm-chuva var(--t) linear var(--d) 4 forwards; }
+.confete.mundial .canhao { top: 84%; animation: cm-canhao var(--t) cubic-bezier(0.15, 0.75, 0.35, 1) var(--d) 1 forwards; }
+.confete.mundial .canhao.esq { left: 5%; }
+.confete.mundial .canhao.dir { left: 95%; }
+@keyframes cm-chuva { 0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--r)); } 6% { opacity: 1; } 100% { opacity: 0.85; transform: translate3d(26px, 105dvh, 0) rotate(calc(var(--r) + 720deg)); } }
+@keyframes cm-canhao { 0% { opacity: 1; transform: translate(0, 0) rotate(var(--r)); } 38% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 300deg)); } 100% { opacity: 0; transform: translate(calc(var(--dx) * 1.3), 40dvh) rotate(calc(var(--r) + 760deg)); } }

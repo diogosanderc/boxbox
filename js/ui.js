@@ -2882,6 +2882,19 @@
     if (cv) BoxTrofeu3D.ligar(cv).then((ok) => { if (!ok && cv.isConnected) cv.remove(); });
   }
 
+  // Confete do título: chuva pela tela toda e dois canhões que sobem dos cantos quando o troféu dourado cai.
+  function confeteMundial() {
+    const cores = ['#ffd24a', '#ffb020', '#e10600', '#3b82f6', '#f4f4f4', '#20c997'];
+    const al = (a, b) => a + Math.random() * (b - a);
+    const cor = () => cores[Math.floor(Math.random() * cores.length)];
+    let h = '';
+    for (let i = 0; i < 70; i++) h += `<i class="chuva" style="--x:${al(0, 100).toFixed(1)}%;--c:${cor()};--r:${Math.round(al(0, 360))}deg;--d:${al(0.2, 6).toFixed(2)}s;--t:${al(3.4, 5.6).toFixed(2)}s;--s:${al(0.8, 1.5).toFixed(2)}"></i>`;
+    for (const lado of ['esq', 'dir']) {
+      for (let i = 0; i < 32; i++) h += `<i class="canhao ${lado}" style="--c:${cor()};--r:${Math.round(al(0, 360))}deg;--dx:${Math.round(al(40, 230)) * (lado === 'esq' ? 1 : -1)}px;--dy:${-Math.round(al(260, 560))}px;--d:${al(2.1, 2.5).toFixed(2)}s;--t:${al(2.6, 4).toFixed(2)}s;--s:${al(0.9, 1.6).toFixed(2)}"></i>`;
+    }
+    return h;
+  }
+
   // Título mundial: revelação com o pódio do campeonato e o troféu girando, antes do resumo da temporada.
   function telaTituloMundial(r, camp) {
     const titulos = estado.temporadas.filter((t) => t.campeonato === 'f1' && t.pos === 1).length;
@@ -2900,7 +2913,7 @@
     };
     app.innerHTML = `<section class="titulo-mundial">
         <div class="tm-holofote" aria-hidden="true"></div>
-        <div class="confete" aria-hidden="true">${confete(40)}</div>
+        <div class="confete mundial" aria-hidden="true">${confeteMundial()}</div>
         <span class="campeao-ano">${esc(camp.nome)} · ${r.ano}</span>
         <h1 class="tm-titulo">${manchete}</h1>
         <div class="tm-palco">
