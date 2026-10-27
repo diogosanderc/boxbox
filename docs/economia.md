@@ -49,3 +49,40 @@ volante 15–35 mil; rodas 4–8 mil; freios 5–15 mil.
 
 No jogo, o desenvolvimento do carro de F1 (1º nível, cada nível seguinte soma mais um pacote): **Aerodinâmica US$ 500 mil**
 (asas + assoalho), **Chassi US$ 1,4 mi** (monocoque + câmbio), **Motor US$ 9,5 mi** (unidade de potência).
+
+## Peças da F4 (especificação FIA 2026) e da F3
+
+A F3 não divulga preços: no jogo vale **10% a mais que a F4**.
+
+| Peça | F4 (US$) | F3 (US$, +10%) |
+|---|---|---|
+| Chassi completo sem motor | 92.220 | 101.442 |
+| Célula de sobrevivência de carbono | 43.674 | 48.041 |
+| Halo com fixação | 5.672 | 6.239 |
+| Arco principal | 1.456 | 1.602 |
+| Apoio de cabeça | 2.529 | 2.782 |
+| Banco | 1.989 | 2.188 |
+| Estrutura frontal de impacto (com bico) | 4.443 | 4.887 |
+| Ponta do bico | 458 | 504 |
+| Estrutura traseira de impacto | 3.062 | 3.368 |
+| Painel frontal antintrusão | 615 | 676 |
+| Carroceria superior | 7.354 | 8.089 |
+| Carroceria inferior | 6.438 | 7.082 |
+| Piso de madeira | 534 | 587 |
+| Skid block | 307 | 338 |
+| Suspensão dianteira (por lado) | 3.526 | 3.879 |
+| Suspensão traseira (por lado) | 3.062 | 3.368 |
+| Barra antirrolagem | 383 | 421 |
+| Rocker | 887 | 976 |
+| Amortecedor | 1.125 | 1.238 |
+| Disco de freio | 354 | 389 |
+| Pinça de freio | 615 | 676 |
+| Pastilhas (4. um eixo) | 307 | 338 |
+| Aro de roda (cada) | 412 | 453 |
+| Coluna de direção | 1.073 | 1.180 |
+| Caixa de direção | 2.604 | 2.864 |
+| Volante com display | 4.599 | 5.059 |
+| Porca de roda | 122 | 134 |
+| Troca de marchas por borboletas | 6.131 | 6.744 |
+| Vídeo com dados | 2.297 | 2.527 |
+| Kit de instalação da unidade de potência | 9.193 | 10.112 |
