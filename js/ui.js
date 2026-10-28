@@ -868,7 +868,12 @@
 
   // Ferramentas de teste (modo desenvolvedor e código de dinheiro): no navegador e nas builds de depuração
   // (rodando pelo Xcode). No app da App Store ficam desligadas.
-  const ferramentasTeste = () => !BoxSave.nativo || BoxPremium.depuracao;
+  // Ferramentas de teste (modo dev, código do dinheiro, Premium de teste): desligadas para o jogador, em qualquer plataforma.
+  // Só existem em build de depuração do Xcode ou no navegador com a chave 'superlicenca-ferramentas' = '1' no aparelho.
+  const ferramentasTeste = () => {
+    if (BoxPremium.depuracao) return true;
+    try { return !BoxSave.nativo && localStorage.getItem('superlicenca-ferramentas') === '1'; } catch (e) { return false; }
+  };
 
   // ---------- código secreto ----------
   // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
