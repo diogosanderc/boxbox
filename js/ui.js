@@ -1985,7 +1985,7 @@
   // Sobre, números e traçado da pista: usado na tela "Ver pista" e na folha aberta durante o fim de semana.
   function conteudoPista(pista, camp) {
     const extensao = ((pista.extensao || pista.tempoBase * 21) / 1000).toFixed(2).replace('.', ',');
-    return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre">${esc(pista.sobre || SOBRE_TIPO[pista.tipo])} ${pista.altitude >= 700 ? 'Na altitude o motor perde força e a carburação muda.' : ''}</p></section>
+    return `${linhaRecorde()}<section class="secao"><h2>Sobre</h2><p class="fraco sobre"><span>${esc(pista.sobre || SOBRE_TIPO[pista.tipo])}</span> ${pista.altitude >= 700 ? '<span>Na altitude o motor perde força e a carburação muda.</span>' : ''}</p></section>
       <div class="dados">
         ${dado('regua', 'Extensão', `${extensao} km`)}${dado('voltas', 'Voltas', camp.voltas)}${dado('montanha', 'Altitude', `${pista.altitude} m`)}
         ${dado('bandeira', 'Tipo', tipoPista[pista.tipo][1])}${pista.largura ? dado('largura', 'Largura', `${pista.largura} m`) : ''}${pista.sentido ? dado('sentido', 'Sentido', pista.sentido.replace(/^./, (c) => c.toUpperCase())) : ''}
