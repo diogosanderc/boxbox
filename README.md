@@ -156,8 +156,9 @@ pela App Store, produto `com.diogosander.superlicenca.premium` (R$ 9,90 no Brasi
 
 O que é do Premium aparece com cadeado e abre a tela de compra (com **Restaurar compras**, que a Apple exige).
 No app, `js/premium.js` fala com o plugin nativo `ios/App/App/PremiumPlugin.swift` (StoreKit 2, o mesmo esquema
-do GOLAÇO); `ios/App/Produtos.storekit` serve para testar a compra no simulador. No navegador não há compra: o
-Premium liga e desliga pelo modo desenvolvedor (5 toques no logotipo da abertura).
+do GOLAÇO); `ios/App/Produtos.storekit` serve para testar a compra no simulador e no aparelho pelo Xcode. No
+navegador não há compra: o Premium nunca liga (só a App Store liga). O jogo não tem cheats nem modo desenvolvedor.
+O passo a passo do Xcode e do App Store Connect está em `docs/xcode-appstore.md`.
 
 ## App para iPhone
 

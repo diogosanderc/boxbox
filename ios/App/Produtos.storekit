@@ -5,7 +5,7 @@
       {
         "locale": "en_US",
         "policyText": "",
-        "policyURL": ""
+        "policyURL": "https://diogosanderc.github.io/superlicenca/privacidade.html"
       }
     ]
   },
@@ -13,14 +13,19 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "9.90",
+      "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "6C5BEAC7",
       "localizations": [
         {
-          "description": "Até 5 patrocinadores, mais espaço no estoque de pneus e anotações no caderno.",
+          "description": "Cores do carro e do capacete, até 5 patrocinadores, mais pneus no estoque, caderno, equipe de box 3/3, banco, desafio do dia e sem anúncios.",
           "displayName": "Superlicença Premium",
           "locale": "pt_BR"
+        },
+        {
+          "description": "Car and helmet colours, up to 5 sponsors, more tyre storage, notebook, pit crew 3/3, bank, daily challenge and no ads.",
+          "displayName": "Super Licence Premium",
+          "locale": "en_US"
         }
       ],
       "productID": "com.diogosander.superlicenca.premium",
@@ -34,9 +39,9 @@
     "_billingIssuesEnabled": false,
     "_disableDialogs": false,
     "_failTransactionsEnabled": false,
-    "_locale": "pt_BR",
+    "_locale": "en_US",
     "_renewalBillingIssuesEnabled": false,
-    "_storefront": "BRA",
+    "_storefront": "USA",
     "_storeKitErrors": [],
     "_timeRate": 0
   },
