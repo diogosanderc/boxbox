@@ -17,11 +17,15 @@ Dados fixos do app:
 ## 1. Preparar o Mac
 
 ```
-git checkout -- ios/App/App.xcodeproj/project.pbxproj
-cd ~/Documents/superlicenca && git pull
+cd ~/Documents/superlicenca
+git checkout -- ios/App/App.xcodeproj/project.pbxproj ios/App/CapApp-SPM/Package.swift
+git pull
 npm install
 npm run ios
 ```
+
+O `Produtos.storekit` já faz parte do projeto (referência no `project.pbxproj`), então ele não se perde quando
+você restaura o arquivo.
 
 `npm run ios` copia o jogo para o app e abre o Xcode. O projeto já vem com a capacidade
 **In-App Purchase** ligada; confira em *App > Signing & Capabilities*: deve aparecer "In-App Purchase".
