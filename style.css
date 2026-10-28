@@ -895,9 +895,6 @@ body.sem-topo { padding-top: env(safe-area-inset-top, 0px); }
 .degrau { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: var(--painel-2); }
 .degrau span:first-child { color: var(--fraco); font-variant-numeric: tabular-nums; }
 .degrau b { font-family: var(--fonte-titulo); font-style: italic; font-weight: 800; }
-.folha-codigo { border-color: var(--borda); }
-.folha-codigo h3 { margin: 0; }
-.folha-codigo input { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); }
 
 /* ---------- cabeçalho compacto ----------
    Logo menor, perfil numa linha e os três números (caixa, moral, confiança) lado a lado. */
@@ -998,8 +995,6 @@ button.premium-trancado span { color: var(--fraco); }
 button.botao-premium { display: inline-flex; align-items: center; gap: 8px; border-color: rgba(255, 210, 74, 0.55); color: var(--ouro); font-weight: 700; }
 button.botao-premium .ico { width: 18px; height: 18px; }
 button.botao-premium.ativo { border-style: dashed; opacity: 0.8; }
-.dev-inicio { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; font-size: 13px; color: var(--fraco); }
-.dev-inicio span { width: 100%; text-align: center; }
 /* Rótulos de duas palavras (ex.: "voltas rápidas") centralizados e sem desalinhar o número. */
 .fim-numeros span { text-align: center; line-height: 1.25; align-content: start; }
 .nivel-box { display: inline-flex; align-items: center; gap: 4px; }

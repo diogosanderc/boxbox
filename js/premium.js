@@ -1,6 +1,6 @@
 // Superlicença Premium: compra única (não consumível) pela App Store.
 // No app do iPhone, fala com o plugin nativo "Premium" (StoreKit 2, ios/App/App/PremiumPlugin.swift).
-// No navegador não há compra: o Premium só liga pelo modo desenvolvedor, para testar.
+// No navegador não há compra: o Premium nunca liga (só a App Store liga).
 (function (raiz) {
   const CHAVE = 'superlicenca-premium';
   // Só aparece se a App Store não responder (ou no navegador); no app vale o preço da loja, na moeda do jogador.
@@ -13,16 +13,13 @@
   const plugin = nativo ? cap.registerPlugin('Premium') : null;
 
   const lerCache = () => { try { return localStorage.getItem(CHAVE) === '1'; } catch (e) { return false; } };
-  // Atalho de desenvolvedor: só vale em build de depuração (rodando pelo Xcode); nunca na App Store.
-  const CHAVE_DEV = 'superlicenca-premium-dev';
-  const forcadoDev = () => { try { return localStorage.getItem(CHAVE_DEV) === '1'; } catch (e) { return false; } };
-  let depuracao = false;
-  let daLoja = lerCache(); // o que a App Store disse (ou o cache até ela responder)
+  // Só a App Store liga o Premium (no navegador não há compra, então ele nunca liga).
+  let daLoja = nativo && lerCache(); // o que a App Store disse (ou o cache até ela responder)
   let ativo = daLoja;
   const ouvintes = [];
 
   function aplicar() {
-    const novo = daLoja || (depuracao && forcadoDev());
+    const novo = daLoja;
     if (novo === ativo) return;
     ativo = novo;
     ouvintes.forEach((f) => f(ativo));
@@ -40,7 +37,6 @@
     // que chegam fora do fluxo normal (compra aprovada depois, feita em outro aparelho...).
     async iniciar() {
       if (!plugin) return;
-      try { depuracao = !!(await plugin.isDebugBuild()).debug; } catch (e) { depuracao = false; }
       aplicar();
       try { plugin.addListener('premiumChanged', (d) => definir(d && d.unlocked)); } catch (e) { /* sem eventos */ }
       try { definir((await plugin.isPremiumUnlocked()).unlocked); } catch (e) { /* offline: fica o cache */ }
@@ -75,14 +71,7 @@
       }
     },
     // Só no navegador, pelo modo desenvolvedor.
-    alternarDev() {
-      if (!plugin) { definir(!ativo); return; }
-      if (!depuracao) return;
-      try { localStorage.setItem(CHAVE_DEV, forcadoDev() ? '0' : '1'); } catch (e) { /* sem armazenamento */ }
-      aplicar();
-    },
     // true só quando o app roda pelo Xcode (build de depuração).
-    get depuracao() { return depuracao; },
     aoMudar(f) { ouvintes.push(f); },
   };
 

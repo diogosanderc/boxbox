@@ -364,6 +364,8 @@
   // Equipe de F4 que cada olheiro oferecia antes (de ponta) -> id do olheiro.
   const ENTRADA_F4_ANTIGA = { 'f4-apex': 'apex-f4', 'f4-lionheart': 'lionheart-f4', 'f4-scorpio': 'scorpio-f4', 'f4-vortex': 'vortex-academia', 'f4-rossa': 'rossa-academia' };
   function migrar(estado) {
+    // Saves de teste antigos com 'dinheiro infinito' voltam ao caixa que tinham antes.
+    if (estado && estado.dinheiroInfinito) { estado.dinheiro = estado.dinheiroAntesCodigo || 0; delete estado.dinheiroInfinito; delete estado.dinheiroAntesCodigo; }
     // Carreiras antigas, sem sorteio, continuam com os nomes originais.
     usarNomesEquipes(estado && estado.nomesEquipes);
     if (estado && estado.campeonato) sincronizarCategoria(estado);

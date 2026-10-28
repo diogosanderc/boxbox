@@ -51,7 +51,6 @@
 
   // O save mora no BoxSave (js/armazenamento.js): arquivo no iPhone, localStorage no navegador.
   function salvar() {
-    encherCaixa();
     if (estado) avisarConquistas(C.conferirConquistas(estado));
     BoxSave.gravar(CHAVE_SAVE, JSON.stringify(estado));
   }
@@ -628,7 +627,7 @@
     const kpi = (nomeIcone, rotulo, valor, classe, extra) => `<div class="kpi ${classe}"><span class="kpi-rotulo">${ic(nomeIcone)}${rotulo}</span><b class="kpi-valor">${valor}</b>${extra}</div>`;
     const medidor = (v) => `<span class="kpi-barra" aria-hidden="true"><i style="width:${v}%"></i></span>`;
     barraMini.innerHTML = `<b class="mini-nome">${esc(p.nome)}</b>
-      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${estado.dinheiroInfinito ? 'US$ ∞' : reais(estado.dinheiro)}</span>
+      <span class="${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'}">${ic('carteira')}${reais(estado.dinheiro)}</span>
       <span class="${nivelClasse(p.moral)}">${ic('sorriso')}${p.moral}</span><span class="${nivelClasse(p.confianca)}">${ic('chama')}${p.confianca}</span>
       <button class="sair-topo" data-sair>Sair</button>`;
     statusEl.innerHTML = `<div class="perfil">
@@ -638,7 +637,7 @@
         <button class="perfil-tutorial" data-acao="rever-tutorial" aria-label="Rever tutorial">${icone('sentido')}<small>Tutorial</small></button>
       </div>
       <div class="kpis">
-        ${kpi('carteira', 'Caixa', estado.dinheiroInfinito ? 'US$ ∞' : caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
+        ${kpi('carteira', 'Caixa', caixaCurto(estado.dinheiro), `kpi-caixa ${estado.dinheiro < 0 ? 'negativo' : 'dinheiro'} ${apertado ? 'apertado' : ''}`, apertado ? '<small class="kpi-sub">Não paga a etapa</small>' : '')}
         ${kpi('sorriso', 'Moral', p.moral, nivelClasse(p.moral), medidor(p.moral))}
         ${kpi('chama', 'Confiança', p.confianca, nivelClasse(p.confianca), medidor(p.confianca))}
       </div>`;
@@ -663,7 +662,6 @@
   });
 
   function render() {
-    encherCaixa();
     atualizarStatus();
     // Abertura, nome, carregamento e equipe ocupam a tela toda, sem o cabeçalho do piloto.
     // Na corrida também: a tela fica só com a corrida.
@@ -863,95 +861,9 @@
     abrirPremium();
     if (r.status === 'pending') aviso('Compra pendente: o Premium libera assim que for aprovada.');
     else if (r.status === 'nada') aviso('Nenhuma compra do Premium encontrada nesta conta.');
-    else if (r.status === 'erro') aviso(BoxPremium.depuracao && r.erro ? `Erro da loja: ${r.erro}` : 'Não deu para falar com a App Store agora. Tente de novo.');
+    else if (r.status === 'erro') aviso('Não deu para falar com a App Store agora. Tente de novo.');
   });
 
-  // Ferramentas de teste (modo desenvolvedor e código de dinheiro): no navegador e nas builds de depuração
-  // (rodando pelo Xcode). No app da App Store ficam desligadas.
-  // Ferramentas de teste (modo dev, código do dinheiro, Premium de teste): desligadas para o jogador, em qualquer plataforma.
-  // Só existem em build de depuração do Xcode ou no navegador com a chave 'superlicenca-ferramentas' = '1' no aparelho.
-  const ferramentasTeste = () => {
-    if (BoxPremium.depuracao) return true;
-    try { return !BoxSave.nativo && localStorage.getItem('superlicenca-ferramentas') === '1'; } catch (e) { return false; }
-  };
-
-  // ---------- código secreto ----------
-  // "moneyisgood": dinheiro infinito na carreira (liga e desliga). No iPhone, 5 toques no logotipo do
-  // cabeçalho abrem o campo do código; no computador, basta digitar o código em qualquer tela.
-  const CODIGO_DINHEIRO = 'moneyisgood';
-  const CAIXA_INFINITO = 999999999;
-  function encherCaixa() {
-    // Save de teste levado para o app: o código não vale lá.
-    if (estado && estado.dinheiroInfinito && !ferramentasTeste()) { estado.dinheiroInfinito = false; estado.dinheiro = estado.dinheiroAntesCodigo || 0; }
-    if (estado && estado.dinheiroInfinito) estado.dinheiro = CAIXA_INFINITO;
-  }
-  function usarCodigo(texto) {
-    if (!ferramentasTeste() || !estado || String(texto).trim().toLowerCase() !== CODIGO_DINHEIRO) return false;
-    estado.dinheiroInfinito = !estado.dinheiroInfinito;
-    // Ao desligar, o caixa volta ao que era antes do código.
-    if (estado.dinheiroInfinito) estado.dinheiroAntesCodigo = estado.dinheiro;
-    else estado.dinheiro = estado.dinheiroAntesCodigo || 0;
-    salvar();
-    render();
-    aviso(estado.dinheiroInfinito ? 'Dinheiro infinito ligado' : 'Dinheiro infinito desligado', 'carteira');
-    return true;
-  }
-  const folhaCodigo = document.createElement('div');
-  folhaCodigo.className = 'folha-fundo';
-  folhaCodigo.hidden = true;
-  folhaCodigo.innerHTML = `<form class="folha folha-codigo" role="dialog" aria-modal="true" aria-label="Código">
-      <h3>Código</h3>
-      <input type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Código">
-      <div class="botoes-2"><button type="button" data-fechar>Fechar</button><button class="principal" type="submit">OK</button></div>
-    </form>`;
-  document.body.appendChild(folhaCodigo);
-  const fecharCodigo = () => { folhaCodigo.hidden = true; folhaCodigo.querySelector('input').value = ''; };
-  folhaCodigo.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const ok = usarCodigo(folhaCodigo.querySelector('input').value);
-    fecharCodigo();
-    if (!ok) aviso('Código inválido');
-  });
-  folhaCodigo.addEventListener('click', (ev) => { if (ev.target === folhaCodigo || ev.target.closest('[data-fechar]')) fecharCodigo(); });
-  let toquesMarca = [];
-  document.querySelector('.topo .marca').addEventListener('click', () => {
-    if (!ferramentasTeste() || !estado) return;
-    const agora = Date.now();
-    toquesMarca = toquesMarca.filter((t) => agora - t < 3000).concat(agora);
-    if (toquesMarca.length < 5) return;
-    toquesMarca = [];
-    folhaCodigo.hidden = false;
-    folhaCodigo.querySelector('input').focus();
-  });
-  let digitado = '';
-  document.addEventListener('keydown', (ev) => {
-    if (!ferramentasTeste() || ev.key.length !== 1 || ev.target.closest('input, textarea')) return;
-    digitado = (digitado + ev.key.toLowerCase()).slice(-CODIGO_DINHEIRO.length);
-    if (digitado === CODIGO_DINHEIRO) { digitado = ''; usarCodigo(CODIGO_DINHEIRO); }
-  });
-
-  // ---------- início ----------
-  // Modo desenvolvedor (só para testar o jogo): liga e desliga com 5 toques no logotipo da abertura.
-  const CHAVE_DEV = 'superlicenca-dev';
-  // No navegador o modo desenvolvedor já vem ligado (5 toques no logotipo desligam); no Xcode precisa ligar com 5 toques.
-  const modoDev = () => {
-    if (!ferramentasTeste()) return false;
-    try { const v = localStorage.getItem(CHAVE_DEV); return BoxSave.nativo ? v === '1' : v !== '0'; } catch (e) { return !BoxSave.nativo; }
-  };
-  // Atalho de teste para começar direto numa categoria: escondido, só liga com a chave 'superlicenca-dev-inicio' = '1' no aparelho.
-  const atalhoCategoriaTeste = () => { try { return localStorage.getItem('superlicenca-dev-inicio') === '1'; } catch (e) { return false; } };
-  let toquesLogo = [];
-  function tocarLogo() {
-    if (!ferramentasTeste()) return;
-    const agora = Date.now();
-    toquesLogo = toquesLogo.filter((t) => agora - t < 3000).concat(agora);
-    if (toquesLogo.length < 5) return;
-    toquesLogo = [];
-    const ligar = !modoDev();
-    try { localStorage.setItem(CHAVE_DEV, ligar ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
-    render();
-    aviso(ligar ? 'Modo desenvolvedor ligado' : 'Modo desenvolvedor desligado');
-  }
   // Abertura: logotipo e "Iniciar jogo" (e "Continuar" quando há carreira salva).
   function telaAbertura() {
     const save = carregar();
@@ -963,9 +875,6 @@
         <div class="abertura-acoes">
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
-          ${BoxPremium.depuracao ? `<button class="link-f4" data-acao="premium-dev">Dev (Xcode): Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>` : ''}
-          ${modoDev() ? `${atalhoCategoriaTeste() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>` : ''}
-            ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
           <button class="link-f4 idioma" data-acao="idioma">${BoxI18n.idioma === 'en' ? 'Português' : 'English'}</button>
         </div>
       </div>`;
@@ -1043,11 +952,7 @@
       if (t < 1) requestAnimationFrame(quadro);
       else setTimeout(() => {
         if (tela !== minha) return;
-        if (!minha.dev) { ir({ ...minha, nome: 'equipe', escolhida: null }); return; }
-        estado = C.novoJogo({ nome: minha.nomePiloto, equipeId: minha.opcoes[0], seed: minha.seed });
-        C.comecarEm(estado, minha.dev);
-        salvar();
-        ir(telaDaFase());
+        ir({ ...minha, nome: 'equipe', escolhida: null });
       }, 250);
     };
     requestAnimationFrame(quadro);
@@ -2777,7 +2682,7 @@
     const falta = C.esperaTemporada(estado);
     if (!falta) return `<button class="principal grande" data-acao="nova-temporada">Começar ${estado.ano}</button>`;
     const ate = Date.now() + falta;
-    const anuncio = BoxAnuncios.nativo || modoDev() ? '<button class="grande" data-acao="pular-espera">Assistir a um anúncio e começar agora</button>' : '';
+    const anuncio = BoxAnuncios.nativo ? '<button class="grande" data-acao="pular-espera">Assistir a um anúncio e começar agora</button>' : '';
     return `<div class="espera-temporada"><div class="espera-topo">${ic('cadeado')}<b>Próxima temporada em</b><span class="espera-tempo" data-reabre="${ate}">${contagem(ate)}</span></div>
       <p class="fraco mini">Sem o Premium, é uma temporada a cada 24 horas. Com o Premium você joga a qualquer hora.</p>
       <button class="principal grande premium-trancado" data-acao="premium" data-motivo="Com o Premium não há espera entre as temporadas: você joga a qualquer hora.">${ic('cadeado')}Premium: jogar agora</button>${anuncio}</div>`;
@@ -3077,15 +2982,11 @@
         if (!nome) { aviso('Escreva o nome do piloto.'); break; }
         const seed = Date.now() % 1e9;
         C.usarNomesEquipes(C.sortearNomesEquipes(seed));
-        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed), dev: tela.dev });
+        ir({ nome: 'carregando', nomePiloto: nome, seed, opcoes: C.equipesIniciais(seed) });
         break;
       }
       case 'iniciar':
         ir({ nome: 'inicio' });
-        break;
-      case 'iniciar-dev':
-        if (!modoDev()) break;
-        ir({ nome: 'inicio', dev: id });
         break;
       case 'sair-jogo':
         sairDoJogo();
@@ -3184,10 +3085,6 @@
         break;
       case 'premium':
         abrirPremium(alvo.dataset.motivo);
-        break;
-      case 'premium-dev':
-        BoxPremium.alternarDev();
-        render();
         break;
       case 'melhorar-box': {
         const r = C.melhorarBox(estado);
@@ -3494,7 +3391,6 @@
   });
 
   app.addEventListener('click', (ev) => {
-    if (tela.nome === 'abertura' && ev.target.closest('.abertura-marca')) tocarLogo();
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-checagem') { tela.checagem = false; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-proposta') { tela.propostaId = null; render(); }
     if (ev.target.dataset && ev.target.dataset.acaoFundo === 'fechar-pneu') { tela.pneuOpcoes = null; render(); }
@@ -3540,8 +3436,7 @@
     render();
     if (v) aviso('Premium ativado! Obrigado.', 'estrela');
   });
-  // Na build do Xcode, o atalho de Premium da abertura só aparece depois de saber que é depuração.
-  BoxPremium.iniciar().then(() => { if (BoxPremium.depuracao && tela.nome === 'abertura') render(); });
+  BoxPremium.iniciar();
   BoxAnuncios.iniciar();
   BoxSave.iniciar(CHAVE_SAVE).catch(() => {}).then(render);
 })();

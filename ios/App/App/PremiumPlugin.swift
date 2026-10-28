@@ -34,7 +34,6 @@ public class PremiumPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "restorePurchases", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "isPremiumUnlocked", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPremiumProduct", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "isDebugBuild", returnType: CAPPluginReturnPromise)
     ]
 
     private var transactionUpdatesTask: Task<Void, Never>?
@@ -82,15 +81,6 @@ public class PremiumPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    // Só é true numa build de depuração (rodando pelo Xcode). Archive/TestFlight/App Store são Release: sempre false.
-    // O jogo usa isso para mostrar um atalho de Premium só para o desenvolvedor.
-    @objc func isDebugBuild(_ call: CAPPluginCall) {
-        #if DEBUG
-        call.resolve(["debug": true])
-        #else
-        call.resolve(["debug": false])
-        #endif
-    }
 
     @objc func getPremiumProduct(_ call: CAPPluginCall) {
         Task {
