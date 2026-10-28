@@ -1071,7 +1071,7 @@ test('pneu no fim da vida vira notícia uma vez, para conferir a oficina', () =>
   Carreira.pularEtapa(e);
   const avisos = () => e.noticias.filter((n) => n.texto.includes('verifique os pneus na oficina'));
   assert.strictEqual(avisos().length, 1);
-  assert.match(avisos()[0].texto, /slick #2/);
+  assert.match(avisos()[0].texto, /macio #2/);
   Carreira.pularEtapa(e);
   assert.strictEqual(avisos().length, 1, 'não repete o aviso do mesmo jogo');
 });

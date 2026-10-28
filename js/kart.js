@@ -269,7 +269,7 @@
   const categoria = () => M.id;
 
   const PNEUS_KART = {
-    slick: { nome: 'Slick', preco: 270 },
+    slick: { nome: 'Macio', preco: 270 },
     medio: { nome: 'Médio', preco: 255 },
     duro: { nome: 'Duro', preco: 240 },
     chuva: { nome: 'Chuva', preco: 240 },
@@ -503,7 +503,7 @@
     const motor = forcaMotor(e) > 0 ? (M.id === 'f1' ? 'O arrefecimento está fechado demais para esta pista: o motor pode superaquecer.' : 'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.') : null;
     let pneuDica = null;
     if (cond.molhado && pneu !== 'chuva') pneuDica = 'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.';
-    else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o slick teria sido mais rápido e gastaria menos.';
+    else if (!cond.molhado && pneu === 'chuva') pneuDica = 'Com a pista seca, o pneu macio teria sido mais rápido e gastaria menos.';
     if (!sentiu.length && !pneuDica && !motor) sentiu.push(`O ${M.veiculo} estava muito bom! Equilibrado, dava pra acelerar tudo.`);
     // Quanto o acerto custou por volta (sem a penalidade de pneu errado), para dar a medida do que a lista pede.
     const perda = Math.round(Math.min(3.5, 1.1 * Math.pow(desequilibrio(e), 0.9)) * 100) / 100;

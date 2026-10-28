@@ -17,7 +17,7 @@
     'você': 'you',
     '{1}, 12 anos, estreia no kart pela {2}.': '{1}, aged 12, makes their karting debut with {2}.',
     'Temporada nova, pneus novos: a equipe entrega {1}{2}. O estoque do ano passado ficou para trás.': "New season, new tyres: the team hands over {1}{2}. Last year's stock is gone.",
-    '(dois slicks)': '(two slicks)',
+    '(dois macios)': '(two soft)',
     '{1} quer patrocinar {2}: US$ {3} por etapa. Veja a oferta nas Finanças.': '{1} wants to sponsor {2}: US$ {3} per race. See the offer in Finances.',
     'A família junta US$ {1} para a temporada.': 'The family scrapes together US$ {1} for the season.',
     'Confiante, acha que pode ganhar de qualquer um.': 'Brimming with confidence, believes they can beat anyone.',
@@ -156,7 +156,7 @@
     'Escolha um jogo de pneus.': 'Choose a set of tyres.',
     'O treino livre acabou.': 'Free practice is over.',
     'Sem o Premium são {1} saídas no treino livre. Com ele, {2}.': 'Without Premium you get {1} runs in free practice. With it, {2}.',
-    'Está molhado! Com slick não dá pra andar.': "It's wet! You can't drive on slicks.",
+    'Está molhado! Com o pneu macio não dá pra andar.': "It's wet! You can't drive on soft tyres.",
     'Os pneus já estão no fim, difícil saber se o problema é o acerto.': "The tyres are almost finished, it's hard to know whether the problem is the setup.",
 
     // ---- metas, patrocínio e propostas ----

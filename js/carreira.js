@@ -301,7 +301,7 @@
       estado.pneus = [];
       const kit = quatroPneus(estado) ? tiposPneu(estado) : ['slick', 'slick', 'chuva'];
       for (const t of kit) comprarPneu(estado, t, true);
-      noticia(estado, `Temporada nova, pneus novos: a equipe entrega ${listaE(kit.map((t) => nomePneu(estado, t).toLowerCase()).filter((x, i, l) => l.indexOf(x) === i))}${kit.length === 3 ? ' (dois slicks)' : ''}. O estoque do ano passado ficou para trás.`);
+      noticia(estado, `Temporada nova, pneus novos: a equipe entrega ${listaE(kit.map((t) => nomePneu(estado, t).toLowerCase()).filter((x, i, l) => l.indexOf(x) === i))}${kit.length === 3 ? ' (dois macios)' : ''}. O estoque do ano passado ficou para trás.`);
     }
     if ((estado.ano > 2027 || estado.etapa > 0) && !camp.categoria) {
       const apoio = Math.round(APOIO_FAMILIA * camp.custo);
@@ -623,7 +623,7 @@
   const VIDA_PNEU = 26; // voltas até o pneu "cair"
   // Pneu novo (zerado) rende menos nas primeiras voltas; amaciado (1 a 4 voltas) rende o máximo.
   const AMACIAR_VOLTAS = 2;
-  // Da F3 em diante o estoque tem quatro tipos: macio (o slick), médio, duro e chuva.
+  // Da F3 em diante o estoque tem quatro tipos: macio, médio, duro e chuva.
   // Cada um seco vira um composto na corrida. Para correr é obrigatório ter o de chuva e um composto de seco
   // (dois na F2 e na F1, que têm parada); com menos que os quatro dá para ir, mas o fim de semana é só com o
   // estoque (sem compra na pista).
@@ -1519,7 +1519,7 @@
       frases: Kart.feedbackPiloto(e, limitar(estado.piloto.sensibilidade + (estado.piloto.moral - 60) / 3, 10, 95), rnd),
       dica: dicaDaSaida(estado, e, pista, cond, pneu.tipo, rnd),
     };
-    if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com slick não dá pra andar.');
+    if (cond.molhado && pneu.tipo === 'slick') saida.frases.unshift('Está molhado! Com o pneu macio não dá pra andar.');
     if (pneu.uso > 20) saida.frases.push('Os pneus já estão no fim, difícil saber se o problema é o acerto.');
     saida.recorde = conferirRecorde(estado, [{ id: 'jogador', tempo }, ...estado.rivais.map((r, i) => ({ id: r.id, tempo: tempos[i] }))], 'treino');
     fds.saidas.push(saida);

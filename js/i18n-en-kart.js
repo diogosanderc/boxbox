@@ -8,7 +8,6 @@
     'kart': 'kart',
     'Mecânico': 'Mechanic',
     'Engenheiro': 'Engineer',
-    'Slick': 'Slick',
     'Chuva': ['Wet', ['.evo-linha, .barra, .cartao-pilotos, .cartao-atributos', 'Wet weather']],
 
     // ---- nomes e valores dos ajustes (kart) ----
@@ -262,7 +261,7 @@
     '(um pouco)': '(a little)',
     'Você forçou o motor: mistura pobre ou giro alto demais podem engripá-lo.': 'You over-stressed the engine: a lean mixture or too many revs can seize it.',
     'Com a pista molhada, o pneu de chuva teria sido muito mais rápido.': 'On a wet track, the wet tyre would have been much quicker.',
-    'Com a pista seca, o slick teria sido mais rápido e gastaria menos.': 'On a dry track, the slick would have been quicker and would have worn less.',
+    'Com a pista seca, o pneu macio teria sido mais rápido e gastaria menos.': 'On a dry track, the soft tyre would have been quicker and would have worn less.',
 
     // ---- telemetria ----
     'Aderência do pneu': 'Tyre grip',
