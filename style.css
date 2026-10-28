@@ -1721,3 +1721,9 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .hero-pista .chip-pista.c-veloz { color: #4fdc8c; border-color: rgba(79, 220, 140, 0.6); background: rgba(79, 220, 140, 0.13); }
 .hero-pista .chip-pista.c-alt { color: #6fd8f0; border-color: rgba(111, 216, 240, 0.55); background: rgba(111, 216, 240, 0.12); }
 .hero-pista .chip-pista.c-local { color: #f1f4fb; border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.1); }
+
+/* Botões − e + embaixo do knob (um passo por toque) */
+.kn-passos { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+.kn-passo { width: 40px; height: 32px; border-radius: 10px; border: 1px solid var(--borda); background: var(--painel-2); color: var(--texto); font-size: 20px; font-weight: 700; line-height: 1; padding: 0; display: grid; place-items: center; }
+.kn-passo:disabled { opacity: 0.3; }
+.kn-passo:active:not(:disabled) { background: rgba(61, 155, 255, 0.2); border-color: var(--azul); }

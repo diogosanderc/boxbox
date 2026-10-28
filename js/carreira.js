@@ -1985,6 +1985,16 @@
     if (estado.etapa >= etapasDe(estado)) return fimDeTemporada(estado);
     // Sem dinheiro para pagar a próxima etapa, sem proposta de equipe nem banco: acabou a carreira.
     if (estado.dinheiro < custoEtapa(estado) && !estado.propostas.length && !(premium && !estado.emprestimo)) {
+      // Última ajuda, uma vez por carreira: a família e os amigos pagam o que falta da temporada.
+      if (!estado.socorroUsado) {
+        const valor = Math.round((custoEtapa(estado) * (etapasDe(estado) - estado.etapa) - estado.dinheiro) / 100) * 100;
+        estado.dinheiro += valor;
+        estado.socorroUsado = true;
+        noticia(estado, `A família e os amigos juntam US$ ${valor.toLocaleString('pt-BR')} para ${p.nome} terminar a temporada. É a última ajuda.`);
+        gerarOlheiros(estado, rnd);
+        estado.fase = 'paddock';
+        return;
+      }
       estado.fase = 'falencia';
       noticia(estado, `${p.nome} não tem como pagar a próxima etapa.`);
       return;
@@ -2162,6 +2172,15 @@
 
     const lista = equipesDaCategoria(estado);
     const custoMinimo = Math.round(lista[lista.length - 1].custoEtapa * camp.custo);
+    // Última ajuda, uma vez por carreira: a família e os amigos juntam o dinheiro para mais uma temporada na equipe mais barata.
+    if (estado.dinheiro < custoMinimo && !propostasF4.length && !estado.socorroUsado && p.idade < IDADE_APOSENTADORIA) {
+      const valor = Math.round((custoMinimo * 1.5 - estado.dinheiro) / 100) * 100;
+      estado.dinheiro += valor;
+      estado.socorroUsado = true;
+      rel.premios.push({ texto: 'Ajuda da família e dos amigos (só acontece uma vez)', valor });
+      rel.dinheiroDepois = estado.dinheiro;
+      noticia(estado, `A família e os amigos juntam US$ ${valor.toLocaleString('pt-BR')} para ${p.nome} correr mais uma temporada. É a última ajuda.`);
+    }
     estado.relatorio = rel;
     estado.espera = { ate: relogio(estado) + ESPERA_TEMPORADA_MS };
     estado.temporadas.push({ ano: rel.ano, campeonato: rel.campeonato, pos: rel.pos, pontos: rel.pontos, idade: estado.piloto.idade - 1,

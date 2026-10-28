@@ -2081,7 +2081,8 @@
         <circle cx="50" cy="50" r="22" fill="rgba(255,255,255,0.04)" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
         <g class="kn-ponteiro" style="transform:rotate(${ang}deg)"><line x1="50" y1="30" x2="50" y2="43" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><circle cx="50" cy="26.5" r="2" fill="#ff3b30"/></g>
       </svg>
-      <span class="kn-valor">${esc(rotuloAjuste(k, a, valor))}</span></div>`;
+      <span class="kn-valor">${esc(rotuloAjuste(k, a, valor))}</span>
+      <span class="kn-passos"><button class="kn-passo" data-acao="knob-passo" data-dir="-1" aria-label="Diminuir: ${esc(a.nome)}" ${i === 0 ? 'disabled' : ''}>−</button><button class="kn-passo" data-acao="knob-passo" data-dir="1" aria-label="Aumentar: ${esc(a.nome)}" ${i >= n - 1 ? 'disabled' : ''}>+</button></span></div>`;
   }
   // Mostra o knob na posição i sem desenhar a tela de novo (durante o arrasto).
   function pintarKnob(cel, i) {
@@ -2104,7 +2105,7 @@
   function editorSetup(s = estado.fds.setup, acao = 'ajuste') {
     return `${BoxCarro3D.html(Kart.monoposto() ? 'f1' : 'kart')}<div class="setup-knobs" data-acao-setup="${acao}">
       <div class="kn-carro">${Kart.ORDEM_AJUSTES.map((k) => knobHtml(k, s[k])).join('')}</div>
-      <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados.</p>${pisoPressaoDica(acao)}
+      <p class="kn-dica"><i class="kn-led" aria-hidden="true"></i>Segure o knob até acender a luz verde e deslize para os lados, ou use os botões − e +.</p>${pisoPressaoDica(acao)}
     </div>`;
   }
   const setupDaAcao = (acao) => (acao === 'ajuste-desafio' ? C.estadoDesafio(estado).setup : estado.fds.setup);
@@ -3219,6 +3220,14 @@
       case 'doar-pneu':
         if (erro(C.doarPneu(estado, id))) { tela.pneuOpcoes = null; salvar(); render(); aviso('Pneus doados para a escolinha. A moral subiu!'); }
         break;
+      case 'knob-passo': {
+        // Botões − e + embaixo do knob: um passo por toque (alternativa ao segurar e deslizar).
+        const cel = alvo.closest('.kn'), k = cel.dataset.k, acaoSetup = alvo.closest('.setup-knobs').dataset.acaoSetup;
+        const a = Kart.AJUSTES[k], i0 = indiceAjuste(a, setupDaAcao(acaoSetup)[k]);
+        const i = Math.max(0, Math.min(passosAjuste(a) - 1, i0 + Number(alvo.dataset.dir)));
+        if (i !== i0) { aplicarAjuste(acaoSetup, k, valorAjuste(a, i)); BoxCarro3D.foco(k); BoxCarro3D.soltar(); }
+        break;
+      }
       case 'amaciar-pneu':
         if (erro(C.amaciarPneu(estado))) { salvar(); render(); rolarPara('.acoes', 'center'); aviso('Pneu amaciado: pronto para render o máximo.'); }
         break;

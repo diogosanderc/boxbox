@@ -1529,3 +1529,23 @@ test('diagnóstico: chuva só no fim da corrida não faz o acerto de seco parece
   assert.ok(d.nota && /volta/.test(d.nota), 'avisa que a chuva pegou só o fim');
   assert.ok(d.ajustes.length <= 3 && d.perda >= 0);
 });
+
+test('sem dinheiro no fim da temporada: ajuda única da família, e só uma vez', () => {
+  const e = Carreira.novoJogo({ nome: 'Teste', equipeId: 'garagem', seed: 5 });
+  const falirNoFim = () => {
+    e.etapa = Carreira.etapasDe(e) - 1;
+    e.fase = 'paddock';
+    e.dinheiro = -50000;
+    e.propostas = [];
+    Carreira.concluirEtapa(e);
+  };
+  falirNoFim();
+  assert.strictEqual(e.fase, 'relatorio');
+  assert.ok(e.socorroUsado);
+  assert.ok(e.relatorio.premios.some((p) => /Ajuda da família/.test(p.texto)));
+  assert.ok(e.dinheiro > 0);
+  // na próxima vez não há ajuda: é falência
+  Carreira.proximaTemporada(e, e.relatorio.opcoes[0]);
+  falirNoFim();
+  assert.strictEqual(e.fase, 'falencia');
+});
