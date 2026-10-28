@@ -1946,7 +1946,6 @@
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
-        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, e “F1 TYRES PACK 2022”, de zordew, todos CC BY 4.0.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }
