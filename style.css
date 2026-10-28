@@ -1713,8 +1713,3 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .avatar-fim { width: 40px; height: 40px; margin: 2px auto 4px; font-size: 14px; }
 .toast.toque { cursor: pointer; background: #12161f; color: #fff; box-shadow: 0 0 0 1.5px var(--alerta), 0 4px 16px rgba(0, 0, 0, 0.4); }
 .toast.toque b { color: var(--alerta); }
-
-/* Carrinho da barra "na pista": o carro 3D de lado, sem moldura */
-.na-pista-kart.is3d { bottom: -2px; transform: translateX(-50%); font-size: 0; filter: none; }
-.na-pista-kart.is3d .carro3d { width: 112px; height: 54px; margin: 0; border: 0; border-radius: 0; overflow: visible; background: none; }
-.na-pista-kart.is3d .carro3d-carregando { display: none; }

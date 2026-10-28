@@ -121,7 +121,7 @@
     clima: ['Previsão do tempo', 'A chance de chuva é só previsão e pode errar. No kart não tem pit stop: o pneu que você escolher vai até a bandeirada.'],
     cabeca: ['Moral e confiança', 'Confiança é a cabeça na pista: alta dá ritmo e regularidade, baixa faz errar. Moral é a motivação: alta faz o piloto evoluir mais rápido e explicar melhor o que sente no kart. O psicólogo ajuda uma vez por etapa.'],
     oficina: ['Oficina', `Toque num jogo de pneus para vender, doar ou jogar fora: vender e doar só no fim da vida, com 80% gasto ou mais (o estoque começa com ${C.MAX_PNEUS} vagas; com o Premium dá para comprar mais, até 8 no kart e mais a cada categoria, até 16 na F1). Pneu zerado rende um pouco menos nas primeiras voltas: dá para amaciar no treino. Da F3 em diante é obrigatório ter o pneu de chuva e o seco que a etapa pede: na F3, o composto único da etapa (veja no calendário); na F2 e na F1, dois compostos de seco; o ideal são os quatro tipos, e na pista não se compra pneu. O motor conta horas de uso: cada saída, a classificação e a corrida somam. Passou de ${String(C.HORAS_REVISAO).replace('.', ',')} h sem revisão, ele perde força e fica frágil. Forçar o motor (carburação pobre demais ou dentes demais na coroa) pode engripá-lo, e a retífica é cara: a expressa deixa correr a etapa seguinte; a normal faz o piloto perder uma etapa.`],
-    desafio: ['Desafio do dia', 'Todo dia, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto; à meia-noite sai um desafio novo. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, US$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha do dia: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
+    desafio: ['Desafio do dia', 'Todo dia, uma pista da sua categoria com uma condição fixa. São 3 voltas lançadas para achar o acerto, com o seu carro e o seu piloto; a cada 24 h um aviso oferece um desafio novo: aceite para correr ou decline e espere o próximo. O tempo-alvo é o da volta com o acerto perfeito: ouro fica a pouco mais de um décimo dele, prata a 0,4 s e bronze a 0,9 s. Cada medalha paga um prêmio: ouro vale uma etapa da sua equipe, prata metade e bronze um quarto (na F1, US$ 500 mil, 250 mil e 125 mil). Vale a melhor medalha do dia: quem sobe de bronze para ouro recebe a diferença. O ouro ainda rende popularidade. Sem o Premium, o primeiro desafio é grátis; depois, é do Premium.'],
     telemetria: ['Telemetria', 'Mostra em que trecho da volta o acerto está custando tempo: retas, freada, entrada, meio e saída de curva, curvas rápidas, zebras e aderência do pneu. Ela não diz para que lado mexer: isso continua com a sensibilidade do piloto e o mecânico.'],
     preparacao: ['Teto e preparação', 'Todo piloto tem um teto: perto dele, os atributos param de crescer. Os olheiros estimam esse teto, e a faixa fica mais precisa a cada temporada. Para brigar pelo título, a F2 pede atributos perto de 83 e a F1 perto de 87. O preparador físico e o simulador sobem o teto em 1 ponto por nível (até 2 níveis cada) e já melhoram dois atributos.'],
     desenvolvimento: ['Desenvolvimento do carro', 'Na F1, o dinheiro compra peças novas: aerodinâmica, motor e chassi, até 3 níveis cada. Cada nível soma 2 pontos na área do seu carro até o fim da temporada. No ano seguinte o carro é novo e o desenvolvimento recomeça.'],
@@ -306,15 +306,7 @@
     const el = (q) => naPista.querySelector(q);
     el('[data-titulo]').textContent = titulo;
     el('[data-dica]').textContent = dica;
-    // O carrinho é o carro 3D do jogador, de lado, com o pneu escolhido e a cor original da equipe.
-    const kart = el('[data-kart]'), lugar3d = BoxCarro3D.html(tipo3d());
-    kart.classList.toggle('is3d', !!lugar3d);
-    kart.innerHTML = lugar3d || '🏎️';
     naPista.hidden = false;
-    if (lugar3d) {
-      BoxCarro3D.ligar(naPista, undefined, C.equipeBase(estado.equipeId).cor, tipo3d(), { pneu: pneu3d(), pneuNovo: pneuNovo3d() });
-      BoxCarro3D.foco('lado');
-    }
     const inicio = performance.now();
     const quadro = (agora) => {
       const t = Math.min(1, (agora - inicio) / duracao);
@@ -322,7 +314,7 @@
       el('[data-kart]').style.left = `${t * 100}%`;
       el('[data-passo]').textContent = passos[Math.min(passos.length - 1, Math.floor(t * passos.length))];
       if (t < 1) requestAnimationFrame(quadro);
-      else setTimeout(() => { naPista.hidden = true; BoxCarro3D.liberar(); depois(); }, 180);
+      else setTimeout(() => { naPista.hidden = true; depois(); }, 180);
     };
     requestAnimationFrame(quadro);
   }
@@ -1443,6 +1435,21 @@
   }
 
   // Proposta de outra equipe: abre em folha assim que chega (uma vez); "Decidir depois" fecha e a linha fica nos Olheiros.
+  // Aviso do desafio do dia: só fecha com uma decisão (aceitar ou declinar).
+  function folhaDesafio() {
+    if (!tela.desafioModal || tela.propostaId) return '';
+    const d = C.desafioDaSemana(estado);
+    return `<div class="folha-fundo"><div class="folha folha-desafio" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+      <span class="proposta-pre">Desafio do dia</span>
+      <h3 id="folha-titulo">${esc(d.pista.nome)}</h3>
+      <div class="chips">${chip(d.molhado ? `${ic('chuva')}Molhado` : `${ic('sol')}Seco`, d.molhado ? 'chip-azul' : '')}${chip(`${ic('relogio')}3 voltas`)}</div>
+      <p class="fraco">Três voltas lançadas para achar o acerto. Ouro fica a ${(d.medalhas[0].tempo - d.alvo).toFixed(2).replace('.', ',')} s do tempo perfeito e vale ${reais(C.premioMedalha(estado, 'ouro'))}.</p>
+      <p class="fraco mini">Você tem 24 h depois de aceitar.</p>
+      ${!BoxPremium.ativo && !C.desafioLiberado(estado) ? '<p class="fraco mini">O desafio do dia grátis já foi. Com o Premium, tem desafio novo todo dia.</p>' : ''}
+      <div class="botoes-2"><button class="principal" data-acao="aceitar-desafio">Aceitar</button><button data-acao="declinar-desafio">Declinar</button></div>
+    </div></div>`;
+  }
+
   function folhaProposta() {
     const pr = tela.propostaId && estado.propostas.find((x) => x.id === tela.propostaId);
     if (!pr) return '';
@@ -1908,8 +1915,10 @@
       const nova = estado.propostas.find((pr) => !pr.vista && TIPOS_PROPOSTA[pr.tipo]);
       if (nova) { nova.vista = true; tela.propostaId = nova.id; salvar(); }
     }
+    // Desafio do dia: a cada 24 h abre um aviso para aceitar ou declinar (depois das propostas e fora do tutorial).
+    if (!tela.desafioModal && !tela.propostaId && !Tutorial.ativo() && !tela.checagem && C.desafioModalPendente(estado)) { tela.desafioModal = true; salvar(); }
     const conteudo = {
-      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${cartaoDesafio()}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
+      resumo: () => `${cartaoProximaEtapa()}<div class="grade">${C.desafioAtivo(estado) ? cartaoDesafio() : ''}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
       oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}</div>`,
@@ -1937,7 +1946,7 @@
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
       </div>
-      ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
+      ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}${folhaDesafio()}`;
   }
 
   const SOBRE_TIPO = {
@@ -3298,6 +3307,19 @@
         break;
       case 'abrir-desafio':
         ir({ nome: 'desafio' });
+        break;
+      case 'aceitar-desafio': {
+        tela.desafioModal = false;
+        const ok = erro(C.aceitarDesafio(estado));
+        salvar();
+        if (ok) ir({ nome: 'desafio' }); else render();
+        break;
+      }
+      case 'declinar-desafio':
+        C.declinarDesafio(estado);
+        tela.desafioModal = false;
+        salvar();
+        render();
         break;
       case 'ajuste-desafio': {
         const k = alvo.dataset.k;

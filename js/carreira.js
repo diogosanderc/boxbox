@@ -1272,6 +1272,40 @@
     return Math.round(etapa * FRACAO_MEDALHA[medalha] / 100) * 100;
   }
 
+  // O desafio chega num aviso (modal) a cada 24 h: aceitar abre o desafio, declinar espera o próximo.
+  // estado.desafioProximo: quando o aviso aparece de novo (o primeiro, 24 h depois de começar a usar).
+  function desafioModalPendente(estado, agora = Date.now()) {
+    if (estado.fase !== 'paddock') return false;
+    if (estado.desafioProximo == null) { estado.desafioProximo = agora + DIA_MS; return false; }
+    return agora >= estado.desafioProximo;
+  }
+  // Desafio aceito e ainda dentro das 24 h (só então o cartão do desafio aparece no paddock).
+  function desafioAtivo(estado, agora = Date.now()) {
+    const st = estado.desafio;
+    if (!st || st.aceito === false || st.campeonato !== estado.campeonato) return false;
+    const inicio = inicioDesafio(st, agora);
+    return inicio != null && agora < inicio + DIA_MS;
+  }
+  function aceitarDesafio(estado, agora = Date.now()) {
+    if (!desafioLiberado(estado, agora)) {
+      estado.desafioProximo = agora + DIA_MS;
+      return pedePremium('O desafio do dia grátis já foi. Com o Premium, tem desafio novo todo dia.');
+    }
+    const d = desafioDaSemana(estado, agora);
+    const st = estadoDesafio(estado, d);
+    if (st.inicio == null) st.inicio = agora;
+    st.aceito = true;
+    if (!semanasJogadas(estado).includes(d.semana)) estado.semanasDesafio = [...semanasJogadas(estado), d.semana];
+    estado.desafioProximo = st.inicio + DIA_MS;
+    return { ok: true };
+  }
+  function declinarDesafio(estado, agora = Date.now()) {
+    const st = estadoDesafio(estado, desafioDaSemana(estado, agora));
+    if (st.inicio == null) st.inicio = agora; // este desafio passa; o próximo sai 24 h depois
+    st.aceito = false;
+    estado.desafioProximo = agora + DIA_MS;
+  }
+
   function tentarDesafio(estado, agora = Date.now()) {
     if (estado.fase === 'fds') return { ok: false, erro: 'O desafio é no paddock, entre as etapas.' };
     if (!desafioLiberado(estado, agora)) return pedePremium('O desafio da semana grátis já foi. Com o Premium, tem desafio novo toda semana.');
@@ -2315,7 +2349,7 @@
     textoMeta, DURACOES_PATROCINIO, duracoesPatrocinio, aceitarPatrocinio, recusarPatrocinio, aceitarProposta, recusarProposta,
     esperaTemporada, liberarEspera, ESPERA_TEMPORADA_MS, pistaAtual, climaAtual, leituraPista, recordePista, iniciarFimDeSemana, pularEtapa, definirSetup, escolherPneu, saidaTreino, pedirSugestao,
     irParaClassificacao, classificar, criarCorrida, concluirCorrida, anotarCorrida, concluirEtapa, nomeDe,
-    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, nomeDoPiloto, rivalCarreira, desafioDaSemana, desafioLiberado, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
+    classificacaoCampeonato, posicaoNoCampeonato, proximaTemporada, companheiro, recordesCarreira, CONQUISTAS, conferirConquistas, nomeDoPiloto, rivalCarreira, desafioDaSemana, desafioLiberado, desafioModalPendente, desafioAtivo, aceitarDesafio, declinarDesafio, premioMedalha, estadoDesafio, tentarDesafio, ajustarDesafio, voltasDesafio, TENTATIVAS_DESAFIO, podeEncerrar, encerrarCarreira, galeriaDaFama, IDADE_APOSENTADORIA, concluirSprint, ordemLargada, sprintPendente, voltasSprint, PONTOS_SPRINT, usaCompostos, escolherComposto, vidaComposto, compostoMontado, quatroPneus, tiposPneu, nomePneu, vidaDoPneu, faltaNoEstoque, estoqueImpede, compostosMinimos, COMPOSTO_DO_TIPO, TIPO_DO_COMPOSTO,
   };
   if (typeof module === 'object' && module.exports) module.exports = Carreira;
   else root.BoxCarreira = Carreira;
