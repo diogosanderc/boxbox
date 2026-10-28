@@ -753,7 +753,7 @@ test('todas as pistas e equipes de F3, F2 e F1 têm dados completos', () => {
       for (const k of ['extensao', 'retas', 'curvas', 'zebras', 'asfalto', 'sobre', 'tempoBase']) assert.ok(p[k] != null, `${reg}/${p.id} sem ${k}`);
     }
     const eqs = Dados.EQUIPES_MONO[reg];
-    assert.strictEqual(eqs.length, 10);
+    assert.strictEqual(eqs.length, reg === 'f1' ? 11 : 10);
     for (const x of eqs) assert.ok(['ponta', 'media', 'pequena'].includes(x.porte));
     if (reg === 'f1') for (const x of eqs) assert.ok(x.salario > 0);
   }

@@ -1528,7 +1528,7 @@
   }
 
   // Gráfico de linha da posição (P1 em cima). Uma série só: sem legenda, rótulo direto no último e no melhor ponto.
-  function graficoPosicao(pontos, maxPos = 20) {
+  function graficoPosicao(pontos, maxPos = Math.max(20, ((estado && estado.rivais) || []).length + 1)) {
     if (pontos.length < 2) return '<p class="vazio">O gráfico aparece depois de duas etapas.</p>';
     const [L, R, T, B] = [34, 300, 14, 132];
     const x = (i) => L + (pontos.length === 1 ? 0 : (i * (R - L)) / (pontos.length - 1));

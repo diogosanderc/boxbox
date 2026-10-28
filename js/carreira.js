@@ -193,12 +193,12 @@
   }
   const rivalCarreira = (estado) => (estado.rivalCarreira && estado.rivais.find((r) => r.id === 'rc')) || null;
 
-  // Monta o grid do campeonato: 19 rivais em 10 equipes (2 vagas cada); você ocupa uma vaga na sua equipe.
+  // Monta o grid do campeonato: 2 pilotos por equipe (10 equipes e 19 rivais; na F1, 11 equipes e 21 rivais); você ocupa uma vaga na sua equipe.
   function montarGrid(estado) {
     const rnd = rngDe(estado);
     const camp = campeonato(estado.campeonato);
     const usados = new Set([sobrenomeJogador(estado)]);
-    const rivais = Array.from({ length: 19 }, () => gerarRival(estado, rnd, camp.nivel, camp.regiao, usados))
+    const rivais = Array.from({ length: equipesDaCategoria(estado).length * 2 - 1 }, () => gerarRival(estado, rnd, camp.nivel, camp.regiao, usados))
       .sort((a, b) => nota(b) - nota(a));
     const vagas = [];
     for (const e of equipesDaCategoria(estado)) {

@@ -50,7 +50,7 @@ A FIA só deixa correr de F4 a partir dos **15 anos**: se a proposta vier antes,
 temporada em que o piloto completar 15.
 
 Uma proposta de equipe de F4 (ou de uma academia de F1, que paga tudo) leva o piloto aos monopostos: **F4 Europa Series**,
-8 circuitos (Imola, Misano, Monza, Mugello, Vallelunga, Spa, Spielberg e Le Castellet) e 10 equipes próprias.
+8 circuitos (Imola, Misano, Monza, Mugello, Vallelunga, Spa, Spielberg e Le Castellet) e 10 equipes próprias (11 na F1, com 22 carros).
 O carro é outro: **asa dianteira e traseira, suspensão, altura, pressão e relação do câmbio**, com o seu próprio acerto ideal
 escondido (pista veloz pede pouca asa; chuva, calor e altitude pedem mais). Quando chove na corrida, dá para chamar o
 carro para o **box** e colocar pneu de chuva (a parada custa uns 24 segundos).

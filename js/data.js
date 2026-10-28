@@ -122,6 +122,8 @@
         descricao: 'Americana e enxuta. Compra peças de quem pode.' },
       { id: 'f1-hinwil', nome: 'Hinwil Motorsport', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 60000,
         descricao: 'Suíça, em transição para virar equipe de fábrica.' },
+      { id: 'f1-liberty', nome: 'Liberty Motorsport', cor: '#c9a227', material: 83, mecanico: 78, caixa: 0, custoEtapa: 6800, organizacao: 76, porte: 'pequena', salario: 40000,
+        descricao: 'A 11ª equipe do grid: americana, novata e com dinheiro de montadora.' },
   ];
   const EQUIPES_MONO = { f4: EQUIPES_F4, f3: EQUIPES_F3, f2: EQUIPES_F2, f1: EQUIPES_F1 };
 
