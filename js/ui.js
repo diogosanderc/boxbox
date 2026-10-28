@@ -1239,10 +1239,8 @@
     const custo = C.custoEtapa(estado);
     const semDinheiro = estado.dinheiro < custo;
     const total = C.etapasDe(estado);
-    // Até 10 etapas, uma bolinha por etapa; calendários longos (F2, F1) viram uma barra de progresso.
-    const pontos = total <= 10
-      ? Array.from({ length: total }, (_, i) => `<i class="${i < estado.etapa ? 'feita' : i === estado.etapa ? 'atual' : ''}"></i>`).join('')
-      : `<span class="etapas-barra"><i style="width:${(estado.etapa / total) * 100}%"></i></span>`;
+    // Progresso do campeonato: sempre uma barra (cabe em qualquer calendário, de 8 a 24 etapas).
+    const pontos = `<span class="etapas-barra"><i style="width:${(estado.etapa / total) * 100}%"></i></span>`;
     return `<section class="painel hero">
       <header class="cartao-topo"><h3>Etapa ${estado.etapa + 1}/${total}</h3><span class="etapas" aria-hidden="true">${pontos}</span><span class="espaco"></span>${botaoAjuda('etapa')}</header>
       <div class="hero-corpo">
