@@ -230,7 +230,12 @@
   let anim3d = null;
   const tipo3d = () => (Kart.monoposto() ? 'f1' : 'kart');
   const coresPiloto = () => C.coresDoPiloto(estado);
-  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo });
+  // Composto do pneu montado, para o letreiro colorido do pneu 3D (macio vermelho, médio amarelo, duro branco).
+  const pneu3d = () => {
+    const p = estado && estado.fds && estado.pneus && estado.pneus.find((x) => x.id === estado.fds.pneuId);
+    return p ? { slick: 'macio', macio: 'macio', M: 'macio', medio: 'medio', Md: 'medio', duro: 'duro', D: 'duro' }[p.tipo] : undefined;
+  };
+  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo, pneu: pneu3d() });
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
@@ -1941,7 +1946,7 @@
           <button class="discreto" data-acao="abandonar" data-confirmar="Toque de novo para apagar tudo">Apagar carreira</button>
         </div>
         <p class="fraco mini rodape-nota">Sua carreira fica salva no aparelho: ao sair, é só tocar em Continuar. Apagar a carreira começa tudo de novo, do kart.</p>
-        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, e “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, todos CC BY 4.0.</p>
+        <p class="fraco mini rodape-nota">3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, e “F1 TYRES PACK 2022”, de zordew, todos CC BY 4.0.</p>
       </div>
       ${folhaChecagem()}${folhaPneu()}${folhaTutorialPneus()}${folhaProposta()}`;
   }

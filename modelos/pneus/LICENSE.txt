@@ -1,0 +1,12 @@
+Model Information:
+* title:	F1 TYRES PACK 2022 - HARD - MEDIUM - SOFT
+* source:	https://sketchfab.com/3d-models/f1-tyres-pack-2022-hard-medium-soft-307a0557dde44cf1a7f6f2d1958c383d
+* author:	zordew (https://sketchfab.com/zordewgfx)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "F1 TYRES PACK 2022 - HARD - MEDIUM - SOFT" (https://sketchfab.com/3d-models/f1-tyres-pack-2022-hard-medium-soft-307a0557dde44cf1a7f6f2d1958c383d) by zordew (https://sketchfab.com/zordewgfx) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+Alterações: geometria reduzida às peças da roda (pneu, aro, cubo, disco e parafusos), recentralizada no eixo e texturas redimensionadas para 1024x1024.

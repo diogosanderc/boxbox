@@ -3,6 +3,7 @@
 // Modelos (licença CC BY 4.0, textos em modelos/*/LICENSE.txt):
 //   F1: "F1 2022 {FREE!!}" por 3dblenderlol (sketchfab.com/3dblenderlol)
 //   Kart: "Racing Kart 125cc (low poly)" por sceeth (sketchfab.com/sceeth)
+//   Pneus da F1: "F1 TYRES PACK 2022 - HARD - MEDIUM - SOFT" por zordew (sketchfab.com/zordewgfx), em modelos/pneus
 (function (root) {
   'use strict';
 
@@ -50,10 +51,10 @@
 
   // ---------- WebGL ----------
   const VS = `#version 300 es
-  in vec3 p; in vec3 n; uniform mat4 mvp; uniform mat4 mdl; out vec3 vn; out vec3 vp;
-  void main(){ vn = mat3(mdl)*n; vp = (mdl*vec4(p,1.)).xyz; gl_Position = mvp*vec4(p,1.); }`;
+  in vec3 p; in vec3 n; in vec2 uv; uniform mat4 mvp; uniform mat4 mdl; out vec3 vn; out vec3 vp; out vec2 vuv;
+  void main(){ vn = mat3(mdl)*n; vp = (mdl*vec4(p,1.)).xyz; vuv = uv; gl_Position = mvp*vec4(p,1.); }`;
   const FS = `#version 300 es
-  precision mediump float; in vec3 vn; in vec3 vp; uniform vec4 cor; uniform vec2 mr; out vec4 o;
+  precision mediump float; in vec3 vn; in vec3 vp; in vec2 vuv; uniform vec4 cor; uniform vec2 mr; uniform sampler2D tex; uniform float usaTex; out vec4 o;
   void main(){
     vec3 N = normalize(vn); if(!gl_FrontFacing) N = -N;
     vec3 L1 = normalize(vec3(.5,.9,.6)), L2 = normalize(vec3(-.7,.3,-.4));
@@ -61,7 +62,8 @@
     vec3 V = normalize(vec3(0.,3.,8.)-vp); vec3 H = normalize(L1+V);
     float sp = pow(max(dot(N,H),0.), 16.+(1.-mr.y)*90.)*(.15+mr.x*.5);
     float rim = pow(1.-max(dot(N,V),0.), 3.)*.15;
-    o = vec4(cor.rgb*d + sp + rim*vec3(.6,.7,1.), 1.);
+    vec3 base = usaTex > .5 ? texture(tex, vuv).rgb : cor.rgb;
+    o = vec4(base*d + sp + rim*vec3(.6,.7,1.), 1.);
   }`;
 
   async function lerBinario(urls) {
@@ -83,7 +85,7 @@
     const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
     const prog = gl.createProgram();
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
-    const loc = { p: gl.getAttribLocation(prog, 'p'), n: gl.getAttribLocation(prog, 'n'), mvp: gl.getUniformLocation(prog, 'mvp'), mdl: gl.getUniformLocation(prog, 'mdl'), cor: gl.getUniformLocation(prog, 'cor'), mr: gl.getUniformLocation(prog, 'mr') };
+    const loc = { p: gl.getAttribLocation(prog, 'p'), n: gl.getAttribLocation(prog, 'n'), mvp: gl.getUniformLocation(prog, 'mvp'), mdl: gl.getUniformLocation(prog, 'mdl'), cor: gl.getUniformLocation(prog, 'cor'), mr: gl.getUniformLocation(prog, 'mr'), uv: gl.getAttribLocation(prog, 'uv'), tex: gl.getUniformLocation(prog, 'tex'), usaTex: gl.getUniformLocation(prog, 'usaTex') };
     const ncomp = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
     const dados = (i) => {
       const a = j.accessors[i], v = j.bufferViews[a.bufferView], off = (v.byteOffset || 0) + (a.byteOffset || 0), nc = ncomp[a.type];
@@ -175,18 +177,73 @@
       const novo = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null };
       nos.push(novo); raizes.push(novo.i); hastes.push(novo.i);
     }
-    return { nos, malhas, prog, loc, divididos, hastes, flexivel, partes, raizes };
+    // Pneus de F1 de verdade (pneu com letreiro, aro, cubo, disco e parafusos): entram como filhos das rodas do modelo,
+    // que deixam de ser desenhadas. Os nós das rodas continuam sendo quem gira, inclina e infla.
+    let texturas = null;
+    if (def.pneus) {
+      const P = def.pneus;
+      const [pj, pbin, imgs] = await Promise.all([fetch(P.arquivo).then((r) => r.json()), lerBinario(P.binarios), Promise.all(['macio', 'medio', 'duro'].map((c) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = `${P.pasta}/${c}.png`; })))]);
+      texturas = {};
+      ['macio', 'medio', 'duro'].forEach((c, k) => {
+        const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[k]); gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        texturas[c] = t;
+      });
+      const pecas = pj.pecas.map((q) => {
+        const f32 = (o, n) => new Float32Array(pbin, o, n);
+        const pr = criar(f32(q.p, q.n * 3), f32(q.nor, q.n * 3), new Uint16Array(pbin, q.i, q.ni), 5123, {});
+        pr.cor = [...q.cor, 1]; pr.mr = q.mr;
+        if (q.uv != null) {
+          gl.bindVertexArray(pr.vao);
+          const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, f32(q.uv, q.n * 2), gl.STATIC_DRAW);
+          gl.enableVertexAttribArray(loc.uv); gl.vertexAttribPointer(loc.uv, 2, gl.FLOAT, false, 0, 0);
+          gl.bindVertexArray(null); pr.tex = true;
+        }
+        return pr;
+      });
+      const pais = {}; nos.forEach((n) => n.filhos.forEach((f) => { pais[f] = n.i; }));
+      const mundoNo = (i) => { const c = []; for (let x = i; x != null; x = pais[x]) c.push(x); return c.reverse().reduce((m, x) => mul(m, nos[x].local), ident()); };
+      const inversa = (m) => { // matriz de transformação rígida com escala: inversa geral 4x4 por cofatores
+        const a = m, o = new Float32Array(16);
+        const s0 = a[0] * a[5] - a[4] * a[1], s1 = a[0] * a[9] - a[8] * a[1], s2 = a[0] * a[13] - a[12] * a[1], s3 = a[4] * a[9] - a[8] * a[5], s4 = a[4] * a[13] - a[12] * a[5], s5 = a[8] * a[13] - a[12] * a[9];
+        const c5 = a[10] * a[15] - a[14] * a[11], c4 = a[6] * a[15] - a[14] * a[7], c3 = a[6] * a[11] - a[10] * a[7], c2 = a[2] * a[15] - a[14] * a[3], c1 = a[2] * a[11] - a[10] * a[3], c0 = a[2] * a[7] - a[6] * a[3];
+        const det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0, d = 1 / det;
+        o[0] = (a[5] * c5 - a[9] * c4 + a[13] * c3) * d; o[1] = (-a[1] * c5 + a[9] * c2 - a[13] * c1) * d; o[2] = (a[1] * c4 - a[5] * c2 + a[13] * c0) * d; o[3] = (-a[1] * c3 + a[5] * c1 - a[9] * c0) * d;
+        o[4] = (-a[4] * c5 + a[8] * c4 - a[12] * c3) * d; o[5] = (a[0] * c5 - a[8] * c2 + a[12] * c1) * d; o[6] = (-a[0] * c4 + a[4] * c2 - a[12] * c0) * d; o[7] = (a[0] * c3 - a[4] * c1 + a[8] * c0) * d;
+        o[8] = (a[7] * s5 - a[11] * s4 + a[15] * s3) * d; o[9] = (-a[3] * s5 + a[11] * s2 - a[15] * s1) * d; o[10] = (a[3] * s4 - a[7] * s2 + a[15] * s0) * d; o[11] = (-a[3] * s3 + a[7] * s1 - a[11] * s0) * d;
+        o[12] = (-a[6] * s5 + a[10] * s4 - a[14] * s3) * d; o[13] = (a[2] * s5 - a[10] * s2 + a[14] * s1) * d; o[14] = (-a[2] * s4 + a[6] * s2 - a[14] * s0) * d; o[15] = (a[2] * s3 - a[6] * s1 + a[10] * s0) * d;
+        return o;
+      };
+      for (const [id, c] of Object.entries(def.RODAS)) {
+        const d = P.rodas[id], nd = nos[id], esq = c[0] < 0;
+        const ao = mul(trans(c[0], c[1], c[2]), mul(esq ? rotY(Math.PI) : ident(), escala(d.w, d.r, d.r)));
+        const local = mul(inversa(mundoNo(+id)), ao);
+        nd.malha = null;
+        for (const o of P.antigas[id]) nos[o].malha = null; // listra, disco e cubo antigos, soltos ao lado da roda
+        const grupo = { i: nos.length, filhos: [], malha: null, local, mundo: null, cor: null, mr: null, fixo: true };
+        nos.push(grupo); nd.filhos.push(grupo.i);
+        pecas.forEach((pr) => {
+          malhas.push([pr]);
+          const f = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null, fixo: true };
+          nos.push(f); grupo.filhos.push(f.i);
+        });
+      }
+    }
+    return { nos, malhas, prog, loc, divididos, hastes, flexivel, partes, raizes, texturas, composto: 'medio' };
   }
 
   function desenhar(gl, mod, vp) {
     const { nos, malhas, loc } = mod;
-    gl.useProgram(mod.prog);
+    gl.useProgram(mod.prog); gl.uniform1i(loc.tex, 0);
     const visita = (i, pai) => {
       const n = nos[i]; let w = mul(pai, n.local);
       if (n.mundo) w = mul(n.mundo, w);
       if (n.malha != null) for (const pr of malhas[n.malha]) {
         gl.uniformMatrix4fv(loc.mvp, false, mul(vp, w)); gl.uniformMatrix4fv(loc.mdl, false, w);
         gl.uniform4fv(loc.cor, n.cor || pr.cor); gl.uniform2fv(loc.mr, n.mr || pr.mr);
+        const tx = pr.tex && mod.texturas ? mod.texturas[mod.composto] || mod.texturas.medio : null;
+        gl.uniform1f(loc.usaTex, tx ? 1 : 0); if (tx) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tx); }
         gl.bindVertexArray(pr.vao); gl.drawElements(gl.TRIANGLES, pr.n, pr.tipo, 0);
       }
       for (const f of n.filhos) visita(f, w);
@@ -265,6 +322,8 @@
       camber: { yaw: 0.12, pitch: 0.08, dist: 5.2, t: [0, 0.38, 2.43] },
     },
     RODAS: { 6: [0.74, 0.32, 2.43], 33: [0.72, 0.32, -0.72], 83: [-0.72, 0.32, -0.72], 89: [-0.74, 0.32, 2.43] },
+    // pneus 3D (F1 TYRES PACK 2022, CC BY 4.0): r e w = escala do raio e da largura em cada roda (dianteiras e traseiras)
+    pneus: { arquivo: 'modelos/pneus/scene.json', binarios: ['modelos/pneus/scene.bin', 'modelos/pneus/scene.bin.txt'], pasta: 'modelos/pneus', antigas: { 6: [7, 8, 9, 10], 33: [34, 35, 36, 37], 83: [84, 85, 86, 87], 89: [90, 91, 92, 93] }, rodas: { 6: { r: 0.88, w: 1.07 }, 89: { r: 0.88, w: 1.07 }, 33: { r: 1.14, w: 1.13 }, 83: { r: 1.14, w: 1.13 } } },
     CARROCERIA: [4, 27, 30, 20],
     // flaps: os elementos de trás da asa dianteira e o elemento de cima da asa traseira (sem as placas laterais)
     partes: [{ id: 'asaF', no: 22, teste: (x, y, z) => z < 3.22 && Math.abs(x) < 0.8 }, { id: 'asaT', no: 63, teste: (x, y, z) => y > 0.66 && Math.abs(x) < 0.47 },
@@ -272,8 +331,9 @@
       { id: 'halo', no: 20, teste: (x, y, z) => z > 1.3 && y > 0.58 }],
     pintar(m, cor, ex = {}) {
       const PNEU = hex('#13161c'), CARB = hex('#232c3d'), DETALHE = hex(ex.asas || '#2b3550');
+      m.composto = ex.pneu || 'medio';
       for (const n of m.nos) {
-        if (n.malha == null) continue;
+        if (n.malha == null || n.fixo) continue;
         const orig = m.malhas[n.malha][0].cor;
         if (this.CARROCERIA.includes(n.i)) { n.cor = hex(cor); n.mr = [0.3, 0.35]; }
         else if (n.i === 22 || n.i === 63 || n.i === m.partes.asaF || n.i === m.partes.asaT) n.cor = DETALHE;
@@ -289,6 +349,7 @@
     },
     // corpo, asas e halo com as cores do jogador (halo sem cor própria segue o corpo)
     cores(m, cor, ex = {}) {
+      m.composto = ex.pneu || 'medio';
       for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor);
       for (const i of [22, 63, m.partes.asaF, m.partes.asaT]) if (m.nos[i]) m.nos[i].cor = hex(ex.asas || '#2b3550');
       if (m.partes.halo != null) m.nos[m.partes.halo].cor = hex(ex.halo || cor);

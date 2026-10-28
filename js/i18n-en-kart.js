@@ -310,6 +310,6 @@
     'Mais rápido, mas gasta mais depressa.': 'Faster, but wears out quicker.',
     'O meio-termo: dura um pouco mais.': 'The middle ground: lasts a little longer.',
     'Dura mais na pista, mas é mais lento.': 'Lasts longer on track, but slower.',
-    '3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, e “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, todos CC BY 4.0.': '3D: “F1 2022 {FREE!!}” by 3dblenderlol, “Racing Kart 125cc (low poly)” by sceeth, “Gold Trophy” by urbanmasque and “PODIUM WINNER INTERNATIONAL ZISE 122X366” by eventdesignws, all CC BY 4.0.',
+    '3D: “F1 2022 {FREE!!}”, de 3dblenderlol, “Racing Kart 125cc (low poly)”, de sceeth, “Gold Trophy”, de urbanmasque, “PODIUM WINNER INTERNATIONAL ZISE 122X366”, de eventdesignws, e “F1 TYRES PACK 2022”, de zordew, todos CC BY 4.0.': '3D: “F1 2022 {FREE!!}” by 3dblenderlol, “Racing Kart 125cc (low poly)” by sceeth, “Gold Trophy” by urbanmasque, “PODIUM WINNER INTERNATIONAL ZISE 122X366” by eventdesignws and “F1 TYRES PACK 2022” by zordew, all CC BY 4.0.',
   });
 })();
