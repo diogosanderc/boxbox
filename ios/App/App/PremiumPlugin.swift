@@ -12,7 +12,7 @@ private let premiumProductId = "com.diogosander.superlicenca.premium"
 private struct PremiumStoreTimeout: Error {}
 
 // Resolve a continuação uma vez só: o que vier primeiro entre "a App Store respondeu" e "deu tempo".
-private final class OnceBox<T> {
+private final class OnceBox<T>: @unchecked Sendable { // protegida por lock: só uma resposta passa
     private let lock = NSLock()
     private var continuation: CheckedContinuation<T, Error>?
     init(_ continuation: CheckedContinuation<T, Error>) { self.continuation = continuation }
