@@ -2164,7 +2164,8 @@
     const volta = () => { pintarKnob(g.cel, g.i0); BoxCarro3D.previa(g.k, setupDaAcao(g.acao)[g.k]); };
     if (ev.type !== 'pointerup') { volta(); return; }
     let i = g.i;
-    if (!g.ativo) { volta(); return; }
+    // Toque rápido (sem segurar e sem rolar a página): lembra como mexer no knob.
+    if (!g.ativo) { if (!g.desistiu) aviso('Segure o knob até acender a luz verde e deslize para os lados.', 'chave'); volta(); return; }
     if (i === g.i0) { volta(); return; }
     aplicarAjuste(g.acao, g.k, valorAjuste(Kart.AJUSTES[g.k], i));
   };

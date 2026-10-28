@@ -37,6 +37,9 @@
   const PREMIO_ETAPA = [3000, 2000, 1500, 1200, 1000, 800, 600, 400, 300, 200];
   // Os 4 primeiros do campeonato sobem de degrau (no Europeu, para a F4).
   const VAGAS_SUBIDA = 4;
+  // Nos monopostos (F4, F3, F2) os 6 primeiros recebem proposta da categoria seguinte: P1 e P2 pelo programa de jovens,
+  // P3 e P4 pagando 40% e P5 e P6 pagando 70%, para uma equipe do fim do grid (a F3 não vira um muro).
+  const VAGAS_SUBIDA_MONO = 6;
   // Premium (compra única no app): mais patrocinadores, mais espaço de pneus e anotações no caderno.
   // A carreira inteira é grátis; o Premium só amplia o que dá para fazer nela.
   let premium = false;
@@ -1044,19 +1047,21 @@
   function propostasDeSubida(estado, destino, pos, rnd) {
     const lista = Dados.EQUIPES_MONO[destino];
     // Na F1 o estreante começa numa equipe do meio: as de ponta chamam depois, por resultado.
-    const faixas = (destino === 'f1' ? { 1: [4, 6], 2: [5, 7], 3: [6, 8], 4: [7, 9] } : { 1: [0, 2], 2: [1, 3], 3: [3, 5], 4: [5, 7] })[pos];
+    const faixas = (destino === 'f1' ? { 1: [4, 6], 2: [5, 7], 3: [6, 8], 4: [7, 9], 5: [8, 10], 6: [9, 10] } : { 1: [0, 2], 2: [1, 3], 3: [3, 5], 4: [5, 7], 5: [6, 8], 6: [7, 9] })[pos];
     const sorteio = () => faixas[0] + Math.floor(rnd() * (faixas[1] - faixas[0] + 1));
     const indices = pos === 1 ? [...new Set([faixas[0], sorteio()])] : [sorteio()];
     const prox = campeonato(destino);
     return indices.map((i) => {
       const e = lista[Math.min(i, lista.length - 1)];
-      const pago = pos <= 2;
+      const pago = pos <= 2, parte = pago ? 0 : pos <= 4 ? 0.4 : 0.7;
+      // P5 e P6 só recebem a vaga se o caixa aguenta a parte deles na temporada (senão a subida levaria à falência).
+      if (pos > VAGAS_SUBIDA && destino !== 'f1' && estado.dinheiro < e.custoEtapa * prox.custo * (prox.etapas || 10) * parte * 1.1) return null;
       const texto = destino === 'f1'
         ? `Vaga de piloto titular na ${prox.curto}. Salário de US$ ${e.salario.toLocaleString('pt-BR')} por etapa e luvas de US$ ${(e.salario * LUVAS_F1).toLocaleString('pt-BR')} ao assinar.`
         : pago ? `Vaga na ${prox.curto} pelo programa de jovens pilotos: a equipe paga a temporada.`
-          : `Vaga na ${prox.curto} para o próximo ano. Você paga 40% do orçamento da equipe.`;
-      return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, parte: pago ? 0 : 0.4, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
-    });
+          : `Vaga na ${prox.curto} para o próximo ano. Você paga ${Math.round(parte * 100)}% do orçamento da equipe.`;
+      return { id: `pr${estado.proxId++}`, tipo: 'subida', campeonato: destino, pago, parte, equipe: e.id, nome: `${e.nome} (${prox.curto})`, texto };
+    }).filter(Boolean);
   }
 
   function aceitarProposta(estado, id) {
@@ -2143,11 +2148,11 @@
         noticia(estado, `${melhor.nome} quer ${p.nome} na F4 assim que completar ${IDADE_F4} anos.`);
       }
     }
-    // Nos monopostos, os 4 primeiros recebem proposta da categoria seguinte (F4 → F3 → F2 → F1).
-    const destino = !noKart && pos <= VAGAS_SUBIDA && PROXIMA_CATEGORIA[camp.id];
+    // Nos monopostos, os 6 primeiros recebem proposta da categoria seguinte (F4 → F3 → F2 → F1).
+    const destino = !noKart && pos <= VAGAS_SUBIDA_MONO && PROXIMA_CATEGORIA[camp.id];
     if (destino) {
       const prox = campeonato(destino);
-      rel.motivoF4 = pos === 1 ? `Campeão da ${camp.curto}! As equipes de ${prox.curto} querem você.` : `Você terminou em P${pos} na ${camp.curto}: os ${VAGAS_SUBIDA} primeiros chamam a atenção das equipes de ${prox.curto}.`;
+      rel.motivoF4 = pos === 1 ? `Campeão da ${camp.curto}! As equipes de ${prox.curto} querem você.` : `Você terminou em P${pos} na ${camp.curto}: os ${VAGAS_SUBIDA_MONO} primeiros chamam a atenção das equipes de ${prox.curto}.`;
       propostasF4.push(...propostasDeSubida(estado, destino, pos, rnd));
     }
     rel.equipes = equipesDisponiveis(estado, pos);

@@ -180,6 +180,7 @@
     'Vaga de piloto titular na {1}. Salário de US$ {2} por etapa e luvas de US$ {3} ao assinar.': 'A race seat at {1}. A salary of US$ {2} per round and a US$ {3} signing bonus.',
     'Vaga na {1} pelo programa de jovens pilotos: a equipe paga a temporada.': 'A seat at {1} through the young driver programme: the team pays for your season.',
     'Vaga na {1} para o próximo ano. Você paga 40% do orçamento da equipe.': 'A seat at {1} for next year. You pay 40% of the team budget.',
+    'Vaga na {1} para o próximo ano. Você paga 70% do orçamento da equipe.': 'A seat at {1} for next year. You pay 70% of the team budget.',
     'Proposta expirada.': 'Offer expired.',
     'Dinheiro insuficiente para pagar a multa de rescisão.': 'Insufficient funds to pay the contract buy-out.',
     '{1} troca a {2} pela {3}.': '{1} leaves {2} for {3}.',
