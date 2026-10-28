@@ -11,7 +11,7 @@ intelectual) da Apple antes de publicar.
 ## Inglês (idioma principal)
 
 - **Nome:** Super Licence
-- **Subtítulo:** From karting to the top
+- **Subtítulo:** From kart to world champion
 - **Texto promocional:** Start in a kart at 12, tune every setup, manage your career and chase the Super Licence that opens the door to the top of motorsport.
 - **Palavras-chave:** racing,career,kart,motorsport,driver,tuning,setup,pit stop,tyres,manager,simulator,single seater
 
@@ -30,14 +30,14 @@ Soft, medium and hard tyres, mandatory pit stops, safety cars, wet races, sprint
 A CAREER, NOT A SINGLE RACE
 Grow your driver with development points, race against a team-mate, earn records and achievements, and see how far your story goes.
 
-Free to play: you can play one full season, then the next one opens 24 hours later (or right away if you watch an ad). A one-time Premium purchase removes the wait between seasons and gives you more tyre sets, a better pit crew, telemetry and your own car and helmet colours, with no subscription.
+Free to play, with an ad every few races. You can play one full season, then the next one opens 24 hours later (or right away if you watch an ad). A one-time Premium purchase removes the wait between seasons and the ads, and adds more tyre sets, a better pit crew, telemetry, a bank, the daily challenge and your own car and helmet colours, with no subscription.
 
 Model credits: "F1 2022 {FREE!!}" by 3dblenderlol, "Racing Kart 125cc (low poly)" by sceeth, "Gold Trophy" by urbanmasque, "PODIUM WINNER INTERNATIONAL ZISE 122X366" by eventdesignws and "F1 TYRES PACK 2022" by zordew, all CC BY 4.0.
 
 ## Português do Brasil
 
 - **Nome:** Superlicença
-- **Subtítulo:** Do kart ao topo
+- **Subtítulo:** Do kart ao título mundial
 - **Texto promocional:** Comece num kart aos 12 anos, acerte cada carro, cuide da carreira e persiga a Superlicença que abre a porta do topo do automobilismo.
 - **Palavras-chave:** corrida,carreira,kart,automobilismo,piloto,acerto,pit stop,pneus,simulador,monoposto,gerenciar
 
@@ -56,7 +56,7 @@ Pneus macio, médio e duro, parada obrigatória, safety car, corrida na chuva, s
 UMA CARREIRA, NÃO UMA CORRIDA
 Evolua o piloto com pontos de desenvolvimento, dispute com o companheiro de equipe, conquiste recordes e conquistas e veja até onde vai a sua história.
 
-Grátis para jogar: você joga uma temporada inteira e a próxima abre 24 horas depois (ou na hora, se assistir a um anúncio). Uma compra única do Premium tira a espera entre as temporadas e dá mais jogos de pneus, equipe de box melhor, telemetria e cores do seu carro e do seu capacete, sem assinatura.
+Grátis para jogar, com um anúncio a cada algumas corridas. Você joga uma temporada inteira e a próxima abre 24 horas depois (ou na hora, se assistir a um anúncio). Uma compra única do Premium tira a espera entre as temporadas e os anúncios, e dá mais jogos de pneus, equipe de box melhor, telemetria, banco, o desafio do dia e cores do seu carro e do seu capacete, sem assinatura.
 
 Créditos dos modelos 3D: "F1 2022 {FREE!!}" de 3dblenderlol, "Racing Kart 125cc (low poly)" de sceeth, "Gold Trophy" de urbanmasque, "PODIUM WINNER INTERNATIONAL ZISE 122X366" de eventdesignws e "F1 TYRES PACK 2022" de zordew, todos CC BY 4.0.
 
