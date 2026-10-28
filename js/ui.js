@@ -338,7 +338,7 @@
     paddock: () => [
       { titulo: 'O paddock', texto: 'É a sua base entre as corridas. Daqui você cuida do dinheiro, do equipamento e da carreira.' },
       { sel: '#status', titulo: 'Caixa, moral e confiança', texto: 'O caixa paga a equipe, os pneus e o motor. Moral alta faz o piloto evoluir mais e a confiança alta deixa mais rápido e regular.' },
-      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos (cada categoria tem um teto, e só a F1 chega a 100), conquistas e pontos de evolução.\nOficina: pneus, motor e equipe de box.\nCaderno: o que você anotou de cada pista.\nFinanças: caixa, patrocínio e banco.\nO sino no alto traz as notícias: propostas e novidades.' },
+      { sel: '.abas', titulo: 'As abas', texto: 'Etapa: a próxima corrida.\nTabela: sua posição no campeonato.\nPiloto: atributos (cada categoria tem um teto, e só a F1 chega a 100), conquistas e pontos de evolução.\nOficina: pneus, motor, equipe de box e a Garagem (as cores do carro).\nCaderno: o que você anotou de cada pista.\nFinanças: caixa, patrocínio e banco.\nO sino no alto traz as notícias: propostas e novidades.' },
       { sel: '.hero', titulo: 'A próxima etapa', texto: 'Veja as informações da pista, previsão de manhã e de tarde e o custo da etapa. Toque em "Ver pista" para conhecer retas, curvas e o asfalto. É importantíssimo para o acerto do carro.' },
       { sel: '[data-aba="oficina"]', titulo: 'Oficina', texto: 'Antes de correr, confira os pneus e o motor. Um ponto laranja aqui avisa quando falta alguma coisa.' },
       { sel: '[data-aba="financas"]', titulo: 'Finanças', texto: 'O caixa, os patrocinadores no macacão e o banco ficam aqui.' },
@@ -1781,7 +1781,6 @@
     const p = estado.piloto;
     const ultimos = estado.historico.slice(-10).reverse();
     return `<div class="grade">
-      ${cartaoGaragem()}
       ${cartaoPontosEvolucao()}
       ${cartao(esc(p.nome), C.ATRIBUTOS.map((a) => barra(C.NOMES_ATRIBUTOS[a], p[a])).join(''))}
       ${cartaoCabeca()}
@@ -1919,7 +1918,7 @@
       resumo: () => `${cartaoProximaEtapa()}<div class="grade">${C.desafioAtivo(estado) ? cartaoDesafio() : ''}${cartaoCompanheiro()}${cartaoRivalCarreira()}</div>`,
       campeonato: () => `<div class="grade">${cartao('Classificação', listaCampeonato())}${cartao(`Calendário ${estado.ano}`, calendario())}</div>`,
       piloto: painelPiloto,
-      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}</div>`,
+      oficina: () => `<div class="grade">${cartaoOficina()}${estado.campeonato === 'f1' ? cartaoDesenvolvimento() : ''}${Kart.monoposto() ? cartaoBox() : ''}${cartaoGaragem()}</div>`,
       financas: () => `<div class="grade">${cartaoCaixa()}${cartaoPatrocinio()}${cartaoBanco()}</div>`,
       caderno: painelCaderno,
       noticias: () => cartao('Notícias', `<div class="noticias">${estado.noticias.map((n) => {
