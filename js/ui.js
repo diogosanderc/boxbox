@@ -235,7 +235,8 @@
     const p = estado && estado.fds && estado.pneus && estado.pneus.find((x) => x.id === estado.fds.pneuId);
     return p ? { slick: 'macio', macio: 'macio', M: 'macio', medio: 'medio', Md: 'medio', duro: 'duro', D: 'duro', chuva: 'chuva' }[p.tipo] : undefined;
   };
-  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo, pneu: pneu3d(), pneuNovo: ['f3', 'f2', 'f1'].includes(estado && estado.campeonato) });
+  const pneuNovo3d = () => ['f3', 'f2', 'f1'].includes(estado && estado.campeonato);
+  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo, pneu: pneu3d(), pneuNovo: pneuNovo3d() });
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
@@ -305,7 +306,15 @@
     const el = (q) => naPista.querySelector(q);
     el('[data-titulo]').textContent = titulo;
     el('[data-dica]').textContent = dica;
+    // O carrinho é o carro 3D do jogador, de lado, com o pneu escolhido e a cor original da equipe.
+    const kart = el('[data-kart]'), lugar3d = BoxCarro3D.html(tipo3d());
+    kart.classList.toggle('is3d', !!lugar3d);
+    kart.innerHTML = lugar3d || '🏎️';
     naPista.hidden = false;
+    if (lugar3d) {
+      BoxCarro3D.ligar(naPista, undefined, C.equipeBase(estado.equipeId).cor, tipo3d(), { pneu: pneu3d(), pneuNovo: pneuNovo3d() });
+      BoxCarro3D.foco('lado');
+    }
     const inicio = performance.now();
     const quadro = (agora) => {
       const t = Math.min(1, (agora - inicio) / duracao);
@@ -313,7 +322,7 @@
       el('[data-kart]').style.left = `${t * 100}%`;
       el('[data-passo]').textContent = passos[Math.min(passos.length - 1, Math.floor(t * passos.length))];
       if (t < 1) requestAnimationFrame(quadro);
-      else setTimeout(() => { naPista.hidden = true; depois(); }, 180);
+      else setTimeout(() => { naPista.hidden = true; BoxCarro3D.liberar(); depois(); }, 180);
     };
     requestAnimationFrame(quadro);
   }
@@ -932,6 +941,8 @@
     if (!ferramentasTeste()) return false;
     try { const v = localStorage.getItem(CHAVE_DEV); return BoxSave.nativo ? v === '1' : v !== '0'; } catch (e) { return !BoxSave.nativo; }
   };
+  // Atalho de teste para começar direto numa categoria: escondido, só liga com a chave 'superlicenca-dev-inicio' = '1' no aparelho.
+  const atalhoCategoriaTeste = () => { try { return localStorage.getItem('superlicenca-dev-inicio') === '1'; } catch (e) { return false; } };
   let toquesLogo = [];
   function tocarLogo() {
     if (!ferramentasTeste()) return;
@@ -956,7 +967,7 @@
           <button class="principal grande" data-acao="iniciar">Iniciar jogo</button>
           ${save ? `<button class="grande" data-acao="continuar">Continuar · ${esc(save.piloto.nome)} · ${save.ano}</button>` : ''}
           ${BoxPremium.depuracao ? `<button class="link-f4" data-acao="premium-dev">Dev (Xcode): Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>` : ''}
-          ${modoDev() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>
+          ${modoDev() ? `${atalhoCategoriaTeste() ? `<div class="dev-inicio"><span>Dev: começar direto na</span>${[['f4', 'F4', 15], ['f3', 'F3', 16], ['f2', 'F2', 17], ['f1', 'F1', 18]].map(([id, nome, idade]) => `<button class="link-f4" data-acao="iniciar-dev" data-id="${id}">${nome} · ${idade} anos</button>`).join('')}</div>` : ''}
             ${BoxPremium.nativo ? '' : `<button class="link-f4" data-acao="premium-dev">Dev: Premium ${BoxPremium.ativo ? 'ligado' : 'desligado'}</button>`}` : ''}
           <button class="link-f4 idioma" data-acao="idioma">${BoxI18n.idioma === 'en' ? 'Português' : 'English'}</button>
         </div>

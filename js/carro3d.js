@@ -313,6 +313,8 @@
     // Para onde a câmera vai quando o jogador mexe em cada knob (os demais ficam na visão geral).
     focos: {
       geral: { yaw: 0.95, pitch: 0.28, dist: 6.2, t: [0, 0.35, 1.15] },
+      // de lado, com a frente para a direita (o carrinho da barra "na pista")
+      lado: { yaw: -1.5708, pitch: 0.04, dist: 6.4, t: [0, 0.33, 1.15] },
       asaDianteira: { yaw: 0.7, pitch: 0.2, dist: 4.2, t: [0, 0.2, 3.1] },
       asaTraseira: { yaw: 3.5, pitch: 0.22, dist: 4.4, t: [0, 0.65, -1.0] },
       // visões de lado, para o "?" das asas (o ângulo do flap aparece melhor de perfil)
@@ -451,6 +453,7 @@
     CARROCERIA: [19, 25, 37, 23], BANCO: [39, 33], MOTOR: [3, 5], ESCAPE: 11, VOLANTE: 7,
     focos: {
       geral: { yaw: 0.95, pitch: 0.3, dist: 330, t: [0, 30, -130] },
+      lado: { yaw: -1.5708, pitch: 0.05, dist: 390, t: [0, 32, -85] },
       pressao: { yaw: 1.2, pitch: 0.12, dist: 120, t: [74, 22, -72] },
       bitola: { yaw: 0.3, pitch: 0.45, dist: 240, t: [0, 20, -72] },
       bitolaTraseira: { yaw: 3.4, pitch: 0.4, dist: 260, t: [0, 20, -224] },
@@ -633,6 +636,8 @@
   function previa(chave, valor) { if (chave in S.alvo && Number.isFinite(valor)) S.alvo[chave] = valor; }
   function definir(setup) { if (setup) S.alvo = { ...S.alvo, ...def().alvo(setup) }; }
 
-  const api = { html, ligar, foco, soltar, previa, definir, modoDica: (v) => { S.dica = !!v; }, temFoco: (tipo, chave) => !!(MODELOS[tipo] && MODELOS[tipo].focos[chave]) };
+  // Devolve o canvas ao acerto: o carro sai do espaço em que estava (a barra "na pista") e a câmera volta à visão geral.
+  function liberar() { clearTimeout(S.volta); S.host = null; S.foco = 'geral'; S.arrasto = 0; }
+  const api = { html, ligar, foco, soltar, liberar, previa, definir, modoDica: (v) => { S.dica = !!v; }, temFoco: (tipo, chave) => !!(MODELOS[tipo] && MODELOS[tipo].focos[chave]) };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BoxCarro3D = api;
 })(typeof window !== 'undefined' ? window : globalThis);
