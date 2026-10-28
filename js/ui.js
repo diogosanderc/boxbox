@@ -41,7 +41,7 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const reais = (x) => `US$ ${Math.round(x).toLocaleString('pt-BR')}`;
   const tipoPista = { travada: ['grampo', 'Travada'], mista: ['onda', 'Mista'], veloz: ['vento', 'Veloz'] };
-  const chipTipo = (tipo) => chip(`${ic(tipoPista[tipo][0])}${tipoPista[tipo][1]}`);
+  const chipTipo = (tipo, classe) => chip(`${ic(tipoPista[tipo][0])}${tipoPista[tipo][1]}`, classe);
 
   function tempoVolta(s) {
     if (s == null || !isFinite(s)) return '—';
@@ -1248,7 +1248,7 @@
       <div class="hero-corpo">
         <div class="hero-pista">
           <h2>${tituloForte(pista.nome)}</h2>
-          <div class="chips">${chipTipo(pista.tipo)}${chip(`${ic('montanha')}${pista.altitude} m`)}${chip(esc(pista.local))}${chipComposto()}</div>
+          <div class="chips chips-pista">${chipTipo(pista.tipo, 'chip-pista c-tipo')}${chip(`${ic('montanha')}${pista.altitude} m`, 'chip-pista c-alt')}${chip(esc(pista.local), 'chip-pista c-local')}${chipComposto()}</div>
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>

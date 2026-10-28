@@ -1713,3 +1713,9 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .avatar-fim { width: 40px; height: 40px; margin: 2px auto 4px; font-size: 14px; }
 .toast.toque { cursor: pointer; background: #12161f; color: #fff; box-shadow: 0 0 0 1.5px var(--alerta), 0 4px 16px rgba(0, 0, 0, 0.4); }
 .toast.toque b { color: var(--alerta); }
+
+/* Cartão Etapa: pista, altitude e local em destaque, cada um com a sua cor */
+.hero-pista .chip-pista { font-size: 14px; font-weight: 700; padding: 5px 11px; }
+.hero-pista .chip-pista.c-tipo { color: #8ab4ff; border-color: rgba(138, 180, 255, 0.6); background: rgba(138, 180, 255, 0.14); }
+.hero-pista .chip-pista.c-alt { color: #ffd24a; border-color: rgba(255, 210, 74, 0.55); background: rgba(255, 210, 74, 0.12); }
+.hero-pista .chip-pista.c-local { color: #f1f4fb; border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.1); }
