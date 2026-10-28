@@ -104,7 +104,7 @@ O arquivo `ios/App/Produtos.storekit` já tem o produto Premium, com preço de t
   Confira o texto exato no guia do Google "Declarar dados do app para a Apple".
 - **Classificação etária**: responda o questionário (corrida, sem violência; compras no app; anúncios).
 - **URL de privacidade**: a do quadro acima, nos dois idiomas.
-- **Capturas**: as de `docs/capturas` (iPhone 6,7" 1290×2796 e iPad 13" 2048×2732, em pt e en).
+- **Capturas**: as de `docs/capturas/iphone` (1206×2622) e `docs/capturas/ipad` (2048×2732), em pt e en.
 - **Texto da ficha e créditos dos modelos 3D**: em `docs/loja.md`. Os modelos são CC BY 4.0 e a licença
   pede o crédito: ele precisa estar na descrição do app.
 - **Conta de demonstração**: não precisa (o jogo não tem login).
