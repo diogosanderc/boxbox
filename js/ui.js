@@ -1879,7 +1879,7 @@
     return d ? { aba: d[1], sel: d[2] } : null;
   }
 
-  // Troca de aba do paddock (toque no menu ou deslizar o dedo). direcao: 1 = veio da direita, -1 = da esquerda.
+  // Troca de aba do paddock (toque no menu). direcao: 1 = veio da direita, -1 = da esquerda.
   const ORDEM_ABAS = ['resumo', 'campeonato', 'piloto', 'oficina', 'caderno', 'financas'];
   function trocarAba(aba, direcao = 0) {
     tela.aba = aba;
@@ -1890,27 +1890,6 @@
     // Se a pessoa já tinha descido, volta para o começo da aba (logo abaixo das abas).
     if (app.querySelector('.abas').getBoundingClientRect().top < 0) rolarPara('.abas');
   }
-  // Deslizar o dedo para os lados no paddock passa para a aba vizinha.
-  let toque = null;
-  app.addEventListener('touchstart', (ev) => {
-    const t = ev.touches[0];
-    toque = ev.touches.length === 1 && tela.nome === 'paddock' && !ev.target.closest('input, textarea, select, .segmentos, .folha-fundo, .tiles-rolam, .filtro-caderno')
-      ? { x: t.clientX, y: t.clientY, quando: Date.now() } : null;
-  }, { passive: true });
-  app.addEventListener('touchend', (ev) => {
-    if (!toque) return;
-    const t = ev.changedTouches[0];
-    const dx = t.clientX - toque.x, dy = t.clientY - toque.y;
-    const rapido = Date.now() - toque.quando < 700;
-    toque = null;
-    if (!rapido || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-    if (document.body.classList.contains('fundo-travado') || Tutorial.ativo()) return;
-    const i = ORDEM_ABAS.indexOf(tela.aba || 'resumo');
-    const j = i + (dx < 0 ? 1 : -1);
-    if (j < 0 || j >= ORDEM_ABAS.length) return;
-    trocarAba(ORDEM_ABAS[j], dx < 0 ? 1 : -1);
-  }, { passive: true });
-
   function telaPaddock() {
     const aba = tela.aba || 'resumo';
     // Proposta nova de outra equipe: abre em folha uma única vez (depois fica na linha dos Olheiros).

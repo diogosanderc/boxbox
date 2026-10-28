@@ -943,6 +943,8 @@
         id: `pt${estado.proxId++}`, empresa, porEtapa, meta, bonus: Math.round(porEtapa * (2 + porte) / 100) * 100,
         expira: estado.etapa + 2,
       });
+      // A oferta também chega nas notícias (o sino), com atalho para o cartão de patrocínio nas Finanças.
+      noticia(estado, `${empresa} quer patrocinar ${estado.piloto.nome}: US$ ${porEtapa.toLocaleString('pt-BR')} por etapa. Veja a oferta nas Finanças.`);
     }
   }
 

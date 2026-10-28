@@ -18,6 +18,7 @@
     '{1}, 12 anos, estreia no kart pela {2}.': '{1}, aged 12, makes their karting debut with {2}.',
     'Temporada nova, pneus novos: a equipe entrega {1}{2}. O estoque do ano passado ficou para trás.': "New season, new tyres: the team hands over {1}{2}. Last year's stock is gone.",
     '(dois slicks)': '(two slicks)',
+    '{1} quer patrocinar {2}: US$ {3} por etapa. Veja a oferta nas Finanças.': '{1} wants to sponsor {2}: US$ {3} per race. See the offer in Finances.',
     'A família junta US$ {1} para a temporada.': 'The family scrapes together US$ {1} for the season.',
     'Confiante, acha que pode ganhar de qualquer um.': 'Brimming with confidence, believes they can beat anyone.',
     'Tranquilo com o {1} e com o próprio ritmo.': 'Comfortable with the {1} and with their own pace.',
