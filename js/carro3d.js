@@ -180,11 +180,12 @@
     // Pneus de F1 de verdade (pneu com letreiro, aro, cubo, disco e parafusos): entram como filhos das rodas do modelo,
     // que deixam de ser desenhadas. Os nós das rodas continuam sendo quem gira, inclina e infla.
     let texturas = null;
+    const pneusTroca = { antigos: [], grupos: [] };
     if (def.pneus) {
       const P = def.pneus;
-      const [pj, pbin, imgs] = await Promise.all([fetch(P.arquivo).then((r) => r.json()), lerBinario(P.binarios), Promise.all(['macio', 'medio', 'duro'].map((c) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = `${P.pasta}/${c}.png`; })))]);
+      const [pj, pbin, imgs] = await Promise.all([fetch(P.arquivo).then((r) => r.json()), lerBinario(P.binarios), Promise.all(['macio', 'medio', 'duro', 'chuva'].map((c) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = `${P.pasta}/${c}.png`; })))]);
       texturas = {};
-      ['macio', 'medio', 'duro'].forEach((c, k) => {
+      ['macio', 'medio', 'duro', 'chuva'].forEach((c, k) => {
         const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgs[k]); gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -219,10 +220,10 @@
         const d = P.rodas[id], nd = nos[id], esq = c[0] < 0;
         const ao = mul(trans(c[0], c[1], c[2]), mul(esq ? rotY(Math.PI) : ident(), escala(d.w, d.r, d.r)));
         const local = mul(inversa(mundoNo(+id)), ao);
-        nd.malha = null;
-        for (const o of P.antigas[id]) nos[o].malha = null; // listra, disco e cubo antigos, soltos ao lado da roda
+        // a roda antiga (pneu, listra, disco e cubo, soltos ao lado) só some quando os pneus novos estão ligados
+        for (const o of [+id, ...P.antigas[id]]) pneusTroca.antigos.push({ no: o, malha: nos[o].malha });
         const grupo = { i: nos.length, filhos: [], malha: null, local, mundo: null, cor: null, mr: null, fixo: true };
-        nos.push(grupo); nd.filhos.push(grupo.i);
+        nos.push(grupo); nd.filhos.push(grupo.i); pneusTroca.grupos.push(grupo.i);
         pecas.forEach((pr) => {
           malhas.push([pr]);
           const f = { i: nos.length, filhos: [], malha: malhas.length - 1, local: ident(), mundo: null, cor: null, mr: null, fixo: true };
@@ -230,14 +231,14 @@
         });
       }
     }
-    return { nos, malhas, prog, loc, divididos, hastes, flexivel, partes, raizes, texturas, composto: 'medio' };
+    return { nos, malhas, prog, loc, divididos, hastes, flexivel, partes, raizes, texturas, composto: 'medio', pneusTroca };
   }
 
   function desenhar(gl, mod, vp) {
     const { nos, malhas, loc } = mod;
     gl.useProgram(mod.prog); gl.uniform1i(loc.tex, 0);
     const visita = (i, pai) => {
-      const n = nos[i]; let w = mul(pai, n.local);
+      const n = nos[i]; if (n.oculto) return; let w = mul(pai, n.local);
       if (n.mundo) w = mul(n.mundo, w);
       if (n.malha != null) for (const pr of malhas[n.malha]) {
         gl.uniformMatrix4fv(loc.mvp, false, mul(vp, w)); gl.uniformMatrix4fv(loc.mdl, false, w);
@@ -251,6 +252,15 @@
     for (const r of mod.raizes) visita(r, ident());
   }
 
+
+  // Pneus 3D novos (F3 em diante) ou as rodas antigas do modelo; o composto escolhe a textura do letreiro.
+  function aplicarPneus(m, ex) {
+    m.composto = ex.pneu || 'medio';
+    if (!m.pneusTroca) return;
+    const novos = !!ex.pneuNovo;
+    for (const a of m.pneusTroca.antigos) m.nos[a.no].malha = novos ? null : a.malha;
+    for (const g of m.pneusTroca.grupos) m.nos[g].oculto = !novos;
+  }
 
   // ---------- brilhos (modo dica): discos de freio e motor ----------
   const VS_B = `#version 300 es
@@ -331,7 +341,7 @@
       { id: 'halo', no: 20, teste: (x, y, z) => z > 1.3 && y > 0.58 }],
     pintar(m, cor, ex = {}) {
       const PNEU = hex('#13161c'), CARB = hex('#232c3d'), DETALHE = hex(ex.asas || '#2b3550');
-      m.composto = ex.pneu || 'medio';
+      aplicarPneus(m, ex);
       for (const n of m.nos) {
         if (n.malha == null || n.fixo) continue;
         const orig = m.malhas[n.malha][0].cor;
@@ -349,7 +359,7 @@
     },
     // corpo, asas e halo com as cores do jogador (halo sem cor própria segue o corpo)
     cores(m, cor, ex = {}) {
-      m.composto = ex.pneu || 'medio';
+      aplicarPneus(m, ex);
       for (const i of this.CARROCERIA) m.nos[i].cor = hex(cor);
       for (const i of [22, 63, m.partes.asaF, m.partes.asaT]) if (m.nos[i]) m.nos[i].cor = hex(ex.asas || '#2b3550');
       if (m.partes.halo != null) m.nos[m.partes.halo].cor = hex(ex.halo || cor);

@@ -233,9 +233,9 @@
   // Composto do pneu montado, para o letreiro colorido do pneu 3D (macio vermelho, médio amarelo, duro branco).
   const pneu3d = () => {
     const p = estado && estado.fds && estado.pneus && estado.pneus.find((x) => x.id === estado.fds.pneuId);
-    return p ? { slick: 'macio', macio: 'macio', M: 'macio', medio: 'medio', Md: 'medio', duro: 'duro', D: 'duro' }[p.tipo] : undefined;
+    return p ? { slick: 'macio', macio: 'macio', M: 'macio', medio: 'medio', Md: 'medio', duro: 'duro', D: 'duro', chuva: 'chuva' }[p.tipo] : undefined;
   };
-  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo, pneu: pneu3d() });
+  const extraCores = (c = coresPiloto()) => ({ asas: c.detalhe, halo: c.halo, pneu: pneu3d(), pneuNovo: ['f3', 'f2', 'f1'].includes(estado && estado.campeonato) });
   const CENA3D = {
     altura: { foco: 'altura', periodo: 2400 }, asaTraseira: { foco: 'asaTraseiraLado', periodo: 2400 }, asaDianteira: { foco: 'asaDianteiraLado', periodo: 2400 },
     suspensao: { foco: 'suspensaoLado', periodo: 3600 }, freio: { foco: 'freio', periodo: 4200 }, diferencial: { foco: 'diferencial', periodo: 3600 }, mapa: { foco: 'mapa', periodo: 3600 }, ers: { foco: 'ers', periodo: 3600 },
