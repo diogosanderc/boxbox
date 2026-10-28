@@ -65,7 +65,7 @@ P1 e P2 entram pelo programa de jovens pilotos (a equipe paga a temporada); P3 e
   F3 com 10 circuitos (Albert Park, Sakhir, Imola, Mônaco, Barcelona, Spielberg, Silverstone, Spa, Hungaroring, Monza),
   F2 com 14 (os da F3 mais Jeddah, Baku, Lusail e Yas Marina) e F1 com 24 (de Melbourne a Abu Dhabi, passando por
   Interlagos). Cada categoria tem o seu tempo de volta e o seu recorde na mesma pista.
-- **Equipes e pilotos fictícios** que lembram os reais (ex.: Scuderia Rossa, Argento Grand Prix, Papaya Racing,
+- **Equipes e pilotos fictícios** que lembram os reais (ex.: Scuderia Rossa, Silver Arrow Racing, Papaya Racing,
   Prima Racing), sem usar nomes ou marcas protegidas. Pilotos de 13 nacionalidades.
 - **Calendário real:** F3 com 10 etapas, F2 com 14 e F1 com 24 (kart e F4 seguem com 8).
 - **Carro mais complexo a cada degrau:** a F2 soma **balanço de freio** e **diferencial**; a F1 também **cambagem

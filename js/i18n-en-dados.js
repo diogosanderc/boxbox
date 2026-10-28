@@ -70,11 +70,12 @@
     'Bebida energética, carro agressivo e um time obcecado por vencer.': 'Energy-drink backed, an aggressive car and a team obsessed with winning.',
     'Laranja de Woking, de volta ao topo com um carro rapidíssimo.': 'Papaya from Woking, back at the top with a very quick car.',
     'Verde inglês, muito dinheiro e vontade de virar equipe grande.': 'British racing green, plenty of money and the ambition to become a top team.',
-    'Equipe histórica de Grove, reconstruindo para voltar a vencer.': 'Historic Grove team, rebuilding to win again.',
+    'Equipe histórica, reconstruindo para voltar a vencer.': 'A historic team, rebuilding to win again.',
     'Azul francês com motor próprio, ora brilha, ora some.': 'French blue with its own power unit: sometimes brilliant, sometimes missing.',
     'Equipe irmã de uma grande: trampolim para pilotos jovens.': 'Sister team of a big one: a stepping stone for young drivers.',
     'Americana e enxuta. Compra peças de quem pode.': 'American and lean. Buys parts from whoever will sell.',
-    'Suíça, em transição para virar equipe de fábrica.': 'Swiss, in transition towards becoming a works team.',
+    'Alemã, em transição para virar equipe de fábrica.': 'German, in transition towards becoming a works team.',
+    'A 11ª equipe do grid: americana, novata e com dinheiro de montadora.': 'The grid\'s 11th team: American, new, and backed by carmaker money.',
     'Étoile Racing': 'Étoile Racing',
 
     // ---- pistas: pontos de ultrapassagem e relevo ----
