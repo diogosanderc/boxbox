@@ -57,7 +57,7 @@
         if (r && r.purchased) definir(true);
         return { status: (r && r.status) || (r && r.purchased ? 'purchased' : 'cancelled') };
       } catch (e) {
-        return { status: 'erro', erro: (e && e.message) || String(e) };
+        return { status: 'erro', erro: (e && e.message) || String(e), codigo: e && e.code };
       }
     },
     async restaurar() {
@@ -67,11 +67,9 @@
         if (r && r.restored) definir(true);
         return { status: r && r.restored ? 'restaurado' : 'nada' };
       } catch (e) {
-        return { status: 'erro', erro: (e && e.message) || String(e) };
+        return { status: 'erro', erro: (e && e.message) || String(e), codigo: e && e.code };
       }
     },
-    // Só no navegador, pelo modo desenvolvedor.
-    // true só quando o app roda pelo Xcode (build de depuração).
     aoMudar(f) { ouvintes.push(f); },
   };
 

@@ -1716,3 +1716,8 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 .hero-pista .chip-pista.c-veloz { color: #4fdc8c; border-color: rgba(79, 220, 140, 0.6); background: rgba(79, 220, 140, 0.13); }
 .hero-pista .chip-pista.c-alt { color: #6fd8f0; border-color: rgba(111, 216, 240, 0.55); background: rgba(111, 216, 240, 0.12); }
 .hero-pista .chip-pista.c-local { color: #f1f4fb; border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.1); }
+
+/* Mensagem de erro ou aviso dentro da folha do Premium; o aviso da tela fica sempre por cima das folhas */
+.premium-msg { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 176, 32, 0.12); border: 1px solid rgba(255, 176, 32, 0.5); color: var(--alerta); font-weight: 600; font-size: 14px; }
+.premium-msg small { color: var(--fraco); font-weight: 500; }
+.toast { z-index: 80; }

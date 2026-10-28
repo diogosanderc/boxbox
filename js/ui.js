@@ -831,7 +831,7 @@
   folhaPremium.hidden = true;
   document.body.appendChild(folhaPremium);
   let comprando = false;
-  async function abrirPremium(motivo) {
+  async function abrirPremium(motivo, mensagem) {
     const ativo = BoxPremium.ativo;
     folhaPremium.innerHTML = `<div class="folha folha-premium" role="dialog" aria-modal="true" aria-labelledby="premium-titulo">
       <span class="premium-selo">${icone('estrela', 'ico-cheio')}</span>
@@ -839,6 +839,7 @@
       ${motivo && !ativo ? `<p class="premium-motivo">${esc(motivo)}</p>` : ''}
       <p class="fraco">${ativo ? 'Obrigado! O Premium está ativo neste aparelho.' : 'A carreira inteira, do kart à F1, é grátis. O Premium é uma compra única, sem assinatura, e libera:'}</p>
       <ul class="premium-lista">${BENEFICIOS_PREMIUM.map(([i, t, d]) => `<li>${icone(i)}<span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ul>
+      ${mensagem ? `<p class="premium-msg" role="alert">${mensagem}</p>` : ''}
       ${ativo ? '<button class="principal grande" data-premium="fechar">Fechar</button>' : `
         <button class="principal grande" data-premium="comprar" ${comprando ? 'disabled' : ''}>${comprando ? 'Processando…' : 'Desbloquear Premium <span data-preco></span>'}</button>
         <div class="botoes-2"><button data-premium="restaurar">Restaurar compras</button><button data-premium="fechar">Agora não</button></div>`}
@@ -858,10 +859,16 @@
     const r = acao === 'comprar' ? await BoxPremium.comprar() : await BoxPremium.restaurar();
     comprando = false;
     if (r.status === 'purchased' || r.status === 'restaurado') { folhaPremium.hidden = true; return; } // o aviso vem do aoMudar
-    abrirPremium();
-    if (r.status === 'pending') aviso('Compra pendente: o Premium libera assim que for aprovada.');
-    else if (r.status === 'nada') aviso('Nenhuma compra do Premium encontrada nesta conta.');
-    else if (r.status === 'erro') aviso('Não deu para falar com a App Store agora. Tente de novo.');
+    // As mensagens ficam dentro da própria folha (o aviso da tela fica por baixo dela).
+    let msg = '';
+    if (r.status === 'pending') msg = 'Compra pendente: o Premium libera assim que for aprovada.';
+    else if (r.status === 'nada') msg = 'Nenhuma compra do Premium encontrada nesta conta.';
+    else if (r.status === 'indisponivel') msg = 'A compra não está disponível agora.';
+    else if (r.status === 'erro') {
+      msg = r.codigo === 'PRODUCT_NOT_FOUND' ? 'O Premium não está disponível na loja agora. Tente mais tarde.' : 'Não deu para falar com a App Store agora. Tente de novo.';
+      if (r.codigo) msg += ` <small>(${esc(r.codigo)})</small>`;
+    }
+    abrirPremium(undefined, msg);
   });
 
   // Abertura: logotipo e "Iniciar jogo" (e "Continuar" quando há carreira salva).

@@ -230,6 +230,8 @@
     "A compra funciona no app do iPhone.": "Purchases work in the iPhone app.",
     "Compra pendente: o Premium libera assim que for aprovada.": "Purchase pending: Premium unlocks as soon as it is approved.",
     "Nenhuma compra do Premium encontrada nesta conta.": "No Premium purchase found on this account.",
+    "A compra não está disponível agora.": "Purchases are not available right now.",
+    "O Premium não está disponível na loja agora. Tente mais tarde.": "Premium is not available in the store right now. Please try again later.",
     "Erro da loja: {1}": "Store error: {1}",
     "Não deu para falar com a App Store agora. Tente de novo.": "Could not reach the App Store right now. Please try again.",
     "OK": "OK",
