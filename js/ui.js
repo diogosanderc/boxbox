@@ -1248,7 +1248,7 @@
       <div class="hero-corpo">
         <div class="hero-pista">
           <h2>${tituloForte(pista.nome)}</h2>
-          <div class="chips chips-pista">${chipTipo(pista.tipo, 'chip-pista c-tipo')}${chip(`${ic('montanha')}${pista.altitude} m`, 'chip-pista c-alt')}${chip(esc(pista.local), 'chip-pista c-local')}${chipComposto()}</div>
+          <div class="chips chips-pista">${chipTipo(pista.tipo, `chip-pista c-${pista.tipo}`)}${chip(`${ic('montanha')}${pista.altitude} m`, 'chip-pista c-alt')}${chip(esc(pista.local), 'chip-pista c-local')}${chipComposto()}</div>
           <button class="ver-pista" data-acao="ver-pista"><span class="ver-pista-texto"><b>Ver pista</b><small>Retas, curvas, zebras e asfalto</small></span><span aria-hidden="true">›</span></button>
           ${chipRival()}
         </div>

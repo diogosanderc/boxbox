@@ -1716,6 +1716,8 @@ path.dica-calor { fill: none; stroke: #ff6b4a; stroke-width: 2; stroke-linecap: 
 
 /* Cartão Etapa: pista, altitude e local em destaque, cada um com a sua cor */
 .hero-pista .chip-pista { font-size: 14px; font-weight: 700; padding: 5px 11px; }
-.hero-pista .chip-pista.c-tipo { color: #8ab4ff; border-color: rgba(138, 180, 255, 0.6); background: rgba(138, 180, 255, 0.14); }
-.hero-pista .chip-pista.c-alt { color: #ffd24a; border-color: rgba(255, 210, 74, 0.55); background: rgba(255, 210, 74, 0.12); }
+.hero-pista .chip-pista.c-travada { color: #ff7b7b; border-color: rgba(255, 107, 107, 0.6); background: rgba(255, 107, 107, 0.14); }
+.hero-pista .chip-pista.c-mista { color: #ffd24a; border-color: rgba(255, 210, 74, 0.6); background: rgba(255, 210, 74, 0.13); }
+.hero-pista .chip-pista.c-veloz { color: #4fdc8c; border-color: rgba(79, 220, 140, 0.6); background: rgba(79, 220, 140, 0.13); }
+.hero-pista .chip-pista.c-alt { color: #6fd8f0; border-color: rgba(111, 216, 240, 0.55); background: rgba(111, 216, 240, 0.12); }
 .hero-pista .chip-pista.c-local { color: #f1f4fb; border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.1); }
