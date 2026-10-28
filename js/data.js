@@ -118,11 +118,11 @@
         descricao: 'Azul francês com motor próprio, ora brilha, ora some.' },
       { id: 'f1-faenza', nome: 'Taurus Junior Team', cor: '#6692ff', material: 88, mecanico: 86, caixa: 0, custoEtapa: 7800, organizacao: 82, porte: 'media', salario: 160000,
         descricao: 'Equipe irmã de uma grande: trampolim para pilotos jovens.' },
-      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#b6babd', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 100000,
+      { id: 'f1-stripes', nome: 'Stars & Stripes F1', cor: '#f2f2f2', material: 86, mecanico: 82, caixa: 0, custoEtapa: 7200, organizacao: 78, porte: 'pequena', salario: 100000,
         descricao: 'Americana e enxuta. Compra peças de quem pode.' },
-      { id: 'f1-hinwil', nome: 'Ingolstadt Ring', cor: '#52e252', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 60000,
+      { id: 'f1-hinwil', nome: 'Ingolstadt Ring', cor: '#9aa3b2', material: 85, mecanico: 80, caixa: 0, custoEtapa: 7000, organizacao: 78, porte: 'pequena', salario: 60000,
         descricao: 'Alemã, em transição para virar equipe de fábrica.' },
-      { id: 'f1-liberty', nome: 'Detroit Motors', cor: '#c9a227', material: 83, mecanico: 78, caixa: 0, custoEtapa: 6800, organizacao: 76, porte: 'pequena', salario: 40000,
+      { id: 'f1-liberty', nome: 'Detroit Motors', cor: '#1a1a1a', material: 83, mecanico: 78, caixa: 0, custoEtapa: 6800, organizacao: 76, porte: 'pequena', salario: 40000,
         descricao: 'A 11ª equipe do grid: americana, novata e com dinheiro de montadora.' },
   ];
   const EQUIPES_MONO = { f4: EQUIPES_F4, f3: EQUIPES_F3, f2: EQUIPES_F2, f1: EQUIPES_F1 };
