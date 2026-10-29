@@ -14,7 +14,11 @@
   const nativo = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
   const plugin = nativo ? cap.registerPlugin('Anuncios') : null;
 
+  // A contagem fica no aparelho: fechar o app entre as corridas não pode zerar o anúncio.
+  const CHAVE = 'boxbox-anuncio-contagem';
   let corridasDesdeOUltimo = 0;
+  try { corridasDesdeOUltimo = Math.max(0, parseInt(raiz.localStorage.getItem(CHAVE), 10) || 0); } catch (e) { /* sem armazenamento */ }
+  const guardarContagem = () => { try { raiz.localStorage.setItem(CHAVE, String(corridasDesdeOUltimo)); } catch (e) { /* sem armazenamento */ } };
   let mostrando = false;
   let iniciado = null;
 
@@ -30,6 +34,7 @@
     async depoisDaCorrida(premium) {
       if (!plugin || premium || mostrando) return false;
       corridasDesdeOUltimo += 1;
+      guardarContagem();
       if (corridasDesdeOUltimo < CORRIDAS_ENTRE_ANUNCIOS) return false;
       mostrando = true;
       try {
@@ -37,8 +42,10 @@
         // npa: anúncios não personalizados (sem pedido de rastreamento).
         await plugin.showInterstitialAd({ adId: ID_INTERSTICIAL_IOS, npa: true });
         corridasDesdeOUltimo = 0; // só um anúncio que apareceu de verdade zera a contagem
+        guardarContagem();
         return true;
       } catch (e) {
+        console.log('Anuncio intersticial falhou:', e && (e.message || e)); // aparece no console do Xcode
         return false; // sem internet ou sem anúncio disponível: tenta na próxima corrida
       } finally {
         mostrando = false;
@@ -53,6 +60,7 @@
         const r = await plugin.showRewardedAd({ adId: ID_PREMIADO_IOS, npa: true });
         return !!(r && r.rewarded);
       } catch (e) {
+        console.log('Anuncio premiado falhou:', e && (e.message || e)); // aparece no console do Xcode
         return false; // sem internet ou sem anúncio disponível
       } finally {
         mostrando = false;
